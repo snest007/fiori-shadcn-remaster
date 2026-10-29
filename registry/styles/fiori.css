@@ -7091,6 +7091,28 @@
   --fiori-color-palette-item-margin: calc((var(--fiori-color-palette-item-hover-height) - var(--fiori-color-palette-item-height)) / 2);
   --fiori-split-button-middle-separator-top: -.0625rem;
   --fiori-split-button-middle-separator-height: 2.25rem;
+  --fiori-avatar-group-focus-border-radius-xs: initial;
+  --fiori-avatar-group-focus-border-radius-s: initial;
+  --fiori-avatar-group-focus-border-radius-m: initial;
+  --fiori-avatar-group-focus-border-radius-l: initial;
+  --fiori-avatar-group-focus-border-radius-xl: initial;
+  --fiori-breadcrumbs-margin: initial;
+  --fiori-carousel-background-color-solid: initial;
+  --fiori-carousel-background-color-translucent: initial;
+  --fiori-carousel-navigation-button-active-box-shadow: initial;
+  --fiori-x-icon-focus-border-radius: initial;
+  --fiori-progress-indicator-value-state-error-icon-color: initial;
+  --fiori-progress-indicator-value-state-warning-icon-color: initial;
+  --fiori-progress-indicator-value-state-success-icon-color: initial;
+  --fiori-progress-indicator-value-state-information-icon-color: initial;
+  --fiori-segmented-btn-background-color: initial;
+  --fiori-segmented-btn-border-color: initial;
+  --fiori-segmented-btn-hover-box-shadow: initial;
+  --fiori-textarea-focus-border-radius: initial;
+  --fiori-slider-root-side-padding: initial;
+  --fiori-slider-height: initial;
+  --fiori-numeric-input-input-error-background-color: initial;
+  --fiori-load-more-border-bottom: initial;
 }
 
 [data-theme="sap_horizon_hcb"][data-density="compact"],
@@ -7321,6 +7343,8 @@
   --fiori-range-slider-progress-focus-top: calc(-1 * ((var(--fiori-slider-handle-height) / 2) + .1875rem) + 2 * var(--fiori-slider-progress-border-width) - .125rem);
   --fiori-color-palette-item-before-focus-inset: .0625rem;
   --fiori-split-button-middle-separator-top: -.0625rem;
+  --fiori-slider-root-side-padding: initial;
+  --fiori-slider-height: initial;
 }
 
 [data-theme="sap_horizon_hcw"] {
@@ -7681,6 +7705,28 @@
   --fiori-numeric-input-border-hover: 2px solid var(--sapField_Hover_BorderColor);
   --fiori-numeric-input-input-border-top-bottom-focused-after: .125rem;
   --fiori-numeric-input-input-border-bottom-focused-after: .1875rem;
+  --fiori-avatar-group-focus-border-radius-xs: initial;
+  --fiori-avatar-group-focus-border-radius-s: initial;
+  --fiori-avatar-group-focus-border-radius-m: initial;
+  --fiori-avatar-group-focus-border-radius-l: initial;
+  --fiori-avatar-group-focus-border-radius-xl: initial;
+  --fiori-breadcrumbs-margin: initial;
+  --fiori-carousel-background-color-solid: initial;
+  --fiori-carousel-background-color-translucent: initial;
+  --fiori-carousel-navigation-button-active-box-shadow: initial;
+  --fiori-x-icon-focus-border-radius: initial;
+  --fiori-progress-indicator-value-state-error-icon-color: initial;
+  --fiori-progress-indicator-value-state-warning-icon-color: initial;
+  --fiori-progress-indicator-value-state-success-icon-color: initial;
+  --fiori-progress-indicator-value-state-information-icon-color: initial;
+  --fiori-segmented-btn-background-color: initial;
+  --fiori-segmented-btn-border-color: initial;
+  --fiori-segmented-btn-hover-box-shadow: initial;
+  --fiori-textarea-focus-border-radius: initial;
+  --fiori-slider-root-side-padding: initial;
+  --fiori-slider-height: initial;
+  --fiori-numeric-input-input-error-background-color: initial;
+  --fiori-load-more-border-bottom: initial;
 }
 
 [data-theme="sap_horizon_hcw"][data-density="compact"],
@@ -7911,6 +7957,8 @@
   --fiori-range-slider-progress-focus-top: calc(-1 * ((var(--fiori-slider-handle-height) / 2) + .1875rem) + 2 * var(--fiori-slider-progress-border-width) - .125rem);
   --fiori-color-palette-item-before-focus-inset: .0625rem;
   --fiori-split-button-middle-separator-top: -.0625rem;
+  --fiori-slider-root-side-padding: initial;
+  --fiori-slider-height: initial;
 }
 
 :root,

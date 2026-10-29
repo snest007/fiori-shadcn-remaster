@@ -1,0 +1,14 @@
+/* Bar: spacing for the items placed in its start / middle / end areas (ui5-bar ::slotted rules). */
+.fiori-bar__content > * {
+  margin: 0 0.25rem;
+}
+.fiori-bar__content > :not([hidden]):not([data-slot="button"]) {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+.fiori-bar__content > :not([hidden]):not([data-slot="button"]) {
+  display: inline-block;
+}
