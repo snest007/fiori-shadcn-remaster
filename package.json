@@ -1,0 +1,50 @@
+{
+  "name": "shadcn-fiori",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SAP Fiori (Horizon) look and interaction for React, distributed as a shadcn registry.",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.26.2",
+  "scripts": {
+    "tokens": "node scripts/generate-tokens.mjs",
+    "icons": "node scripts/generate-icons.mjs",
+    "generate": "pnpm tokens && pnpm icons",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "registry:build": "node scripts/build-registry-json.mjs && shadcn build registry.json --output public/r",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test",
+    "check": "pnpm generate && pnpm typecheck && pnpm registry:build && pnpm build && pnpm test"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "radix-ui": "^1.8.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
+    "@sap-theming/theming-base-content": "11.36.5",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@ui5/webcomponents": "2.28.1",
+    "@ui5/webcomponents-base": "2.28.1",
+    "@ui5/webcomponents-icons": "2.28.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "less-openui5": "0.12.0",
+    "pixelmatch": "^8.0.0",
+    "pngjs": "^7.0.0",
+    "shadcn": "4.23.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.5"
+  }
+}

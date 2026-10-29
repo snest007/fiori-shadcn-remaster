@@ -1,0 +1,220 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "fiori",
+  "homepage": "https://github.com/snest007/shadcn-fiori",
+  "items": [
+    {
+      "name": "fiori",
+      "type": "registry:base",
+      "title": "Fiori (SAP Horizon) base",
+      "description": "Theme, density, 72 font and the Phase 0 components. Install with `shadcn init <url>/r/fiori.json`.",
+      "registryDependencies": [
+        "@fiori/fiori-theme",
+        "@fiori/button",
+        "@fiori/label",
+        "@fiori/input",
+        "@fiori/select"
+      ],
+      "config": {
+        "style": "new-york",
+        "iconLibrary": "lucide",
+        "tailwind": {
+          "baseColor": "neutral",
+          "cssVariables": true
+        },
+        "registries": {
+          "@fiori": "http://localhost:4173/r/{name}.json"
+        }
+      }
+    },
+    {
+      "name": "fiori-theme",
+      "type": "registry:style",
+      "title": "Fiori theme",
+      "description": "SAP Horizon tokens (4 themes), density parameters, shadcn variable mapping and component CSS.",
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "files": [
+        {
+          "path": "registry/styles/fiori.css",
+          "type": "registry:file",
+          "target": "~/src/styles/fiori/fiori.css"
+        },
+        {
+          "path": "registry/styles/fiori-tailwind.css",
+          "type": "registry:file",
+          "target": "~/src/styles/fiori/fiori-tailwind.css"
+        },
+        {
+          "path": "registry/styles/fiori-components.css",
+          "type": "registry:file",
+          "target": "~/src/styles/fiori/fiori-components.css"
+        },
+        {
+          "path": "registry/lib/utils.ts",
+          "type": "registry:lib"
+        }
+      ],
+      "cssVars": {
+        "light": {
+          "radius": "var(--sapButton_BorderCornerRadius)",
+          "background": "var(--sapBackgroundColor)",
+          "foreground": "var(--sapTextColor)",
+          "card": "var(--sapTile_Background)",
+          "card-foreground": "var(--sapTile_TextColor)",
+          "popover": "var(--sapGroup_ContentBackground)",
+          "popover-foreground": "var(--sapTextColor)",
+          "primary": "var(--sapButton_Emphasized_Background)",
+          "primary-foreground": "var(--sapButton_Emphasized_TextColor)",
+          "secondary": "var(--sapButton_Background)",
+          "secondary-foreground": "var(--sapButton_TextColor)",
+          "muted": "var(--sapNeutralBackground)",
+          "muted-foreground": "var(--sapContent_LabelColor)",
+          "accent": "var(--sapList_Hover_Background)",
+          "accent-foreground": "var(--sapList_TextColor)",
+          "destructive": "var(--sapButton_Negative_Background)",
+          "border": "var(--sapGroup_ContentBorderColor)",
+          "input": "var(--sapField_BorderColor)",
+          "ring": "var(--sapContent_FocusColor)",
+          "sidebar": "var(--sapShell_Navigation_Background)",
+          "sidebar-foreground": "var(--sapShell_Navigation_TextColor)",
+          "sidebar-primary": "var(--sapShell_Navigation_SelectedColor)",
+          "sidebar-primary-foreground": "var(--sapContent_ContrastTextColor)",
+          "sidebar-accent": "var(--sapShell_Navigation_Hover_Background)",
+          "sidebar-accent-foreground": "var(--sapShell_Navigation_TextColor)",
+          "sidebar-border": "var(--sapShell_BorderColor)",
+          "sidebar-ring": "var(--sapContent_FocusColor)"
+        },
+        "dark": {
+          "radius": "var(--sapButton_BorderCornerRadius)",
+          "background": "var(--sapBackgroundColor)",
+          "foreground": "var(--sapTextColor)",
+          "card": "var(--sapTile_Background)",
+          "card-foreground": "var(--sapTile_TextColor)",
+          "popover": "var(--sapGroup_ContentBackground)",
+          "popover-foreground": "var(--sapTextColor)",
+          "primary": "var(--sapButton_Emphasized_Background)",
+          "primary-foreground": "var(--sapButton_Emphasized_TextColor)",
+          "secondary": "var(--sapButton_Background)",
+          "secondary-foreground": "var(--sapButton_TextColor)",
+          "muted": "var(--sapNeutralBackground)",
+          "muted-foreground": "var(--sapContent_LabelColor)",
+          "accent": "var(--sapList_Hover_Background)",
+          "accent-foreground": "var(--sapList_TextColor)",
+          "destructive": "var(--sapButton_Negative_Background)",
+          "border": "var(--sapGroup_ContentBorderColor)",
+          "input": "var(--sapField_BorderColor)",
+          "ring": "var(--sapContent_FocusColor)",
+          "sidebar": "var(--sapShell_Navigation_Background)",
+          "sidebar-foreground": "var(--sapShell_Navigation_TextColor)",
+          "sidebar-primary": "var(--sapShell_Navigation_SelectedColor)",
+          "sidebar-primary-foreground": "var(--sapContent_ContrastTextColor)",
+          "sidebar-accent": "var(--sapShell_Navigation_Hover_Background)",
+          "sidebar-accent-foreground": "var(--sapShell_Navigation_TextColor)",
+          "sidebar-border": "var(--sapShell_BorderColor)",
+          "sidebar-ring": "var(--sapContent_FocusColor)"
+        }
+      },
+      "css": {
+        "@import \"./styles/fiori/fiori.css\"": {},
+        "@import \"./styles/fiori/fiori-tailwind.css\"": {},
+        "@import \"./styles/fiori/fiori-components.css\"": {}
+      }
+    },
+    {
+      "name": "icons",
+      "type": "registry:lib",
+      "title": "SAP Horizon icons",
+      "description": "705 SAP Horizon icons (tree-shakeable) and the <Icon> component.",
+      "registryDependencies": [
+        "@fiori/fiori-theme"
+      ],
+      "files": [
+        {
+          "path": "registry/lib/fiori-icons.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "registry/ui/icon.tsx",
+          "type": "registry:ui"
+        }
+      ]
+    },
+    {
+      "name": "button",
+      "type": "registry:ui",
+      "registryDependencies": [
+        "@fiori/fiori-theme"
+      ],
+      "dependencies": [
+        "class-variance-authority",
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/button.tsx",
+          "type": "registry:ui"
+        }
+      ],
+      "title": "Button",
+      "description": "Fiori button designs: default, emphasized, transparent, positive, negative, attention."
+    },
+    {
+      "name": "label",
+      "type": "registry:ui",
+      "registryDependencies": [
+        "@fiori/fiori-theme"
+      ],
+      "dependencies": [
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/label.tsx",
+          "type": "registry:ui"
+        }
+      ],
+      "title": "Label",
+      "description": "Form label with required marker and colon."
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "registryDependencies": [
+        "@fiori/fiori-theme",
+        "@fiori/icons"
+      ],
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui"
+        }
+      ],
+      "title": "Input",
+      "description": "Fiori input with value states and value state message."
+    },
+    {
+      "name": "select",
+      "type": "registry:ui",
+      "registryDependencies": [
+        "@fiori/fiori-theme",
+        "@fiori/icons",
+        "@fiori/input"
+      ],
+      "dependencies": [
+        "radix-ui"
+      ],
+      "files": [
+        {
+          "path": "registry/ui/select.tsx",
+          "type": "registry:ui"
+        }
+      ],
+      "title": "Select",
+      "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open)."
+    }
+  ]
+}

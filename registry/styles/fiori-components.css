@@ -1,0 +1,329 @@
+/*
+ * Fiori component styles that are too stateful to express as utility classes
+ * (value state × hover × focus × read-only × high-contrast). Rules mirror UI5 Web Components'
+ * Input.css / Select.css / ListItemBase.css / ValueStateMessage.css; values come from fiori.css.
+ */
+@layer components {
+  /* ---------- Field (Input, Select trigger) ---------- */
+  .fiori-field {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: calc(var(--fiori-input-min-width) + var(--fiori-field-icons, 0) * var(--fiori-input-icon-width));
+    height: var(--fiori-input-height);
+    color: var(--sapField_TextColor);
+    font-family: var(--sapFontFamily);
+    font-size: var(--sapFontSize);
+    font-style: normal;
+    text-align: start;
+    border: var(--fiori-x-input-border);
+    border-radius: var(--fiori-input-border-radius);
+    background: var(--sapField_BackgroundStyle);
+    background-color: var(--fiori-input-background-color);
+    box-shadow: var(--sapField_Shadow);
+    transition: var(--fiori-input-transition);
+  }
+  .fiori-field[data-readonly] {
+    border: var(--fiori-input-readonly-border);
+    background: var(--sapField_ReadOnly_BackgroundStyle);
+    background-color: var(--fiori-input-readonly-background);
+    box-shadow: none;
+  }
+  .fiori-field[data-disabled] {
+    opacity: var(--fiori-input-disabled-opacity);
+    cursor: default;
+    pointer-events: none;
+    background-color: var(--fiori-x-input-disabled-background, var(--fiori-input-background-color));
+    border-color: var(--fiori-input-disabled-border-color);
+    box-shadow: var(--sapField_Shadow);
+  }
+  .fiori-field:not([data-readonly]):not([data-value-state]):hover {
+    border: var(--fiori-input-hover-border);
+    border-color: var(--fiori-input-focused-border-color);
+    box-shadow: var(--sapField_Hover_Shadow);
+    background: var(--sapField_Hover_BackgroundStyle);
+    background-color: var(--sapField_Hover_Background);
+  }
+
+  /* Focus: inner ring drawn by ::after, hidden while the field's popup is open. */
+  .fiori-field:focus-within:not([data-open]) {
+    border-color: var(--fiori-input-focused-border-color);
+    background-color: var(--sapField_Focus_Background);
+  }
+  .fiori-field:not([data-readonly]):not([data-value-state]):focus-within:not([data-open]):hover {
+    box-shadow: none;
+  }
+  .fiori-field:focus-within:not([data-open])::after {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+    inset: var(--fiori-input-focus-offset);
+    border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--fiori-input-focus-outline-color);
+    border-radius: var(--fiori-input-focus-border-radius);
+  }
+  .fiori-field[data-readonly]:focus-within:not([data-open])::after {
+    inset: var(--fiori-input-readonly-focus-offset);
+    border-radius: var(--fiori-input-readonly-focus-border-radius);
+  }
+
+  /* Value states */
+  .fiori-field:not([data-readonly]):not([data-disabled]):is([data-value-state="negative"], [data-value-state="critical"]) {
+    border-width: var(--fiori-input-state-border-width);
+  }
+  .fiori-field:not([data-readonly]):not([data-disabled]):is([data-value-state="negative"], [data-value-state="critical"], [data-value-state="information"]) {
+    border-style: var(--fiori-input-error-warning-border-style);
+  }
+  .fiori-field[data-value-state="negative"]:not([data-readonly]):not([data-disabled]) {
+    background: var(--sapField_InvalidBackgroundStyle);
+    background-color: var(--sapField_InvalidBackground);
+    border-color: var(--fiori-input-value-state-error-border-color);
+    box-shadow: var(--sapField_InvalidShadow);
+  }
+  .fiori-field[data-value-state="negative"]:not([data-readonly]):focus-within:not([data-open]) {
+    background-color: var(--fiori-input-focused-value-state-error-background);
+    border-color: var(--fiori-input-focused-value-state-error-border-color);
+  }
+  .fiori-field[data-value-state="negative"]:not([data-readonly]):focus-within:not([data-open])::after {
+    border-color: var(--fiori-input-focused-value-state-error-focus-outline-color);
+  }
+  .fiori-field[data-value-state="negative"]:not([data-readonly]):not(:focus-within):hover {
+    background-color: var(--fiori-input-value-state-error-hover-background);
+    box-shadow: var(--sapField_Hover_InvalidShadow);
+  }
+  .fiori-field[data-value-state="critical"]:not([data-readonly]):not([data-disabled]) {
+    background: var(--sapField_WarningBackgroundStyle);
+    background-color: var(--sapField_WarningBackground);
+    border-color: var(--fiori-input-value-state-warning-border-color);
+    box-shadow: var(--sapField_WarningShadow);
+  }
+  .fiori-field[data-value-state="critical"]:not([data-readonly]):focus-within:not([data-open]) {
+    background-color: var(--fiori-input-focused-value-state-warning-background);
+    border-color: var(--fiori-input-focused-value-state-warning-border-color);
+  }
+  .fiori-field[data-value-state="critical"]:not([data-readonly]):focus-within:not([data-open])::after {
+    border-color: var(--fiori-input-focused-value-state-warning-focus-outline-color);
+  }
+  .fiori-field[data-value-state="critical"]:not([data-readonly]):not(:focus-within):hover {
+    background-color: var(--sapField_Hover_Background);
+    box-shadow: var(--sapField_Hover_WarningShadow);
+  }
+  .fiori-field[data-value-state="positive"]:not([data-readonly]):not([data-disabled]) {
+    background: var(--sapField_SuccessBackgroundStyle);
+    background-color: var(--sapField_SuccessBackground);
+    border-color: var(--fiori-input-value-state-success-border-color);
+    border-width: var(--fiori-input-value-state-success-border-width);
+    box-shadow: var(--sapField_SuccessShadow);
+  }
+  .fiori-field[data-value-state="positive"]:not([data-readonly]):focus-within:not([data-open]) {
+    background-color: var(--fiori-input-focused-value-state-success-background);
+    border-color: var(--fiori-input-focused-value-state-success-border-color);
+  }
+  .fiori-field[data-value-state="positive"]:not([data-readonly]):focus-within:not([data-open])::after {
+    border-color: var(--fiori-input-focused-value-state-success-focus-outline-color);
+  }
+  .fiori-field[data-value-state="positive"]:not([data-readonly]):not(:focus-within):hover {
+    background-color: var(--sapField_Hover_Background);
+    box-shadow: var(--sapField_Hover_SuccessShadow);
+  }
+  .fiori-field[data-value-state="information"]:not([data-readonly]):not([data-disabled]) {
+    background: var(--sapField_InformationBackgroundStyle);
+    background-color: var(--sapField_InformationBackground);
+    border-color: var(--fiori-input-value-state-information-border-color);
+    border-width: var(--fiori-input-information-border-width);
+    box-shadow: var(--sapField_InformationShadow);
+  }
+  .fiori-field[data-value-state="information"]:not([data-readonly]):focus-within:not([data-open]) {
+    background-color: var(--fiori-input-focused-value-state-information-background);
+    border-color: var(--fiori-input-focused-value-state-information-border-color);
+  }
+  .fiori-field[data-value-state="information"]:not([data-readonly]):not(:focus-within):hover {
+    background-color: var(--sapField_Hover_Background);
+    box-shadow: var(--sapField_Hover_InformationShadow);
+  }
+
+  /* Native input inside a field */
+  .fiori-field__input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--fiori-input-inner-padding);
+    border: none;
+    outline: none;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-overflow: ellipsis;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .fiori-field[data-icons] .fiori-field__input {
+    padding: var(--fiori-input-inner-padding-with-icon);
+  }
+  .fiori-field:is([data-value-state="negative"], [data-value-state="critical"]) .fiori-field__input {
+    font-style: var(--fiori-input-error-warning-font-style);
+    text-indent: var(--fiori-input-error-warning-text-indent);
+  }
+  .fiori-field[data-value-state="negative"] .fiori-field__input {
+    font-weight: var(--fiori-input-error-font-weight);
+  }
+  .fiori-field[data-value-state="critical"] .fiori-field__input {
+    font-weight: var(--fiori-input-warning-font-weight);
+  }
+  .fiori-field:is([data-value-state="negative"], [data-value-state="critical"]) .fiori-field__input::placeholder {
+    font-weight: var(--fiori-input-value-state-error-warning-placeholder-font-weight);
+  }
+  .fiori-field__input::placeholder {
+    font-weight: 400;
+    font-style: var(--fiori-input-placeholder-style);
+    color: var(--fiori-input-placeholder-color);
+    padding-right: 0.125rem;
+  }
+  .fiori-field[data-value-state="negative"] .fiori-field__input::placeholder {
+    color: var(--fiori-x-input-error-placeholder-color, var(--fiori-input-placeholder-color));
+  }
+  .fiori-field:is([data-readonly], [data-disabled]) .fiori-field__input::placeholder {
+    visibility: hidden;
+  }
+  .fiori-field__input::selection {
+    background: var(--sapSelectedColor);
+    color: var(--sapContent_ContrastTextColor);
+  }
+  .fiori-field__input::-webkit-search-cancel-button,
+  .fiori-field__input::-webkit-search-decoration {
+    display: none;
+  }
+
+  /* Trailing icon slot (value help, select arrow) */
+  .fiori-field__icon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: var(--fiori-input-icon-width);
+    min-width: var(--fiori-input-icon-width);
+    color: var(--fiori-input-icon-color);
+    border-radius: var(--fiori-input-icon-border-radius);
+  }
+
+  /* ---------- Select trigger ---------- */
+  .fiori-select {
+    cursor: pointer;
+    outline: none;
+  }
+  .fiori-select[data-disabled] {
+    cursor: default;
+  }
+  .fiori-select__value {
+    flex: 1 1 auto;
+    align-self: center;
+    min-width: 1rem;
+    padding-inline-start: 0.5rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--fiori-select-label-color);
+    font-weight: 400;
+  }
+  .fiori-select .fiori-field__icon {
+    width: var(--fiori-select-icon-width);
+    min-width: var(--fiori-select-icon-width);
+  }
+
+  /* ---------- Popup surfaces ---------- */
+  .fiori-popover {
+    box-sizing: border-box;
+    background: var(--fiori-popover-background);
+    color: var(--sapTextColor);
+    border-radius: var(--fiori-popup-border-radius);
+    box-shadow: var(--fiori-popover-no-arrow-box-shadow);
+    overflow: hidden;
+  }
+
+  /* ---------- List item (select options, lists) ---------- */
+  .fiori-list-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    height: var(--fiori-list-item-base-height);
+    padding: var(--fiori-list-item-base-padding);
+    background-color: var(--fiori-x-listitem-background-color);
+    border-bottom: 0.0625rem solid transparent;
+    color: var(--sapList_TextColor);
+    font-family: var(--sapFontFamily);
+    font-size: var(--fiori-list-item-title-size);
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+  }
+  .fiori-list-item > [data-slot="select-item-text"] {
+    flex: auto;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .fiori-list-item[data-state="checked"] {
+    background-color: var(--sapList_SelectionBackgroundColor);
+    border-bottom: var(--fiori-x-listitem-selected-border-bottom);
+  }
+  .fiori-list-item:not([data-state="checked"]):hover {
+    background-color: var(--sapList_Hover_Background);
+  }
+  .fiori-list-item[data-state="checked"]:hover {
+    background-color: var(--sapList_Hover_SelectionBackground);
+  }
+  .fiori-list-item:active {
+    background-color: var(--sapList_Active_Background);
+    border-bottom-color: var(--sapList_Active_Background);
+    color: var(--sapList_Active_TextColor);
+  }
+  .fiori-list-item[data-highlighted]::after {
+    content: "";
+    position: absolute;
+    inset: 0.125rem;
+    pointer-events: none;
+    border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  }
+  .fiori-list-item[data-disabled] {
+    opacity: var(--sapContent_DisabledOpacity);
+    pointer-events: none;
+  }
+
+  /* ---------- Value state message ---------- */
+  .fiori-value-state-message {
+    position: relative;
+    box-sizing: border-box;
+    min-width: 6.25rem;
+    padding: var(--fiori-value-state-message-padding);
+    color: var(--sapTextColor);
+    font-family: var(--sapFontFamily);
+    font-size: var(--sapFontSmallSize);
+    line-height: var(--fiori-value-state-message-line-height);
+    border: var(--fiori-value-state-message-border);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .fiori-value-state-message[data-popover] {
+    border-radius: var(--fiori-value-state-message-popover-border-radius);
+    box-shadow: var(--fiori-value-state-message-popover-box-shadow);
+  }
+  .fiori-value-state-message > svg {
+    position: absolute;
+    inset-inline-start: var(--fiori-input-value-state-icon-offset);
+    width: var(--fiori-value-state-message-icon-width);
+    height: var(--fiori-value-state-message-icon-height);
+  }
+  .fiori-value-state-message[data-value-state="negative"] { background: var(--sapErrorBackground); }
+  .fiori-value-state-message[data-value-state="negative"] > svg { color: var(--sapNegativeElementColor); }
+  .fiori-value-state-message[data-value-state="critical"] { background: var(--sapWarningBackground); }
+  .fiori-value-state-message[data-value-state="critical"] > svg { color: var(--sapCriticalElementColor); }
+  .fiori-value-state-message[data-value-state="positive"] { background: var(--sapSuccessBackground); }
+  .fiori-value-state-message[data-value-state="positive"] > svg { color: var(--sapPositiveElementColor); }
+  .fiori-value-state-message[data-value-state="information"] { background: var(--sapInformationBackground); }
+  .fiori-value-state-message[data-value-state="information"] > svg { color: var(--sapInformativeElementColor); }
+}

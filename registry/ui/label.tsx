@@ -1,0 +1,48 @@
+import * as React from "react"
+import { Label as LabelPrimitive } from "radix-ui"
+
+import { cn } from "@/lib/utils"
+
+type LabelProps = React.ComponentProps<typeof LabelPrimitive.Root> & {
+  /** Adds the Fiori required marker (a magenta asterisk). */
+  required?: boolean
+  /** Appends a colon, as Fiori forms do for labels placed beside their field. */
+  showColon?: boolean
+  /** Truncate to one line with an ellipsis instead of wrapping. */
+  truncate?: boolean
+}
+
+// Mirrors ui5-label (Horizon).
+function Label({ className, children, required, showColon, truncate, ...props }: LabelProps) {
+  return (
+    <LabelPrimitive.Root
+      data-slot="label"
+      className={cn(
+        "inline-flex max-w-full cursor-text font-(family-name:--sapFontFamily) text-(length:--sapFontSize) leading-[normal] font-normal text-(--sapContent_LabelColor)",
+        "peer-disabled:opacity-(--sapContent_DisabledOpacity) group-data-[disabled=true]:opacity-(--sapContent_DisabledOpacity)",
+        truncate ? "whitespace-nowrap" : "whitespace-normal",
+        className
+      )}
+      {...props}
+    >
+      <span className={cn("pe-[0.075rem]", truncate && "min-w-0 overflow-hidden text-ellipsis")}>{children}</span>
+      {(showColon || required) && (
+        <span aria-hidden className={cn("whitespace-pre", showColon && "-ms-[0.05rem]")}>
+          {showColon && ":"}
+          {required && (
+            <span
+              className={cn(
+                "relative align-middle text-(length:--sapFontLargeSize) leading-0 font-bold not-italic text-(--sapField_RequiredColor)",
+                showColon && "ms-0.5"
+              )}
+            >
+              *
+            </span>
+          )}
+        </span>
+      )}
+    </LabelPrimitive.Root>
+  )
+}
+
+export { Label, type LabelProps }

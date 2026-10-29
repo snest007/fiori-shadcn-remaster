@@ -1,0 +1,8 @@
+node_modules
+dist
+public/r
+test-results
+playwright-report
+tests/__screenshots__/*-actual.png
+tests/__screenshots__/*-diff.png
+.DS_Store
