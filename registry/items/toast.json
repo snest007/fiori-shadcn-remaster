@@ -1,0 +1,5 @@
+{
+  "title": "Toast",
+  "registryDependencies": [],
+  "description": "Fiori toast: auto-dismisses after its duration, pauses on hover/focus, nine placements (ui5-toast)."
+}

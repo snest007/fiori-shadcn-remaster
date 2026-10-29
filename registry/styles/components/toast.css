@@ -1,0 +1,51 @@
+/* Toast (ui5-toast, Horizon). */
+.fiori-toast {
+  box-sizing: border-box;
+  display: block;
+  max-width: 15rem;
+  margin: 0;
+  padding: 1rem;
+  overflow: hidden;
+  background: var(--fiori-toast-background);
+  border: none;
+  border-radius: var(--sapElement_BorderCornerRadius);
+  box-shadow: var(--fiori-toast-shadow);
+  color: var(--sapContent_ContrastTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  outline: none;
+}
+.fiori-toast:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: var(--fiori-toast-offset-width);
+}
+.fiori-toast__root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: fit-content;
+}
+/* Placement (fixed to the viewport, like UI5's top-layer toast). */
+.fiori-toast[data-placement] { position: fixed; z-index: 100; }
+.fiori-toast[data-placement^="top"] { top: var(--fiori-toast-vertical-offset); }
+.fiori-toast[data-placement^="bottom"] { bottom: var(--fiori-toast-vertical-offset); }
+.fiori-toast[data-placement^="middle"] { top: 50%; translate: 0 -50%; }
+.fiori-toast[data-placement$="start"] { inset-inline-start: var(--fiori-toast-horizontal-offset); }
+.fiori-toast[data-placement$="end"] { inset-inline-end: var(--fiori-toast-horizontal-offset); }
+.fiori-toast[data-placement$="center"] { left: 50%; translate: -50% 0; }
+.fiori-toast[data-placement="middle-center"] { translate: -50% -50%; }
+/* Fades out during the last third of its duration (max 1s), unless hovered or focused. */
+.fiori-toast[data-fading] {
+  animation: fiori-toast-fade var(--fiori-toast-fade-duration) linear var(--fiori-toast-fade-delay) forwards;
+}
+@keyframes fiori-toast-fade {
+  to { opacity: 0; }
+}
