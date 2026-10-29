@@ -1,0 +1,42 @@
+/* Dialog (ui5-dialog, Horizon). Builds on .fiori-popup from popover.css. */
+.fiori-dialog {
+  min-width: min(20rem, 90vw);
+  min-height: min(6rem, 90vh);
+  max-width: 90%;
+  max-height: 94%;
+  border-radius: var(--sapElement_BorderCornerRadius);
+  box-shadow: var(--sapContent_Shadow3);
+}
+/* State line under the header; colored by the dialog's state. */
+.fiori-dialog .fiori-popup__header::before {
+  content: "";
+  position: absolute;
+  inset-block: auto 0;
+  inset-inline: 0;
+  height: var(--fiori-dialog-header-state-line-height);
+  background: var(--sapObjectHeader_BorderColor);
+}
+.fiori-dialog[data-state-value="negative"] .fiori-popup__header::before { background: var(--sapErrorBorderColor); }
+.fiori-dialog[data-state-value="critical"] .fiori-popup__header::before { background: var(--sapWarningBorderColor); }
+.fiori-dialog[data-state-value="positive"] .fiori-popup__header::before { background: var(--sapSuccessBorderColor); }
+.fiori-dialog[data-state-value="information"] .fiori-popup__header::before { background: var(--sapInformationBorderColor); }
+.fiori-dialog__state-icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-inline-end: 0.5rem;
+}
+.fiori-dialog[data-state-value="negative"] .fiori-dialog__state-icon { color: var(--sapNegativeElementColor); }
+.fiori-dialog[data-state-value="critical"] .fiori-dialog__state-icon { color: var(--sapCriticalElementColor); }
+.fiori-dialog[data-state-value="positive"] .fiori-dialog__state-icon { color: var(--sapPositiveElementColor); }
+.fiori-dialog[data-state-value="information"] .fiori-dialog__state-icon { color: var(--sapInformativeElementColor); }
+.fiori-dialog .fiori-popup__content {
+  flex: 1 1 auto;
+  min-height: var(--fiori-dialog-content-min-height);
+}
+.fiori-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--fiori-popup-block-layer-background);
+  opacity: var(--fiori-popup-block-layer-opacity);
+}

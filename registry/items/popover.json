@@ -1,0 +1,6 @@
+{
+  "title": "Popover",
+  "dependencies": ["radix-ui"],
+  "registryDependencies": [],
+  "description": "Fiori popover with arrow, optional header/footer bars and padded content (ui5-popover)."
+}

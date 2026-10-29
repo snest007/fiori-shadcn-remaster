@@ -1,0 +1,6 @@
+{
+  "title": "Dialog",
+  "dependencies": ["radix-ui"],
+  "registryDependencies": ["@fiori/icons", "@fiori/input", "@fiori/popover"],
+  "description": "Fiori modal dialog with header/footer bars and Negative/Critical/Positive/Information states (ui5-dialog)."
+}

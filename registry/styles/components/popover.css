@@ -7,3 +7,129 @@
   box-shadow: var(--fiori-popover-no-arrow-box-shadow);
   overflow: hidden;
 }
+
+/*
+ * Popup building blocks shared by Popover and Dialog (UI5 PopupsCommon.css).
+ * The root carries data-media-range="S|M|L|XL" (from its own width, like UI5's 4-step range set)
+ * which drives the content and header/footer side padding.
+ */
+.fiori-popup {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 2rem;
+  background: var(--sapGroup_ContentBackground);
+  border-radius: var(--fiori-popup-border-radius);
+  color: var(--sapTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  outline: none;
+}
+.fiori-popup__root {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: inherit;
+  border-radius: inherit;
+}
+.fiori-popup__header,
+.fiori-popup__footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: var(--fiori-popup-header-prop-header-text-alignment);
+  margin: 0;
+  padding-inline: var(--fiori-popup-header-footer-padding-s);
+}
+.fiori-popup__header {
+  position: relative;
+  min-height: var(--fiori-popup-default-header-height);
+  gap: 0.5rem;
+  background: var(--sapPageHeader_Background);
+  box-shadow: var(--fiori-popup-header-shadow);
+  border-bottom: var(--fiori-popup-header-border);
+}
+.fiori-popup__title {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  height: var(--fiori-popup-default-header-height);
+  margin: 0;
+  overflow: hidden;
+  color: var(--sapPageHeader_TextColor);
+  font-family: var(--sapFontHeaderFamily);
+  font-size: var(--sapFontHeader5Size);
+  font-weight: 400;
+  line-height: var(--fiori-popup-default-header-height);
+  text-overflow: ellipsis;
+  text-shadow: var(--sapContent_TextShadow);
+  white-space: nowrap;
+}
+.fiori-popup__title > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fiori-popup__content {
+  box-sizing: border-box;
+  flex: auto;
+  overflow: auto;
+  padding: 1rem var(--fiori-popup-content-padding-s);
+  color: var(--sapTextColor);
+}
+.fiori-popup__footer {
+  justify-content: flex-end;
+  height: calc(var(--fiori-popup-footer-height) + 1px);
+  box-sizing: border-box;
+  background: var(--sapPageFooter_Background);
+  border-top: 1px solid var(--sapPageFooter_BorderColor);
+  color: var(--sapPageFooter_TextColor);
+}
+/* Footer content sits in a Bar: each item gets 0.25rem side margins (ui5-bar ::slotted). */
+.fiori-popup__footer > * {
+  margin: 0 0.25rem;
+}
+.fiori-popup:is([data-media-range="M"], [data-media-range="L"]) .fiori-popup__content {
+  padding: 1rem var(--fiori-popup-content-padding-m-l);
+}
+.fiori-popup[data-media-range="XL"] .fiori-popup__content {
+  padding: 1rem var(--fiori-popup-content-padding-xl);
+}
+.fiori-popup:is([data-media-range="M"], [data-media-range="L"]) :is(.fiori-popup__header, .fiori-popup__footer) {
+  padding-inline: var(--fiori-popup-header-footer-padding-m-l);
+}
+.fiori-popup[data-media-range="XL"] :is(.fiori-popup__header, .fiori-popup__footer) {
+  padding-inline: var(--fiori-popup-header-footer-padding-xl);
+}
+
+/* Popover surface (ui5-popover). The arrow sits outside the clipped root. */
+.fiori-popover-surface {
+  position: relative;
+  min-width: 6.25rem;
+  background-color: var(--fiori-popover-background);
+  box-shadow: var(--fiori-popover-box-shadow);
+}
+.fiori-popover-surface[data-hide-arrow] {
+  box-shadow: var(--fiori-popover-no-arrow-box-shadow);
+}
+/* Arrow drawn pointing down (Radix rotates it per side): a clipped, rotated square. */
+.fiori-popover-arrow {
+  display: block;
+  width: 1rem;
+  height: 0.5rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fiori-popover-arrow::after {
+  content: "";
+  display: block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin: var(--fiori-popover-downward-arrow-margin);
+  background-color: var(--fiori-popover-background);
+  box-shadow: var(--fiori-popover-box-shadow);
+  transform: rotate(-45deg);
+}
