@@ -1,0 +1,75 @@
+/* Breadcrumbs: links styled like ui5-link inside ui5-breadcrumbs (wrapping "None", .25rem vertical padding). */
+.fiori-breadcrumbs__link {
+  display: inline-block;
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0.25rem 0;
+  color: var(--sapLinkColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+  cursor: pointer;
+  outline: none;
+  text-decoration: var(--fiori-link-text-decoration);
+  text-shadow: var(--sapContent_TextShadow);
+  outline-offset: var(--fiori-link-outline-offset);
+  border-radius: var(--fiori-link-focus-border-radius);
+}
+.fiori-breadcrumbs__link[data-emphasized] {
+  font-family: var(--sapFontBoldFamily);
+}
+.fiori-breadcrumbs__link:hover {
+  color: var(--sapLink_Hover_Color);
+  text-decoration: var(--fiori-link-hover-text-decoration);
+}
+.fiori-breadcrumbs__link:active {
+  color: var(--sapLink_Active_Color);
+  text-decoration: var(--fiori-link-active-text-decoration);
+}
+.fiori-breadcrumbs__link:focus-visible {
+  background-color: var(--fiori-link-focus-background-color);
+  outline: var(--fiori-link-outline);
+  border-radius: var(--fiori-link-focus-border-radius);
+  text-shadow: none;
+  color: var(--fiori-link-focus-color);
+  text-decoration: var(--fiori-link-focus-text-decoration);
+}
+.fiori-breadcrumbs__link:focus-visible:hover:not(:active) {
+  color: var(--fiori-link-focused-hover-text-color);
+  text-decoration: var(--fiori-link-focused-hover-text-decoration);
+}
+.fiori-breadcrumbs__current {
+  outline: none;
+}
+.fiori-breadcrumbs__current:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+}
+.fiori-breadcrumbs__separator::after {
+  content: "/";
+  display: inline-block;
+  padding: 0 0.25rem;
+  cursor: auto;
+  color: var(--fiori-breadcrumbs-separator-color);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+}
+[data-separators="double-slash"] .fiori-breadcrumbs__separator::after {
+  content: "//";
+}
+/* UI5 2.28 escapes these twice, so BackSlash renders "\\" and DoubleBackSlash "\\\\"; matched as rendered. */
+[data-separators="back-slash"] .fiori-breadcrumbs__separator::after {
+  content: "\\\\";
+}
+[data-separators="double-back-slash"] .fiori-breadcrumbs__separator::after {
+  content: "\\\\\\\\";
+}
+[data-separators="greater-than"] .fiori-breadcrumbs__separator::after {
+  content: ">";
+}
+[data-separators="double-greater-than"] .fiori-breadcrumbs__separator::after {
+  content: ">>";
+}

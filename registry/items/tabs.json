@@ -1,0 +1,5 @@
+{
+  "title": "Tabs (IconTabBar)",
+  "registryDependencies": ["@fiori/icons"],
+  "description": "Fiori IconTabBar / TabContainer: text and icon tabs, counts, semantic designs, UI5 keyboard model."
+}

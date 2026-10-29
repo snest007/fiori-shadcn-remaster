@@ -1,0 +1,11 @@
+/* Toolbar items (ui5-toolbar .ui5-tb-item): fixed width, spaced by the item margin; the last item
+   has no end margin (UI5 drops it while the overflow button is hidden). Flexible spacers have no margin. */
+.fiori-toolbar > :not([data-slot="toolbar-spacer"][data-flexible]) {
+  flex-shrink: 0;
+  margin-inline-start: var(--fiori-x-toolbar-item-margin-left);
+  margin-inline-end: var(--fiori-x-toolbar-item-margin-right);
+}
+.fiori-toolbar > :not([data-slot="toolbar-spacer"][data-flexible]):last-child {
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+}

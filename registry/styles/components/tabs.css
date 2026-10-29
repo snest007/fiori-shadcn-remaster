@@ -1,0 +1,375 @@
+/* Tabs (IconTabBar): ports ui5-tabcontainer + TabInStrip CSS. Container layout comes from data attributes:
+   header[data-layout=text|icons][data-additional-text], tab .fiori-tab--text|--icon[data-state][data-design]. */
+.fiori-tabs {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  font-family: var(--sapFontHeaderFamily);
+  font-size: 1rem;
+}
+.fiori-tabs__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: var(--fiori-tc-header-height);
+  padding: 0;
+  background-color: var(--fiori-tc-header-background);
+  box-shadow: var(--fiori-tc-header-box-shadow);
+}
+.fiori-tabs__header[data-layout="text"] {
+  height: var(--fiori-tc-header-height-text-only);
+}
+.fiori-tabs__header[data-layout="text"][data-additional-text] {
+  height: var(--fiori-tc-header-height-text-with-additional-text);
+}
+.fiori-tabs[data-header-background="transparent"] .fiori-tabs__header {
+  background-color: transparent;
+  box-shadow: none;
+  border-bottom: 0.0625rem solid var(--sapObjectHeader_BorderColor);
+}
+.fiori-tabs[data-header-background="translucent"] .fiori-tabs__header {
+  background-color: var(--fiori-tc-header-background-translucent);
+}
+.fiori-tabs__strip {
+  position: relative;
+  display: flex;
+  flex: 1;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.fiori-tabs__content {
+  position: relative;
+  display: flex;
+  box-sizing: border-box;
+  padding: 1rem;
+  background-color: var(--fiori-tc-content-background);
+  border-bottom: var(--fiori-tc-content-border-bottom);
+}
+.fiori-tabs__content[hidden] {
+  display: none;
+}
+.fiori-tabs[data-content-background="transparent"] .fiori-tabs__content {
+  background-color: transparent;
+}
+.fiori-tabs[data-content-background="translucent"] .fiori-tabs__content {
+  background-color: var(--fiori-tc-content-background-translucent);
+}
+.fiori-tabs[data-header-background="transparent"] .fiori-tabs__content {
+  border-bottom: none;
+}
+.fiori-tabs__panel {
+  display: flex;
+  flex-grow: 1;
+  max-height: 100%;
+  overflow: auto;
+}
+.fiori-tabs:is([data-media-range="M"], [data-media-range="L"]) .fiori-tabs__header {
+  padding: 0 1rem;
+}
+.fiori-tabs:is([data-media-range="M"], [data-media-range="L"]) .fiori-tabs__content {
+  padding: 1rem 2rem;
+}
+.fiori-tabs[data-media-range="XL"] .fiori-tabs__header {
+  padding: 0 2rem;
+}
+.fiori-tabs[data-media-range="XL"] .fiori-tabs__content {
+  padding: 1rem 3rem;
+}
+
+/* Tab in the strip */
+.fiori-tab {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 2rem;
+  max-width: 100%;
+  height: var(--fiori-tc-header-height);
+  padding: 0 var(--fiori-tc-headeritem-padding);
+  color: var(--fiori-tc-headeritem-color);
+  font-size: var(--sapFontSmallSize);
+  font-weight: var(--fiori-tc-headeritem-text-font-weight);
+  cursor: pointer;
+  outline: none;
+}
+.fiori-tab__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  min-width: 0;
+  border: var(--fiori-tc-headeritemcontent-default-focus-border);
+  border-radius: var(--fiori-tc-headeritemcontent-focus-border-radius);
+}
+.fiori-tab__text {
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fiori-tab__additional {
+  padding: 0 0.188rem;
+  color: var(--fiori-tc-headeritem-additional-text-color);
+  font-weight: var(--fiori-tc-headeritem-additional-text-font-weight);
+}
+.fiori-tab__additional + .fiori-tab__text {
+  display: flex;
+}
+.fiori-tab__additional-placeholder {
+  visibility: hidden;
+  margin-top: 1.25rem;
+}
+.fiori-tab[data-disabled] {
+  cursor: default;
+  opacity: var(--sapContent_DisabledOpacity);
+}
+
+/* Text-only tabs (no tab in the container has an icon) */
+[data-layout="text"] > * > .fiori-tab--text {
+  height: var(--fiori-tc-item-text-only-height);
+  font-size: var(--sapFontSize);
+  line-height: var(--fiori-tc-item-text-line-height);
+}
+[data-layout="text"] > * > .fiori-tab--text .fiori-tab__text {
+  padding: 0 0.188rem;
+}
+[data-layout="text"] > * > .fiori-tab--text[data-additional-text] {
+  justify-content: flex-start;
+  height: var(--fiori-tc-item-text-only-with-additional-text-height);
+}
+[data-layout="text"] > * > .fiori-tab--text[data-state="active"] {
+  color: var(--fiori-tc-headeritem-text-selected-color);
+}
+[data-layout="text"] > * > .fiori-tab--text:not([data-state="active"]):not([data-design="negative"]):hover {
+  color: var(--fiori-tc-headeritem-text-hover-color);
+}
+
+/* Mixed mode: a text tab in a container with icon tabs */
+[data-layout="icons"] > * > .fiori-tab--text .fiori-tab__content {
+  flex-direction: row;
+  align-items: center;
+}
+[data-layout="icons"] > * > .fiori-tab--text :is(.fiori-tab__text, .fiori-tab__additional) {
+  display: inline-block;
+  vertical-align: middle;
+}
+[data-layout="icons"] > * > .fiori-tab--text .fiori-tab__additional {
+  margin-inline-end: 0.5rem;
+  color: var(--fiori-tc-headeritem-color);
+  font-size: 1.5rem;
+}
+[data-layout="icons"] > * > .fiori-tab--text .fiori-tab__text {
+  color: var(--fiori-tc-mixedmode-itemtext-color);
+  font-family: var(--fiori-tc-mixedmode-itemtext-font-family);
+  font-size: var(--fiori-tc-mixedmode-itemtext-font-size);
+  font-weight: var(--fiori-tc-mixedmode-itemtext-font-weight);
+}
+
+/* Icon tabs */
+.fiori-tab__icon-outer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: content-box;
+  width: var(--fiori-tc-item-icon-circle-size);
+  height: var(--fiori-tc-item-icon-circle-size);
+  margin-inline-end: 0.25rem;
+  border: var(--fiori-tc-headeritemicon-border);
+  border-radius: 50%;
+  background-color: var(--sapTab_Background);
+  pointer-events: none;
+}
+.fiori-tab__icon {
+  color: var(--sapTab_IconColor);
+  text-shadow: var(--sapContent_TextShadow);
+  pointer-events: none;
+}
+.fiori-tab--icon .fiori-tab__additional {
+  padding: 0;
+}
+.fiori-tab--icon .fiori-tab__additional + .fiori-tab__text {
+  margin-block-start: var(--fiori-tc-item-add-text-margin-top);
+}
+.fiori-tab--icon[data-state="active"] .fiori-tab__icon-outer {
+  background-color: var(--sapTab_Selected_Background);
+}
+.fiori-tab--icon[data-state="active"] .fiori-tab__icon {
+  color: var(--sapTab_Selected_IconColor);
+  text-shadow: none;
+}
+
+/* Selected indicator: under the text (text and mixed tabs) or 1rem below the icon circle. */
+.fiori-tab[data-state="active"] .fiori-tab__content::after,
+.fiori-tab--icon[data-state="active"] .fiori-tab__icon-outer::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--fiori-tc-headeritemcontent-border-height);
+  border-bottom: var(--sapTab_Selected_Indicator_Dimension) solid var(--sapTab_ForegroundColor);
+  border-radius: var(--fiori-tc-headeritemcontent-border-radius);
+  background-color: var(--fiori-tc-headeritemcontent-border-bg);
+}
+.fiori-tab--icon[data-state="active"] .fiori-tab__content::after {
+  content: none;
+}
+.fiori-tab--text[data-state="active"] .fiori-tab__content::after {
+  left: var(--fiori-tc-headeritem-padding);
+  right: var(--fiori-tc-headeritem-padding);
+}
+.fiori-tab--icon[data-state="active"] .fiori-tab__icon-outer::after {
+  bottom: -1rem;
+}
+
+/* Keyboard focus */
+[data-layout="text"] > * > .fiori-tab--text:focus-visible .fiori-tab__text::before,
+[data-layout="icons"] > * > .fiori-tab--text:focus-visible .fiori-tab__content::before,
+.fiori-tab--icon:focus-visible .fiori-tab__icon-outer::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border: var(--fiori-tc-headeritem-focus-border);
+}
+[data-layout="text"] > * > .fiori-tab--text:focus-visible .fiori-tab__text::before {
+  border-radius: var(--fiori-tc-headeritem-focus-border-radius);
+  left: var(--fiori-tc-headeritem-text-focus-border-offset-left);
+  right: var(--fiori-tc-headeritem-text-focus-border-offset-right);
+  top: var(--fiori-tc-headeritem-text-focus-border-offset-top);
+  bottom: var(--fiori-tc-headeritem-text-focus-border-offset-bottom);
+}
+[data-layout="icons"] > * > .fiori-tab--text:focus-visible .fiori-tab__content::before {
+  border-radius: var(--fiori-tc-headeritem-focus-border-radius);
+  left: var(--fiori-tc-headeritem-mixed-mode-focus-border-offset-left);
+  right: var(--fiori-tc-headeritem-mixed-mode-focus-border-offset-right);
+  top: var(--fiori-tc-headeritem-mixed-mode-focus-border-offset-top);
+  bottom: var(--fiori-tc-headeritem-mixed-mode-focus-border-offset-bottom);
+}
+.fiori-tab--icon:focus-visible .fiori-tab__icon-outer::before {
+  inset: var(--fiori-tc-headeritem-focus-border-offset);
+  border-radius: var(--fiori-tc-headeritemicon-focus-border-radius);
+}
+
+/* Semantic designs */
+.fiori-tab__semantic-icon {
+  vertical-align: baseline;
+}
+.fiori-tab[data-design="positive"] .fiori-tab__semantic-icon {
+  color: var(--sapPositiveTextColor);
+}
+.fiori-tab[data-design="negative"] .fiori-tab__semantic-icon {
+  color: var(--sapNegativeTextColor);
+}
+.fiori-tab[data-design="critical"] .fiori-tab__semantic-icon {
+  color: var(--sapCriticalTextColor);
+}
+.fiori-tab[data-design="positive"] .fiori-tab__icon-outer,
+[data-layout="text"] > * > .fiori-tab[data-design="positive"] .fiori-tab__text {
+  color: var(--sapTab_Positive_TextColor);
+  border-color: var(--sapTab_Positive_ForegroundColor);
+}
+[data-layout="text"] > * > .fiori-tab[data-design="positive"][data-state="active"] .fiori-tab__text {
+  color: var(--sapTab_Positive_Selected_TextColor);
+}
+.fiori-tab[data-design="positive"] .fiori-tab__icon {
+  color: var(--sapTab_Positive_IconColor);
+}
+.fiori-tab[data-design="positive"][data-state="active"] .fiori-tab__icon-outer {
+  background-color: var(--sapTab_Positive_Selected_Background);
+}
+.fiori-tab[data-design="positive"][data-state="active"] .fiori-tab__icon {
+  color: var(--sapTab_Positive_Selected_IconColor);
+}
+.fiori-tab[data-design="positive"] .fiori-tab__content::after,
+.fiori-tab[data-design="positive"] .fiori-tab__icon-outer::after {
+  border-color: var(--sapTab_Positive_ForegroundColor);
+  background-color: var(--fiori-tc-headeritem-positive-border-bg);
+}
+.fiori-tab[data-design="negative"] .fiori-tab__icon-outer,
+[data-layout="text"] > * > .fiori-tab[data-design="negative"] .fiori-tab__text {
+  color: var(--sapTab_Negative_TextColor);
+  border-color: var(--sapTab_Negative_ForegroundColor);
+}
+[data-layout="text"] > * > .fiori-tab[data-design="negative"][data-state="active"] .fiori-tab__text {
+  color: var(--sapTab_Negative_Selected_TextColor);
+}
+.fiori-tab[data-design="negative"] .fiori-tab__icon {
+  color: var(--sapTab_Negative_IconColor);
+}
+.fiori-tab[data-design="negative"][data-state="active"] .fiori-tab__icon-outer {
+  background-color: var(--sapTab_Negative_Selected_Background);
+}
+.fiori-tab[data-design="negative"][data-state="active"] .fiori-tab__icon {
+  color: var(--sapTab_Negative_Selected_IconColor);
+}
+.fiori-tab[data-design="negative"] .fiori-tab__content::after,
+.fiori-tab[data-design="negative"] .fiori-tab__icon-outer::after {
+  border-color: var(--sapTab_Negative_ForegroundColor);
+  background-color: var(--fiori-tc-headeritem-negative-border-bg);
+}
+.fiori-tab[data-design="critical"] .fiori-tab__icon-outer,
+[data-layout="text"] > * > .fiori-tab[data-design="critical"] .fiori-tab__text {
+  color: var(--sapTab_Critical_TextColor);
+  border-color: var(--sapTab_Critical_ForegroundColor);
+}
+[data-layout="text"] > * > .fiori-tab[data-design="critical"][data-state="active"] .fiori-tab__text {
+  color: var(--sapTab_Critical_Selected_TextColor);
+}
+.fiori-tab[data-design="critical"] .fiori-tab__icon {
+  color: var(--sapTab_Critical_IconColor);
+}
+.fiori-tab[data-design="critical"][data-state="active"] .fiori-tab__icon-outer {
+  background-color: var(--sapTab_Critical_Selected_Background);
+}
+.fiori-tab[data-design="critical"][data-state="active"] .fiori-tab__icon {
+  color: var(--sapTab_Critical_Selected_IconColor);
+}
+.fiori-tab[data-design="critical"] .fiori-tab__content::after,
+.fiori-tab[data-design="critical"] .fiori-tab__icon-outer::after {
+  border-color: var(--sapTab_Critical_ForegroundColor);
+  background-color: var(--fiori-tc-headeritem-critical-border-bg);
+}
+.fiori-tab[data-design="neutral"] .fiori-tab__icon-outer,
+[data-layout="text"] > * > .fiori-tab[data-design="neutral"] .fiori-tab__text {
+  color: var(--sapTab_Neutral_TextColor);
+  border-color: var(--sapTab_Neutral_ForegroundColor);
+}
+[data-layout="text"] > * > .fiori-tab[data-design="neutral"][data-state="active"] .fiori-tab__text {
+  color: var(--sapTab_Neutral_Selected_TextColor);
+}
+.fiori-tab[data-design="neutral"] .fiori-tab__icon {
+  color: var(--sapTab_Neutral_IconColor);
+}
+.fiori-tab[data-design="neutral"][data-state="active"] .fiori-tab__icon-outer {
+  background-color: var(--sapTab_Neutral_Selected_Background);
+}
+.fiori-tab[data-design="neutral"][data-state="active"] .fiori-tab__icon {
+  color: var(--sapTab_Neutral_Selected_IconColor);
+}
+/* UI5 targets the icon (not its circle) for neutral, so the icon tab indicator keeps the default color. */
+.fiori-tab[data-design="neutral"] .fiori-tab__content::after {
+  border-color: var(--fiori-tc-headeritem-neutral-border-color);
+  background-color: var(--fiori-tc-headeritem-neutral-border-bg);
+}
+
+/* Separator between tabs */
+.fiori-tabs__separator {
+  position: relative;
+  width: 0.5625rem;
+  outline: none;
+}
+.fiori-tabs__separator::before {
+  content: " ";
+  position: absolute;
+  width: 0.0625rem;
+  left: 0.25rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  background: var(--sapGroup_TitleBorderColor);
+}
