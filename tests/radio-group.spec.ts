@@ -13,9 +13,14 @@ test("radio group: roles, one tab stop on the checked item", async ({ page }) =>
   await expect(group.getByRole("radio", { name: "Express" })).toHaveAttribute("aria-checked", "false")
   // Roving tabindex: Tab into the group lands on the checked radio, and once the group has been
   // entered only that radio is in the tab order.
-  await page.locator("#notify-push").focus()
-  await page.keyboard.press("Tab")
-  await page.keyboard.press("Tab")
+  // Tab in from the element right before the group (independent of what else is on the docs page).
+  await group.evaluate((g) => {
+    const before = document.createElement("button")
+    before.id = "before-shipping"
+    before.textContent = "before"
+    g.before(before)
+  })
+  await page.locator("#before-shipping").focus()
   await page.keyboard.press("Tab")
   await expect(group.getByRole("radio", { name: "Standard" })).toBeFocused()
   const tabbable = await radios.evaluateAll((els) => els.map((e) => e.getAttribute("tabindex")))

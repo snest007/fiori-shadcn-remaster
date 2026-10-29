@@ -18,7 +18,7 @@ test("toggle button: aria-pressed toggles with click, Space and Enter", async ({
 })
 
 test("toggle button: pressed look uses the selected tokens", async ({ page }) => {
-  const neg = page.getByRole("button", { name: "Negative" })
+  const neg = page.getByRole("button", { name: "Negative", exact: true }).and(page.locator('[data-slot="toggle-button"]'))
   await page.mouse.move(0, 0)
   const bg = await neg.evaluate((el) => getComputedStyle(el).backgroundColor)
   const expected = await neg.evaluate((el) => {

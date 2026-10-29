@@ -13,16 +13,29 @@ const DENSITIES = ["cozy", "compact"] as const
 // never needs to import the fixture modules (which reference browser-only UI5 code).
 type CaseInfo = { id: string; tolerance: number }
 
+// One full-page screenshot per page, then each [data-fixture] cell is cropped out of it. Shooting
+// cells one by one costs ~100ms each, which doesn't scale to hundreds of fixtures.
 async function shoot(page: Page, url: string, ids?: string[]) {
   await page.goto(url)
   await page.waitForSelector("html[data-ready=true]", { timeout: 30_000 })
   await page.mouse.move(0, 0)
-  const cells = ids ?? (await page.locator("[data-fixture]").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.fixture!)))
+  const boxes: { id: string; x: number; y: number; w: number; h: number }[] = await page.locator("[data-fixture]").evaluateAll((els) =>
+    els.map((e) => {
+      const r = e.getBoundingClientRect()
+      return { id: (e as HTMLElement).dataset.fixture!, x: r.left + scrollX, y: r.top + scrollY, w: r.width, h: r.height }
+    })
+  )
+  const full = PNG.sync.read(await page.screenshot({ fullPage: true, animations: "disabled", caret: "hide" }))
+  const wanted = ids ? new Set(ids) : undefined
   const shots = new Map<string, PNG>()
-  for (const id of cells) {
-    const loc = page.locator(`[data-fixture="${id}"]`)
-    if (!(await loc.count())) continue
-    shots.set(id, PNG.sync.read(await loc.screenshot({ animations: "disabled", caret: "hide" })))
+  for (const b of boxes) {
+    if (wanted && !wanted.has(b.id)) continue
+    // Same rounding Playwright uses for element screenshots.
+    const x = Math.floor(b.x), y = Math.floor(b.y)
+    const w = Math.ceil(b.x + b.w) - x, h = Math.ceil(b.y + b.h) - y
+    const cell = new PNG({ width: w, height: h })
+    PNG.bitblt(full, cell, x, y, Math.min(w, full.width - x), Math.min(h, full.height - y), 0, 0)
+    shots.set(b.id, cell)
   }
   return shots
 }
@@ -32,6 +45,7 @@ const report: Record<string, { ratio: number; size: string }> = {}
 for (const theme of THEMES) {
   for (const density of DENSITIES) {
     test(`${theme} ${density} matches UI5`, async ({ browser }) => {
+      test.setTimeout(120_000)
       const q = `?theme=${theme}&density=${density}`
       const ui5Page = await browser.newPage()
       const ref = await shoot(ui5Page, `/ui5.html${q}`)
