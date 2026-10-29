@@ -10,6 +10,8 @@ const themingPkg = dirname(require.resolve("@sap-theming/theming-base-content/pa
 const themingVersion = JSON.parse(readFileSync(join(themingPkg, "package.json"), "utf8")).version
 const baseLib = join(themingPkg, "content/Base/baseLib")
 const ui5Dir = dirname(require.resolve("@ui5/webcomponents/package.json"))
+// Component parameters come from both UI5 packages (main: inputs, lists…; fiori: ShellBar, Upload…).
+const ui5ParamDirs = [ui5Dir, dirname(require.resolve("@ui5/webcomponents-fiori/package.json"))]
 
 const THEMES = ["sap_horizon", "sap_horizon_dark", "sap_horizon_hcb", "sap_horizon_hcw"]
 const DEFAULT_THEME = "sap_horizon"
@@ -80,9 +82,10 @@ const COMPONENT_PARAMS = /^--_?ui5[_-]/
 const rename = (k) => "--fiori-" + (/^--_?ui5-/.test(k) ? "x-" : "") + k.replace(/^--_?ui5[_-]/, "").replace(/_/g, "-").toLowerCase()
 
 function readComponentParams(theme) {
-  const js = readFileSync(join(ui5Dir, "dist/generated/themes", theme, "parameters-bundle.css.js"), "utf8")
-  const css = js.slice(js.indexOf("`") + 1, js.lastIndexOf("`"))
   const cozy = new Map(), compact = new Map()
+  for (const dir of ui5ParamDirs) {
+  const js = readFileSync(join(dir, "dist/generated/themes", theme, "parameters-bundle.css.js"), "utf8")
+  const css = js.slice(js.indexOf("`") + 1, js.lastIndexOf("`"))
   for (const m of css.matchAll(/(@container style\(--ui5_content_density: compact\)\{)?:host\{([^}]*)\}/g)) {
     const target = m[1] ? compact : cozy
     for (const decl of m[2].split(";")) {
@@ -91,6 +94,7 @@ function readComponentParams(theme) {
       const k = decl.slice(0, i).trim()
       if (COMPONENT_PARAMS.test(k)) target.set(k, decl.slice(i + 1).trim())
     }
+  }
   }
   return { cozy, compact }
 }

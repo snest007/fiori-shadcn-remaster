@@ -14,7 +14,9 @@ Every component owns its own files. Nothing shared needs editing, so components 
 
 ## Source of truth
 
-The reference is UI5 Web Components 2.28 (`node_modules/@ui5/webcomponents`). Before writing anything, read:
+The reference is UI5 Web Components 2.28: `node_modules/@ui5/webcomponents` (main) and
+`node_modules/@ui5/webcomponents-fiori` (ShellBar, SideNavigation, UploadCollection, Wizard, DynamicPage, …).
+Before writing anything, read:
 
 - `dist/generated/themes/<Component>.css.js`: the component's CSS. This is what you port.
 - `dist/<Component>.js` and `dist/<Component>Template.js`: DOM structure, keyboard handling, ARIA.
@@ -28,6 +30,7 @@ Quick lookup: `grep -- '--fiori-checkbox' registry/styles/fiori.css | sort -u`
 ## Rules
 
 - React 19, function components, `data-slot="<name>"` on the root, accept `className`, spread `...props`. Follow `registry/ui/button.tsx` and `select.tsx`.
+- Tables/virtualisation: `@tanstack/react-table` and `@tanstack/react-virtual` are available (list them in your item's `dependencies`).
 - Imports: `@/lib/utils`, `@/lib/fiori-icons`, `@/components/ui/<name>`. Interaction primitives come from `radix-ui` (`import { Checkbox as CheckboxPrimitive } from "radix-ui"`).
 - Tailwind v4 arbitrary vars: `h-(--fiori-x)`, `text-(length:--sapFontSize)`, `font-(family-name:--sapFontFamily)`. Line height: UI5 uses `normal`, so write `leading-[normal]` (Tailwind's `leading-normal` is 1.5).
 - Don't add `-webkit-font-smoothing`. Don't use `transition` unless UI5 does.

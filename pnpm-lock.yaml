@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@tanstack/react-table':
+        specifier: 9.3.1
+        version: 9.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@tanstack/react-virtual':
+        specifier: 3.14.24
+        version: 3.14.24(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -55,6 +61,9 @@ importers:
         specifier: 2.28.1
         version: 2.28.1(react@19.3.1)
       '@ui5/webcomponents-base':
+        specifier: 2.28.1
+        version: 2.28.1(react@19.3.1)
+      '@ui5/webcomponents-fiori':
         specifier: 2.28.1
         version: 2.28.1(react@19.3.1)
       '@ui5/webcomponents-icons':
@@ -1194,6 +1203,34 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7 || ^8
 
+  '@tanstack/react-store@0.11.2':
+    resolution: {integrity: sha512-oj5O5DmiMWE+ih+SioX2ayC1kbK7d3fpLx0B75fPJr9nY3zU+hoW010yr64qXsY/9fyiLVE2bn5mGNV3owm8RQ==, tarball: https://registry.npmmirror.com/@tanstack/react-store/-/react-store-0.11.2.tgz}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  '@tanstack/react-table@9.3.1':
+    resolution: {integrity: sha512-E6Ya5TnY6EaGyZYIUqig/29Lr/gJSAubQkLJFqiWkUl5nRCr0Xr9hvJot+NiRTtG+TzGxHTiqUW3bnLtQxlHug==, tarball: https://registry.npmmirror.com/@tanstack/react-table/-/react-table-9.3.1.tgz}
+    engines: {node: '>=20'}
+    peerDependencies:
+      react: '>=18'
+
+  '@tanstack/react-virtual@3.14.24':
+    resolution: {integrity: sha512-JoNsByXR68fNlB2NZuT3bSk8uYBxuOWl6YNJ7djTrw7IMwBWuaOtffxj/TcuMa80WmL6byb+80i1NEM/8Qmocw==, tarball: https://registry.npmmirror.com/@tanstack/react-virtual/-/react-virtual-3.14.24.tgz}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  '@tanstack/store@0.11.2':
+    resolution: {integrity: sha512-sJ4mjol8uQsHV0gOJzzjwXfh2Fwm+Sz0+8deqiTm4jGbMdjzNSW+xZCFm0kUa870uhd8yi+DpKnZb5Kc4apa0Q==, tarball: https://registry.npmmirror.com/@tanstack/store/-/store-0.11.2.tgz}
+
+  '@tanstack/table-core@9.3.1':
+    resolution: {integrity: sha512-zQvlxSNi2qGM3L4jh85Z6hqMfdIR5qOfD9KHOU32nuKFJGN0RlJ7UvV1lsPb1fPVhpFYI0VP3jJGxLdLDpTKjQ==, tarball: https://registry.npmmirror.com/@tanstack/table-core/-/table-core-9.3.1.tgz}
+    engines: {node: '>=20'}
+
+  '@tanstack/virtual-core@3.19.9':
+    resolution: {integrity: sha512-Syiaf3w69dFyYv4o2mqJ1/2VtBJTNq5Hu5cVXfnzOuJKFpUojukQR13ZW+5NvdMJM7GFHeNPmveMNhoIubiFyA==, tarball: https://registry.npmmirror.com/@tanstack/virtual-core/-/virtual-core-3.19.9.tgz}
+
   '@ts-morph/common@0.27.0':
     resolution: {integrity: sha512-Wf29UqxWDpc+i61k3oIOzcUfQt79PIT9y/MWfAGlrkjg6lBC1hwDECLXPVJAhWjiGbfBCxZd65F/LIZF3+jeJQ==, tarball: https://registry.npmmirror.com/@ts-morph/common/-/common-0.27.0.tgz}
 
@@ -1245,6 +1282,9 @@ packages:
       react:
         optional: true
 
+  '@ui5/webcomponents-fiori@2.28.1':
+    resolution: {integrity: sha512-9WCKvW65z0plSPTAIM4ql/geyk/ctkGJThQSDYrjQzSRc4R+FLzymYVpLqpySzDZ4OqzcPJwuD4Dk+nKafOzGA==, tarball: https://registry.npmmirror.com/@ui5/webcomponents-fiori/-/webcomponents-fiori-2.28.1.tgz}
+
   '@ui5/webcomponents-icons-business-suite@2.28.1':
     resolution: {integrity: sha512-hmYQ7FEWNLkn5DQBWcbdyfxDvHfFTG8bxuuDe2SBXyCY4u6lkfF1db1wUuqhPcOa0jHssP0KmJw/1ifWjwbowg==, tarball: https://registry.npmmirror.com/@ui5/webcomponents-icons-business-suite/-/webcomponents-icons-business-suite-2.28.1.tgz}
 
@@ -1281,6 +1321,13 @@ packages:
         optional: true
       oxc-transform-react:
         optional: true
+
+  '@zxing/library@0.21.3':
+    resolution: {integrity: sha512-hZHqFe2JyH/ZxviJZosZjV+2s6EDSY0O24R+FQmlWZBZXP9IqMo7S3nb3+2LBWxodJQkSurdQGnqE7KXqrYgow==, tarball: https://registry.npmmirror.com/@zxing/library/-/library-0.21.3.tgz}
+    engines: {node: '>= 10.4.0'}
+
+  '@zxing/text-encoding@0.9.0':
+    resolution: {integrity: sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==, tarball: https://registry.npmmirror.com/@zxing/text-encoding/-/text-encoding-0.9.0.tgz}
 
   ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==, tarball: https://registry.npmmirror.com/ajv-formats/-/ajv-formats-2.1.1.tgz}
@@ -2233,6 +2280,10 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==, tarball: https://registry.npmmirror.com/to-regex-range/-/to-regex-range-5.0.1.tgz}
     engines: {node: '>=8.0'}
 
+  ts-custom-error@3.3.1:
+    resolution: {integrity: sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A==, tarball: https://registry.npmmirror.com/ts-custom-error/-/ts-custom-error-3.3.1.tgz}
+    engines: {node: '>=14.0.0'}
+
   ts-morph@26.0.0:
     resolution: {integrity: sha512-ztMO++owQnz8c/gIENcM9XfCEzgoGphTv+nKpYNM1bgsdOVC/jRZuEBf6N+mLLDNg68Kl+GgUZfOySaRiG1/Ug==, tarball: https://registry.npmmirror.com/ts-morph/-/ts-morph-26.0.0.tgz}
 
@@ -2292,6 +2343,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  use-sync-external-store@1.7.0:
+    resolution: {integrity: sha512-6L+EeigHMQhdaIPNIFUKwfWJSwWFQ8gJbJ2DLOs5sDIegTwR9fRxvnM3uciHKjIZhFz+KAv2emhWMRvDmMcY8A==, tarball: https://registry.npmmirror.com/use-sync-external-store/-/use-sync-external-store-1.7.0.tgz}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==, tarball: https://registry.npmmirror.com/util-deprecate/-/util-deprecate-1.0.2.tgz}
@@ -3555,6 +3611,35 @@ snapshots:
       tailwindcss: 4.3.3
       vite: 8.3.5(@types/node@24.19.2)(jiti@2.7.0)
 
+  '@tanstack/react-store@0.11.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@tanstack/store': 0.11.2
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+      use-sync-external-store: 1.7.0(react@19.3.1)
+
+  '@tanstack/react-table@9.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@tanstack/react-store': 0.11.2(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@tanstack/table-core': 9.3.1
+      react: 19.3.1
+    transitivePeerDependencies:
+      - react-dom
+
+  '@tanstack/react-virtual@3.14.24(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
+    dependencies:
+      '@tanstack/virtual-core': 3.19.9
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+
+  '@tanstack/store@0.11.2': {}
+
+  '@tanstack/table-core@9.3.1':
+    dependencies:
+      '@tanstack/store': 0.11.2
+
+  '@tanstack/virtual-core@3.19.9': {}
+
   '@ts-morph/common@0.27.0':
     dependencies:
       fast-glob: 3.3.3
@@ -3607,6 +3692,16 @@ snapshots:
       lit-html: 2.8.0
     optionalDependencies:
       react: 19.3.1
+
+  '@ui5/webcomponents-fiori@2.28.1(react@19.3.1)':
+    dependencies:
+      '@ui5/webcomponents': 2.28.1(react@19.3.1)
+      '@ui5/webcomponents-base': 2.28.1(react@19.3.1)
+      '@ui5/webcomponents-icons': 2.28.1(react@19.3.1)
+      '@ui5/webcomponents-theming': 2.28.1(react@19.3.1)
+      '@zxing/library': 0.21.3
+    transitivePeerDependencies:
+      - react
 
   '@ui5/webcomponents-icons-business-suite@2.28.1(react@19.3.1)':
     dependencies:
@@ -3661,6 +3756,15 @@ snapshots:
     dependencies:
       '@rolldown/pluginutils': 1.0.1
       vite: 8.3.5(@types/node@24.19.2)(jiti@2.7.0)
+
+  '@zxing/library@0.21.3':
+    dependencies:
+      ts-custom-error: 3.3.1
+    optionalDependencies:
+      '@zxing/text-encoding': 0.9.0
+
+  '@zxing/text-encoding@0.9.0':
+    optional: true
 
   ajv-formats@2.1.1(ajv@8.20.0):
     optionalDependencies:
@@ -4509,6 +4613,8 @@ snapshots:
     dependencies:
       is-number: 7.0.0
 
+  ts-custom-error@3.3.1: {}
+
   ts-morph@26.0.0:
     dependencies:
       '@ts-morph/common': 0.27.0
@@ -4554,6 +4660,10 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.3.0
+
+  use-sync-external-store@1.7.0(react@19.3.1):
+    dependencies:
+      react: 19.3.1
 
   util-deprecate@1.0.2: {}
 
