@@ -1,0 +1,8 @@
+{
+  "title": "StepInput",
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/input"
+  ],
+  "description": "Fiori numeric field with decrement/increment buttons, min/max clamping, precision and the SAP keyboard model."
+}
