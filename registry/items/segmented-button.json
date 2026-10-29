@@ -1,0 +1,7 @@
+{
+  "title": "SegmentedButton",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "description": "Fiori segmented button (single or multiple selection) with arrow-key navigation and one tab stop."
+}

@@ -1,0 +1,10 @@
+{
+  "title": "ToggleButton",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/button"
+  ],
+  "description": "Fiori toggle button: a Button that keeps a pressed state, in every Fiori button design."
+}
