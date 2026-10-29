@@ -34,7 +34,7 @@ const registry = {
       name: "fiori",
       type: "registry:base",
       title: "Fiori (SAP Horizon) base",
-      description: "Theme, density, 72 font and the Phase 0 components. Install with `shadcn init <url>/r/fiori.json`.",
+      description: "Theme, density, 72 font, icons and every Fiori component. Install with `shadcn init <url>/r/fiori.json`.",
       registryDependencies: ["@fiori/fiori-theme", ...components.map((c) => `@fiori/${c.name}`)],
       config: {
         style: "new-york",

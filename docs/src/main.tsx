@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import type { Demo } from "./demos/types"
-import { FIELD_WIDTH, readPageOptions } from "./fixture-types"
+import { FIELD_WIDTH, readPageOptions, snapSlots } from "./fixture-types"
 import { fixtureSets } from "./fixtures"
 import iconNames from "./icon-names.json"
 import "./index.css"
@@ -29,7 +29,7 @@ document.documentElement.dataset.density = opts.density
 
 function FixtureGrid() {
   React.useEffect(() => {
-    document.fonts.ready.then(() => (document.documentElement.dataset.ready = "true"))
+    document.fonts.ready.then(snapSlots).then(() => (document.documentElement.dataset.ready = "true"))
   }, [])
   return (
     <div className="flex flex-wrap items-start gap-4" style={{ "--w": FIELD_WIDTH } as React.CSSProperties}>
@@ -37,8 +37,12 @@ function FixtureGrid() {
         set.cases
           .filter((c) => !opts.only || c.id.startsWith(opts.only))
           .map((c) => (
-            <div key={c.id} data-fixture={c.id} className="inline-flex p-1 leading-[normal]">
-              {set.react(c.props)}
+            // Each cell sits in a slot rounded up to whole pixels so one fractional-width cell can't shift
+            // every following cell onto sub-pixel positions (which changes anti-aliasing).
+            <div key={c.id} data-fixture-slot="" className="flex">
+              <div data-fixture={c.id} className="inline-flex p-1 leading-[normal]">
+                {set.react(c.props)}
+              </div>
             </div>
           ))
       )}
@@ -92,6 +96,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Docs() {
+  React.useEffect(() => {
+    document.fonts.ready.then(() => (document.documentElement.dataset.ready = "true"))
+  }, [])
   const [query, setQuery] = React.useState("")
   const matches = (iconNames as [string, string][]).filter(([n]) => n.includes(query.trim())).slice(0, 120)
   return (
@@ -103,8 +110,15 @@ function Docs() {
             <Demo />
           </Section>
         ))}
-        <Section title="All fixtures (screenshot-compared against UI5)">
-          <FixtureGrid />
+        <Section title="Visual comparison">
+          {/* The fixture grid lives on its own page: it holds always-open overlays (dialog, menu...) whose
+              Radix layers listen for Escape on the document and would swallow it for the demos here. */}
+          <p className="text-(--sapContent_LabelColor)">
+            Every fixture is pixel-compared against UI5 Web Components in 4 themes × 2 densities:{" "}
+            <a className="text-(--sapLinkColor) underline" href={`index.html?fixtures&theme=${opts.theme}&density=${opts.density}`}>our fixtures</a>
+            {" · "}
+            <a className="text-(--sapLinkColor) underline" href={`ui5.html?theme=${opts.theme}&density=${opts.density}`}>UI5 reference</a>
+          </p>
         </Section>
         <Section title={`Icons (${iconNames.length})`}>
           <Input placeholder="Filter icons" value={query} onChange={(e) => setQuery(e.target.value)} wrapperClassName="mb-4 max-w-xs" />

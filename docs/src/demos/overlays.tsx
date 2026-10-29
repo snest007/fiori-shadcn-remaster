@@ -32,7 +32,7 @@ function StateDialog({ state, label }: { state: ValueState; label: string }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>{label}</Button>
+        <Button data-demo="state-dialog">{label}</Button>
       </DialogTrigger>
       <DialogContent state={state}>
         <DialogHeader>

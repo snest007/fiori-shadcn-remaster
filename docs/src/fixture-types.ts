@@ -50,3 +50,15 @@ export function readPageOptions(): PageOptions {
     only: q.get("only") ?? undefined,
   }
 }
+
+/** Rounds every fixture slot up to whole-pixel width/height (shared by both pages). */
+export async function snapSlots() {
+  await new Promise((r) => requestAnimationFrame(r))
+  const slots = [...document.querySelectorAll<HTMLElement>("[data-fixture-slot]")]
+  const sizes = slots.map((s) => s.firstElementChild!.getBoundingClientRect())
+  slots.forEach((s, i) => {
+    s.style.width = `${Math.ceil(sizes[i].width)}px`
+    s.style.height = `${Math.ceil(sizes[i].height)}px`
+  })
+  await new Promise((r) => requestAnimationFrame(r))
+}

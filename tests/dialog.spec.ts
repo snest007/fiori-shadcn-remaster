@@ -68,7 +68,7 @@ for (const [state, role] of [
   ["Information", "dialog"],
 ] as const) {
   test(`dialog: ${state} state has role=${role}, a state icon and a colored header line`, async ({ page }) => {
-    await page.getByRole("button", { name: state, exact: true }).click()
+    await page.locator("[data-demo=state-dialog]").getByText(state, { exact: true }).click()
     const dialog = page.getByRole(role, { name: state })
     await expect(dialog).toBeVisible()
     await expect(dialog).toHaveAttribute("data-state-value", state.toLowerCase())

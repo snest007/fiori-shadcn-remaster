@@ -5,7 +5,7 @@ import "@ui5/webcomponents/dist/Assets.js"
 import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js"
 import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 
-import { readPageOptions, type Ui5Renderer } from "./fixture-types"
+import { readPageOptions, snapSlots, type Ui5Renderer } from "./fixture-types"
 import { fixtureSets } from "./fixtures"
 
 const renderers = import.meta.glob<{ default: Ui5Renderer }>("./fixtures/*.ui5.ts", { eager: true })
@@ -28,7 +28,11 @@ for (const set of fixtureSets) {
     cell.dataset.fixture = c.id
     cell.style.cssText = "display:inline-flex;padding:0.25rem;line-height:normal"
     cell.append(render(c.props))
-    root.append(cell)
+    const slot = document.createElement("div")
+    slot.dataset.fixtureSlot = ""
+    slot.style.display = "flex"
+    slot.append(cell)
+    root.append(slot)
   }
 }
 
@@ -52,4 +56,5 @@ const bg = () => getComputedStyle(document.documentElement).getPropertyValue("--
 for (let i = 0; i < 300 && EXPECTED_BG[opts.theme] && bg() !== EXPECTED_BG[opts.theme]; i++)
   await new Promise((r) => requestAnimationFrame(r))
 await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+await snapSlots()
 document.documentElement.dataset.ready = "true"
