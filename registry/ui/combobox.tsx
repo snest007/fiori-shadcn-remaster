@@ -406,6 +406,7 @@ function ComboBox({
             <div
               ref={listRef}
               id={listId}
+              data-slot="combobox-list"
               role="listbox"
               aria-label={listLabel}
               className="overflow-y-auto"

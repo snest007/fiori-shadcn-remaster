@@ -1,5 +1,9 @@
 import { expect, test, type Page } from "@playwright/test"
 
+// The list this ComboBox controls (the docs page has other listboxes: Select, SegmentedButton...).
+// Only one ComboBox list is open at a time, so its data-slot is enough.
+const list = async (page: Page) => page.locator('[data-slot="combobox-list"]')
+
 const selection = (page: Page) =>
   page.locator("#cb-country").evaluate((el: HTMLInputElement) => el.value.slice(el.selectionStart!, el.selectionEnd!))
 
@@ -31,12 +35,12 @@ test.describe("ComboBox (Fiori model)", () => {
     await page.keyboard.type("ger")
     await expect(input).toHaveValue("Germany")
     expect(await selection(page)).toBe("many")
-    await expect(page.getByRole("listbox")).toBeVisible()
-    await expect(page.getByRole("option")).toHaveCount(1)
+    await expect(await list(page)).toBeVisible()
+    await expect((await list(page)).getByRole("option")).toHaveCount(1)
     // Per-term filtering: "k" matches "United Kingdom" (a word starting with k), not autocompleted (not a prefix).
     await page.keyboard.press("ControlOrMeta+a")
     await page.keyboard.type("k")
-    await expect(page.getByRole("option")).toHaveText([/United Kingdom/])
+    await expect((await list(page)).getByRole("option")).toHaveText([/United Kingdom/])
     await expect(input).toHaveValue("k")
     // Backspace removes the completion and does not autocomplete again (the typed part takes the item's casing).
     await page.keyboard.press("ControlOrMeta+a")
@@ -44,13 +48,13 @@ test.describe("ComboBox (Fiori model)", () => {
     await expect(input).toHaveValue("Australia")
     await page.keyboard.press("Backspace")
     await expect(input).toHaveValue("Au")
-    await expect(page.getByRole("option")).toHaveCount(2)
+    await expect((await list(page)).getByRole("option")).toHaveCount(2)
   })
 
   test("no match closes the list and keeps the free text", async ({ page }) => {
     const input = page.locator("#cb-country")
     await page.keyboard.type("Atlantis")
-    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(await list(page)).toHaveCount(0)
     await expect(input).toHaveAttribute("aria-expanded", "false")
     await page.keyboard.press("Tab")
     await expect(input).toHaveValue("Atlantis")
@@ -71,13 +75,13 @@ test.describe("ComboBox (Fiori model)", () => {
     await expect(input).toHaveValue("India")
     await page.keyboard.press("End") // value is set: Home/End move the caret, not the item
     await expect(input).toHaveValue("India")
-    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(await list(page)).toHaveCount(0)
   })
 
   test("arrow keys walk the open list; Enter selects", async ({ page }) => {
     const input = page.locator("#cb-country")
     await page.keyboard.press("Alt+ArrowDown")
-    await expect(page.getByRole("listbox")).toBeVisible()
+    await expect(await list(page)).toBeVisible()
     await page.keyboard.press("ArrowDown")
     await page.keyboard.press("ArrowDown")
     await expect(input).toHaveValue("Austria")
@@ -85,20 +89,20 @@ test.describe("ComboBox (Fiori model)", () => {
     await expect(page.locator(`[id="${active}"]`)).toHaveText(/Austria/)
     await expect(page.locator(`[id="${active}"]`)).toHaveAttribute("aria-selected", "true")
     await page.keyboard.press("Enter")
-    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(await list(page)).toHaveCount(0)
     await expect(input).toHaveValue("Austria")
     await expect(page.getByTestId("cb-committed")).toHaveText("Austria")
   })
 
   test("F4 and Alt+Up toggle the list", async ({ page }) => {
     await page.keyboard.press("F4")
-    await expect(page.getByRole("listbox")).toBeVisible()
+    await expect(await list(page)).toBeVisible()
     await page.keyboard.press("F4")
-    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(await list(page)).toHaveCount(0)
     await page.keyboard.press("Alt+ArrowUp")
-    await expect(page.getByRole("listbox")).toBeVisible()
+    await expect(await list(page)).toBeVisible()
     await page.keyboard.press("Alt+ArrowUp")
-    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(await list(page)).toHaveCount(0)
   })
 
   test("Escape closes the list, then restores the value from focus", async ({ page }) => {
@@ -108,9 +112,9 @@ test.describe("ComboBox (Fiori model)", () => {
     await expect(page.getByTestId("cb-committed")).toHaveText("France")
     await page.keyboard.press("ControlOrMeta+a")
     await page.keyboard.type("Spa")
-    await expect(page.getByRole("listbox")).toBeVisible()
+    await expect(await list(page)).toBeVisible()
     await page.keyboard.press("Escape")
-    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(await list(page)).toHaveCount(0)
     await expect(input).toHaveValue("Spain")
     await page.keyboard.press("Escape")
     await expect(input).toHaveValue("France")
@@ -120,11 +124,11 @@ test.describe("ComboBox (Fiori model)", () => {
   test("clicking an item selects it and keeps focus in the field", async ({ page }) => {
     const input = page.locator("#cb-country")
     await page.locator("#cb-country ~ [data-slot=combobox-arrow]").click()
-    await expect(page.getByRole("listbox")).toBeVisible()
+    await expect(await list(page)).toBeVisible()
     await page.getByRole("option", { name: /Japan/ }).click()
     await expect(input).toHaveValue("Japan")
     await expect(input).toBeFocused()
-    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(await list(page)).toHaveCount(0)
     await expect(page.getByTestId("cb-committed")).toHaveText("Japan")
   })
 })

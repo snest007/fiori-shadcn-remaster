@@ -26,7 +26,10 @@
   height: var(--fiori-button-base-height);
   margin: 0;
   padding: 0 var(--fiori-button-base-padding);
-  border: var(--sapButton_BorderWidth) solid var(--fiori-segmented-btn-border-color);
+  /* Width/style come from the button; color is separate so that in HC themes, where UI5 leaves
+     --_ui5_segmented_btn_border_color unset (=initial here), only the color falls back. */
+  border: var(--sapButton_BorderWidth) solid var(--sapButton_BorderColor);
+  border-color: var(--fiori-segmented-btn-border-color);
   border-radius: var(--sapButton_Segment_BorderCornerRadius);
   background-color: var(--fiori-segmented-btn-background-color);
   color: var(--sapButton_TextColor);

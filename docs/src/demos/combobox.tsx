@@ -31,8 +31,8 @@ function ComboBoxDemo() {
         >
           {COUNTRIES.map(([c, code]) => <ComboBoxItem key={code} text={c} additionalText={code} />)}
         </ComboBox>
-        <Label htmlFor="cb-disabled" showColon>Disabled</Label>
-        <ComboBox id="cb-disabled" disabled defaultValue="Germany">
+        <Label htmlFor="combo-disabled" showColon>Disabled</Label>
+        <ComboBox id="combo-disabled" disabled defaultValue="Germany">
           <ComboBoxItem text="Germany" />
         </ComboBox>
       </div>
