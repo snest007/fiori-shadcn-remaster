@@ -1,0 +1,11 @@
+{
+  "title": "ComboBox",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/input"
+  ],
+  "description": "Fiori combo box: free-text field with type-ahead filtering, inline autocomplete and the SAP keyboard model."
+}

@@ -1,0 +1,244 @@
+/* StepInput (ports ui5-step-input → ui5-numeric-input). Root = the numeric input's :host,
+   -host = ui5-step-input's :host, __field = the inner ui5-input, __button = .ui5-step-icon,
+   __icon = the .inputIcon ui5-icon. */
+.fiori-step-input-host {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  width: 100%;
+}
+.fiori-step-input {
+  position: relative;
+  isolation: isolate;
+  display: inline-block;
+  vertical-align: middle;
+  box-sizing: border-box;
+  /* ui5-numeric-input has no width of its own: it is as wide as its content, i.e. the native input's
+     intrinsic width plus the button padding (wider when the host is wide enough to stretch it). */
+  width: 100%;
+  max-width: max-content;
+  min-width: var(--fiori-numeric-input-min-width);
+  height: var(--fiori-input-height);
+  margin: var(--fiori-input-margin-top-bottom) 0;
+  overflow: hidden;
+  color: var(--sapField_TextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+  text-align: right;
+  user-select: none;
+  background-color: var(--sapField_Background);
+  border: var(--fiori-numeric-input-border-style);
+  border-radius: var(--sapField_BorderCornerRadius);
+}
+.fiori-step-input[data-disabled] {
+  opacity: var(--fiori-input-disabled-opacity);
+  cursor: default;
+  pointer-events: none;
+  background-color: var(--fiori-x-input-disabled-background, var(--sapField_Background));
+  border-color: var(--fiori-input-disabled-border-color);
+}
+.fiori-step-input[data-readonly]:not([data-disabled]) {
+  border-color: var(--fiori-input-readonly-border-color);
+  border-width: var(--sapElement_BorderWidth);
+  background: var(--sapField_ReadOnly_BackgroundStyle);
+  background-color: var(--fiori-input-readonly-background);
+}
+.fiori-step-input:not([data-value-state]):not([data-readonly]):not([data-disabled]):hover {
+  background-color: var(--fiori-numeric-input-border-color-hover);
+  border: var(--fiori-numeric-input-border-hover);
+}
+.fiori-step-input:not([data-value-state]):not([data-readonly]):not([data-disabled]):not(:focus-within):hover {
+  background-color: var(--sapField_Hover_Background);
+  border: var(--fiori-numeric-input-border-style-hover);
+  box-shadow: var(--sapField_Hover_Shadow);
+}
+.fiori-step-input:not([data-readonly]):not([data-disabled]):not([data-value-state="negative"]):focus-within {
+  background-color: var(--sapField_Focus_Background);
+}
+
+/* Value states (on the root, like the numeric input's :host) */
+.fiori-step-input:is([data-value-state="negative"], [data-value-state="critical"], [data-value-state="information"]):not([data-readonly]):not([data-disabled]) {
+  border-style: var(--fiori-numeric-input-error-warning-information-border-style);
+}
+.fiori-step-input[data-value-state="negative"]:not([data-readonly]):not([data-disabled]) {
+  background: var(--sapField_InvalidBackgroundStyle);
+  background-color: var(--sapField_InvalidBackground);
+  border-color: var(--fiori-input-value-state-error-border-color);
+  box-shadow: var(--sapField_InvalidShadow);
+}
+.fiori-step-input[data-value-state="critical"]:not([data-readonly]):not([data-disabled]) {
+  background: var(--sapField_WarningBackgroundStyle);
+  background-color: var(--sapField_WarningBackground);
+  border-color: var(--fiori-input-value-state-warning-border-color);
+  box-shadow: var(--sapField_WarningShadow);
+}
+.fiori-step-input[data-value-state="positive"]:not([data-readonly]):not([data-disabled]) {
+  background: var(--sapField_SuccessBackgroundStyle);
+  background-color: var(--sapField_SuccessBackground);
+  border-color: var(--fiori-input-value-state-success-border-color);
+  border-width: var(--fiori-input-value-state-success-border-width);
+  box-shadow: var(--sapField_SuccessShadow);
+}
+.fiori-step-input[data-value-state="information"]:not([data-readonly]):not([data-disabled]) {
+  background: var(--sapField_InformationBackgroundStyle);
+  background-color: var(--sapField_InformationBackground);
+  border-color: var(--fiori-input-value-state-information-border-color);
+  border-width: var(--fiori-input-information-border-width);
+  box-shadow: var(--sapField_InformationShadow);
+}
+.fiori-step-input[data-value-state]:not([data-readonly]):not([data-disabled]):hover {
+  background-color: var(--fiori-numeric-input-button-state-hover-background-color);
+}
+.fiori-step-input[data-value-state="positive"]:not([data-readonly]):not([data-disabled]):not(:focus-within):hover { box-shadow: var(--sapField_Hover_SuccessShadow); }
+.fiori-step-input[data-value-state="information"]:not([data-readonly]):not([data-disabled]):not(:focus-within):hover { box-shadow: var(--sapField_Hover_InformationShadow); }
+.fiori-step-input[data-value-state="critical"]:not([data-readonly]):not([data-disabled]):not(:focus-within):hover { box-shadow: var(--sapField_Hover_WarningShadow); }
+.fiori-step-input[data-value-state="negative"]:not([data-readonly]):not([data-disabled]):not(:focus-within):hover { box-shadow: var(--sapField_Hover_InvalidShadow); }
+.fiori-step-input[data-value-state="negative"]:not([data-readonly]):not([data-disabled]):focus-within {
+  background-color: var(--fiori-numeric-input-error-focused-background);
+}
+.fiori-step-input[data-value-state="negative"]:not([data-readonly]):not([data-disabled]):hover {
+  background-color: var(--fiori-numeric-input-error-hover-background);
+}
+
+/* Inner field: a full .fiori-field (UI5 nests a real ui5-input, value state included), with the
+   numeric input's overrides on top. In UI5 those overrides come from the outer shadow root and so
+   beat the inner input's own :host rules regardless of specificity; !important reproduces that.
+   The inner field carries data-open so .fiori-field's own focus ring stays off (UI5 disables it via
+   --ui5_input_focus_pseudo_element_content: none) and the numeric ring below is drawn instead. */
+.fiori-step-input__field {
+  display: flex;
+  width: 100% !important;
+  min-width: var(--fiori-numeric-input-min-width) !important;
+  height: 100% !important;
+  margin: var(--fiori-numeric-input-input-margin-top) 0 0 !important;
+  vertical-align: top;
+  color: inherit !important;
+  line-height: inherit;
+  text-align: inherit;
+  /* UI5: background-color: inherit, from the transparent .ui5-numeric-input-root wrapper. */
+  background-color: transparent !important;
+  border: var(--fiori-numeric-input-input-border) !important;
+  opacity: 1 !important;
+  outline: none;
+}
+.fiori-step-input:not([data-readonly]) .fiori-step-input__field {
+  padding-inline: var(--fiori-numeric-input-padding-with-step-buttons);
+}
+.fiori-step-input[data-value-state="negative"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field {
+  background-color: var(--fiori-numeric-input-error-background-color) !important;
+}
+.fiori-step-input__field:is(:hover, :focus-within) {
+  box-shadow: none !important;
+}
+.fiori-step-input .fiori-field__input {
+  text-align: inherit;
+  white-space: nowrap;
+}
+
+/* Focus ring, drawn over the whole inner field */
+.fiori-step-input__field:focus-within::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: var(--fiori-numeric-input-input-border-top-bottom-focused-after) 0 var(--fiori-numeric-input-input-border-bottom-focused-after) 0;
+  border: var(--fiori-numeric-input-input-border-focused-after);
+  border-radius: var(--fiori-numeric-input-input-border-radius-focused-after);
+  pointer-events: none;
+}
+.fiori-step-input[data-readonly] .fiori-step-input__field:focus-within::after {
+  inset: var(--fiori-input-readonly-focus-offset);
+  border-radius: var(--fiori-input-readonly-focus-border-radius);
+  border-color: var(--sapContent_FocusColor);
+}
+.fiori-step-input[data-value-state="information"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within::after {
+  border-color: var(--fiori-numeric-input-input-information-border-color-focused-after);
+  top: var(--fiori-numeric-input-input-border-top-information-focused-after);
+  bottom: var(--fiori-numeric-input-input-border-bottom-information-focused-after);
+}
+.fiori-step-input[data-value-state="critical"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within::after {
+  border-color: var(--fiori-numeric-input-input-warning-border-color-focused-after);
+}
+.fiori-step-input[data-value-state="positive"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within::after {
+  border-color: var(--fiori-numeric-input-input-success-border-color-focused-after);
+}
+.fiori-step-input[data-value-state="negative"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within::after {
+  border-color: var(--fiori-numeric-input-input-error-border-color-focused-after);
+}
+
+/* Step buttons */
+.fiori-step-input__button {
+  position: absolute;
+  top: 0;
+  z-index: 0;
+  display: var(--fiori-numeric-input-button-display);
+  height: 100%;
+  background-color: var(--fiori-numeric-input-button-background-color);
+}
+.fiori-step-input__button[data-dir="dec"] {
+  left: var(--fiori-numeric-input-button-left);
+  z-index: 1;
+}
+.fiori-step-input__button[data-dir="inc"] {
+  right: var(--fiori-numeric-input-button-right);
+}
+.fiori-step-input[data-disabled] .fiori-step-input__button {
+  background-color: var(--fiori-numeric-input-disabled-button-background);
+}
+.fiori-step-input__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
+  margin: 0;
+  padding: var(--fiori-input-icon-padding);
+  border: none;
+  border-inline-start: var(--fiori-input-icon-border);
+  border-radius: var(--fiori-input-icon-border-radius);
+  background: transparent;
+  color: var(--fiori-input-icon-color);
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.fiori-step-input:is([data-value-state="negative"], [data-value-state="critical"]) .fiori-step-input__icon {
+  padding: var(--fiori-input-error-warning-icon-padding);
+}
+.fiori-step-input[data-value-state="information"] .fiori-step-input__icon {
+  padding: var(--fiori-input-information-icon-padding);
+}
+.fiori-step-input__icon > svg {
+  width: 100%;
+  height: 100%;
+}
+.fiori-step-input__icon[data-clickable]:not(:active):hover {
+  background: var(--fiori-input-icon-hover-bg);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+}
+.fiori-step-input__icon[data-clickable]:hover {
+  border-inline-start: var(--fiori-select-hover-icon-left-border);
+}
+.fiori-step-input__icon[data-clickable]:active {
+  background-color: var(--sapButton_Active_Background);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+  border-inline-start: var(--fiori-select-hover-icon-left-border);
+  color: var(--fiori-input-icon-pressed-color);
+}
+.fiori-step-input[data-value-state="negative"] .fiori-step-input__icon[data-clickable]:hover { box-shadow: var(--fiori-input-error-icon-box-shadow); }
+.fiori-step-input[data-value-state="critical"] .fiori-step-input__icon[data-clickable]:hover { box-shadow: var(--fiori-input-warning-icon-box-shadow); }
+.fiori-step-input[data-value-state="information"] .fiori-step-input__icon[data-clickable]:hover { box-shadow: var(--fiori-input-information-icon-box-shadow); }
+.fiori-step-input[data-value-state="positive"] .fiori-step-input__icon[data-clickable]:hover { box-shadow: var(--fiori-input-success-icon-box-shadow); }
+.fiori-step-input__icon:not([data-clickable]) {
+  opacity: 0.5;
+  background-color: transparent;
+  color: var(--sapContent_IconColor);
+  cursor: default;
+}
+.fiori-step-input[data-disabled] .fiori-step-input__icon {
+  color: var(--sapField_ReadOnly_BorderColor);
+}
