@@ -1,0 +1,109 @@
+/* Token: mirrors ui5-token (Horizon). Host + .ui5-token--wrapper merged into one element. */
+.fiori-token {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  box-sizing: border-box;
+  height: var(--fiori-token-height);
+  padding-inline-start: var(--fiori-token-left-padding);
+  background: var(--fiori-token-background);
+  border: var(--sapButton_BorderWidth) solid var(--sapButton_TokenBorderColor);
+  border-radius: var(--fiori-token-border-radius);
+  color: var(--fiori-token-text-color);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  vertical-align: middle;
+}
+.fiori-token:not([data-readonly]):hover {
+  background: var(--sapButton_Hover_Background);
+}
+.fiori-token:not([data-readonly])[aria-selected="true"] {
+  background: var(--sapButton_Selected_Background);
+  border: var(--sapButton_BorderWidth) solid var(--sapButton_Selected_BorderColor);
+  color: var(--sapButton_Selected_TextColor);
+}
+.fiori-token:not([data-readonly])[aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-bottom: var(--fiori-token-selected-internal-border-bottom);
+  border-bottom-left-radius: var(--fiori-token-selected-internal-border-bottom-radius);
+  border-bottom-right-radius: var(--fiori-token-selected-internal-border-bottom-radius);
+  background: transparent;
+  pointer-events: none;
+}
+.fiori-token:not([data-readonly])[aria-selected="true"]:hover {
+  background: var(--sapButton_Selected_Hover_Background);
+}
+.fiori-token:not([data-readonly])[aria-selected="true"]:focus:not(:hover) {
+  background: var(--sapButton_Selected_Background);
+  color: var(--sapButton_Selected_TextColor);
+  border: var(--fiori-token-focused-selected-border);
+}
+.fiori-token[aria-selected="true"] {
+  font-family: var(--fiori-token-selected-text-font-family);
+}
+.fiori-token[data-readonly][aria-selected="true"] .fiori-token__text {
+  background: var(--sapSelectedColor);
+  color: var(--sapContent_ContrastTextColor);
+}
+.fiori-token[data-readonly]:not([aria-selected="true"]) {
+  background: var(--fiori-token-readonly-background);
+  border-color: var(--sapField_ReadOnly_BorderColor);
+  color: var(--fiori-token-readonly-color);
+}
+.fiori-token[data-readonly] {
+  padding: var(--fiori-token-readonly-padding);
+}
+/* Focus: UI5 draws it on the (desktop) wrapper for any focus. */
+.fiori-token:focus {
+  outline-offset: var(--fiori-token-outline-offset);
+  outline: var(--fiori-token-focus-outline);
+}
+.fiori-token[aria-selected="true"]:focus {
+  outline: var(--fiori-token-selected-focus-outline);
+}
+.fiori-token:focus::after {
+  content: var(--fiori-token-focus-pseudo-element-content);
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+  inset: var(--fiori-token-focus-offset);
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  border-radius: var(--fiori-token-focus-outline-border-radius);
+}
+.fiori-token__text {
+  white-space: nowrap;
+}
+.fiori-token__icon {
+  display: flex;
+  box-sizing: content-box;
+  width: var(--fiori-token-icon-size);
+  height: var(--fiori-token-icon-size);
+  padding: var(--fiori-token-icon-padding);
+  color: var(--sapContent_IconColor);
+  cursor: pointer;
+}
+.fiori-token__icon > svg {
+  width: 100%;
+  height: 100%;
+}
+.fiori-token[aria-selected="true"] .fiori-token__icon {
+  color: var(--sapButton_Selected_TextColor);
+}
+/* A token alone in a tokenizer may shrink and truncate (UI5 [single-token]). */
+.fiori-token[data-single] {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+.fiori-token[data-single] .fiori-token__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}

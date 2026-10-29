@@ -1,0 +1,138 @@
+/* Tokenizer: mirrors ui5-tokenizer (Horizon, single line). */
+.fiori-tokenizer {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 2.25rem;
+  max-width: 100%;
+  border: none;
+  font-family: var(--sapFontFamily);
+  overflow: hidden;
+}
+.fiori-tokenizer[data-expanded] {
+  overflow: visible;
+}
+.fiori-tokenizer[data-disabled] {
+  opacity: 40%;
+  pointer-events: none;
+}
+.fiori-tokenizer__content {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  box-sizing: border-box;
+  height: 100%;
+  min-width: 0;
+  padding-inline-start: var(--fiori-tokenizer-padding);
+  overflow: hidden;
+  white-space: nowrap;
+  outline: none;
+}
+.fiori-tokenizer[data-empty] .fiori-tokenizer__content {
+  padding: 0;
+}
+/* One token: it may shrink (and truncate) to the tokenizer width. */
+.fiori-tokenizer__content:has(> [role="listbox"] > .fiori-token:only-child) {
+  flex: 1;
+  max-width: 100%;
+  padding-inline-end: 4px;
+}
+.fiori-tokenizer .fiori-token:not([data-single]) {
+  margin-inline-end: var(--fiori-token-right-margin);
+}
+.fiori-tokenizer .fiori-token[data-last-visible] {
+  margin-inline-end: 0;
+}
+.fiori-tokenizer .fiori-token[data-overflows] {
+  display: none;
+}
+.fiori-tokenizer__more {
+  display: inline-block;
+  flex-shrink: 0;
+  margin-inline-start: var(--fiori-token-right-margin);
+  color: var(--fiori-tokenizer-n-more-text-color);
+  font-size: var(--sapFontSize);
+  font-weight: 400;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.fiori-tokenizer__more:hover {
+  text-decoration: underline;
+}
+.fiori-tokenizer__more:active {
+  text-decoration: none;
+}
+
+/* "n more" popover: a list of all tokens with delete buttons (ui5-list mode="Delete"). */
+.fiori-tokenizer__popover .fiori-popup__root {
+  overflow-y: auto;
+}
+.fiori-tokenizer__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fiori-tokenizer__list-item {
+  height: auto;
+  min-height: var(--fiori-list-item-base-height);
+}
+.fiori-tokenizer__list-item:focus-visible::after,
+.fiori-tokenizer__list-item:focus::after {
+  content: "";
+  position: absolute;
+  inset: 0.125rem;
+  pointer-events: none;
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+}
+.fiori-tokenizer__list-text {
+  flex: auto;
+  min-width: 1px;
+  margin: var(--fiori-list-item-content-vertical-offset) 0;
+  color: var(--sapList_TextColor);
+  font-size: var(--fiori-list-item-title-size);
+  line-height: normal;
+  overflow-wrap: anywhere;
+}
+.fiori-tokenizer__list-delete {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  margin-inline-start: 0.875rem;
+}
+
+/* A field with a tokenizer before its input (MultiInput, MultiComboBox): UI5 MultiInput.css / MultiComboBox.css. */
+.fiori-tokenized-field {
+  justify-content: flex-end;
+}
+.fiori-tokenized-field[data-tokens] {
+  min-width: calc(
+    var(--fiori-input-min-width-tokenizer-available) + var(--fiori-field-icons, 0) * var(--fiori-input-icon-width) +
+      var(--fiori-input-tokenizer-min-width)
+  );
+}
+.fiori-tokenized-field__tokenizer {
+  flex-shrink: 0;
+  width: auto;
+  height: 100%;
+  min-width: var(--fiori-input-tokenizer-min-width);
+  max-width: calc(100% - var(--fiori-input-min-width-tokenizer-available) - var(--fiori-field-icons, 0) * var(--fiori-input-icon-min-width));
+}
+.fiori-tokenized-field:not([data-tokens]) .fiori-tokenized-field__tokenizer {
+  min-width: 0;
+  width: 0;
+}
+.fiori-tokenized-field__tokenizer .fiori-tokenizer__more {
+  padding-inline-end: var(--fiori-input-inner-space-to-n-more-text);
+}
+.fiori-tokenized-field[data-readonly] .fiori-tokenizer__more {
+  color: var(--sapLinkColor);
+}
+.fiori-tokenized-field[data-disabled] .fiori-tokenized-field__tokenizer {
+  opacity: 100%;
+}
+.fiori-tokenized-field[data-tokens] .fiori-field__input {
+  min-width: var(--fiori-input-min-width-tokenizer-available);
+  padding-inline-start: 0;
+  padding-inline-end: var(--fiori-input-inner-with-tokenizer-padding-inline-end);
+}

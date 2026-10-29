@@ -1,0 +1,13 @@
+{
+  "title": "MultiInput",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/input",
+    "@fiori/token",
+    "@fiori/tokenizer"
+  ],
+  "description": "Fiori multi input: a text field with tokens, value help and suggestions, plus the SAP token keyboard model."
+}
