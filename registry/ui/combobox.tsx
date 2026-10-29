@@ -316,6 +316,8 @@ function ComboBox({
                 }
               }
               if (key === "Escape") {
+                // While open, Radix's dismissable layer closes the list first (and marks the event
+                // handled, so we never get here); a second Escape restores the value from focus.
                 if (open) {
                   e.preventDefault()
                   setOpen(false)
@@ -383,9 +385,9 @@ function ComboBox({
         <PopoverPrimitive.Content
           align="start"
           sideOffset={4}
+          aria-label={listLabel}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
           onInteractOutside={(e) => {
             if (inputRef.current?.parentElement?.contains(e.target as Node)) e.preventDefault()
           }}
