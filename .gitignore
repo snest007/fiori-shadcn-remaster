@@ -7,3 +7,5 @@ tests/__screenshots__/*-actual.png
 tests/__screenshots__/*-diff.png
 .DS_Store
 .claude/worktrees
+registry.json
+registry/styles/fiori-components.css

@@ -46,3 +46,7 @@ The visual test fails a cell if more than 2% of its pixels differ, or if its siz
 are written to `test-results/visual/<theme>-<density>/` as `<id>-ours.png`, `-ui5.png` and `-diff.png`. Open them with the Read tool.
 Raise `tolerance` or use `skipCompare` only for a reason you can name (e.g. UI5 animates something we can't freeze),
 and put the reason in a code comment.
+
+Generated files (`registry.json`, `registry/styles/fiori-components.css`, `public/r/`) are git-ignored; scripts rebuild them.
+Commit only your component's own files. If you truly must change a shared file (`fiori-types`, `input.tsx`, a script),
+keep the change minimal and say so in your commit message.
