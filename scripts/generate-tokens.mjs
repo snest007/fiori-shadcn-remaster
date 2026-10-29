@@ -125,7 +125,10 @@ const baseParams = params[DEFAULT_THEME]
 out.push(block(`:root,\n[data-theme],\n[data-density="cozy"]`, paramEntries(baseParams.cozy)))
 out.push(block(`[data-density="compact"]`, paramEntries(withDependents(baseParams.cozy, baseParams.compact))))
 for (const t of THEMES.filter((t) => t !== DEFAULT_THEME)) {
-  const { cozy, compact } = params[t]
+  const { cozy: own, compact } = params[t]
+  // Keys this theme doesn't define at all (e.g. --_ui5_breadcrumbs_margin in the HC themes) are
+  // unset in UI5; declare them `initial` so they don't inherit the default theme's value.
+  const cozy = new Map([...own, ...[...baseParams.cozy.keys()].filter((k) => !own.has(k)).map((k) => [k, "initial"])])
   const cozyDiff = new Map([...cozy].filter(([k, v]) => baseParams.cozy.get(k) !== v))
   // The theme's cozy block outranks the generic [data-density="compact"] block, so a themed compact
   // block re-declares every density-dependent key (not just those whose value differs from base).
