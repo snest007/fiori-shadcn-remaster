@@ -1,83 +1,55 @@
-// UI5 Web Components reference renderer: the official SAP implementation, used as the visual oracle.
+// UI5 Web Components reference page: the official SAP implementation, used as the visual oracle.
+// Renders every case from docs/src/fixtures/*.tsx with its sibling *.ui5.ts renderer.
+// Registers themes (and i18n/CLDR) so setTheme can load sap_horizon_dark etc.
 import "@ui5/webcomponents/dist/Assets.js"
-import "@ui5/webcomponents/dist/Button.js"
-import "@ui5/webcomponents/dist/Label.js"
-import "@ui5/webcomponents/dist/Input.js"
-import "@ui5/webcomponents/dist/Select.js"
-import "@ui5/webcomponents/dist/Option.js"
-// Icons used by fixtures; imported directly so they register synchronously (AllIcons loads lazily).
-import "@ui5/webcomponents-icons/dist/add.js"
-import "@ui5/webcomponents-icons/dist/edit.js"
 import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js"
+import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 
-import { FIELD_WIDTH, fixtures, readPageOptions, type Fixture } from "./fixtures"
+import { readPageOptions, type Ui5Renderer } from "./fixture-types"
+import { fixtureSets } from "./fixtures"
+
+const renderers = import.meta.glob<{ default: Ui5Renderer }>("./fixtures/*.ui5.ts", { eager: true })
+const rendererFor = (name: string) => renderers[`./fixtures/${name}.ui5.ts`]?.default
 
 const opts = readPageOptions()
-const pascal = (s: string) => s[0].toUpperCase() + s.slice(1)
-
-function render(f: Fixture): HTMLElement {
-  switch (f.kind) {
-    case "button": {
-      const el = document.createElement("ui5-button")
-      el.setAttribute("design", f.variant === "default" ? "Default" : pascal(f.variant))
-      if (f.icon) el.setAttribute("icon", f.icon)
-      if (f.disabled) el.setAttribute("disabled", "")
-      if (f.text) el.textContent = f.text
-      return el
-    }
-    case "label": {
-      const el = document.createElement("ui5-label")
-      if (f.required) el.setAttribute("required", "")
-      if (f.showColon) el.setAttribute("show-colon", "")
-      el.textContent = f.text
-      return el
-    }
-    case "input": {
-      const el = document.createElement("ui5-input")
-      el.style.width = FIELD_WIDTH
-      if (f.value) el.setAttribute("value", f.value)
-      if (f.placeholder) el.setAttribute("placeholder", f.placeholder)
-      if (f.valueState && f.valueState !== "none") el.setAttribute("value-state", pascal(f.valueState))
-      if (f.disabled) el.setAttribute("disabled", "")
-      if (f.readOnly) el.setAttribute("readonly", "")
-      return el
-    }
-    case "select": {
-      const el = document.createElement("ui5-select")
-      el.style.width = FIELD_WIDTH
-      if (f.valueState && f.valueState !== "none") el.setAttribute("value-state", pascal(f.valueState))
-      if (f.disabled) el.setAttribute("disabled", "")
-      for (const o of f.options) {
-        const opt = document.createElement("ui5-option")
-        opt.textContent = o
-        if (o === f.selected) opt.setAttribute("selected", "")
-        el.append(opt)
-      }
-      return el
-    }
-  }
-}
-
 await setTheme(opts.theme)
 if (opts.density === "compact") document.body.setAttribute("data-ui5-compact-size", "")
 document.body.style.cssText = "margin:0;padding:1rem;background:var(--sapBackgroundColor);font-family:var(--sapFontFamily)"
 
 const root = document.getElementById("root")!
 root.style.cssText = "display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start"
-for (const f of fixtures) {
-  if (opts.only && !f.id.startsWith(opts.only)) continue
-  const cell = document.createElement("div")
-  cell.dataset.fixture = f.id
-  cell.style.cssText = "display:inline-flex;padding:0.25rem;line-height:normal"
-  cell.append(render(f))
-  root.append(cell)
+for (const set of fixtureSets) {
+  const render = rendererFor(set.name)
+  if (!render) continue
+  for (const c of set.cases) {
+    if (opts.only && !c.id.startsWith(opts.only)) continue
+    if (set.skipCompare?.includes(c.id)) continue
+    const cell = document.createElement("div")
+    cell.dataset.fixture = c.id
+    cell.style.cssText = "display:inline-flex;padding:0.25rem;line-height:normal"
+    cell.append(render(c.props))
+    root.append(cell)
+  }
 }
-await Promise.all(["ui5-button", "ui5-input", "ui5-select", "ui5-label"].map((t) => customElements.whenDefined(t)))
+
+// Wait for every custom element to be defined and rendered, fonts loaded, and icons drawn
+// (ui5-icon fills its <path> asynchronously).
+const tags = new Set([...root.querySelectorAll("*")].map((e) => e.localName).filter((t) => t.includes("-")))
+await Promise.all([...tags].map((t) => customElements.whenDefined(t)))
+await renderFinished()
 await document.fonts.ready
-// Icons render asynchronously inside ui5-icon's shadow root; wait until every one has its <path>.
-const iconsDrawn = () =>
-  [...document.querySelectorAll("ui5-button[icon]")].every((b) =>
-    b.shadowRoot?.querySelector("[ui5-icon]")?.shadowRoot?.querySelector("path")
-  )
-while (!iconsDrawn()) await new Promise((r) => requestAnimationFrame(r))
+const shadowIcons = (node: ParentNode): Element[] =>
+  [...node.querySelectorAll("*")].flatMap((e) => [
+    ...(e.localName === "ui5-icon" || e.hasAttribute("ui5-icon") ? [e] : []),
+    ...(e.shadowRoot ? shadowIcons(e.shadowRoot) : []),
+  ])
+const iconsDrawn = () => shadowIcons(root).every((i) => !i.getAttribute("name") || i.shadowRoot?.querySelector("path"))
+for (let i = 0; i < 300 && !iconsDrawn(); i++) await new Promise((r) => requestAnimationFrame(r))
+await renderFinished()
+// setTheme resolves before the theme's CSS variables are applied; wait until the background is the theme's.
+const EXPECTED_BG: Record<string, string> = { sap_horizon: "#f5f6f7", sap_horizon_dark: "#12171c", sap_horizon_hcb: "#000", sap_horizon_hcw: "#fff" }
+const bg = () => getComputedStyle(document.documentElement).getPropertyValue("--sapBackgroundColor").trim().toLowerCase()
+for (let i = 0; i < 300 && EXPECTED_BG[opts.theme] && bg() !== EXPECTED_BG[opts.theme]; i++)
+  await new Promise((r) => requestAnimationFrame(r))
+await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
 document.documentElement.dataset.ready = "true"

@@ -1,0 +1,11 @@
+{
+  "title": "Select",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/input"
+  ],
+  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open)."
+}

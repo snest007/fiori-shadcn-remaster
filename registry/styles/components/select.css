@@ -1,0 +1,23 @@
+/* Select trigger */
+.fiori-select {
+  cursor: pointer;
+  outline: none;
+}
+.fiori-select[data-disabled] {
+  cursor: default;
+}
+.fiori-select__value {
+  flex: 1 1 auto;
+  align-self: center;
+  min-width: 1rem;
+  padding-inline-start: 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--fiori-select-label-color);
+  font-weight: 400;
+}
+.fiori-select .fiori-field__icon {
+  width: var(--fiori-select-icon-width);
+  min-width: var(--fiori-select-icon-width);
+}

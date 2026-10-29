@@ -5,22 +5,24 @@ import { expect, test, type Page } from "@playwright/test"
 import pixelmatch from "pixelmatch"
 import { PNG } from "pngjs"
 
-import { fixtures } from "../docs/src/fixtures"
 
 const THEMES = ["sap_horizon", "sap_horizon_dark", "sap_horizon_hcb", "sap_horizon_hcw"]
 const DENSITIES = ["cozy", "compact"] as const
-// Anti-aliasing and sub-pixel text layout differ slightly between shadow DOM and light DOM;
-// beyond this share of differing pixels a fixture fails.
-const MAX_DIFF_RATIO = 0.02
 
-async function shoot(page: Page, url: string) {
+// Case list and tolerances come from the built docs page itself (window.__fixtures), so this file
+// never needs to import the fixture modules (which reference browser-only UI5 code).
+type CaseInfo = { id: string; tolerance: number }
+
+async function shoot(page: Page, url: string, ids?: string[]) {
   await page.goto(url)
-  await page.waitForSelector("html[data-ready=true]")
+  await page.waitForSelector("html[data-ready=true]", { timeout: 30_000 })
   await page.mouse.move(0, 0)
+  const cells = ids ?? (await page.locator("[data-fixture]").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.fixture!)))
   const shots = new Map<string, PNG>()
-  for (const f of fixtures) {
-    const buf = await page.locator(`[data-fixture="${f.id}"]`).screenshot({ animations: "disabled", caret: "hide" })
-    shots.set(f.id, PNG.sync.read(buf))
+  for (const id of cells) {
+    const loc = page.locator(`[data-fixture="${id}"]`)
+    if (!(await loc.count())) continue
+    shots.set(id, PNG.sync.read(await loc.screenshot({ animations: "disabled", caret: "hide" })))
   }
   return shots
 }
@@ -31,16 +33,22 @@ for (const theme of THEMES) {
   for (const density of DENSITIES) {
     test(`${theme} ${density} matches UI5`, async ({ browser }) => {
       const q = `?theme=${theme}&density=${density}`
-      const [ours, ref] = await Promise.all([
-        browser.newPage().then((p) => shoot(p, `/index.html${q}&fixtures`)),
-        browser.newPage().then((p) => shoot(p, `/ui5.html${q}`)),
-      ])
+      const ui5Page = await browser.newPage()
+      const ref = await shoot(ui5Page, `/ui5.html${q}`)
+      const oursPage = await browser.newPage()
+      const ours = await shoot(oursPage, `/index.html${q}&fixtures`, [...ref.keys()])
+      const cases: CaseInfo[] = await oursPage.evaluate(() => (window as any).__fixtures)
       const dir = `test-results/visual/${theme}-${density}`
       mkdirSync(dir, { recursive: true })
       const failures: string[] = []
-      for (const f of fixtures) {
-        const a = ours.get(f.id)!
+      expect(ref.size, "UI5 page rendered no fixtures").toBeGreaterThan(0)
+      for (const f of cases.filter((c) => ref.has(c.id))) {
+        const a = ours.get(f.id)
         const b = ref.get(f.id)!
+        if (!a) {
+          failures.push(`${f.id}: missing on our page`)
+          continue
+        }
         const key = `${theme}/${density}/${f.id}`
         if (a.width !== b.width || a.height !== b.height) {
           report[key] = { ratio: 1, size: `${a.width}x${a.height} vs ui5 ${b.width}x${b.height}` }
@@ -53,7 +61,7 @@ for (const theme of THEMES) {
         const n = pixelmatch(a.data, b.data, diff.data, a.width, a.height, { threshold: 0.1 })
         const ratio = n / (a.width * a.height)
         report[key] = { ratio, size: `${a.width}x${a.height}` }
-        if (ratio > MAX_DIFF_RATIO) {
+        if (ratio > f.tolerance) {
           failures.push(`${f.id}: ${(ratio * 100).toFixed(1)}% pixels differ`)
           writeFileSync(`${dir}/${f.id}-ours.png`, PNG.sync.write(a))
           writeFileSync(`${dir}/${f.id}-ui5.png`, PNG.sync.write(b))

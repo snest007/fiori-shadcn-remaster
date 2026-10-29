@@ -1,0 +1,9 @@
+/* Popup surfaces */
+.fiori-popover {
+  box-sizing: border-box;
+  background: var(--fiori-popover-background);
+  color: var(--sapTextColor);
+  border-radius: var(--fiori-popup-border-radius);
+  box-shadow: var(--fiori-popover-no-arrow-box-shadow);
+  overflow: hidden;
+}

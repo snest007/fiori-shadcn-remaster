@@ -1,0 +1,32 @@
+/* Value state message */
+.fiori-value-state-message {
+  position: relative;
+  box-sizing: border-box;
+  min-width: 6.25rem;
+  padding: var(--fiori-value-state-message-padding);
+  color: var(--sapTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSmallSize);
+  line-height: var(--fiori-value-state-message-line-height);
+  border: var(--fiori-value-state-message-border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fiori-value-state-message[data-popover] {
+  border-radius: var(--fiori-value-state-message-popover-border-radius);
+  box-shadow: var(--fiori-value-state-message-popover-box-shadow);
+}
+.fiori-value-state-message > svg {
+  position: absolute;
+  inset-inline-start: var(--fiori-input-value-state-icon-offset);
+  width: var(--fiori-value-state-message-icon-width);
+  height: var(--fiori-value-state-message-icon-height);
+}
+.fiori-value-state-message[data-value-state="negative"] { background: var(--sapErrorBackground); }
+.fiori-value-state-message[data-value-state="negative"] > svg { color: var(--sapNegativeElementColor); }
+.fiori-value-state-message[data-value-state="critical"] { background: var(--sapWarningBackground); }
+.fiori-value-state-message[data-value-state="critical"] > svg { color: var(--sapCriticalElementColor); }
+.fiori-value-state-message[data-value-state="positive"] { background: var(--sapSuccessBackground); }
+.fiori-value-state-message[data-value-state="positive"] > svg { color: var(--sapPositiveElementColor); }
+.fiori-value-state-message[data-value-state="information"] { background: var(--sapInformationBackground); }
+.fiori-value-state-message[data-value-state="information"] > svg { color: var(--sapInformativeElementColor); }

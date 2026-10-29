@@ -9,14 +9,15 @@
   "scripts": {
     "tokens": "node scripts/generate-tokens.mjs",
     "icons": "node scripts/generate-icons.mjs",
-    "generate": "pnpm tokens && pnpm icons",
+    "generate": "pnpm tokens && pnpm icons && pnpm css",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173 --strictPort",
     "registry:build": "node scripts/build-registry-json.mjs && shadcn build registry.json --output public/r",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
-    "check": "pnpm generate && pnpm typecheck && pnpm registry:build && pnpm build && pnpm test"
+    "check": "pnpm generate && pnpm typecheck && pnpm registry:build && pnpm build && pnpm test",
+    "css": "node scripts/build-components-css.mjs"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

@@ -73,7 +73,8 @@ for (const t of THEMES.filter((t) => t !== DEFAULT_THEME)) {
 // compiled theme parameters, renamed --_ui5_button_base_height -> --fiori-button-base-height.
 // UI5 declares them per :host; we declare them on :root and every [data-theme]/[data-density]
 // element so values that reference --sap* or density-dependent vars re-resolve in subtrees.
-const COMPONENT_PARAMS = /^--(_ui5_(button|input|select|list_item|li_|listitembase|popover|popup|value_state|input_value_state)|_ui5-input|ui5-listitem)/
+// All of them: components added later find their parameters already generated.
+const COMPONENT_PARAMS = /^--_?ui5[_-]/
 // UI5 has a few keys that differ only by "_" vs "-" (e.g. --_ui5_input_value_state_icon_display vs
 // --_ui5-input-value-state-icon-display); the dash-prefixed spelling gets an "x-" marker to stay distinct.
 const rename = (k) => "--fiori-" + (/^--_?ui5-/.test(k) ? "x-" : "") + k.replace(/^--_?ui5[_-]/, "").replace(/_/g, "-").toLowerCase()

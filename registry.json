@@ -11,8 +11,8 @@
       "registryDependencies": [
         "@fiori/fiori-theme",
         "@fiori/button",
-        "@fiori/label",
         "@fiori/input",
+        "@fiori/label",
         "@fiori/select"
       ],
       "config": {
@@ -145,6 +145,8 @@
     {
       "name": "button",
       "type": "registry:ui",
+      "title": "Button",
+      "description": "Fiori button designs: default, emphasized, transparent, positive, negative, attention.",
       "registryDependencies": [
         "@fiori/fiori-theme"
       ],
@@ -157,13 +159,30 @@
           "path": "registry/ui/button.tsx",
           "type": "registry:ui"
         }
+      ]
+    },
+    {
+      "name": "input",
+      "type": "registry:ui",
+      "title": "Input",
+      "description": "Fiori input with value states and value state message.",
+      "registryDependencies": [
+        "@fiori/fiori-theme",
+        "@fiori/icons"
       ],
-      "title": "Button",
-      "description": "Fiori button designs: default, emphasized, transparent, positive, negative, attention."
+      "dependencies": [],
+      "files": [
+        {
+          "path": "registry/ui/input.tsx",
+          "type": "registry:ui"
+        }
+      ]
     },
     {
       "name": "label",
       "type": "registry:ui",
+      "title": "Label",
+      "description": "Form label with required marker and colon.",
       "registryDependencies": [
         "@fiori/fiori-theme"
       ],
@@ -175,30 +194,13 @@
           "path": "registry/ui/label.tsx",
           "type": "registry:ui"
         }
-      ],
-      "title": "Label",
-      "description": "Form label with required marker and colon."
-    },
-    {
-      "name": "input",
-      "type": "registry:ui",
-      "registryDependencies": [
-        "@fiori/fiori-theme",
-        "@fiori/icons"
-      ],
-      "dependencies": [],
-      "files": [
-        {
-          "path": "registry/ui/input.tsx",
-          "type": "registry:ui"
-        }
-      ],
-      "title": "Input",
-      "description": "Fiori input with value states and value state message."
+      ]
     },
     {
       "name": "select",
       "type": "registry:ui",
+      "title": "Select",
+      "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open).",
       "registryDependencies": [
         "@fiori/fiori-theme",
         "@fiori/icons",
@@ -212,9 +214,7 @@
           "path": "registry/ui/select.tsx",
           "type": "registry:ui"
         }
-      ],
-      "title": "Select",
-      "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open)."
+      ]
     }
   ]
 }

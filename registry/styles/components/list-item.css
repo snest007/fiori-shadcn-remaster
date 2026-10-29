@@ -1,0 +1,49 @@
+/* List item (select options, lists) */
+.fiori-list-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: var(--fiori-list-item-base-height);
+  padding: var(--fiori-list-item-base-padding);
+  background-color: var(--fiori-x-listitem-background-color);
+  border-bottom: 0.0625rem solid transparent;
+  color: var(--sapList_TextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--fiori-list-item-title-size);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+.fiori-list-item > [data-slot="select-item-text"] {
+  flex: auto;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fiori-list-item[data-state="checked"] {
+  background-color: var(--sapList_SelectionBackgroundColor);
+  border-bottom: var(--fiori-x-listitem-selected-border-bottom);
+}
+.fiori-list-item:not([data-state="checked"]):hover {
+  background-color: var(--sapList_Hover_Background);
+}
+.fiori-list-item[data-state="checked"]:hover {
+  background-color: var(--sapList_Hover_SelectionBackground);
+}
+.fiori-list-item:active {
+  background-color: var(--sapList_Active_Background);
+  border-bottom-color: var(--sapList_Active_Background);
+  color: var(--sapList_Active_TextColor);
+}
+.fiori-list-item[data-highlighted]::after {
+  content: "";
+  position: absolute;
+  inset: 0.125rem;
+  pointer-events: none;
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+}
+.fiori-list-item[data-disabled] {
+  opacity: var(--sapContent_DisabledOpacity);
+  pointer-events: none;
+}

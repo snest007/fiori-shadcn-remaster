@@ -1,0 +1,7 @@
+{
+  "title": "Label",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "description": "Form label with required marker and colon."
+}

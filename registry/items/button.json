@@ -1,0 +1,8 @@
+{
+  "title": "Button",
+  "dependencies": [
+    "class-variance-authority",
+    "radix-ui"
+  ],
+  "description": "Fiori button designs: default, emphasized, transparent, positive, negative, attention."
+}
