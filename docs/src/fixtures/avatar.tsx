@@ -46,7 +46,7 @@ export default defineFixtures<Props>({
   ],
   react: ({ size, shape, scheme, initials, icon, image, interactive, disabled, group }) =>
     group ? (
-      <AvatarGroup type={group} size={size}>
+      <AvatarGroup type={group} size={size} aria-label={`Team ${group}`}>
         <Avatar initials="JD" />
         <Avatar initials="AB" />
         <Avatar icon={favorite} />

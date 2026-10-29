@@ -34,6 +34,9 @@
   color: inherit;
   white-space: nowrap;
 }
+.fiori-avatar__initials::before {
+  content: attr(data-initials);
+}
 .fiori-avatar__initials[data-hidden] {
   position: absolute;
   visibility: hidden;

@@ -67,7 +67,8 @@ function Panel({
       disabled={fixed}
       role={accessibleRole}
       aria-label={accessibleName}
-      aria-labelledby={fixed && !accessibleName && headerText ? titleId : undefined}
+      // UI5 only names fixed panels by their title; we name every panel by it so the landmark is labelled.
+      aria-labelledby={!accessibleName && headerText != null ? titleId : undefined}
       className={cn("fiori-panel", className)}
       {...props}
     >

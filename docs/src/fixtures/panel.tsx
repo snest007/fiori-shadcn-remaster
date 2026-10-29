@@ -21,9 +21,13 @@ export default defineFixtures<Props>({
     { id: "panel-custom-header", props: { custom: true } },
     { id: "panel-custom-header-collapsed", props: { custom: true, collapsed: true } },
   ],
-  react: ({ collapsed, fixed, custom, long }) => (
+  react: (props) => {
+    const { collapsed, fixed, custom, long } = props
+    return (
     <Panel
       style={{ width: PANEL_WIDTH }}
+      // Unique names only to keep the fixture landmarks on the docs page distinct.
+      accessibleName={`Panel fixture ${JSON.stringify(props)}`}
       headerText={custom ? undefined : long ? PANEL_LONG : PANEL_HEADER}
       header={
         custom ? (
@@ -41,5 +45,6 @@ export default defineFixtures<Props>({
       {/* Panel content inherits the page font; use Text so both pages render it identically. */}
       <Text>{PANEL_CONTENT}</Text>
     </Panel>
-  ),
+    )
+  },
 })

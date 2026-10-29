@@ -37,8 +37,11 @@ export default defineFixtures<Props>({
     { id: "card-no-header", props: { noHeader: true, content: true } },
     { id: "card-long-title", props: { long: true, subtitle: true } },
   ],
-  react: ({ subtitle, status, avatar, action, interactive, content, noHeader, long }) => (
-    <Card style={{ width: CARD_WIDTH }}>
+  // Fixture cells carry an id-like accessibleName only so the many fixture landmarks on the docs page stay unique.
+  react: (props) => {
+    const { subtitle, status, avatar, action, interactive, content, noHeader, long } = props
+    return (
+    <Card style={{ width: CARD_WIDTH }} accessibleName={`fixture ${JSON.stringify(props)}`}>
       {!noHeader && (
         <CardHeader
           titleText={long ? CARD_LONG_TITLE : CARD_TITLE}
@@ -57,5 +60,6 @@ export default defineFixtures<Props>({
       )}
       {content && <CardContent style={{ padding: "0 1rem 1rem" }}>{CARD_CONTENT}</CardContent>}
     </Card>
-  ),
+    )
+  },
 })

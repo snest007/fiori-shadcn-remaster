@@ -94,9 +94,9 @@ function Avatar({
     <Icon icon={icon} />
   ) : showInitialsCandidate ? (
     <>
-      <span ref={initialsRef} className="fiori-avatar__initials" data-hidden={initialsFit ? undefined : ""}>
-        {initials}
-      </span>
+      {/* Drawn with ::before (content: attr(data-initials)): the avatar's name comes from aria-label, and
+          keeping the letters out of the DOM text stops them leaking into a parent's name (e.g. AvatarGroup). */}
+      <span ref={initialsRef} className="fiori-avatar__initials" data-initials={initials} data-hidden={initialsFit ? undefined : ""} aria-hidden />
       {!initialsFit && <Icon icon={fallbackIcon} />}
     </>
   ) : (
@@ -169,12 +169,28 @@ const groupOffsets: Record<AvatarSize, { group: string; individual: string }> = 
 
 // Mirrors ui5-avatar-group without overflow handling: assigns Accent1..10 to "auto" avatars and
 // the UI5 offsets between them. Overflow (+N button) is left to the caller.
+// Default aria-label is UI5's; pass aria-label to override (`{...props}` comes after it).
 function AvatarGroup({ type = "group", size = "S", className, children, onClick, onKeyDown, onKeyUp, ...props }: AvatarGroupProps) {
   const isGroup = type === "group"
+  // Individual mode: roving tabindex with arrow / Home / End navigation (UI5 ItemNavigation).
+  const [current, setCurrent] = React.useState(0)
+  const containerRef = React.useRef<HTMLDivElement>(null)
+  const moveFocus = (e: React.KeyboardEvent) => {
+    const buttons = [...(containerRef.current?.querySelectorAll<HTMLElement>(":scope > button:not(:disabled)") ?? [])]
+    const i = buttons.indexOf(e.target as HTMLElement)
+    if (i < 0) return
+    const rtl = getComputedStyle(e.currentTarget).direction === "rtl"
+    const next = { ArrowRight: rtl ? i - 1 : i + 1, ArrowDown: i + 1, ArrowLeft: rtl ? i + 1 : i - 1, ArrowUp: i - 1, Home: 0, End: buttons.length - 1 }[e.key]
+    if (next === undefined) return
+    e.preventDefault()
+    const target = buttons[Math.max(0, Math.min(buttons.length - 1, next))]
+    target.focus()
+  }
   const items = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<AvatarProps>[]
   return (
     <div data-slot="avatar-group" data-type={type} className={cn("flex p-(--fiori-avatar-group-padding)", className)}>
       <div
+        ref={containerRef}
         role={isGroup ? "button" : "group"}
         tabIndex={isGroup ? 0 : undefined}
         className={cn(
@@ -182,10 +198,16 @@ function AvatarGroup({ type = "group", size = "S", className, children, onClick,
           isGroup && "cursor-pointer"
         )}
         data-size={size}
+        aria-label={
+          isGroup
+            ? `Conjoined avatars. ${items.length} displayed, 0 hidden. Activate for complete list.`
+            : `Individual avatars. ${items.length} displayed, 0 hidden. Press ARROW keys to move.`
+        }
         onClick={isGroup ? onClick : undefined}
         onKeyDown={(e) => {
           onKeyDown?.(e)
-          if (!isGroup || e.defaultPrevented) return
+          if (e.defaultPrevented) return
+          if (!isGroup) return moveFocus(e)
           if (e.key === "Enter") e.currentTarget.click()
           if (e.key === " ") e.preventDefault()
         }}
@@ -202,11 +224,14 @@ function AvatarGroup({ type = "group", size = "S", className, children, onClick,
             key: child.key ?? i,
             size: s,
             interactive: isGroup ? false : (child.props.interactive ?? true),
+            // In a group the container is the one button; its avatars are decoration.
+            mode: isGroup ? "decorative" : child.props.mode,
             colorScheme:
               !child.props.colorScheme || child.props.colorScheme === "auto"
                 ? (`accent${(i % 10) + 1}` as AvatarColorScheme)
                 : child.props.colorScheme,
             style: { marginInlineEnd: last ? undefined : groupOffsets[s][type], ...child.props.style },
+            ...(isGroup ? {} : { tabIndex: i === current ? 0 : -1, onFocus: () => setCurrent(i) }),
           })
         })}
       </div>

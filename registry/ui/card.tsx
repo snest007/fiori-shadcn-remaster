@@ -58,9 +58,12 @@ function CardHeader({
   const id = React.useId()
   const [active, setActive] = React.useState(false)
   const [actionFocus, setActionFocus] = React.useState(false)
-  const labelledBy = [titleText && `${id}-title`, subtitleText && `${id}-subtitle`, additionalText && `${id}-additional`, avatar && `${id}-avatar`]
-    .filter(Boolean)
-    .join(" ")
+  // UI5 labels the focusable element by title, subtitle, status and avatar. For the interactive
+  // (button) header we let the name come from its content (title + subtitle) and describe it by the
+  // status text, so the accessible name matches the visible label (WCAG 2.5.3).
+  const labelledBy = interactive
+    ? undefined
+    : [titleText && `${id}-title`, subtitleText && `${id}-subtitle`, additionalText && `${id}-additional`].filter(Boolean).join(" ")
   // Only key events on the header itself count, not ones bubbling from the action slot.
   const own = (e: React.SyntheticEvent) => interactive && !(e.target as HTMLElement).closest(".fiori-card-header__end")
   return (
@@ -95,10 +98,11 @@ function CardHeader({
         role={interactive ? "button" : "group"}
         tabIndex={0}
         aria-labelledby={labelledBy || undefined}
+        aria-describedby={interactive && additionalText ? `${id}-additional` : undefined}
         aria-roledescription={roleDescription ?? (interactive ? "Interactive Card Header" : "Card Header")}
       >
         {avatar && (
-          <div id={`${id}-avatar`} className="fiori-card-header__avatar" aria-label="Avatar">
+          <div className="fiori-card-header__avatar">
             {avatar}
           </div>
         )}
