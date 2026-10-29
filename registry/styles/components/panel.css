@@ -1,0 +1,135 @@
+/* Panel (ui5-panel). Expand/collapse animates the content height (UI5: 400ms linear slide) and
+   rotates the arrow (UI5: transform .4s ease-out). */
+.fiori-panel {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--sapFontFamily);
+  background-color: var(--sapGroup_TitleBackground);
+  border-radius: var(--fiori-panel-border-radius);
+}
+.fiori-panel[data-state="open"] {
+  border-bottom: var(--fiori-panel-border-bottom);
+}
+.fiori-panel__heading[data-sticky] {
+  position: sticky;
+  top: 0;
+  background-color: var(--fiori-panel-header-background-color);
+  z-index: 100;
+  border-radius: var(--fiori-panel-border-radius);
+}
+.fiori-panel__header {
+  min-height: var(--fiori-panel-header-height);
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  outline: none;
+  box-sizing: border-box;
+  padding: 0 var(--fiori-panel-header-padding-right) 0 0;
+  font-family: var(--sapFontHeaderFamily);
+  font-size: var(--sapGroup_Title_FontSize);
+  font-weight: 400;
+  line-height: normal;
+  color: var(--sapGroup_TitleTextColor);
+  border-radius: var(--fiori-panel-border-radius) var(--fiori-panel-border-radius) 0 0;
+}
+.fiori-panel[data-fixed] .fiori-panel__header {
+  padding-left: 1rem;
+}
+button.fiori-panel__header {
+  cursor: pointer;
+}
+button.fiori-panel__header:focus-visible::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+  border: var(--fiori-panel-focus-border);
+  border-radius: var(--fiori-panel-border-radius);
+  top: var(--fiori-panel-focus-offset);
+  bottom: var(--fiori-panel-focus-bottom-offset);
+  left: var(--fiori-panel-focus-offset);
+  right: var(--fiori-panel-focus-offset);
+}
+.fiori-panel[data-state="open"] button.fiori-panel__header:focus-visible::after {
+  border-radius: var(--fiori-panel-border-radius-expanded);
+}
+.fiori-panel[data-fixed][data-state="open"]:not([data-custom-header]) .fiori-panel__header,
+.fiori-panel[data-state="closed"] .fiori-panel__header {
+  border-bottom: 0.0625rem solid var(--sapGroup_TitleBorderColor);
+}
+.fiori-panel[data-state="closed"] .fiori-panel__header {
+  border-radius: var(--fiori-panel-border-radius);
+}
+.fiori-panel:not([data-fixed])[data-state="open"] .fiori-panel__header {
+  border-bottom: var(--fiori-panel-default-header-border);
+}
+.fiori-panel__button-root {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  width: var(--fiori-panel-button-root-width);
+  height: var(--fiori-panel-button-root-height);
+  padding: var(--fiori-panel-header-button-wrapper-padding);
+  box-sizing: border-box;
+}
+.fiori-panel__arrow {
+  color: var(--fiori-panel-icon-color);
+  transition: transform 0.4s ease-out;
+}
+.fiori-panel[data-state="open"] .fiori-panel__arrow {
+  transform: var(--fiori-panel-toggle-btn-rotation);
+}
+.fiori-panel__title {
+  width: calc(100% - var(--fiori-panel-button-root-width));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fiori-panel[data-fixed] .fiori-panel__title {
+  width: 100%;
+}
+.fiori-panel__content {
+  overflow: hidden;
+  background-color: var(--sapGroup_ContentBackground);
+  border-bottom-left-radius: var(--fiori-panel-border-radius);
+  border-bottom-right-radius: var(--fiori-panel-border-radius);
+}
+.fiori-panel__content[data-state="open"] {
+  overflow: auto;
+}
+.fiori-panel__content-inner {
+  padding: var(--fiori-panel-content-padding);
+  outline: none;
+}
+.fiori-panel[data-animated] .fiori-panel__content[data-state="open"] {
+  animation: fiori-panel-slide-down 0.4s linear;
+}
+.fiori-panel[data-animated] .fiori-panel__content[data-state="closed"] {
+  animation: fiori-panel-slide-up 0.4s linear;
+}
+.fiori-panel:not([data-animated]) .fiori-panel__arrow {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fiori-panel .fiori-panel__content[data-state] {
+    animation: none;
+  }
+  .fiori-panel .fiori-panel__arrow {
+    transition: none;
+  }
+}
+@keyframes fiori-panel-slide-down {
+  from { height: 0; overflow: hidden; }
+  to { height: var(--radix-collapsible-content-height); overflow: hidden; }
+}
+@keyframes fiori-panel-slide-up {
+  from { height: var(--radix-collapsible-content-height); overflow: hidden; }
+  to { height: 0; overflow: hidden; }
+}

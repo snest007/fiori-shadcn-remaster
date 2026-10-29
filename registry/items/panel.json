@@ -1,0 +1,6 @@
+{
+  "title": "Panel",
+  "dependencies": ["radix-ui"],
+  "registryDependencies": ["@fiori/icons", "@fiori/button"],
+  "description": "Fiori panel: expandable (animated) or fixed, header text or custom header."
+}
