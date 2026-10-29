@@ -1,0 +1,262 @@
+/* Switch: mirrors ui5-switch (Horizon). Root = host + .ui5-switch-root merged into one <button>.
+   data-design: "no-label" (default, icon texts), "textual" (textOn/textOff), "graphical" (semantic). */
+.fiori-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  box-sizing: content-box;
+  width: var(--fiori-switch-width);
+  min-width: var(--fiori-switch-width);
+  height: var(--fiori-switch-height);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--fiori-x-switch-root-border-radius);
+  background: none;
+  color: inherit;
+  font: inherit;
+  outline: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.fiori-switch[data-design="textual"] {
+  width: var(--fiori-switch-with-label-width);
+  min-width: var(--fiori-switch-min-width);
+}
+.fiori-switch[data-disabled] {
+  opacity: var(--fiori-switch-disabled-opacity);
+  cursor: default;
+}
+.fiori-switch[data-readonly] {
+  cursor: default;
+}
+.fiori-switch:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: var(--fiori-switch-root-outline-left);
+  inset-inline-end: var(--fiori-switch-root-outline-right);
+  top: var(--fiori-switch-root-outline-top);
+  bottom: var(--fiori-switch-root-outline-bottom);
+  border: var(--fiori-switch-focus-outline);
+  border-radius: var(--fiori-switch-root-after-boreder-radius);
+  outline: var(--fiori-switch-root-after-outline);
+  pointer-events: none;
+}
+
+.fiori-switch__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-width: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fiori-switch[data-state="checked"] .fiori-switch__inner {
+  border-radius: 6.25rem;
+  box-shadow: var(--fiori-x-switch-root-box-shadow);
+}
+.fiori-switch__track {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: var(--fiori-switch-track-width);
+  height: var(--fiori-switch-track-height);
+  border: var(--fiori-x-switch-track-border);
+  border-radius: var(--fiori-switch-track-border-radius);
+  background: var(--fiori-switch-track-inactive-background-color);
+  border-color: var(--fiori-switch-track-inactive-border-color);
+}
+.fiori-switch[data-design="textual"] .fiori-switch__track {
+  width: var(--fiori-switch-track-with-label-width);
+  height: var(--fiori-switch-track-with-label-height);
+}
+.fiori-switch__slider {
+  position: relative;
+  width: 100%;
+  height: var(--fiori-switch-height);
+  transform-origin: top left;
+  transition: transform 0.1s ease-in; /* as ui5-switch */
+}
+.fiori-switch[data-state="checked"] .fiori-switch__slider {
+  transform: var(--fiori-switch-transform);
+}
+.fiori-switch[data-state="checked"][data-design="textual"] .fiori-switch__slider {
+  transform: var(--fiori-switch-transform-with-label);
+}
+.fiori-switch[data-state="checked"]:dir(rtl) .fiori-switch__slider {
+  transform: var(--fiori-switch-rtl-transform);
+}
+.fiori-switch[data-state="checked"][data-design="textual"]:dir(rtl) .fiori-switch__slider {
+  transform: var(--fiori-switch-rtl-transform-with-label);
+}
+
+.fiori-switch__handle {
+  position: absolute;
+  inset-inline-start: var(--fiori-switch-handle-left);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: var(--fiori-switch-handle-width);
+  height: var(--fiori-switch-handle-height);
+  border: var(--fiori-switch-handle-border);
+  border-radius: var(--fiori-switch-handle-border-radius);
+  background: var(--fiori-switch-handle-inactive-background-color);
+  border-color: var(--fiori-switch-handle-inactive-border-color);
+}
+.fiori-switch[data-design="textual"] .fiori-switch__handle {
+  width: var(--fiori-switch-handle-with-label-width);
+  height: var(--fiori-switch-handle-with-label-height);
+}
+
+.fiori-switch__text {
+  display: var(--fiori-x-switch-slider-texts-display);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: var(--fiori-switch-text-z-index);
+  justify-content: center;
+  width: var(--fiori-switch-text-width);
+  min-width: var(--fiori-switch-text-min-width);
+  overflow: var(--fiori-switch-text-overflow);
+  text-overflow: ellipsis;
+  font-family: var(--fiori-switch-text-font-family);
+  font-size: var(--fiori-switch-text-font-size);
+  line-height: normal;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+}
+.fiori-switch[data-design="no-label"] .fiori-switch__text,
+.fiori-switch[data-design="graphical"] .fiori-switch__text {
+  display: flex;
+}
+.fiori-switch[data-design="textual"] .fiori-switch__text {
+  width: var(--fiori-switch-text-with-label-width);
+  font-family: var(--fiori-switch-text-with-label-font-family);
+  font-size: var(--fiori-switch-text-with-label-font-size);
+}
+.fiori-switch__text--on {
+  inset-inline-start: var(--fiori-switch-text-active-left-alternate);
+  color: var(--fiori-switch-text-active-color);
+}
+.fiori-switch__text--off {
+  inset-inline-start: var(--fiori-switch-text-inactive-left-alternate);
+  inset-inline-end: var(--fiori-switch-text-inactive-right-alternate);
+  color: var(--fiori-switch-text-inactive-color);
+}
+.fiori-switch[data-state="checked"]:not([data-design="textual"]) .fiori-switch__text--on {
+  inset-inline-start: var(--fiori-switch-text-active-left);
+}
+.fiori-switch[data-state="unchecked"]:not([data-design="textual"]) .fiori-switch__text--off {
+  inset-inline-start: var(--fiori-switch-text-inactive-left);
+  inset-inline-end: var(--fiori-switch-text-inactive-right);
+}
+.fiori-switch[data-state="checked"] .fiori-switch__text--off,
+.fiori-switch[data-state="unchecked"] .fiori-switch__text--on {
+  visibility: var(--fiori-switch-text-hidden);
+}
+.fiori-switch:not([data-design="textual"]) .fiori-switch__icon {
+  width: var(--fiori-switch-icon-width);
+  height: var(--fiori-switch-icon-height);
+}
+.fiori-switch[data-design="no-label"] .fiori-switch__icon {
+  display: var(--fiori-switch-track-icon-display);
+}
+
+/* Checked */
+.fiori-switch[data-state="checked"] .fiori-switch__track {
+  background: var(--fiori-switch-track-active-background-color);
+  border-color: var(--fiori-switch-track-active-border-color);
+}
+.fiori-switch[data-state="checked"] .fiori-switch__handle {
+  background: var(--fiori-switch-handle-active-background-color);
+  border-color: var(--fiori-switch-handle-active-border-color);
+}
+
+/* Hover */
+.fiori-switch:not([data-disabled]):hover .fiori-switch__track {
+  background: var(--fiori-switch-track-hover-inactive-background-color);
+  border-color: var(--fiori-switch-track-hover-inactive-border-color);
+}
+.fiori-switch:not([data-disabled]):hover .fiori-switch__handle {
+  background: var(--fiori-switch-handle-hover-inactive-background-color);
+  border-color: var(--fiori-switch-handle-hover-inactive-border-color);
+  box-shadow: var(--fiori-switch-handle-off-hover-box-shadow);
+}
+.fiori-switch[data-state="checked"]:not([data-disabled]):hover .fiori-switch__track {
+  background: var(--fiori-switch-track-hover-active-background-color);
+  border-color: var(--fiori-switch-track-hover-active-border-color);
+}
+.fiori-switch[data-state="checked"]:not([data-disabled]):hover .fiori-switch__handle {
+  background: var(--fiori-switch-handle-hover-active-background-color);
+  border-color: var(--fiori-switch-handle-hover-active-border-color);
+  box-shadow: var(--fiori-switch-handle-on-hover-box-shadow);
+}
+.fiori-switch:not([data-disabled]):active .fiori-switch__track {
+  background: var(--sapButton_Track_Hover_Background);
+}
+
+/* Graphical (semantic) design */
+.fiori-switch[data-design="graphical"] .fiori-switch__track {
+  background: var(--fiori-switch-track-semantic-reject-background-color);
+  border-color: var(--fiori-switch-track-semantic-reject-border-color);
+}
+.fiori-switch[data-design="graphical"] .fiori-switch__handle {
+  background: var(--fiori-switch-handle-semantic-reject-background-color);
+  border-color: var(--fiori-switch-handle-semantic-reject-border-color);
+}
+.fiori-switch[data-design="graphical"][data-state="checked"] .fiori-switch__track {
+  background: var(--fiori-switch-track-semantic-accept-background-color);
+  border-color: var(--fiori-switch-track-semantic-accept-border-color);
+}
+.fiori-switch[data-design="graphical"][data-state="checked"] .fiori-switch__handle {
+  background: var(--fiori-switch-handle-semantic-accept-background-color);
+  border-color: var(--fiori-switch-handle-semantic-accept-border-color);
+}
+.fiori-switch[data-design="graphical"]:not([data-disabled]):hover .fiori-switch__track {
+  background: var(--fiori-switch-track-semantic-hover-reject-background-color);
+  border-color: var(--fiori-switch-track-semantic-hover-reject-border-color);
+}
+.fiori-switch[data-design="graphical"]:not([data-disabled]):hover .fiori-switch__handle {
+  background: var(--fiori-switch-handle-semantic-hover-reject-background-color);
+  border-color: var(--fiori-switch-handle-semantic-hover-reject-border-color);
+  box-shadow: var(--fiori-switch-handle-semantic-off-hover-box-shadow);
+}
+.fiori-switch[data-design="graphical"][data-state="checked"]:not([data-disabled]):hover .fiori-switch__track {
+  background: var(--fiori-switch-track-semantic-hover-accept-background-color);
+  border-color: var(--fiori-switch-track-semantic-hover-accept-border-color);
+}
+.fiori-switch[data-design="graphical"][data-state="checked"]:not([data-disabled]):hover .fiori-switch__handle {
+  background: var(--fiori-switch-handle-semantic-hover-accept-background-color);
+  border-color: var(--fiori-switch-handle-semantic-hover-accept-border-color);
+  box-shadow: var(--fiori-switch-handle-semantic-on-hover-box-shadow);
+}
+.fiori-switch[data-design="graphical"] .fiori-switch__text--on {
+  color: var(--fiori-switch-text-semantic-accept-color);
+}
+.fiori-switch[data-design="graphical"] .fiori-switch__text--off {
+  color: var(--fiori-switch-text-semantic-reject-color);
+}
+
+/* Read only (after the states above so it wins) */
+.fiori-switch[data-readonly] .fiori-switch__track,
+.fiori-switch[data-readonly]:hover .fiori-switch__track {
+  background: var(--sapField_ReadOnly_Background);
+  border: 0.0625rem var(--fiori-switch-readonly-track-border-style) var(--sapField_ReadOnly_BorderColor);
+}
+.fiori-switch[data-readonly] .fiori-switch__handle,
+.fiori-switch[data-readonly]:hover .fiori-switch__handle {
+  background: var(--sapField_ReadOnly_Background);
+  border: 0.0625rem var(--fiori-switch-readonly-handle-border-style) var(--sapField_ReadOnly_BorderColor);
+  box-shadow: none;
+}
+.fiori-switch[data-readonly] .fiori-switch__text {
+  color: var(--sapButton_Handle_TextColor);
+}

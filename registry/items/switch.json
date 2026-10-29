@@ -1,0 +1,10 @@
+{
+  "title": "Switch",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons"
+  ],
+  "description": "Fiori switch: icon, textual (on/off text) and graphical (semantic) designs, read-only state."
+}
