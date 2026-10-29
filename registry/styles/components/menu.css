@@ -1,0 +1,99 @@
+/* Menu (ui5-menu / ui5-menu-item / ui5-menu-separator, Horizon). Items build on .fiori-list-item. */
+.fiori-menu {
+  box-sizing: border-box;
+  min-width: 6.25rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0;
+  background-color: var(--fiori-popover-background);
+  border-radius: var(--fiori-menu-popover-border-radius);
+  box-shadow: var(--sapContent_Shadow1);
+  color: var(--sapTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+  outline: none;
+}
+.fiori-menu-item {
+  padding: var(--fiori-menu-item-padding);
+}
+/* UI5 keeps disabled items at full opacity and fades only their content. */
+.fiori-menu-item[data-disabled] {
+  opacity: 1;
+}
+.fiori-menu-item[data-disabled] > .fiori-menu-item__content {
+  opacity: var(--fiori-x-listitembase-disabled-opacity);
+}
+/* An item whose submenu is open is shown selected (UI5 sets `selected` on it). */
+.fiori-menu-item[data-state="open"] {
+  background-color: var(--sapList_SelectionBackgroundColor);
+  border-bottom: var(--fiori-x-listitem-selected-border-bottom);
+}
+.fiori-menu-item[data-state="open"]:hover {
+  background-color: var(--sapList_Hover_SelectionBackground);
+}
+.fiori-menu-item__content {
+  display: flex;
+  flex: auto;
+  align-items: center;
+  max-width: 100%;
+  overflow: hidden;
+  padding-inline-end: 0.25rem;
+  color: var(--sapList_TextColor);
+}
+.fiori-menu-item:active .fiori-menu-item__content,
+.fiori-menu-item:active .fiori-menu-item__icon {
+  color: var(--sapList_Active_TextColor);
+}
+.fiori-menu-item__icon {
+  box-sizing: content-box;
+  flex-shrink: 0;
+  padding-inline-end: var(--fiori-list-item-icon-padding-inline-end);
+  color: var(--sapContent_NonInteractiveIconColor);
+}
+/* When any sibling has an icon, items without one keep the icon's space (ui5-menu-item-dummy-icon). */
+.fiori-menu:has(> .fiori-menu-item .fiori-menu-item__icon) > .fiori-menu-item:not(:has(.fiori-menu-item__icon)) > .fiori-menu-item__content::before {
+  content: "";
+  box-sizing: content-box;
+  flex-shrink: 0;
+  width: var(--fiori-list-item-icon-size);
+  height: var(--fiori-list-item-icon-size);
+  padding-inline-end: 0.75rem;
+}
+.fiori-menu-item__text {
+  display: inline-block;
+  width: 100%;
+  overflow: hidden;
+  font-size: var(--sapFontSize);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fiori-menu-item__additional-text {
+  min-width: max-content;
+  margin-inline-start: 1rem;
+  overflow: hidden;
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSize);
+  text-align: end;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Submenu arrow: an icon-sized slot; the arrow is pinned to the item's end edge at the slot's top. */
+.fiori-menu-item__submenu {
+  display: inline-block;
+  flex-shrink: 0;
+  min-width: var(--fiori-list-item-icon-size);
+  min-height: var(--fiori-list-item-icon-size);
+}
+.fiori-menu-item__submenu > svg {
+  position: absolute;
+  inset-inline-end: var(--fiori-menu-item-submenu-icon-right);
+  box-sizing: content-box;
+  padding-inline-start: 0.5rem;
+  color: var(--sapContent_NonInteractiveIconColor);
+}
+.fiori-menu-separator {
+  box-sizing: content-box;
+  min-height: 0.125rem;
+  border-top: 0.0625rem solid var(--sapGroup_ContentBorderColor);
+}
