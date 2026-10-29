@@ -20,6 +20,9 @@ test("text contrast meets WCAG AA in Morning Horizon", async ({ page }) => {
   expect(results.violations.flatMap((v) => v.nodes.map((n) => n.target.join(" ")))).toEqual([])
 })
 
+// The Select's popup list (other listboxes on the page, e.g. SegmentedButton, don't count).
+const selectList = (page: import("@playwright/test").Page) => page.locator('[role="listbox"][data-slot="select-content"]')
+
 test.describe("Select keyboard (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`/index.html`)
@@ -32,7 +35,7 @@ test.describe("Select keyboard (Fiori model)", () => {
     await expect(trigger).toHaveText("Germany")
     await page.keyboard.press("ArrowDown")
     await expect(trigger).toHaveText("France")
-    await expect(page.getByRole("listbox")).toHaveCount(0)
+    await expect(selectList(page)).toHaveCount(0)
     await page.keyboard.press("ArrowDown")
     await expect(trigger).toHaveText("China")
     await page.keyboard.press("ArrowDown") // next is disabled → stays
@@ -48,9 +51,9 @@ test.describe("Select keyboard (Fiori model)", () => {
   for (const combo of ["F4", "Alt+ArrowDown", "Enter", "Space"]) {
     test(`${combo} opens the list, Escape closes it`, async ({ page }) => {
       await page.keyboard.press(combo)
-      await expect(page.getByRole("listbox")).toBeVisible()
+      await expect(selectList(page)).toBeVisible()
       await page.keyboard.press("Escape")
-      await expect(page.getByRole("listbox")).toHaveCount(0)
+      await expect(selectList(page)).toHaveCount(0)
       await expect(page.locator("#country")).toBeFocused()
     })
   }

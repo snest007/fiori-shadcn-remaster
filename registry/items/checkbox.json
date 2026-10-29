@@ -1,0 +1,11 @@
+{
+  "title": "CheckBox",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/input"
+  ],
+  "description": "Fiori check box with indeterminate, read-only and value states; Space/Enter toggle."
+}
