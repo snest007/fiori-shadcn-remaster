@@ -1,0 +1,85 @@
+/* MultiComboBox (field = .fiori-field + .fiori-tokenized-field; list = .fiori-popover + .fiori-list-item) */
+.fiori-multi-combobox__popover {
+  box-shadow: var(--sapContent_Shadow1);
+}
+.fiori-multi-combobox__header {
+  flex-shrink: 0;
+  width: 100%;
+}
+/* ui5-mcb-item: no start padding (the check box brings its own), wrapping height. */
+.fiori-multi-combobox__item {
+  height: auto;
+  min-height: var(--fiori-list-item-base-height);
+  padding-inline-start: 0;
+}
+.fiori-multi-combobox__item:focus-visible::after,
+.fiori-multi-combobox__item:focus::after {
+  content: "";
+  position: absolute;
+  inset: 0.125rem;
+  pointer-events: none;
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+}
+.fiori-multi-combobox__checkbox {
+  flex-shrink: 0;
+  overflow: visible;
+}
+.fiori-multi-combobox__item-text {
+  flex: auto;
+  min-width: 1px;
+  padding-block: 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--sapList_TextColor);
+  font-size: var(--fiori-list-item-title-size);
+}
+.fiori-multi-combobox__item-text > b {
+  font-family: var(--sapFontBoldFamily);
+  font-weight: normal;
+}
+.fiori-multi-combobox__item-additional {
+  flex-shrink: 0;
+  margin-inline-start: 1rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSize);
+}
+.fiori-multi-combobox__item[data-state="checked"] .fiori-multi-combobox__item-additional {
+  text-shadow: var(--sapContent_TextShadow);
+}
+.fiori-tokenized-field[data-readonly] ~ * .fiori-multi-combobox__item {
+  cursor: auto;
+}
+/* "Select All (x of y)" header */
+.fiori-multi-combobox__select-all {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 44px;
+  border-bottom: 0.0625rem solid var(--sapGroup_TitleBorderColor);
+  background: var(--sapPageHeader_Background);
+  font-family: var(--sapFontFamily);
+  cursor: pointer;
+  outline: none;
+}
+.fiori-multi-combobox__select-all:focus::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  pointer-events: none;
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+}
+.fiori-multi-combobox__select-all-checkbox {
+  width: 100%;
+  font-family: var(--sapFontBoldFamily);
+}
+.fiori-multi-combobox__select-all-checkbox .fiori-checkbox__label {
+  font-family: var(--sapFontBoldFamily);
+}

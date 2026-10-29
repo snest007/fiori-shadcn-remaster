@@ -1,0 +1,10 @@
+{
+  "title": "Tokenizer",
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/token",
+    "@fiori/popover",
+    "@fiori/button"
+  ],
+  "description": "Fiori tokenizer: a keyboard-navigable token list that collapses into an \"n more\" link with a popover of all tokens."
+}
