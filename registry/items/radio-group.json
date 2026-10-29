@@ -1,0 +1,10 @@
+{
+  "title": "RadioButton / RadioGroup",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/input"
+  ],
+  "description": "Fiori radio buttons in a group with roving tabindex; arrow keys move selection, value and read-only states."
+}

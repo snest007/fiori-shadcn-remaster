@@ -1,0 +1,199 @@
+/* RadioButton: mirrors ui5-radio-button (Horizon). Root = host + .ui5-radio-root merged into one <button>. */
+.fiori-radio {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  vertical-align: middle;
+  min-width: var(--fiori-radio-button-min-width);
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-block: var(--fiori-radio-button-label-side-padding);
+  padding-inline: var(--fiori-radio-button-outer-ring-padding) 0;
+  border: var(--fiori-radio-button-border);
+  border-radius: var(--fiori-radio-button-border-radius);
+  background: none;
+  color: var(--fiori-radio-button-color);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  text-align: start;
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.fiori-radio[data-text] {
+  padding-inline: var(--fiori-radio-button-outer-ring-padding-with-label) var(--fiori-radio-button-border-width);
+}
+.fiori-radio[data-state="checked"] {
+  color: var(--fiori-radio-button-checked-fill);
+}
+.fiori-radio[data-disabled] {
+  cursor: default;
+  color: var(--fiori-radio-button-color);
+  opacity: var(--sapContent_DisabledOpacity);
+}
+.fiori-radio[data-readonly] {
+  cursor: default;
+}
+.fiori-radio:not([data-disabled]):focus-visible::before {
+  content: "";
+  display: var(--fiori-radio-button-focus-outline);
+  position: absolute;
+  inset: var(--fiori-radio-button-focus-dist);
+  pointer-events: none;
+  border: var(--fiori-radio-button-border-width) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  border-radius: var(--fiori-radio-button-border-radius);
+}
+.fiori-radio[data-text]:not([data-disabled]):focus-visible::before {
+  inset-inline-end: 0;
+}
+
+.fiori-radio__inner {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  align-self: start;
+  padding-inline-end: var(--fiori-radio-button-outer-ring-padding);
+  pointer-events: none;
+}
+.fiori-radio[data-text] .fiori-radio__inner {
+  padding-inline-end: var(--fiori-radio-button-outer-ring-padding-with-label);
+}
+.fiori-radio__svg {
+  width: var(--fiori-radio-button-svg-size);
+  height: var(--fiori-radio-button-svg-size);
+  overflow: visible;
+  pointer-events: none;
+}
+.fiori-radio__outer {
+  fill: var(--fiori-radio-button-outer-ring-bg);
+  stroke: currentColor;
+  stroke-width: var(--fiori-radio-button-outer-ring-width);
+}
+.fiori-radio__dot {
+  fill: none;
+  r: var(--fiori-radio-button-inner-ring-radius);
+}
+.fiori-radio[data-state="checked"] .fiori-radio__dot {
+  fill: var(--fiori-radio-button-inner-ring-color);
+}
+.fiori-radio[data-state="checked"] .fiori-radio__outer {
+  stroke: var(--fiori-radio-button-outer-ring-color);
+}
+.fiori-radio[data-disabled][data-state="checked"] .fiori-radio__outer {
+  stroke: var(--fiori-radio-button-color);
+}
+
+/* Hover / active (only when interactive) */
+.fiori-radio:not([data-disabled]):not([data-readonly]):hover .fiori-radio__outer {
+  fill: var(--fiori-radio-button-hover-fill);
+}
+.fiori-radio:not([data-disabled]):not([data-readonly]):not([data-value-state]):hover .fiori-radio__outer {
+  stroke: var(--fiori-radio-button-outer-ring-hover-color);
+}
+.fiori-radio:not([data-disabled]):not([data-readonly]):not([data-value-state])[data-state="checked"]:hover .fiori-radio__outer,
+.fiori-radio:not([data-disabled]):not([data-readonly]):not([data-value-state])[data-state="checked"]:active .fiori-radio__outer {
+  stroke: var(--fiori-radio-button-outer-ring-checked-hover-color);
+}
+.fiori-radio:not([data-disabled]):not([data-readonly]):not([data-value-state]):not([data-state="checked"]):active .fiori-radio__outer {
+  stroke: var(--fiori-radio-button-outer-ring-active-color);
+}
+
+/* Read only */
+.fiori-radio[data-readonly][data-state="checked"] .fiori-radio__dot {
+  fill: var(--fiori-radio-button-read-only-inner-ring-color);
+}
+.fiori-radio[data-readonly] .fiori-radio__outer {
+  fill: var(--sapField_ReadOnly_Background);
+  stroke: var(--sapField_ReadOnly_BorderColor);
+  stroke-dasharray: var(--fiori-radio-button-read-only-border-type);
+  stroke-width: var(--fiori-radio-button-read-only-border-width);
+}
+
+/* Value states */
+.fiori-radio[data-value-state="negative"] .fiori-radio__outer,
+.fiori-radio[data-value-state="critical"] .fiori-radio__outer {
+  stroke-width: var(--sapField_InvalidBorderWidth);
+}
+.fiori-radio[data-value-state="information"] .fiori-radio__outer {
+  stroke-width: var(--fiori-radio-button-information-border-width);
+}
+.fiori-radio[data-value-state="negative"],
+.fiori-radio[data-value-state="critical"],
+.fiori-radio[data-value-state="information"] {
+  stroke-dasharray: var(--fiori-radio-button-warning-error-border-dash);
+}
+.fiori-radio[data-value-state="negative"][data-state="checked"] .fiori-radio__dot {
+  fill: var(--fiori-radio-button-checked-error-fill);
+}
+.fiori-radio[data-value-state="negative"] .fiori-radio__outer {
+  stroke: var(--sapField_InvalidColor);
+  fill: var(--sapField_InvalidBackground);
+}
+.fiori-radio[data-value-state="negative"]:not([data-disabled]):not([data-readonly]):hover .fiori-radio__outer {
+  fill: var(--fiori-radio-button-hover-fill-error);
+}
+.fiori-radio[data-value-state="critical"][data-state="checked"] .fiori-radio__dot {
+  fill: var(--fiori-radio-button-checked-warning-fill);
+}
+.fiori-radio[data-value-state="critical"] .fiori-radio__outer {
+  stroke: var(--sapField_WarningColor);
+  fill: var(--sapField_WarningBackground);
+}
+.fiori-radio[data-value-state="critical"]:not([data-disabled]):not([data-readonly]):hover .fiori-radio__outer {
+  fill: var(--fiori-radio-button-hover-fill-warning);
+}
+.fiori-radio[data-value-state="positive"][data-state="checked"] .fiori-radio__dot {
+  fill: var(--fiori-radio-button-checked-success-fill);
+}
+.fiori-radio[data-value-state="positive"] .fiori-radio__outer {
+  stroke: var(--sapField_SuccessColor);
+  fill: var(--sapField_SuccessBackground);
+}
+.fiori-radio[data-value-state="positive"]:not([data-disabled]):not([data-readonly]):hover .fiori-radio__outer {
+  fill: var(--fiori-radio-button-hover-fill-success);
+}
+.fiori-radio[data-value-state="information"][data-state="checked"] .fiori-radio__dot {
+  fill: var(--fiori-radio-button-checked-information-fill);
+}
+.fiori-radio[data-value-state="information"] .fiori-radio__outer {
+  stroke: var(--sapField_InformationColor);
+  fill: var(--sapField_InformationBackground);
+}
+.fiori-radio[data-value-state="information"]:not([data-disabled]):not([data-readonly]):hover .fiori-radio__outer {
+  fill: var(--fiori-radio-button-hover-fill-information);
+}
+
+/* Label (an inline ui5-label) */
+.fiori-radio__label {
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  padding-inline-end: var(--fiori-radio-button-label-offset);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  color: var(--fiori-radio-button-label-color);
+  font-family: var(--sapFontFamily);
+  font-size: inherit;
+  font-weight: 400;
+}
+
+.fiori-radio__label-text {
+  padding-inline-end: 0.075rem;
+}
+
+/* Group: vertical by default, like ui5-radio-button stacked in a form. */
+.fiori-radio-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.fiori-radio-group[data-orientation="horizontal"] {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
