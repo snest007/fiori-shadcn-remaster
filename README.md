@@ -7,16 +7,16 @@ SAP's official implementation.
 
 > Built on the SAP Horizon design language. This is not an SAP product. "SAP" and "Fiori" are trademarks of SAP SE.
 
-## Status: Phase 0 (foundation)
+## Status: Phase 1 (core components)
 
 | | |
 |---|---|
 | Themes | Morning Horizon, Evening Horizon, High Contrast Black, High Contrast White (`data-theme`) |
 | Density | cozy (default), compact (`data-density="compact"`, works on any subtree) |
-| Tokens | 1479 `--sap*` variables per theme + 181 component parameters from UI5 |
+| Tokens | 1479 `--sap*` variables per theme + 1204 component parameters from UI5 |
 | Icons | 705 SAP Horizon icons, tree-shakeable |
-| Components | Button, Label, Input, Select |
-| Verified | pixel diff vs UI5 2.28 for 4 themes × 2 densities; axe; Fiori keyboard behaviour |
+| Components (30) | **Actions** Button, ToggleButton, SegmentedButton · **Forms** Label, Input, TextArea, Select, ComboBox, StepInput, CheckBox, RadioGroup, Switch · **Overlays** Dialog, Popover, Menu, Toast · **Display** MessageStrip, Tag, Avatar/AvatarGroup, Card, Panel, BusyIndicator, Link, Title, Text · **Navigation** Tabs (IconTabBar), Breadcrumbs, Toolbar, Bar |
+| Verified | ~310 fixtures pixel-diffed vs UI5 2.28 in 4 themes × 2 densities (worst cell 1.3%); axe; 124 Playwright tests incl. Fiori keyboard models |
 
 ## Install into an app
 
@@ -74,7 +74,7 @@ Fiori behaviour this library reproduces (beyond appearance):
 
 ```bash
 pnpm install
-pnpm dev               # docs + playground at http://localhost:5173, UI5 reference at /ui5.html
+pnpm dev               # docs at http://localhost:5173; fixtures at /?fixtures, UI5 reference at /ui5.html
 pnpm check             # regenerate, typecheck, build registry + site, run all tests
 ```
 
@@ -91,10 +91,13 @@ pnpm check             # regenerate, typecheck, build registry + site, run all t
 Upgrading SAP's packages: bump `@sap-theming/theming-base-content` / `@ui5/webcomponents*`, then run `pnpm check`.
 The visual tests will show any component whose reference changed.
 
+Adding a component: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Roadmap
 
-1. Core (~25): Button family, CheckBox, RadioButton, Switch, TextArea, ComboBox, Dialog, Popover, Menu, MessageStrip,
-   Toast, Tag, Avatar, Card, Panel, IconTabBar, Breadcrumb, Toolbar…
+Deferred from Phase 1: Tabs/Toolbar/Breadcrumbs overflow ("More"), AvatarGroup "+N", draggable/resizable Dialog,
+checkable menu items, ComboBox item groups, automated hover/focus fixtures.
+
 2. Complex: Date/Time pickers, MultiInput, Table, Tree, List, Value Help Dialog, Filter Bar, Upload.
 3. Layouts and floorplans: ShellBar, Side Navigation, Dynamic Page, Object Page, Flexible Column Layout, List Report.
 
