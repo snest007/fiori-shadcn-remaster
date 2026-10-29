@@ -1,0 +1,400 @@
+/* Tag (ui5-tag). Root merges UI5's host and .ui5-tag-root. */
+.fiori-tag {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  min-width: 1.125em;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: var(--fiori-x-tag-text-padding);
+  border: 0.0625rem solid;
+  border-radius: var(--sapButton_BorderCornerRadius);
+  white-space: normal;
+  vertical-align: top;
+  font-size: var(--sapFontSmallSize);
+  font-family: var(--sapFontBoldFamily);
+  font-weight: var(--fiori-x-tag-font-weight);
+  letter-spacing: var(--fiori-x-tag-letter-spacing);
+  line-height: var(--fiori-x-tag-height);
+  background-color: var(--sapNeutralBackground);
+  border-color: var(--sapNeutralBorderColor);
+  color: var(--sapTextColor);
+  text-shadow: var(--fiori-x-tag-text-shadow);
+}
+button.fiori-tag {
+  margin: 0;
+  cursor: pointer;
+  outline: none;
+  text-align: inherit;
+}
+button.fiori-tag:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: 1px;
+}
+button.fiori-tag:active {
+  text-shadow: var(--fiori-x-tag-text-shadow);
+}
+.fiori-tag[data-wrapping="none"] {
+  white-space: nowrap;
+}
+.fiori-tag[data-icon-only] {
+  padding-inline: var(--fiori-x-tag-padding-inline-icon-only);
+}
+.fiori-tag__text {
+  text-transform: var(--fiori-x-tag-text-transform);
+  text-align: start;
+  pointer-events: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fiori-tag[data-has-icon] .fiori-tag__text {
+  padding-inline-start: var(--fiori-x-tag-icon-gap);
+}
+.fiori-tag[data-size="L"] {
+  font-family: var(--sapFontSemiboldDuplexFamily);
+  line-height: var(--fiori-x-tag-height-size-l);
+  font-size: var(--fiori-x-tag-font-size-size-l);
+  min-width: var(--fiori-x-tag-min-width-size-l);
+  padding: var(--fiori-x-tag-text-padding-size-l);
+}
+button.fiori-tag:hover {
+  background-color: var(--sapButton_Neutral_Hover_Background);
+  border-color: var(--sapButton_Neutral_Hover_BorderColor);
+  color: var(--sapButton_Neutral_Hover_TextColor);
+}
+button.fiori-tag:active {
+  background-color: var(--sapButton_Neutral_Active_Background);
+  border-color: var(--sapButton_Neutral_Active_BorderColor);
+  color: var(--sapButton_Active_TextColor);
+}
+.fiori-tag[data-design="positive"] {
+  background-color: var(--sapButton_Success_Background);
+  border-color: var(--sapButton_Success_BorderColor);
+  color: var(--sapButton_Success_TextColor);
+  text-shadow: var(--fiori-x-tag-contrast-text-shadow);
+}
+button.fiori-tag[data-design="positive"]:hover {
+  background-color: var(--sapButton_Success_Hover_Background);
+  border-color: var(--sapButton_Success_Hover_BorderColor);
+  color: var(--sapButton_Success_Hover_TextColor);
+}
+button.fiori-tag[data-design="positive"]:active {
+  background-color: var(--sapButton_Success_Active_Background);
+  border-color: var(--sapButton_Success_Active_BorderColor);
+  color: var(--sapButton_Accept_Selected_TextColor);
+}
+.fiori-tag[data-design="negative"] {
+  background-color: var(--sapButton_Negative_Background);
+  border-color: var(--sapButton_Negative_BorderColor);
+  color: var(--sapButton_Negative_TextColor);
+  text-shadow: var(--fiori-x-tag-contrast-text-shadow);
+}
+button.fiori-tag[data-design="negative"]:hover {
+  background-color: var(--sapButton_Negative_Hover_Background);
+  border-color: var(--sapButton_Negative_Hover_BorderColor);
+  color: var(--sapButton_Negative_Hover_TextColor);
+}
+button.fiori-tag[data-design="negative"]:active {
+  background-color: var(--sapButton_Negative_Active_Background);
+  border-color: var(--sapButton_Negative_Active_BorderColor);
+  color: var(--sapButton_Reject_Selected_TextColor);
+}
+.fiori-tag[data-design="critical"] {
+  background-color: var(--sapButton_Critical_Background);
+  border-color: var(--sapButton_Critical_BorderColor);
+  color: var(--sapButton_Critical_TextColor);
+  text-shadow: var(--fiori-x-tag-contrast-text-shadow);
+}
+button.fiori-tag[data-design="critical"]:hover {
+  background-color: var(--sapButton_Critical_Hover_Background);
+  border-color: var(--sapButton_Critical_Hover_BorderColor);
+  color: var(--sapButton_Critical_Hover_TextColor);
+}
+button.fiori-tag[data-design="critical"]:active {
+  background-color: var(--sapButton_Critical_Active_Background);
+  border-color: var(--sapButton_Critical_Active_BorderColor);
+  color: var(--sapButton_Attention_Selected_TextColor);
+}
+.fiori-tag[data-design="information"] {
+  background-color: var(--sapButton_Information_Background);
+  border-color: var(--sapButton_Information_BorderColor);
+  color: var(--sapButton_Information_TextColor);
+  text-shadow: var(--fiori-x-tag-information-text-shadow);
+}
+button.fiori-tag[data-design="information"]:hover {
+  background-color: var(--sapButton_Information_Hover_Background);
+  border-color: var(--sapButton_Information_Hover_BorderColor);
+  color: var(--sapButton_Information_Hover_TextColor);
+}
+button.fiori-tag[data-design="information"]:active {
+  background-color: var(--sapButton_Information_Active_Background);
+  border-color: var(--sapButton_Information_Active_BorderColor);
+  color: var(--sapButton_Selected_TextColor);
+}
+/* Set1 / Set2: colour scheme 1..10 */
+.fiori-tag[data-design="set1"] {
+  text-shadow: var(--fiori-x-tag-contrast-text-shadow);
+}
+.fiori-tag[data-design="set2"] {
+  text-shadow: var(--fiori-x-tag-text-shadow);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="1"] {
+  background-color: var(--sapIndicationColor_1_Background);
+  border-color: var(--sapIndicationColor_1_BorderColor);
+  color: var(--sapIndicationColor_1_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="1"]:hover {
+  background-color: var(--sapIndicationColor_1_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="1"]:active {
+  background-color: var(--sapIndicationColor_1_Active_Background);
+  border-color: var(--sapIndicationColor_1_Active_BorderColor);
+  color: var(--sapIndicationColor_1_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="1"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-1-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-1-border);
+  color: var(--fiori-x-tag-set2-color-scheme-1-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="1"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-1-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="1"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-1-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-1-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-1-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="2"] {
+  background-color: var(--sapIndicationColor_2_Background);
+  border-color: var(--sapIndicationColor_2_BorderColor);
+  color: var(--sapIndicationColor_2_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="2"]:hover {
+  background-color: var(--sapIndicationColor_2_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="2"]:active {
+  background-color: var(--sapIndicationColor_2_Active_Background);
+  border-color: var(--sapIndicationColor_2_Active_BorderColor);
+  color: var(--sapIndicationColor_2_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="2"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-2-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-2-border);
+  color: var(--fiori-x-tag-set2-color-scheme-2-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="2"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-2-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="2"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-2-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-2-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-2-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="3"] {
+  background-color: var(--sapIndicationColor_3_Background);
+  border-color: var(--sapIndicationColor_3_BorderColor);
+  color: var(--sapIndicationColor_3_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="3"]:hover {
+  background-color: var(--sapIndicationColor_3_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="3"]:active {
+  background-color: var(--sapIndicationColor_3_Active_Background);
+  border-color: var(--sapIndicationColor_3_Active_BorderColor);
+  color: var(--sapIndicationColor_3_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="3"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-3-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-3-border);
+  color: var(--fiori-x-tag-set2-color-scheme-3-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="3"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-3-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="3"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-3-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-3-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-3-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="4"] {
+  background-color: var(--sapIndicationColor_4_Background);
+  border-color: var(--sapIndicationColor_4_BorderColor);
+  color: var(--sapIndicationColor_4_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="4"]:hover {
+  background-color: var(--sapIndicationColor_4_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="4"]:active {
+  background-color: var(--sapIndicationColor_4_Active_Background);
+  border-color: var(--sapIndicationColor_4_Active_BorderColor);
+  color: var(--sapIndicationColor_4_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="4"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-4-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-4-border);
+  color: var(--fiori-x-tag-set2-color-scheme-4-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="4"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-4-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="4"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-4-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-4-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-4-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="5"] {
+  background-color: var(--sapIndicationColor_5_Background);
+  border-color: var(--sapIndicationColor_5_BorderColor);
+  color: var(--sapIndicationColor_5_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="5"]:hover {
+  background-color: var(--sapIndicationColor_5_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="5"]:active {
+  background-color: var(--sapIndicationColor_5_Active_Background);
+  border-color: var(--sapIndicationColor_5_Active_BorderColor);
+  color: var(--sapIndicationColor_5_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="5"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-5-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-5-border);
+  color: var(--fiori-x-tag-set2-color-scheme-5-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="5"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-5-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="5"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-5-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-5-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-5-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="6"] {
+  background-color: var(--sapIndicationColor_6_Background);
+  border-color: var(--sapIndicationColor_6_BorderColor);
+  color: var(--sapIndicationColor_6_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="6"]:hover {
+  background-color: var(--sapIndicationColor_6_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="6"]:active {
+  background-color: var(--sapIndicationColor_6_Active_Background);
+  border-color: var(--sapIndicationColor_6_Active_BorderColor);
+  color: var(--sapIndicationColor_6_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="6"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-6-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-6-border);
+  color: var(--fiori-x-tag-set2-color-scheme-6-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="6"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-6-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="6"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-6-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-6-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-6-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="7"] {
+  background-color: var(--sapIndicationColor_7_Background);
+  border-color: var(--sapIndicationColor_7_BorderColor);
+  color: var(--sapIndicationColor_7_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="7"]:hover {
+  background-color: var(--sapIndicationColor_7_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="7"]:active {
+  background-color: var(--sapIndicationColor_7_Active_Background);
+  border-color: var(--sapIndicationColor_7_Active_BorderColor);
+  color: var(--sapIndicationColor_7_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="7"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-7-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-7-border);
+  color: var(--fiori-x-tag-set2-color-scheme-7-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="7"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-7-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="7"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-7-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-7-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-7-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="8"] {
+  background-color: var(--sapIndicationColor_8_Background);
+  border-color: var(--sapIndicationColor_8_BorderColor);
+  color: var(--sapIndicationColor_8_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="8"]:hover {
+  background-color: var(--sapIndicationColor_8_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="8"]:active {
+  background-color: var(--sapIndicationColor_8_Active_Background);
+  border-color: var(--sapIndicationColor_8_Active_BorderColor);
+  color: var(--sapIndicationColor_8_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="8"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-8-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-8-border);
+  color: var(--fiori-x-tag-set2-color-scheme-8-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="8"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-8-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="8"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-8-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-8-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-8-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="9"] {
+  background-color: var(--sapIndicationColor_9_Background);
+  border-color: var(--sapIndicationColor_9_BorderColor);
+  color: var(--sapIndicationColor_9_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="9"]:hover {
+  background-color: var(--sapIndicationColor_9_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="9"]:active {
+  background-color: var(--sapIndicationColor_9_Active_Background);
+  border-color: var(--sapIndicationColor_9_Active_BorderColor);
+  color: var(--sapIndicationColor_9_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="9"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-9-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-9-border);
+  color: var(--fiori-x-tag-set2-color-scheme-9-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="9"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-9-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="9"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-9-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-9-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-9-active-color);
+}
+.fiori-tag[data-design="set1"][data-color-scheme="10"] {
+  background-color: var(--sapIndicationColor_10_Background);
+  border-color: var(--sapIndicationColor_10_BorderColor);
+  color: var(--sapIndicationColor_10_TextColor);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="10"]:hover {
+  background-color: var(--sapIndicationColor_10_Hover_Background);
+}
+button.fiori-tag[data-design="set1"][data-color-scheme="10"]:active {
+  background-color: var(--sapIndicationColor_10_Active_Background);
+  border-color: var(--sapIndicationColor_10_Active_BorderColor);
+  color: var(--sapIndicationColor_10_Active_TextColor);
+}
+.fiori-tag[data-design="set2"][data-color-scheme="10"] {
+  background-color: var(--fiori-x-tag-set2-color-scheme-10-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-10-border);
+  color: var(--fiori-x-tag-set2-color-scheme-10-color);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="10"]:hover {
+  background-color: var(--fiori-x-tag-set2-color-scheme-10-hover-background);
+}
+button.fiori-tag[data-design="set2"][data-color-scheme="10"]:active {
+  background-color: var(--fiori-x-tag-set2-color-scheme-10-active-background);
+  border-color: var(--fiori-x-tag-set2-color-scheme-10-active-border);
+  color: var(--fiori-x-tag-set2-color-scheme-10-active-color);
+}

@@ -1,0 +1,80 @@
+/* Link (ui5-link). Root is the <a>; UI5's host and .ui5-link-root are merged into it. */
+.fiori-link {
+  display: inline-block;
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+  color: var(--sapLinkColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+  cursor: pointer;
+  outline: none;
+  text-decoration: var(--fiori-link-text-decoration);
+  text-shadow: var(--sapContent_TextShadow);
+  white-space: normal;
+  overflow-wrap: break-word;
+  outline-offset: var(--fiori-link-outline-offset);
+  border-radius: var(--fiori-link-focus-border-radius);
+}
+.fiori-link:hover {
+  color: var(--sapLink_Hover_Color);
+  text-decoration: var(--fiori-link-hover-text-decoration);
+}
+.fiori-link:active {
+  color: var(--sapLink_Active_Color);
+  text-decoration: var(--fiori-link-active-text-decoration);
+}
+.fiori-link[data-design="emphasized"] {
+  font-family: var(--sapFontBoldFamily);
+}
+.fiori-link[data-design="subtle"] {
+  color: var(--sapLink_SubtleColor);
+  text-decoration: var(--fiori-link-subtle-text-decoration);
+}
+.fiori-link[data-design="subtle"]:hover:not(:active) {
+  color: var(--sapLink_SubtleColor);
+  text-decoration: var(--fiori-link-subtle-text-decoration-hover);
+}
+.fiori-link[data-wrapping="none"] {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.fiori-link:focus-visible {
+  background-color: var(--fiori-link-focus-background-color);
+  outline: var(--fiori-link-outline);
+  text-shadow: none;
+  color: var(--fiori-link-focus-color);
+  text-decoration: var(--fiori-link-focus-text-decoration);
+}
+.fiori-link:focus-visible:hover:not(:active) {
+  color: var(--fiori-link-focused-hover-text-color);
+  text-decoration: var(--fiori-link-focused-hover-text-decoration);
+}
+.fiori-link[aria-disabled="true"] {
+  pointer-events: none;
+  cursor: default;
+  text-shadow: none;
+  opacity: var(--sapContent_DisabledOpacity);
+}
+.fiori-link[data-interactive-area="large"] {
+  line-height: var(--fiori-link-large-interactive-area-height);
+}
+.fiori-link__icon {
+  float: inline-start;
+  margin-inline-end: 0.125rem;
+}
+.fiori-link__end-icon {
+  margin-inline-start: 0.125rem;
+  vertical-align: bottom;
+}
+.fiori-link[data-interactive-area="large"] .fiori-link__icon,
+.fiori-link[data-interactive-area="large"] .fiori-link__end-icon {
+  height: var(--fiori-link-large-interactive-area-height);
+}
+.fiori-link__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,0 +1,142 @@
+/* Card (ui5-card) and CardHeader (ui5-card-header). */
+.fiori-card {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--sapGroup_TitleTextColor);
+  background: var(--sapTile_Background);
+  box-shadow: var(--fiori-card-box-shadow);
+  border-radius: var(--fiori-card-border-radius);
+  border: var(--fiori-card-border);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+}
+.fiori-card:has(> .fiori-card-header[data-interactive]:hover) {
+  box-shadow: var(--fiori-card-hover-box-shadow);
+}
+.fiori-card:has(> .fiori-card-header[data-interactive]:active) {
+  box-shadow: var(--fiori-card-box-shadow);
+}
+.fiori-card > .fiori-card-header {
+  border-bottom: var(--fiori-card-header-border);
+}
+.fiori-card > .fiori-card-header:last-child {
+  border-bottom: none;
+  --fiori-card-header-focus-bottom-radius: var(--fiori-card-header-focus-radius);
+}
+
+.fiori-card-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: var(--fiori-card-header-padding);
+  outline: none;
+}
+/* UI5 also has :host([subtitleText]) { align-items: flex-start }, but that attribute never exists
+   (it is subtitle-text), so in practice the header always centers. We match what UI5 renders. */
+.fiori-card-header__main {
+  display: inherit;
+  align-items: inherit;
+  flex: 1;
+  min-width: 0;
+  outline: none;
+}
+.fiori-card-header:not([data-action-focus]):has(.fiori-card-header__main:focus-visible)::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border: var(--fiori-card-header-focus-border);
+  inset: var(--fiori-card-header-focus-offset);
+  border-top-left-radius: var(--fiori-card-header-focus-radius);
+  border-top-right-radius: var(--fiori-card-header-focus-radius);
+  border-bottom-left-radius: var(--fiori-card-header-focus-bottom-radius);
+  border-bottom-right-radius: var(--fiori-card-header-focus-bottom-radius);
+}
+.fiori-card-header[data-interactive]:hover {
+  cursor: pointer;
+  background: var(--fiori-card-header-hover-bg);
+}
+.fiori-card-header[data-interactive]:active,
+.fiori-card-header[data-interactive][data-active] {
+  background: var(--fiori-card-header-active-bg);
+}
+.fiori-card-header__avatar {
+  height: 3rem;
+  width: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: 0.75rem;
+  pointer-events: none;
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+.fiori-card-header__avatar > svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--sapTile_IconColor);
+}
+.fiori-card-header__avatar > img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+.fiori-card-header__text {
+  flex: 1;
+  min-width: 0;
+  pointer-events: none;
+}
+.fiori-card-header__title,
+.fiori-card-header__subtitle {
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  display: -webkit-box;
+  max-width: 100%;
+}
+.fiori-card-header__title {
+  font-family: var(--fiori-card-header-title-font-family);
+  font-size: var(--fiori-card-header-title-font-size);
+  font-weight: var(--fiori-card-header-title-font-weight);
+  color: var(--sapTile_TitleTextColor);
+  max-height: 3.5rem;
+  align-self: flex-end;
+  -webkit-line-clamp: 3;
+}
+.fiori-card-header__subtitle {
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  font-weight: 400;
+  color: var(--sapTile_TextColor);
+  margin-top: var(--fiori-card-header-subtitle-margin-top);
+}
+.fiori-card-header__end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  align-self: flex-start;
+}
+.fiori-card-header__action {
+  position: relative;
+  top: -0.5rem;
+  inset-inline-end: -0.5rem;
+}
+.fiori-card-header__additional {
+  display: inline-block;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSmallSize);
+  color: var(--sapTile_TextColor);
+  text-align: end;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: middle;
+}

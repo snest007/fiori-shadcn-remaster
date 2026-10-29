@@ -1,0 +1,191 @@
+/* Avatar (ui5-avatar). Root merges UI5's host and .ui5-avatar-root (UI5 draws focus on its root, which sits inside the
+   host's 1px border, so the focus outline offset is reduced by that border). */
+.fiori-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  height: 3rem;
+  width: 3rem;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  border: var(--fiori-x-avatar-initials-border);
+  outline: none;
+  font-family: var(--sapFontFamily);
+  line-height: normal;
+  vertical-align: top;
+  background-color: var(--fiori-x-avatar-accent6);
+  color: var(--fiori-x-avatar-accent6-color);
+  border-color: var(--fiori-x-avatar-accent6-border-color);
+  -webkit-tap-highlight-color: transparent;
+}
+.fiori-avatar[data-size="XS"] { height: 2rem; width: 2rem; min-height: 2rem; min-width: 2rem; font-size: var(--fiori-avatar-fontsize-xs); }
+.fiori-avatar[data-size="S"] { min-height: 3rem; min-width: 3rem; font-size: var(--fiori-avatar-fontsize-s); }
+.fiori-avatar[data-size="M"] { height: 4rem; width: 4rem; min-height: 4rem; min-width: 4rem; font-size: var(--fiori-avatar-fontsize-m); }
+.fiori-avatar[data-size="L"] { height: 5rem; width: 5rem; min-height: 5rem; min-width: 5rem; font-size: var(--fiori-avatar-fontsize-l); }
+.fiori-avatar[data-size="XL"] { height: 7rem; width: 7rem; min-height: 7rem; min-width: 7rem; font-size: var(--fiori-avatar-fontsize-xl); }
+.fiori-avatar[data-shape="square"] {
+  border-radius: var(--fiori-x-avatar-border-radius);
+}
+.fiori-avatar__initials {
+  color: inherit;
+  white-space: nowrap;
+}
+.fiori-avatar__initials::before {
+  content: attr(data-initials);
+}
+.fiori-avatar__initials[data-hidden] {
+  position: absolute;
+  visibility: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+.fiori-avatar__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.fiori-avatar[data-shape="square"] .fiori-avatar__image {
+  border-radius: calc(var(--fiori-x-avatar-border-radius) - var(--fiori-x-avatar-border-radius-img-deduction));
+}
+.fiori-avatar[data-color-scheme="accent1"] {
+  background-color: var(--fiori-x-avatar-accent1);
+  color: var(--fiori-x-avatar-accent1-color);
+  border-color: var(--fiori-x-avatar-accent1-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent1"]:not(:active):hover {
+  background-color: var(--sapAvatar_1_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent2"] {
+  background-color: var(--fiori-x-avatar-accent2);
+  color: var(--fiori-x-avatar-accent2-color);
+  border-color: var(--fiori-x-avatar-accent2-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent2"]:not(:active):hover {
+  background-color: var(--sapAvatar_2_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent3"] {
+  background-color: var(--fiori-x-avatar-accent3);
+  color: var(--fiori-x-avatar-accent3-color);
+  border-color: var(--fiori-x-avatar-accent3-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent3"]:not(:active):hover {
+  background-color: var(--sapAvatar_3_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent4"] {
+  background-color: var(--fiori-x-avatar-accent4);
+  color: var(--fiori-x-avatar-accent4-color);
+  border-color: var(--fiori-x-avatar-accent4-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent4"]:not(:active):hover {
+  background-color: var(--sapAvatar_4_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent5"] {
+  background-color: var(--fiori-x-avatar-accent5);
+  color: var(--fiori-x-avatar-accent5-color);
+  border-color: var(--fiori-x-avatar-accent5-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent5"]:not(:active):hover {
+  background-color: var(--sapAvatar_5_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent6"] {
+  background-color: var(--fiori-x-avatar-accent6);
+  color: var(--fiori-x-avatar-accent6-color);
+  border-color: var(--fiori-x-avatar-accent6-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent6"]:not(:active):hover {
+  background-color: var(--sapAvatar_6_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent7"] {
+  background-color: var(--fiori-x-avatar-accent7);
+  color: var(--fiori-x-avatar-accent7-color);
+  border-color: var(--fiori-x-avatar-accent7-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent7"]:not(:active):hover {
+  background-color: var(--sapAvatar_7_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent8"] {
+  background-color: var(--fiori-x-avatar-accent8);
+  color: var(--fiori-x-avatar-accent8-color);
+  border-color: var(--fiori-x-avatar-accent8-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent8"]:not(:active):hover {
+  background-color: var(--sapAvatar_8_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent9"] {
+  background-color: var(--fiori-x-avatar-accent9);
+  color: var(--fiori-x-avatar-accent9-color);
+  border-color: var(--fiori-x-avatar-accent9-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent9"]:not(:active):hover {
+  background-color: var(--sapAvatar_9_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="accent10"] {
+  background-color: var(--fiori-x-avatar-accent10);
+  color: var(--fiori-x-avatar-accent10-color);
+  border-color: var(--fiori-x-avatar-accent10-border-color);
+}
+.fiori-avatar[data-interactive][data-color-scheme="accent10"]:not(:active):hover {
+  background-color: var(--sapAvatar_10_Hover_Background);
+}
+.fiori-avatar[data-color-scheme="placeholder"] {
+  background-color: var(--fiori-x-avatar-placeholder);
+  color: var(--fiori-x-avatar-placeholder-color);
+  border-color: var(--sapAvatar_Lite_BorderColor);
+}
+.fiori-avatar[data-color-scheme="transparent"] {
+  background-color: transparent;
+  border-color: transparent;
+}
+.fiori-avatar[data-has-image] {
+  color: var(--fiori-x-avatar-accent10-color);
+  border: var(--fiori-x-avatar-optional-border);
+  background-color: transparent;
+}
+.fiori-avatar[data-interactive] {
+  cursor: pointer;
+}
+.fiori-avatar[data-interactive]:active {
+  background-color: var(--sapButton_Active_Background);
+  border-color: var(--sapButton_Active_BorderColor);
+  color: var(--sapButton_Active_TextColor);
+}
+.fiori-avatar[data-interactive]:not(:active):not(:focus):hover {
+  box-shadow: var(--fiori-x-avatar-hover-box-shadow-offset);
+}
+.fiori-avatar[data-interactive]:focus-visible {
+  outline: var(--fiori-avatar-outline);
+  outline-offset: calc(var(--fiori-avatar-focus-offset) - 1px);
+}
+.fiori-avatar[data-disabled] {
+  opacity: var(--sapContent_DisabledOpacity);
+  pointer-events: none;
+}
+
+/* AvatarGroup (ui5-avatar-group) */
+.fiori-avatar-group[data-size="XS"] { --fiori-avatar-group-focus-radius: var(--fiori-avatar-group-focus-border-radius-xs); }
+.fiori-avatar-group[data-size="S"] { --fiori-avatar-group-focus-radius: var(--fiori-avatar-group-focus-border-radius-s); }
+.fiori-avatar-group[data-size="M"] { --fiori-avatar-group-focus-radius: var(--fiori-avatar-group-focus-border-radius-m); }
+.fiori-avatar-group[data-size="L"] { --fiori-avatar-group-focus-radius: var(--fiori-avatar-group-focus-border-radius-l); }
+.fiori-avatar-group[data-size="XL"] { --fiori-avatar-group-focus-radius: var(--fiori-avatar-group-focus-border-radius-xl); }
+.fiori-avatar-group[role="button"]:focus-visible {
+  outline: var(--fiori-avatar-outline);
+  outline-offset: var(--fiori-avatar-focus-offset);
+  border-radius: var(--fiori-avatar-group-focus-radius);
+}
+.fiori-avatar-group[role="button"] > .fiori-avatar {
+  pointer-events: none;
+}
+.fiori-avatar-group[role="button"]:not(:active):hover > .fiori-avatar:not([data-disabled]) {
+  box-shadow: var(--fiori-x-avatar-hover-box-shadow-offset);
+}
+.fiori-avatar-group[role="button"]:active > .fiori-avatar {
+  background-color: var(--sapButton_Active_Background);
+  border-color: var(--sapButton_Active_BorderColor);
+  color: var(--sapButton_Active_TextColor);
+}

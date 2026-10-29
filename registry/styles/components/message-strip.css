@@ -1,0 +1,76 @@
+/* MessageStrip (ui5-message-strip). */
+.fiori-message-strip {
+  display: flex;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: var(--sapPopover_BorderCornerRadius);
+  padding: var(--fiori-message-strip-padding);
+  border-width: var(--fiori-message-strip-border-width);
+  border-style: solid;
+}
+.fiori-message-strip[data-hide-icon] {
+  padding-inline: var(--fiori-message-strip-padding-inline-no-icon);
+  padding-block: var(--fiori-message-strip-padding-block-no-icon);
+}
+.fiori-message-strip[data-hide-close] {
+  padding-inline-end: 1rem;
+}
+.fiori-message-strip[data-design="information"] {
+  background-color: var(--sapInformationBackground);
+  border-color: var(--sapMessage_InformationBorderColor);
+  color: var(--sapTextColor);
+  --fiori-ms-icon: var(--sapInformativeElementColor);
+}
+.fiori-message-strip[data-design="positive"] {
+  background-color: var(--sapSuccessBackground);
+  border-color: var(--sapMessage_SuccessBorderColor);
+  --fiori-ms-icon: var(--sapPositiveElementColor);
+}
+.fiori-message-strip[data-design="negative"] {
+  background-color: var(--sapErrorBackground);
+  border-color: var(--sapMessage_ErrorBorderColor);
+  --fiori-ms-icon: var(--sapNegativeElementColor);
+}
+.fiori-message-strip[data-design="critical"] {
+  background-color: var(--sapWarningBackground);
+  border-color: var(--sapMessage_WarningBorderColor);
+  --fiori-ms-icon: var(--sapCriticalElementColor);
+}
+/* Color sets: --fiori-ms-scheme (1..10) picks the indication colour. */
+.fiori-message-strip[data-design="color-set-1"] {
+  background-color: var(--fiori-ms-bg);
+  border-color: var(--fiori-ms-border);
+}
+.fiori-message-strip[data-design="color-set-2"] {
+  background-color: var(--fiori-ms-bg);
+  border-color: var(--fiori-ms-border);
+}
+.fiori-message-strip__icon {
+  position: absolute;
+  top: var(--fiori-message-strip-icon-top);
+  inset-inline-start: 0.75rem;
+  box-sizing: border-box;
+  color: var(--fiori-ms-icon, var(--sapContent_IconColor));
+}
+.fiori-message-strip__icon > svg {
+  display: block;
+}
+.fiori-message-strip__text {
+  width: 100%;
+  color: var(--sapTextColor);
+  line-height: 1.2;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+}
+.fiori-message-strip[data-design="color-set-1"] .fiori-message-strip__text {
+  color: var(--sapContent_ContrastTextColor);
+  text-shadow: var(--sapContent_ContrastTextShadow);
+}
+.fiori-message-strip[data-design="color-set-1"] .fiori-message-strip__icon {
+  color: var(--sapContent_ContrastIconColor);
+  text-shadow: var(--sapContent_ContrastTextShadow);
+}
+.fiori-message-strip[data-design="color-set-2"] .fiori-message-strip__icon {
+  color: var(--sapContent_IconColor);
+}

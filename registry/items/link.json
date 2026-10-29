@@ -1,0 +1,5 @@
+{
+  "title": "Link",
+  "registryDependencies": ["@fiori/icons"],
+  "description": "Fiori link: Default, Subtle and Emphasized designs, wrapping, Enter/Space activation."
+}

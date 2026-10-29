@@ -1,0 +1,76 @@
+/* BusyIndicator (ui5-busy-indicator) */
+.fiori-busy-indicator {
+  display: inline-block;
+}
+.fiori-busy-indicator[data-busy] {
+  color: var(--fiori-busy-indicator-color);
+}
+.fiori-busy-indicator__root {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background-color: inherit;
+  height: inherit;
+  border-radius: inherit;
+}
+.fiori-busy-indicator[data-size="S"] .fiori-busy-indicator__root { min-width: 1.625rem; min-height: 0.5rem; }
+.fiori-busy-indicator[data-size="S"][data-has-text] .fiori-busy-indicator__root { min-height: 1.75rem; }
+.fiori-busy-indicator[data-size="S"] .fiori-busy-indicator__circle { width: 0.5rem; height: 0.5rem; }
+.fiori-busy-indicator[data-size="S"] .fiori-busy-indicator__circle:nth-child(-n + 2) { margin-inline-end: 0.0625rem; }
+.fiori-busy-indicator[data-size="M"] .fiori-busy-indicator__root { min-width: 3.375rem; min-height: 1rem; }
+.fiori-busy-indicator[data-size="M"][data-has-text] .fiori-busy-indicator__root { min-height: 2.25rem; }
+.fiori-busy-indicator[data-size="M"] .fiori-busy-indicator__circle { width: 1rem; height: 1rem; }
+.fiori-busy-indicator[data-size="M"] .fiori-busy-indicator__circle:nth-child(-n + 2) { margin-inline-end: 0.1875rem; }
+.fiori-busy-indicator[data-size="L"] .fiori-busy-indicator__root { min-width: 6.5rem; min-height: 2rem; }
+.fiori-busy-indicator[data-size="L"][data-has-text] .fiori-busy-indicator__root { min-height: 3.25rem; }
+.fiori-busy-indicator[data-size="L"] .fiori-busy-indicator__circle { width: 2rem; height: 2rem; }
+.fiori-busy-indicator[data-size="L"] .fiori-busy-indicator__circle:nth-child(-n + 2) { margin-inline-end: 0.25rem; }
+.fiori-busy-indicator__area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: inherit;
+  border-radius: inherit;
+  outline: none;
+}
+.fiori-busy-indicator__area[data-over-content] {
+  position: absolute;
+  inset: 0;
+  z-index: 99;
+}
+.fiori-busy-indicator__area:focus-visible {
+  outline: var(--fiori-busy-indicator-focus-outline);
+  outline-offset: -2px;
+}
+/* The content wrapper is display:contents, so dim its children (UI5 dims ::slotted(*)). */
+.fiori-busy-indicator[data-active] .fiori-busy-indicator__content > * {
+  opacity: var(--sapContent_DisabledOpacity);
+}
+.fiori-busy-indicator__circles {
+  line-height: 0;
+}
+.fiori-busy-indicator__circle {
+  display: inline-block;
+  background-color: currentColor;
+  border-radius: 50%;
+  animation: fiori-busy-grow 1.6s infinite cubic-bezier(0.32, 0.06, 0.85, 1.11);
+}
+.fiori-busy-indicator__circle:nth-child(2) { animation-delay: 0.2s; }
+.fiori-busy-indicator__circle:nth-child(3) { animation-delay: 0.4s; }
+.fiori-busy-indicator__text {
+  width: 100%;
+  text-align: center;
+  color: var(--sapContent_LabelColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  font-weight: 400;
+  line-height: normal;
+}
+.fiori-busy-indicator[data-text-placement="top"] .fiori-busy-indicator__text { margin-bottom: 0.5rem; }
+.fiori-busy-indicator[data-text-placement="bottom"] .fiori-busy-indicator__text { margin-top: 0.5rem; }
+@keyframes fiori-busy-grow {
+  0%, 50%, 100% { transform: scale(0.5); }
+  25% { transform: scale(1); }
+}
