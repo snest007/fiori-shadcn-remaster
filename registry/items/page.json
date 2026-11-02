@@ -1,0 +1,5 @@
+{
+  "title": "Page",
+  "registryDependencies": [],
+  "description": "Fiori page container: header bar, scrolling content and a floating or fixed footer bar, with responsive padding and background designs (ui5-page)."
+}

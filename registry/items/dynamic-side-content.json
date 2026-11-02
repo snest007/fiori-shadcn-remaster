@@ -1,0 +1,5 @@
+{
+  "title": "DynamicSideContent",
+  "registryDependencies": [],
+  "description": "Fiori dynamic side content: main and side content laid out by the control's width (S/M/L/XL), side position, fall-down, equal split and toggle (ui5-dynamic-side-content)."
+}

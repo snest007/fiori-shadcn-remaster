@@ -1,0 +1,5 @@
+{
+  "title": "SideNavigation",
+  "registryDependencies": ["@fiori/icons", "@fiori/popover"],
+  "description": "Fiori side navigation: groups, items and sub-items as a keyboard tree; collapsed icon mode with a sub-item popover; fixed footer items (ui5-side-navigation)."
+}

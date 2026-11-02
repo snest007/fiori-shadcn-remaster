@@ -1,0 +1,56 @@
+/* NavigationLayout (ui5-navigation-layout). Port of NavigationLayout.css (UI5 2.28). */
+.fiori-nl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--sapBackgroundColor);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.fiori-nl[hidden] {
+  display: none;
+}
+.fiori-nl__root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.fiori-nl__header {
+  z-index: 3;
+}
+.fiori-nl__section {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+.fiori-nl__aside {
+  transition: transform 0.3s;
+  z-index: 2;
+}
+.fiori-nl__content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+}
+@media (width < 600px) {
+  .fiori-nl__aside {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+  }
+  .fiori-nl__aside > [data-slot="side-navigation"] {
+    width: 100%;
+    box-shadow: none;
+  }
+  .fiori-nl[data-side-collapsed] .fiori-nl__aside {
+    transform: translate(-100%);
+  }
+  .fiori-nl[data-side-collapsed] .fiori-nl__aside:dir(rtl) {
+    transform: translate(100%);
+  }
+}
