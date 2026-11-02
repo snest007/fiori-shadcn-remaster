@@ -1,0 +1,226 @@
+/* OpenUI5 1.154 sap/m/themes/base/VariantManagement.less supplies the structural
+   tracks; Dialog.less, Table.less and their Horizon overrides supply context
+   layout. Painted values use the existing SAP and generated Fiori parameters. */
+:is(.fiori-vm, .fiori-vm-list, .fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog) {
+  --fiori-vm-line-height: var(--sapElement_LineHeight);
+  --fiori-vm-input-margin: .25rem;
+  --fiori-vm-list-item-height: 2.5rem;
+}
+/* Portal surfaces copy the nearest density onto themselves. Match both that
+   attribute and an inherited density, including compact subtrees. */
+[data-density=compact] :is(.fiori-vm, .fiori-vm-list, .fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog),
+:is(.fiori-vm, .fiori-vm-list, .fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog)[data-density=compact] {
+  --fiori-vm-line-height: var(--sapElement_Compact_LineHeight);
+  --fiori-vm-input-margin: .1875rem;
+  --fiori-vm-list-item-height: var(--sapElement_Compact_LineHeight);
+}
+.fiori-vm { display: inline-block; text-align: center; line-height: normal; }
+.fiori-vm-trigger { display: grid; grid-template-columns: minmax(0, 1fr) 1px 2rem; align-items: center; height: var(--fiori-vm-line-height); }
+.fiori-vm-trigger[data-modified] { grid-template-columns: minmax(0, 1fr) .75rem 2rem; }
+.fiori-vm-title { display: inline-block; color: var(--sapLinkColor) !important; cursor: pointer; vertical-align: middle; }
+.fiori-vm-title:hover, .fiori-vm-modified:hover { color: var(--sapLink_Hover_Color) !important; }
+.fiori-vm-title:active, .fiori-vm-modified:active { color: var(--sapLink_Active_Color) !important; }
+.fiori-vm-modified { color: var(--sapLinkColor); font-weight: bold; padding-inline: .125rem; padding-bottom: .5rem; font-size: var(--sapFontSize); cursor: pointer; }
+.fiori-vm-arrow { width: 2rem; height: var(--fiori-vm-line-height); padding: .25rem 0; background: transparent; }
+.fiori-vm-arrow > svg { width: var(--sapContent_IconHeight); height: var(--sapContent_IconHeight); }
+.fiori-vm-arrow:focus-visible { outline-offset: -.375rem; }
+[data-density=compact] .fiori-vm-arrow, .fiori-vm[data-density=compact] .fiori-vm-arrow { padding-block: .1875rem; }
+
+/* _createVariantList fixes contentWidth=400px and contentHeight=300px; its
+   external popup header adds the density-aware sap.m Bar height. */
+.fiori-vm-list { width: 25rem; height: calc(18.75rem + var(--fiori-bar-base-height)); }
+.fiori-vm-list > .fiori-popup__root { height: 100%; padding-bottom: var(--sapList_BorderWidth); }
+:is(.fiori-vm-list, .fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog).fiori-popup .fiori-popup__header {
+  min-height: var(--fiori-bar-base-height); height: var(--fiori-bar-base-height); padding-inline: 1rem;
+}
+:is(.fiori-vm-list, .fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog) .fiori-popup__title {
+  font-family: var(--sapFontHeaderFamily); font-size: var(--sapFontHeader5Size);
+  height: var(--fiori-bar-base-height); line-height: var(--fiori-bar-base-height);
+}
+.fiori-vm-list-body { flex: 1 1 auto; min-height: 0; overflow: auto; background: var(--sapBackgroundColor); text-align: start; }
+.fiori-vm-view-list { border: 0; }
+.fiori-vm-list .fiori-vm-list-item {
+  height: var(--fiori-vm-list-item-height); min-height: var(--fiori-vm-list-item-height); box-sizing: border-box;
+  padding: 0 1rem; color: var(--sapList_TextColor); font-size: var(--sapFontSize); background: var(--sapList_Background);
+}
+.fiori-vm-list-item .fiori-li-root { min-height: 0; height: 100%; padding: 0; }
+.fiori-vm-list .fiori-vm-list-item .fiori-li-content { padding: 0; }
+.fiori-vm-list-item[data-selected] { background: var(--sapList_SelectionBackgroundColor); }
+/* Popover.less includes one theme border inside its content rectangle. */
+.fiori-vm-list .fiori-vm-search { margin-top: var(--sapList_BorderWidth); }
+.fiori-vm-list :is(.fiori-vm-search, .fiori-vm-list-body, .fiori-vm-footer) {
+  margin-inline: var(--sapList_BorderWidth); width: calc(100% - 2 * var(--sapList_BorderWidth)) !important;
+}
+.fiori-vm-footer.fiori-popup__footer {
+  height: var(--fiori-bar-base-height); padding-inline: 1rem; gap: .5rem;
+  border-top: var(--sapList_BorderWidth) solid var(--sapPageFooter_BorderColor);
+}
+.fiori-vm-footer > * { margin: 0; }
+.fiori-vm-list .fiori-vm-footer { padding-inline: 1rem .5rem; }
+:is(.fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog) .fiori-vm-footer > * { min-width: 4rem !important; }
+.fiori-vm-footer.fiori-popup__footer > [data-variant=default] {
+  background: transparent !important; border-color: transparent !important; box-shadow: none !important; color: var(--sapButton_Lite_TextColor);
+}
+.fiori-vm-search {
+  height: var(--fiori-vm-line-height); min-height: var(--fiori-vm-line-height); padding: .25rem .5rem;
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapPageHeader_BorderColor); background: var(--sapPageHeader_Background);
+}
+.fiori-vm-search-field { width: 100%; }
+.fiori-vm-search-field .fiori-field__icon { width: var(--sapElement_Height); background: transparent; border: none; }
+.fiori-vm-search-field .fiori-field__input::placeholder { font-style: italic; }
+.fiori-vm-search:not(.fiori-vm-manage-search) .fiori-vm-search-field { margin-inline-end: .25rem; width: calc(100% - .25rem); }
+.fiori-vm-search-actions:has(.fiori-vm-search-clear) { width: calc(var(--sapElement_Height) * 2); }
+.fiori-vm-search-clear {
+  display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center;
+  width: var(--sapElement_Height); height: 100%; color: var(--sapContent_IconColor); cursor: pointer;
+}
+.fiori-vm-search-clear:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: calc(-1 * var(--sapContent_FocusWidth));
+}
+.fiori-vm-search-field input::-webkit-search-cancel-button { display: none; }
+.fiori-vm-manage-search.fiori-toolbar {
+  min-height: var(--fiori-bar-subheader-height); height: var(--fiori-bar-subheader-height);
+  padding: .25rem 1rem .5rem !important; border-bottom: none !important;
+}
+/* IllustratedMessage.less retains the empty additional-content margin and
+   block SVG bounds. Its compact figure starts at the available area's top. */
+.fiori-vm-empty { height: 100%; justify-content: center; padding-block: 0; }
+.fiori-vm-empty[data-media=spot] .fiori-illustrated-message__inner { padding: 0 0 1rem; }
+.fiori-vm-empty .fiori-illustrated-message__svg > svg { display: block; }
+.fiori-vm-empty .fiori-illustrated-message__title [data-slot=title] { min-height: 1.5rem; }
+.fiori-vm-list .fiori-vm-empty > .fiori-illustrated-message__root { justify-content: flex-start; }
+
+/* Dialog.less uses a 20rem minimum for Save; _createManagementDialog resolves
+   its 64% content width against the viewport. Only the Manage search subheader
+   owns its header separator (sapMDialogWithSubHeader). */
+.fiori-vm-save-dialog { width: 20rem; }
+.fiori-vm-save-dialog.fiori-popup .fiori-vm-save-form { padding: 1rem; text-align: start; }
+.fiori-vm-name-label { display: block; min-height: 1.125rem; font-size: var(--sapFontSize); color: var(--sapContent_LabelColor); }
+.fiori-vm-name { width: 100%; margin-block: var(--fiori-vm-input-margin) !important; }
+.fiori-vm-options { display: flex; flex-direction: column; align-items: flex-start; padding: 0 .5rem 1px; }
+.fiori-vm-options > .fiori-checkbox { min-height: var(--fiori-vm-line-height); height: var(--fiori-vm-line-height); }
+.fiori-vm-save-form > fieldset { padding-bottom: 1px; }
+.fiori-vm-manage-dialog { width: 64vw; }
+.fiori-vm-manage-dialog .fiori-popup__header { box-shadow: none; }
+.fiori-vm-manage-dialog .fiori-popup__header::before { display: none; }
+.fiori-vm-manage-dialog.fiori-popup .fiori-vm-manage-body { padding: 0 0 var(--sapList_BorderWidth); }
+.fiori-vm-default-group { display: block; }
+
+/* sap.m.Table has fixedLayout=false. Retain our Table keyboard/ARIA primitives
+   while reproducing its automatic, zero-spaced CSS table and per-cell borders. */
+.fiori-vm-table { width: 100%; border: 0; border-radius: 0; text-align: start; }
+.fiori-vm-table .fiori-table__grid { display: table; table-layout: auto; border-collapse: separate; border-spacing: 0; width: 100%; }
+.fiori-vm-table .fiori-table__rows { display: table-row-group; }
+.fiori-vm-table .fiori-table__spacer { display: contents; }
+.fiori-vm-table .fiori-table-row-base { display: table-row; height: auto !important; }
+.fiori-vm-table .fiori-table-header-row { border: 0; box-sizing: border-box; }
+.fiori-vm-table .fiori-table-cell-base { display: table-cell; vertical-align: middle; font-size: var(--sapFontSize); }
+.fiori-vm-table .fiori-table-header-cell {
+  height: auto; padding: .875rem .5rem 1rem; border-top: 0;
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_BorderColor);
+  font-family: var(--sapFontSemiboldDuplexFamily); font-weight: normal; white-space: nowrap;
+}
+.fiori-vm-table .fiori-table-cell {
+  padding: var(--fiori-table-cell-vertical-padding) var(--fiori-table-cell-horizontal-padding);
+  border-top: var(--sapList_BorderWidth) solid var(--sapList_BorderColor);
+}
+.fiori-vm-table .fiori-table-row[data-first] > .fiori-table-cell { border-top: var(--sapList_BorderWidth) solid transparent; }
+.fiori-vm-table .fiori-table-row[data-last] { border-bottom: 0; }
+.fiori-vm-table .fiori-table-row[data-last] > .fiori-table-cell { border-bottom: var(--sapList_BorderWidth) solid var(--sapList_TableFooterBorder); }
+.fiori-vm-table [data-col=favorite] { padding-inline-start: 1rem; width: calc(3rem + var(--fiori-table-cell-horizontal-padding)); }
+.fiori-vm-table [data-slot=table-header-cell][data-col=favorite] { width: calc(3rem + var(--fiori-table-cell-horizontal-padding)); }
+.fiori-vm-table [data-col=name] { width: 16rem; }
+.fiori-vm-table [data-col=contexts] { width: 8rem; }
+.fiori-vm-table [data-col=default], .fiori-vm-table [data-col=execute] { text-align: center; }
+.fiori-vm-table [data-col=delete] { padding-inline-end: .5rem; }
+.fiori-vm-table [data-slot=table-header-cell][data-col=delete] { width: auto; }
+.fiori-vm-table [data-col=name] .fiori-field { width: 100%; }
+.fiori-vm-table .fiori-field { margin-block: .25rem; }
+.fiori-vm-table .fiori-checkbox, .fiori-vm-table .fiori-vm-default { vertical-align: top; }
+.fiori-vm-readonly-name { font-family: var(--sapFontBoldFamily); font-weight: bold; }
+.fiori-vm-favorite {
+  display: inline-flex; align-items: center; vertical-align: middle; width: 1.25rem; height: 1.25rem;
+  padding: .125rem; line-height: var(--sapContent_IconHeight); color: var(--sapContent_MarkerIconColor);
+  border: none; background: transparent; cursor: pointer;
+}
+.fiori-vm-favorite[data-disabled] { color: var(--sapContent_NonInteractiveIconColor); cursor: default; }
+.fiori-vm-favorite:focus-visible { outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor); }
+.fiori-vm-table [data-col=delete] > [data-slot=button] { width: 2rem !important; height: var(--fiori-vm-line-height) !important; padding: 0 !important; }
+.fiori-vm-table [data-col=contexts] > [data-slot=button] {
+  width: var(--sapContent_IconHeight) !important; height: var(--sapElement_Height); margin-inline-start: .5rem;
+  padding: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important;
+  color: var(--sapContent_IconColor) !important; vertical-align: middle;
+}
+[data-density=compact] .fiori-vm-table .fiori-table-header-cell,
+.fiori-vm-manage-dialog[data-density=compact] .fiori-vm-table .fiori-table-header-cell { padding-block: .5rem; }
+
+/* Horizon HC SearchField/Table/Button LESS differs from the Web Component
+   context: regular header face, bordered lite actions and their smaller paint
+   rectangles inside the transparent hit area. */
+[data-theme=sap_horizon_hcb] .fiori-vm-search-field input::placeholder,
+[data-theme=sap_horizon_hcw] .fiori-vm-search-field input::placeholder,
+:is(.fiori-vm-list, .fiori-vm-manage-dialog):is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-search-field input::placeholder { font-style: normal; }
+[data-theme=sap_horizon_hcb] .fiori-vm-footer > [data-variant=default],
+[data-theme=sap_horizon_hcw] .fiori-vm-footer > [data-variant=default],
+:is(.fiori-vm-list, .fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog):is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-footer > [data-variant=default] { border-color: var(--sapButton_BorderColor) !important; }
+[data-theme=sap_horizon_hcb] .fiori-vm-table,
+[data-theme=sap_horizon_hcw] .fiori-vm-table,
+.fiori-vm-manage-dialog:is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-table { border: var(--sapList_BorderWidth) solid var(--sapList_HeaderBorderColor); }
+[data-theme=sap_horizon_hcb] .fiori-vm-table .fiori-table-header-cell,
+[data-theme=sap_horizon_hcw] .fiori-vm-table .fiori-table-header-cell,
+.fiori-vm-manage-dialog:is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-table .fiori-table-header-cell { border-bottom-width: .125rem; font-family: var(--sapFontFamily); }
+[data-theme=sap_horizon_hcb] .fiori-vm-footer,
+[data-theme=sap_horizon_hcw] .fiori-vm-footer,
+:is(.fiori-vm-list, .fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog):is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-footer { --fiori-button-base-padding: .5625rem; }
+[data-theme=sap_horizon_hcb][data-density=compact] .fiori-vm-footer,
+[data-theme=sap_horizon_hcw][data-density=compact] .fiori-vm-footer,
+:is(.fiori-vm-list, .fiori-vm-save-dialog, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog)[data-density=compact]:is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-footer { --fiori-button-base-padding: .4375rem; }
+[data-theme=sap_horizon_hcb] .fiori-vm-table [data-col=contexts] > [data-slot=button],
+[data-theme=sap_horizon_hcw] .fiori-vm-table [data-col=contexts] > [data-slot=button],
+.fiori-vm-manage-dialog:is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-table [data-col=contexts] > [data-slot=button] { width: 1.25rem !important; height: 1.25rem !important; padding: .125rem !important; margin: 0; }
+[data-theme=sap_horizon_hcb] .fiori-vm-table [data-col=delete] > [data-slot=button],
+[data-theme=sap_horizon_hcw] .fiori-vm-table [data-col=delete] > [data-slot=button],
+.fiori-vm-manage-dialog:is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-table [data-col=delete] > [data-slot=button] { width: var(--sapElement_Height) !important; height: var(--sapElement_Height) !important; }
+[data-theme=sap_horizon_hcb][data-density=compact] .fiori-vm-table [data-col=delete] > [data-slot=button],
+[data-theme=sap_horizon_hcw][data-density=compact] .fiori-vm-table [data-col=delete] > [data-slot=button],
+.fiori-vm-manage-dialog[data-density=compact]:is([data-theme=sap_horizon_hcb], [data-theme=sap_horizon_hcw]) .fiori-vm-table [data-col=delete] > [data-slot=button] { width: 2rem !important; height: var(--sapElement_Compact_Height) !important; }
+
+/* _openInErrorState uses a fixed neutral icon. The SAP placeholder parameter
+   preserves that treatment across all themes. */
+.fiori-vm-error {
+  display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 1rem 0 0; text-align: center; background: var(--sapBackgroundColor);
+}
+.fiori-vm-list .fiori-vm-error {
+  margin-inline: var(--sapList_BorderWidth); width: calc(100% - 2 * var(--sapList_BorderWidth));
+  padding-top: calc(1rem + var(--sapList_BorderWidth));
+}
+.fiori-vm-error > [data-slot=icon] { width: 4rem !important; height: 4rem !important; flex-shrink: 0; color: var(--sapContent_Placeholderloading_Background); }
+.fiori-vm-error > [data-slot=title] { padding-top: 1rem; padding-bottom: .25rem; white-space: nowrap; font-size: var(--sapFontHeader2Size); }
+.fiori-vm-error > p { margin: 0; padding: 1rem 4rem 0; font-size: var(--sapFontSize); white-space: normal; line-height: normal; }
+.fiori-vm-roles-dialog { width: 40vw; }
+.fiori-vm-roles-dialog.fiori-popup .fiori-popup__content { padding: 1rem; }
+.fiori-vm-roles-dialog .fiori-popup__footer { height: var(--fiori-bar-base-height); padding-inline: 1rem; gap: .5rem; }
+.fiori-vm-roles-dialog .fiori-popup__footer > * { margin: 0; min-width: 4rem !important; }
+.fiori-vm-role-options { display: flex; flex-direction: column; text-align: start; }
+.fiori-vm-role-options > .fiori-checkbox { height: var(--fiori-vm-line-height); }
+.fiori-vm-keyboard-handle { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.fiori-vm-resize-handle {
+  position: absolute; inset-inline-end: 0; bottom: 0; display: flex; align-items: center; justify-content: center;
+  width: var(--fiori-popover-resize-handle-size); height: var(--fiori-popover-resize-handle-size); color: var(--sapLinkColor); cursor: nwse-resize;
+}
+.fiori-vm-resize-handle svg { width: var(--fiori-popover-resize-handle-icon-size); height: var(--fiori-popover-resize-handle-icon-size); }
+[data-vm-manual] > .fiori-popup__root { height: 100%; }
+[data-vm-draggable] { cursor: move; }
+:is(.fiori-vm-list, .fiori-vm-manage-dialog, .fiori-vm-roles-dialog):has(.fiori-vm-keyboard-handle:focus-visible) { outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor); }
+
+/* In-place preview framing changes positioning only. Portaled consumer
+   surfaces retain the real Dialog/Popover focus and keyboard behavior. */
+.fiori-vm [data-radix-popper-content-wrapper]:has(.fiori-vm-list[data-inline]) { position: static !important; transform: none !important; width: fit-content; }
+.fiori-vm-list[data-inline] { position: relative; }
+.fiori-vm-fixture-surface { display: inline-flex; overflow: hidden; padding: .75rem; }
+[data-vm-fixture-overlay] .fiori-vm-trigger { display: none; }
+[data-vm-fixture-roles] .fiori-vm-manage-dialog,
+[data-vm-fixture-roles] .fiori-vm-manage-dialog > .fiori-popup__root { display: contents; }
+[data-vm-fixture-roles] .fiori-vm-manage-dialog > .fiori-popup__root > *:not(.fiori-vm-roles-dialog) { display: none !important; }
