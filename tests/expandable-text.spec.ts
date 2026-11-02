@@ -1,0 +1,51 @@
+import { expect, test } from "@playwright/test"
+
+test.beforeEach(async ({ page }) => {
+  await page.goto(`/index.html`)
+  await page.waitForSelector("html[data-ready=true]")
+})
+
+test("expands in place and collapses; the link is a button with aria-expanded", async ({ page }) => {
+  const root = page.locator("#expandable-text-inplace")
+  const toggle = root.getByRole("button", { name: "Show More" })
+  await expect(root).toContainText("ut labore ... Show More")
+  await expect(root).not.toContainText("laboris")
+  await expect(toggle).toHaveAttribute("aria-expanded", "false")
+  await toggle.focus()
+  await page.keyboard.press("Enter")
+  const less = root.getByRole("button", { name: "Show Less" })
+  await expect(less).toHaveAttribute("aria-expanded", "true")
+  await expect(root).toContainText("laboris")
+  await expect(less).toBeFocused()
+  await page.keyboard.press("Space")
+  await expect(root.getByRole("button", { name: "Show More" })).toBeVisible()
+  await expect(root).not.toContainText("laboris")
+})
+
+test("popover mode shows the full text; Close and Escape return focus to the link", async ({ page }) => {
+  const root = page.locator("#expandable-text-popover")
+  const toggle = root.getByRole("button")
+  await expect(toggle).toHaveText("Show More")
+  await expect(toggle).toHaveAttribute("aria-description", "Show the full text")
+  await expect(toggle).toHaveAttribute("aria-haspopup", "dialog")
+  await toggle.click()
+  const popover = page.locator("[data-slot=popover-content]")
+  await expect(popover).toContainText("laboris")
+  await expect(toggle).toHaveText("Show Less")
+  await expect(toggle).toHaveAttribute("aria-expanded", "true")
+  await expect(toggle).toHaveAttribute("aria-description", "Close the popover")
+  await popover.getByRole("button", { name: "Close" }).click()
+  await expect(popover).toHaveCount(0)
+  await expect(toggle).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(popover).toBeVisible()
+  await page.keyboard.press("Escape")
+  await expect(popover).toHaveCount(0)
+  await expect(toggle).toBeFocused()
+})
+
+test("short text has no toggle", async ({ page }) => {
+  const root = page.locator("#expandable-text-short")
+  await expect(root).toHaveText("Short text.")
+  await expect(root.getByRole("button")).toHaveCount(0)
+})

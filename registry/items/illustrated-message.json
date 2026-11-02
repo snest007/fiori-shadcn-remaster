@@ -1,0 +1,5 @@
+{
+  "title": "IllustratedMessage",
+  "description": "Fiori illustrated message: illustration + title + subtitle + actions in the Scene / Dialog / Spot / Dot / Base designs, auto-sized by the container (ui5-illustrated-message). Ships with @fiori/illustrations-core (NoData, NoSearchResults, UnableToLoad, Tent, …); add more with @fiori/illustration-<name> or @fiori/illustration-tnt-<name>.",
+  "registryDependencies": ["@fiori/title", "@fiori/illustrations-core"]
+}

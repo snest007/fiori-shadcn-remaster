@@ -1,0 +1,165 @@
+/* IllustratedMessage (ui5-illustrated-message). data-media = base | dot | spot | dialog | scene. */
+.fiori-illustrated-message {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  line-height: normal;
+}
+.fiori-illustrated-message[hidden] {
+  display: none;
+}
+.fiori-illustrated-message__root,
+.fiori-illustrated-message__inner,
+.fiori-illustrated-message__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: inherit;
+  flex-basis: content;
+}
+.fiori-illustrated-message__root,
+.fiori-illustrated-message__inner {
+  min-height: 0;
+}
+.fiori-illustrated-message__inner {
+  padding: 1rem;
+  box-sizing: border-box;
+}
+.fiori-illustrated-message__illustration {
+  margin: 2rem 0;
+}
+.fiori-illustrated-message__illustration svg {
+  display: inline;
+  vertical-align: baseline;
+  max-height: 100%;
+  max-width: 100%;
+}
+.fiori-illustrated-message__title {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: var(--sapFontHeader2Size);
+  font-family: var(--sapFontHeaderFamily);
+  max-width: 61.9375rem;
+}
+.fiori-illustrated-message__subtitle {
+  text-align: center;
+  font-size: var(--sapFontLargeSize);
+  font-family: var(--sapFontFamily);
+  color: var(--sapTextColor);
+  margin-bottom: 0.5rem;
+  max-width: 61.9375rem;
+}
+.fiori-illustrated-message__actions {
+  margin: 1rem 0;
+}
+
+.fiori-illustrated-message[data-media="dialog"] .fiori-illustrated-message__illustration {
+  margin: 1rem 0;
+}
+.fiori-illustrated-message[data-media="dialog"] .fiori-illustrated-message__title {
+  margin-bottom: 0.5rem;
+  font-size: var(--sapFontHeader3Size);
+  max-width: 40.5625rem;
+}
+.fiori-illustrated-message[data-media="dialog"] .fiori-illustrated-message__subtitle {
+  margin-bottom: 0.5rem;
+  font-size: var(--sapFontSize);
+  max-width: 40.5625rem;
+}
+.fiori-illustrated-message[data-media="dialog"] .fiori-illustrated-message__actions {
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.fiori-illustrated-message[data-media="spot"] .fiori-illustrated-message__inner {
+  padding: 0.5rem;
+}
+.fiori-illustrated-message[data-media="spot"] .fiori-illustrated-message__illustration {
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+.fiori-illustrated-message[data-media="spot"] .fiori-illustrated-message__title {
+  margin-bottom: 0.5rem;
+  font-size: var(--sapFontHeader4Size);
+  max-width: 21.5rem;
+}
+.fiori-illustrated-message[data-media="spot"] .fiori-illustrated-message__subtitle {
+  font-size: var(--sapFontSize);
+  max-width: 21.5rem;
+  margin-bottom: 0.5rem;
+}
+.fiori-illustrated-message[data-media="spot"] .fiori-illustrated-message__actions {
+  margin: 0.5rem 0;
+}
+
+.fiori-illustrated-message[data-media="dot"] .fiori-illustrated-message__inner {
+  padding: 0.25rem;
+  min-height: 4rem;
+  flex-direction: row;
+}
+.fiori-illustrated-message[data-media="dot"] .fiori-illustrated-message__illustration {
+  margin: 0 0.25rem 0 0;
+  height: 2.8125rem;
+  width: 2.8125rem;
+  align-self: baseline;
+}
+.fiori-illustrated-message[data-media="dot"] .fiori-illustrated-message__title {
+  margin-bottom: 0.25rem;
+  font-size: var(--sapFontHeader5Size);
+  max-width: 12.6875rem;
+}
+.fiori-illustrated-message[data-media="dot"] .fiori-illustrated-message__subtitle {
+  font-size: var(--sapFontSize);
+  max-width: 12.6875rem;
+  margin-bottom: 0.25rem;
+}
+.fiori-illustrated-message[data-media="dot"] .fiori-illustrated-message__actions {
+  margin: 0.25rem 0;
+}
+
+.fiori-illustrated-message[data-media="base"] .fiori-illustrated-message__illustration {
+  display: none;
+}
+.fiori-illustrated-message[data-media="base"] .fiori-illustrated-message__title {
+  margin-bottom: 0.25rem;
+  font-size: var(--sapFontHeader5Size);
+  max-width: 10rem;
+}
+.fiori-illustrated-message[data-media="base"] .fiori-illustrated-message__subtitle {
+  font-size: var(--sapFontSize);
+  max-width: 10rem;
+  margin-bottom: 0;
+}
+
+/* Class-based fills used by some SVGs (UI5 defines them in the component's shadow CSS). */
+.fiori-illustrated-message .sapIllus_BlendModeMultiply { mix-blend-mode: multiply; }
+.fiori-illustrated-message .sapIllus_MaskTypeAlpha { mask-type: alpha; }
+.fiori-illustrated-message .sapIllus_BackgroundColor { fill: var(--sapContent_Illustrative_Color7); }
+.fiori-illustrated-message .sapIllus_BrandColorPrimary { fill: var(--sapContent_Illustrative_Color1); }
+.fiori-illustrated-message .sapIllus_BrandColorSecondary { fill: var(--sapContent_Illustrative_Color2); }
+.fiori-illustrated-message .sapIllus_StrokeDetailColor { fill: var(--sapContent_Illustrative_Color4); }
+.fiori-illustrated-message .sapIllus_Layering1 { fill: var(--sapContent_Illustrative_Color5); }
+.fiori-illustrated-message .sapIllus_Layering2 { fill: var(--sapContent_Illustrative_Color6); }
+.fiori-illustrated-message .sapIllus_ObjectFillColor { fill: var(--sapContent_Illustrative_Color8); }
+.fiori-illustrated-message .sapIllus_AccentColor { fill: var(--sapContent_Illustrative_Color3); }
+.fiori-illustrated-message .sapIllus_NoColor { fill: none; }
+
+/* TNT illustrations carry a high-contrast variant (UI5's V5/HC collection) for the HC themes. */
+/* UI5 renders <div><svg/></div> with the svg inline, so it sits on the text baseline of a 1rem
+   line (the host doesn't set a font size); we keep that box so heights match. */
+.fiori-illustrated-message__svg {
+  display: block;
+  font-size: 1rem;
+  line-height: normal;
+}
+.fiori-illustrated-message__svg-hc,
+[data-theme="sap_horizon_hcb"] .fiori-illustrated-message__svg-default,
+[data-theme="sap_horizon_hcw"] .fiori-illustrated-message__svg-default {
+  display: none;
+}
+[data-theme="sap_horizon_hcb"] .fiori-illustrated-message__svg-hc,
+[data-theme="sap_horizon_hcw"] .fiori-illustrated-message__svg-hc {
+  display: block;
+}

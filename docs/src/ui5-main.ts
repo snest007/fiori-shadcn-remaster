@@ -50,6 +50,30 @@ const shadowIcons = (node: ParentNode): Element[] =>
 const iconsDrawn = () => shadowIcons(root).every((i) => !i.getAttribute("name") || i.shadowRoot?.querySelector("path"))
 for (let i = 0; i < 300 && !iconsDrawn(); i++) await new Promise((r) => requestAnimationFrame(r))
 await renderFinished()
+// ui5-illustrated-message (also inside other shadow roots) picks its media from a ResizeObserver and
+// loads its SVG asynchronously, so it settles after renderFinished. With design="Auto" it can pass through
+// "base" while its parent is still being laid out, so "base" only counts once the width really calls for it.
+const deepAll = (node: ParentNode): Element[] => [...node.querySelectorAll("*")].flatMap((e) => [e, ...(e.shadowRoot ? deepAll(e.shadowRoot) : [])])
+const illustrationSettled = (m: HTMLElement) => {
+  const media = m.getAttribute("media")
+  if (media === "base") return m.getAttribute("design") === "Base" || m.offsetWidth <= 160
+  return !!media && !!m.shadowRoot?.querySelector(".ui5-illustrated-message-illustration svg")
+}
+const illustrationsDrawn = () =>
+  deepAll(root)
+    .filter((e): e is HTMLElement => e.localName === "ui5-illustrated-message")
+    .every(illustrationSettled)
+// A nested illustrated message may not exist yet on a sparse page (an empty list passes the check above),
+// and slots get pinned to their measured size below. So also require the cells' sizes to hold still.
+const cellSizes = () => [...root.querySelectorAll<HTMLElement>("[data-fixture]")].map((c) => `${c.offsetWidth}x${c.offsetHeight}`).join()
+let lastSizes = ""
+for (let i = 0, stable = 0; i < 600 && stable < 10; i++) {
+  await new Promise((r) => requestAnimationFrame(r))
+  const sizes = cellSizes()
+  stable = sizes === lastSizes && illustrationsDrawn() ? stable + 1 : 0
+  lastSizes = sizes
+}
+await renderFinished()
 // setTheme resolves before the theme's CSS variables are applied; wait until the background is the theme's.
 const EXPECTED_BG: Record<string, string> = { sap_horizon: "#f5f6f7", sap_horizon_dark: "#12171c", sap_horizon_hcb: "#000", sap_horizon_hcw: "#fff" }
 const bg = () => getComputedStyle(document.documentElement).getPropertyValue("--sapBackgroundColor").trim().toLowerCase()

@@ -1,9 +1,11 @@
 import * as React from "react"
 
 import { decline, refresh, stop, uploadToCloud } from "@/lib/fiori-icons"
+import Tent from "@/lib/fiori-illustrations/Tent"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
+import { IllustratedMessage } from "@/components/ui/illustrated-message"
 import { Label } from "@/components/ui/label"
 import { Link } from "@/components/ui/link"
 import { ProgressIndicator } from "@/components/ui/progress-indicator"
@@ -18,7 +20,7 @@ import { ProgressIndicator } from "@/components/ui/progress-indicator"
 // Drag & drop: while files are dragged over the page a dashed "Drag files here" overlay covers the
 // collection; over the collection it turns solid ("Drop files to upload") and dropping calls onDropFiles.
 // Upload transport, progress and state are the caller's job (props only).
-// Not implemented: the "Tent" illustration of the empty state (title + description only), inline renaming.
+// Not implemented: inline renaming.
 
 type UploadState = "complete" | "error" | "ready" | "uploading"
 type DndMode = "none" | "drag" | "drop"
@@ -30,7 +32,7 @@ type UploadCollectionProps = React.ComponentProps<"div"> & {
   header?: React.ReactNode
   /** Empty state title (default "No files found"). */
   noDataText?: React.ReactNode
-  /** Empty state description (default "Drop files to upload, or use the Upload button."). */
+  /** Empty state description (default: UI5's text, 'Drop files to upload them or use the "Upload" button'). */
   noDataDescription?: React.ReactNode
   /** Files dropped on the drop overlay. */
   onDropFiles?: (files: File[]) => void
@@ -47,7 +49,7 @@ type UploadCollectionProps = React.ComponentProps<"div"> & {
 function UploadCollection({
   header,
   noDataText = "No files found",
-  noDataDescription = "Drop files to upload, or use the Upload button.",
+  noDataDescription = 'Drop files to upload them or use the "Upload" button',
   onDropFiles,
   hideDragOverlay,
   dragText = "Drag files here",
@@ -139,8 +141,7 @@ function UploadCollection({
           {children}
           {empty && (
             <li className="fiori-upload-collection__no-data" data-dnd={mode !== "none" ? "" : undefined}>
-              <div className="fiori-upload-collection__no-data-title">{noDataText}</div>
-              <div className="fiori-upload-collection__no-data-description">{noDataDescription}</div>
+              <IllustratedMessage illustration={Tent} titleText={noDataText} subtitleText={noDataDescription} titleWrappingType="None" />
             </li>
           )}
         </ul>

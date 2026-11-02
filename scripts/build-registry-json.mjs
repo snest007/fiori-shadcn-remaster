@@ -45,6 +45,9 @@ const blocks = readdirSync("registry/block-items")
     }
   })
 
+// SAP illustrations: written by scripts/generate-illustrations.mjs (illustrations-core + one item each).
+const illustrations = JSON.parse(readFileSync("registry/lib/fiori-illustrations/registry-items.json", "utf8"))
+
 const registry = {
   $schema: "https://ui.shadcn.com/schema/registry.json",
   name: "fiori",
@@ -95,6 +98,7 @@ const registry = {
       ],
     },
     ...components,
+    ...illustrations,
     ...blocks,
   ],
 }

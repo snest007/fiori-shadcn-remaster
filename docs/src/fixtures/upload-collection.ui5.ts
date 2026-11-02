@@ -2,6 +2,8 @@
 import "@ui5/webcomponents-fiori/dist/Assets.js"
 import "@ui5/webcomponents-fiori/dist/UploadCollection.js"
 import "@ui5/webcomponents-fiori/dist/UploadCollectionItem.js"
+// The empty state's illustration; otherwise it is lazy-loaded, which can outlast the page's stability wait.
+import "@ui5/webcomponents-fiori/dist/illustrations/Tent.js"
 import "@ui5/webcomponents/dist/Icon.js"
 import "@ui5/webcomponents-icons/dist/document.js"
 import "@ui5/webcomponents-icons/dist/refresh.js"
