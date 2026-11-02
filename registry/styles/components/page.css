@@ -1,0 +1,140 @@
+/* Page (ui5-page). Port of Page.css (UI5 2.28); the header / footer rules target the <Bar> placed there. */
+.fiori-page {
+  width: 100%;
+  height: 100%;
+  display: block;
+  container-type: size;
+  font-family: var(--sapFontFamily);
+}
+.fiori-page[hidden] {
+  display: none;
+}
+.fiori-page[data-background-design="solid"] {
+  background-color: var(--sapBackgroundColor);
+}
+.fiori-page[data-background-design="transparent"] {
+  background-color: var(--fiori-page-transparent-bg);
+}
+.fiori-page[data-background-design="list"] {
+  background-color: var(--fiori-page-list-bg);
+}
+.fiori-page__root {
+  height: inherit;
+  overflow: hidden;
+  position: relative;
+  z-index: 0;
+  box-sizing: border-box;
+  background-color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+.fiori-page__header {
+  z-index: 1;
+  flex-shrink: 0;
+}
+.fiori-page__content {
+  overflow: hidden auto;
+  will-change: scroll-position;
+  flex: 1;
+  box-sizing: border-box;
+  font-size: var(--sapFontSize);
+  color: var(--sapTextColor);
+  padding: 0 1rem;
+}
+/* A floating footer sits over the content: keep room for it at the end of the scroll range. */
+.fiori-page:not([data-fixed-footer]):not([data-hide-footer]) .fiori-page__content[data-has-footer] {
+  padding-bottom: 3.5rem;
+  scroll-padding-bottom: 3.5rem;
+}
+.fiori-page[data-fixed-footer]:not([data-hide-footer]) .fiori-page__content[data-has-footer] {
+  margin-bottom: 2.75rem;
+}
+.fiori-page[data-no-scrolling] .fiori-page__content {
+  overflow: hidden;
+}
+.fiori-page__footer {
+  box-sizing: border-box;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+}
+.fiori-page:not([data-fixed-footer]) .fiori-page__footer {
+  opacity: 1;
+  bottom: 0.5rem;
+}
+.fiori-page[data-hide-footer][data-fixed-footer] .fiori-page__footer {
+  display: none;
+}
+.fiori-page:not([data-fixed-footer]):not([data-hide-footer]) .fiori-page__footer {
+  animation: fiori-page-bounce-show 0.35s forwards ease-in-out;
+}
+.fiori-page:not([data-fixed-footer])[data-hide-footer] .fiori-page__footer {
+  animation: fiori-page-bounce-hide 0.35s forwards ease-in-out;
+}
+/* The page's ::slotted rules beat the bar's own :host rules in UI5; <Bar> sets box-sizing and width with
+   utilities (a later cascade layer), so these overrides need !important to win the same way. */
+.fiori-page__footer > [data-slot="bar"][data-design="floating-footer"] {
+  margin: auto;
+  padding: 0;
+}
+.fiori-page__header > [data-slot="bar"],
+.fiori-page__footer > [data-slot="bar"][data-design="footer"] {
+  box-sizing: border-box !important;
+  padding: 0 0.25rem;
+}
+.fiori-page__footer > [data-slot="bar"][data-design="floating-footer"] {
+  width: calc(100% - 0.5rem) !important;
+}
+@container (min-width: 600px) {
+  .fiori-page__content {
+    padding: 0 2rem;
+  }
+  .fiori-page__header > [data-slot="bar"],
+  .fiori-page__footer > [data-slot="bar"] {
+    box-sizing: border-box;
+    padding: 0 1.25rem;
+  }
+  .fiori-page__footer > [data-slot="bar"][data-design="floating-footer"] {
+    width: calc(100% - 2.5rem) !important;
+    padding: 0;
+  }
+}
+@container (min-width: 1440px) {
+  .fiori-page__content {
+    padding: 0 3rem;
+  }
+  .fiori-page__header > [data-slot="bar"],
+  .fiori-page__footer > [data-slot="bar"] {
+    padding: 0 2.25rem;
+  }
+  .fiori-page__footer > [data-slot="bar"][data-design="floating-footer"] {
+    width: calc(100% - 4.5rem) !important;
+    padding: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fiori-page__footer {
+    animation-duration: 0s !important;
+  }
+}
+@keyframes fiori-page-bounce-show {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fiori-page-bounce-hide {
+  0% {
+    transform: translateY(-5%);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
