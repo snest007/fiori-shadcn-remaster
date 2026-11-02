@@ -6,7 +6,10 @@ const port = Number(process.env.PORT ?? 4173)
 export default defineConfig({
   testDir: "tests",
   fullyParallel: true,
-  // One retry absorbs rare OS/browser timing hiccups (file chooser activation); a test that fails twice is real.
+  // Leave headroom for the preview server and Chromium's own processes: with one worker per core the
+  // machine saturates and Chromium occasionally drops a file-chooser request (file-uploader "Enter" test).
+  workers: "75%",
+  // One retry absorbs rare OS/browser timing hiccups; a test that fails twice is real.
   retries: 1,
   reporter: [["list"], ["json", { outputFile: "test-results/results.json" }]],
   use: {

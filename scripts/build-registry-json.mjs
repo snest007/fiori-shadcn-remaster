@@ -48,6 +48,12 @@ const blocks = readdirSync("registry/block-items")
 // SAP illustrations: written by scripts/generate-illustrations.mjs (illustrations-core + one item each).
 const illustrations = JSON.parse(readFileSync("registry/lib/fiori-illustrations/registry-items.json", "utf8"))
 
+// Blocks install into components/<name>.tsx next to components/ui/; a block named like a component would
+// overwrite it (or vice versa), so names must be unique across both.
+for (const b of blocks) {
+  if (components.some((c) => c.name === b.name)) throw new Error(`block "${b.name}" has the same name as a component`)
+}
+
 const registry = {
   $schema: "https://ui.shadcn.com/schema/registry.json",
   name: "fiori",

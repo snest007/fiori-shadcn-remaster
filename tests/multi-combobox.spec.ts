@@ -5,6 +5,11 @@ const field = (page: Page) => page.locator('[data-slot="multi-combobox"]').filte
 const token = (page: Page, text: string) => field(page).locator('[role="option"]', { hasText: text })
 // Only one MultiComboBox list is open at a time.
 const list = (page: Page) => page.locator('[data-slot="multi-combobox-list"]')
+/** Opens the list from the field and waits until focus has moved into it (it moves asynchronously, as in UI5). */
+async function openList(page: Page, key: "F4" | "Alt+ArrowDown") {
+  await page.keyboard.press(key)
+  await expect.poll(() => list(page).evaluate((l) => l.contains(document.activeElement)).catch(() => false)).toBe(true)
+}
 const option = (page: Page, text: string) => list(page).getByRole("option", { name: new RegExp(`^${text}`) })
 const selected = (page: Page) => page.getByTestId("multi-combobox-selected")
 
@@ -79,15 +84,14 @@ test.describe("MultiComboBox (Fiori model)", () => {
 
   test("Enter on an item toggles it and closes; Escape closes and returns focus", async ({ page }) => {
     await input(page).click()
-    await page.keyboard.press("Alt+ArrowDown")
+    await openList(page, "Alt+ArrowDown")
     await page.keyboard.press("ArrowDown")
     await expect(option(page, "Germany")).toBeFocused()
     await page.keyboard.press("Enter")
     await expect(selected(page)).toHaveText("FR")
     await expect(list(page)).toHaveCount(0)
     await expect(input(page)).toBeFocused()
-    await page.keyboard.press("F4")
-    await expect(list(page)).toBeVisible()
+    await openList(page, "F4")
     await page.keyboard.press("Escape")
     await expect(list(page)).toHaveCount(0)
     await expect(input(page)).toBeFocused()
@@ -113,7 +117,7 @@ test.describe("MultiComboBox (Fiori model)", () => {
 
   test("Ctrl+A in the list toggles all items", async ({ page }) => {
     await input(page).click()
-    await page.keyboard.press("F4")
+    await openList(page, "F4")
     await page.keyboard.press("ControlOrMeta+a")
     await expect(list(page).locator('[aria-selected="true"]')).toHaveCount(13)
     await page.keyboard.press("ControlOrMeta+a")
@@ -165,7 +169,7 @@ test.describe("MultiComboBox (Fiori model)", () => {
 
   test("'n more' opens the list with only the selected items", async ({ page }) => {
     await input(page).click()
-    await page.keyboard.press("F4")
+    await openList(page, "F4")
     for (const c of ["Argentina", "Australia", "Austria", "Belgium"]) await option(page, c).locator('[data-slot="checkbox"]').click()
     await page.keyboard.press("Escape")
     await page.locator("body").click({ position: { x: 5, y: 5 } })

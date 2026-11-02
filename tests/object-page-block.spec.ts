@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/block.html?name=object-page`)
+  await page.goto(`/block.html?name=object-page-floorplan`)
   await page.waitForSelector("html[data-ready=true]")
 })
 

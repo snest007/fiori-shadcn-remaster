@@ -1,0 +1,5 @@
+{
+  "title": "Launchpad",
+  "description": "The App Shell block with a SideNavigation wired to its menu button and a page per navigation item.",
+  "registryDependencies": ["@fiori/app-shell", "@fiori/side-navigation", "@fiori/text", "@fiori/title", "@fiori/icons"]
+}

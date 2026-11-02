@@ -140,6 +140,8 @@ test.describe("DateRangePicker", () => {
     const input = page.locator("#date-range-picker-main")
     await input.fill("Mar 5, 2024 - Mar 14, 2024")
     await page.keyboard.press("Enter")
+    // Enter commits and re-formats the value; wait for that render before placing the caret, or it resets.
+    await expect(page.getByTestId("date-range-picker-value")).toHaveText("Mar 5, 2024 - Mar 14, 2024")
     // Caret in the start date (macOS's Home key doesn't move the caret, so set it directly).
     await input.evaluate((el: HTMLInputElement) => el.setSelectionRange(0, 0))
     await page.keyboard.press("PageUp")

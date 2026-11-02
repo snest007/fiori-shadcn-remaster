@@ -7,7 +7,7 @@ SAP's official implementation.
 
 > Built on the SAP Horizon design language. This is not an SAP product. "SAP" and "Fiori" are trademarks of SAP SE.
 
-## Status: Phase 2 (complex controls)
+## Status: all four phases done (foundation, core, complex controls, layouts & floorplans)
 
 | | |
 |---|---|
@@ -15,8 +15,10 @@ SAP's official implementation.
 | Density | cozy (default), compact (`data-density="compact"`, works on any subtree) |
 | Tokens | 1479 `--sap*` variables per theme + 1477 component parameters from UI5 (main + fiori packages) |
 | Icons | 705 SAP Horizon icons, tree-shakeable |
-| Components (52) | **Actions** Button, ToggleButton, SegmentedButton · **Forms** Label, Input, TextArea, Select, ComboBox, MultiComboBox, MultiInput (+Token, Tokenizer), StepInput, CheckBox, RadioGroup, Switch, Slider/RangeSlider, RatingIndicator, FileUploader · **Dates** Calendar, DatePicker, DateRangePicker, TimePicker, DateTimePicker · **Data** Table, DataTable (TanStack, virtualized), List, Tree, UploadCollection · **Overlays** Dialog, Popover, Menu, Toast, ViewSettingsDialog, ValueHelpDialog · **Display** MessageStrip, Tag, Avatar/AvatarGroup, Card, Panel, BusyIndicator, ProgressIndicator, Link, Title, Text · **Navigation** Tabs (IconTabBar), Breadcrumbs, Toolbar, Bar, FilterBar |
-| Verified | 477 fixtures pixel-diffed vs UI5 2.28 in 4 themes × 2 densities (3816 cells, worst 1.6%); FilterBar/ValueHelpDialog checked against SAP's guideline images; axe; 249 Playwright tests incl. Fiori keyboard models |
+| Components (73) | **Actions** Button, ToggleButton, SegmentedButton · **Forms** Label, Input, TextArea, Select, ComboBox, MultiComboBox, MultiInput (+Token, Tokenizer), StepInput, CheckBox, RadioGroup, Switch, Slider/RangeSlider, RatingIndicator, FileUploader, Form · **Dates** Calendar, DatePicker, DateRangePicker, TimePicker, DateTimePicker · **Data** Table, DataTable (TanStack, virtualized), List, Tree, Timeline, UploadCollection, ObjectStatus, ObjectNumber, ObjectIdentifier · **Overlays** Dialog, Popover, Menu, Toast, ViewSettingsDialog, ValueHelpDialog, UserMenu · **Display** MessageStrip, Tag, Avatar/AvatarGroup, Card, Panel, BusyIndicator, ProgressIndicator, Link, Title, Text, ExpandableText, Carousel, HeroBanner, IllustratedMessage · **Navigation** Tabs (IconTabBar), Breadcrumbs, Toolbar, Bar, FilterBar, ShellBar, Search, ProductSwitch, NotificationList, SideNavigation, Wizard · **Layout** Page, DynamicPage, ObjectPage, FlexibleColumnLayout (+`useFlexibleColumnLayout`), DynamicSideContent, NavigationLayout |
+| Floorplans (blocks) | `app-shell`, `launchpad` (shell + side navigation), `list-report`, `object-page-floorplan`, `master-detail` (flexible column layout), `wizard-page`, `empty-states` — preview at `/block.html?name=<block>`, install with `npx shadcn add @fiori/<block>` |
+| Illustrations | 118 SAP illustrations (72 Fiori + 46 TNT) in Scene/Dialog/Spot/Dot sizes; `illustrations-core` (14 common states) ships with IllustratedMessage, the rest as `@fiori/illustration-<name>` |
+| Verified | 600 fixtures pixel-diffed vs UI5 2.28 in 4 themes × 2 densities (4800 cells, worst 1.6%); components without a UI5 Web Component (FilterBar, ValueHelpDialog, ObjectPage, Object*) checked against SAP's guideline images; axe; 391 Playwright tests incl. Fiori keyboard models |
 
 ## Install into an app
 
@@ -84,7 +86,9 @@ pnpm check             # regenerate, typecheck, build registry + site, run all t
 | `scripts/generate-icons.mjs` | Writes `registry/lib/fiori-icons.ts` from `@ui5/webcomponents-icons` |
 | `scripts/build-registry-json.mjs` | Writes `registry.json`; `REGISTRY_URL` sets the `@fiori` namespace URL baked into `fiori.json` |
 | `registry/` | What gets distributed: `ui/`, `lib/`, `styles/fiori-components.css` |
-| `docs/src/fixtures.ts` | Fixtures rendered identically by `index.html?fixtures` (ours) and `ui5.html` (UI5) |
+| `scripts/generate-illustrations.mjs` | Writes `registry/lib/fiori-illustrations/` and their registry items from `@ui5/webcomponents-fiori` |
+| `registry/blocks/`, `registry/block-items/` | Floorplans (`registry:block`), previewed by `docs/block.html` |
+| `docs/src/fixtures/<name>.tsx` + `.ui5.ts` | Fixtures rendered identically by `index.html?fixtures` (ours) and `ui5.html` (UI5) |
 | `tests/visual.spec.ts` | Pixel diff per fixture; failing cells are written to `test-results/visual/` as `-ours/-ui5/-diff.png` |
 | `tests/a11y.spec.ts` | axe, keyboard and focus behaviour |
 
@@ -93,14 +97,17 @@ The visual tests will show any component whose reference changed.
 
 Adding a component: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Roadmap
+## Not done yet
 
-Deferred: NotificationList (→ Phase 3); Adapt Filters dialog & variant management; non-Gregorian calendars; Table drag & drop; Slider vertical; from Phase 1: Tabs/Toolbar/Breadcrumbs overflow ("More"), AvatarGroup "+N", draggable/resizable Dialog,
-checkable menu items, ComboBox item groups, automated hover/focus fixtures.
+Collected from all phases; none blocks using the library.
 
-3. Layouts and floorplans: ShellBar, Side Navigation, Dynamic Page, Object Page, Flexible Column Layout, List Report.
+- **Components:** ColorPalette / ColorPicker, MediaGallery, Adapt Filters dialog and variant management (FilterBar only exposes callbacks/slots).
+- **Overflow handling:** Tabs / Toolbar / Breadcrumbs "More" overflow, AvatarGroup "+N", SideNavigation "More" item when collapsed and too tall.
+- **Features:** draggable/resizable Dialog, checkable menu items, ComboBox item groups, Table drag & drop and multi-column sorting, non-Gregorian calendars, vertical Slider, ObjectPage subsection menus / lazy blocks, notification "growing".
+- **Platform:** phone-specific layouts (full-screen dialogs for pickers and value help), F6 fast navigation groups, RTL is implemented but not tested.
+- **Testing:** hover / active / focus states are verified by screenshot only, not pixel-diffed.
 
 ## License
 
-Apache-2.0. Generated theme values, fonts and icon paths are © SAP SE, used under Apache-2.0
-(`@sap-theming/theming-base-content`, `@ui5/webcomponents`, `@ui5/webcomponents-icons`).
+Apache-2.0. Generated theme values, fonts, icon paths and illustrations are © SAP SE, used under Apache-2.0
+(`@sap-theming/theming-base-content`, `@ui5/webcomponents`, `@ui5/webcomponents-fiori`, `@ui5/webcomponents-icons`).

@@ -100,6 +100,13 @@ function DateRangePicker({
   const build = (ds: Date[]) => ds.map((d) => formatDate(d, pattern, locale)).join(` ${delimiter} `)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
+  const pendingCaret = React.useRef<number | null>(null)
+  React.useLayoutEffect(() => {
+    if (pendingCaret.current === null) return
+    const c = pendingCaret.current
+    pendingCaret.current = null
+    inputRef.current?.setSelectionRange(c, c)
+  })
   const commit = (text: string) => {
     const ds = validate(text)
     const next = ds ? build(ds) : text
@@ -148,7 +155,9 @@ function DateRangePicker({
         const next = [...ds]
         next[i] = modifyDateBy(ds[i], dir, unit, true, minDate, maxDate)
         commit(build(next))
-        requestAnimationFrame(() => inputRef.current?.setSelectionRange(caret, caret))
+        // Restore the caret right after React writes the new value (a later rAF could undo a caret move
+        // the user made in between, so the next PageUp would change the wrong date).
+        pendingCaret.current = caret
       }}
       // ui5-daterange-picker has a 15rem min-width.
       wrapperClassName={cn("min-w-60", wrapperClassName)}
