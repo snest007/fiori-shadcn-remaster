@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test"
 
 const root = (page: Page) => page.locator("#search-demo")
 const input = (page: Page) => root(page).getByRole("searchbox")
-const options = (page: Page) => page.getByRole("option")
+const options = (page: Page) => page.locator(".fiori-search__popover").getByRole("option")
 const last = (page: Page) => page.locator("#search-demo-last")
 
 test.beforeEach(async ({ page }) => {
@@ -69,7 +69,7 @@ test("search: picking a suggestion searches with it, fills the field and keeps f
   await expect(input(page)).toHaveValue("Lap desk")
   await expect(input(page)).toBeFocused()
   await expect(options(page)).toHaveCount(0)
-  await page.keyboard.press("Control+a")
+  await page.keyboard.press("ControlOrMeta+a")
   await page.keyboard.type("Mon")
   await page.keyboard.press("ArrowDown")
   await page.keyboard.press("Enter")

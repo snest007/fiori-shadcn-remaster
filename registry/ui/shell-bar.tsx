@@ -149,7 +149,7 @@ function ShellBarMenuButton({ logo, children, secondaryTitle, menu, accessibleNa
 }
 
 /** ui5-shellbar-spacer: in `content`, pushes what follows to the end of the content area. */
-function ShellBarSpacer(_props: Record<string, never>) {
+function ShellBarSpacer() {
   return null
 }
 
@@ -269,10 +269,12 @@ type ShellBarProps = Omit<React.ComponentProps<"div">, "content"> & {
   texts?: Partial<ShellBarTexts>
 }
 
-const flatten = (children: React.ReactNode): React.ReactElement<any>[] =>
+// Keys get their fragment's key as a prefix: two fragments may both hold an unkeyed first child.
+const flatten = (children: React.ReactNode, prefix = ""): React.ReactElement<any>[] =>
   React.Children.toArray(children).flatMap((c) => {
     if (!React.isValidElement<{ children?: React.ReactNode }>(c)) return []
-    return c.type === React.Fragment ? flatten(c.props.children) : [c]
+    if (c.type === React.Fragment) return flatten(c.props.children, `${prefix}${c.key}/`)
+    return [prefix ? React.cloneElement(c, { key: `${prefix}${c.key}` }) : c]
   })
 
 const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((x, i) => x === b[i])
@@ -330,6 +332,14 @@ function ShellBar({
   const [searchState, setSearchState] = React.useState(defaultSearchExpanded)
   const expanded = !!search && (searchExpanded ?? searchState)
   const focusSearch = React.useRef(false)
+  const overflowSurfaceRef = React.useRef<HTMLDivElement>(null)
+  // Decided as the popover closes: Radix's close-focus callback can run later, when an entry has moved focus on.
+  const restoreOverflowFocus = React.useRef(false)
+  React.useLayoutEffect(() => {
+    if (overflowOpen) return
+    const active = document.activeElement
+    restoreOverflowFocus.current = active === document.body || !!overflowSurfaceRef.current?.contains(active)
+  }, [overflowOpen])
   const initialResize = React.useRef(true)
 
   const setExpanded = React.useCallback(
@@ -410,7 +420,7 @@ function ShellBar({
     if (!sameIds(hidden, l.hiddenIds)) {
       const contentHidden = (ids: string[]) => ids.filter((x) => x.startsWith("content-"))
       if (!sameIds(contentHidden(hidden), contentHidden(l.hiddenIds))) {
-        contentHiddenCb.current?.(contentHidden(hidden).map((x) => x.slice("content-".length)))
+        contentHiddenCb.current?.(contentHidden(hidden).map((x) => x.slice("content-".length).replace(/\.\$?/g, "")))
       }
       setHiddenIds(hidden)
     }
@@ -646,6 +656,7 @@ function ShellBar({
                 </Button>
               </PopoverAnchor>
               <PopoverContent
+                ref={overflowSurfaceRef}
                 hideArrow
                 side="bottom"
                 align="end"
@@ -653,7 +664,8 @@ function ShellBar({
                 className="fiori-shellbar-overflow"
                 onCloseAutoFocus={(e) => {
                   e.preventDefault()
-                  if (showOverflow) overflowBtnRef.current?.focus()
+                  // Not when the chosen entry moved the focus on (search field, the caller's popover).
+                  if (showOverflow && restoreOverflowFocus.current) overflowBtnRef.current?.focus()
                 }}
               >
                 <PopoverBody className="p-0">

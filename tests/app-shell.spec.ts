@@ -56,7 +56,7 @@ test("app-shell: product switch closes when a product is chosen", async ({ page 
 })
 
 test("app-shell: notifications stay reachable from the overflow popover on a phone-sized window", async ({ page }) => {
-  await page.setViewportSize({ width: 360, height: 700 })
+  await page.setViewportSize({ width: 300, height: 700 })
   await expect(button(page, /Notifications/)).toBeHidden()
   await button(page, "More").click()
   await page.getByRole("dialog", { name: "More" }).getByRole("listitem").filter({ hasText: "Notifications" }).click()
@@ -64,9 +64,9 @@ test("app-shell: notifications stay reachable from the overflow popover on a pho
   await expect(page.getByRole("dialog", { name: "More" })).toHaveCount(0)
 })
 
-test("app-shell: no search field yet, then search expands and suggests", async ({ page }) => {
+test("app-shell: search starts collapsed, then expands and suggests", async ({ page }) => {
   await button(page, "Open Search").click()
   await page.keyboard.type("Sal")
-  await expect(page.getByRole("option")).toHaveCount(3)
+  await expect(page.locator(".fiori-search__popover").getByRole("option")).toHaveCount(3)
   await expect(page.getByRole("searchbox")).toHaveValue("Sales orders")
 })

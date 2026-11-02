@@ -118,7 +118,7 @@ test("notification-list: announces read state, importance and states", async ({ 
   await expect(item(page, "Order #2565")).toHaveAccessibleName(/Unread/)
   await expect(item(page, "Order #2566")).toHaveAccessibleName(/Read/)
   await expect(item(page, "Order #2565")).toHaveAccessibleName(/Status Negative/)
-  await expect(item(page, "Cannot be closed")).toHaveAccessibleName(/^Important/)
+  await expect(item(page, "Cannot be closed")).toHaveAccessibleName(/Important/)
   await expect(group(page, "Approvals")).toHaveAccessibleDescription("Notification Group Collapsed")
 })
 

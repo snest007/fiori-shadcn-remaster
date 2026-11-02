@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
-const tile = (page: Page, name: string) => page.locator("#product-switch-demo").getByRole("button", { name })
+const tile = (page: Page, name: RegExp) => page.locator("#product-switch-demo").getByRole("button", { name })
 
 test.beforeEach(async ({ page }) => {
   await page.goto(`/index.html`)

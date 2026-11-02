@@ -224,18 +224,20 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
       setMatched(undefined)
       popRef.current?.querySelector<HTMLElement>('[role="option"]')?.focus()
     } else if (e.key === "Escape") {
-      if (open) {
-        // Radix closes the list; only the value is restored here.
-        const back = beforeArrows.current ?? (typed || shown)
-        setShown(back)
-        beforeArrows.current = undefined
-        setMatched(undefined)
-      } else if (collapsedApi && !collapsedApi.collapsed && !e.currentTarget.value) {
-        // Not in UI5, whose Escape never collapses: an empty ShellBarSearch collapses, returning to its button.
+      restoreTyped()
+      // Not in UI5, whose Escape never collapses: an empty ShellBarSearch collapses, returning to its button.
+      if (collapsedApi && !collapsedApi.collapsed && !e.currentTarget.value) {
         e.preventDefault()
         collapsedApi.collapse?.(true)
       }
     }
+  }
+
+  // Called from Radix's document-level Escape too: it closes the list before React sees the keydown.
+  const restoreTyped = () => {
+    setShown(beforeArrows.current ?? (typed || shown))
+    beforeArrows.current = undefined
+    setMatched(undefined)
   }
 
   const backToInput = (value?: string) => {
@@ -273,10 +275,6 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
           beforeArrows.current = undefined
           backToInput(back)
         }
-      } else if (e.key === "Escape") {
-        const back = beforeArrows.current
-        beforeArrows.current = undefined
-        if (back !== undefined) setShown(back)
       } else if (e.key === "Tab") {
         e.preventDefault()
         closeAndReset()
@@ -393,7 +391,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
       onOpenAutoFocus={(e) => e.preventDefault()}
       onCloseAutoFocus={(e) => e.preventDefault()}
       onEscapeKeyDown={() => {
-        setOpen(false)
+        restoreTyped()
         if (popRef.current?.contains(document.activeElement)) inputRef.current?.focus()
       }}
       onInteractOutside={(e) => {
@@ -450,7 +448,8 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
   const collapsed = bar ? !bar.expanded : (collapsedProp ?? state)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
   const refocusButton = React.useRef(false)
-  const wasCollapsed = React.useRef(collapsed)
+  // Only the user's own expand moves focus: the bar also expands the field by itself when it gets wider.
+  const focusInput = React.useRef(false)
   const toggle = () => {
     if (bar) bar.toggle()
     else {
@@ -476,11 +475,11 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
     if (collapsed) {
       core.setOpen(false)
       if (refocusButton.current) buttonRef.current?.focus()
-    } else if (wasCollapsed.current) {
+    } else if (focusInput.current) {
       core.inputRef.current?.focus()
     }
     refocusButton.current = false
-    wasCollapsed.current = collapsed
+    focusInput.current = false
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collapsed])
   if (collapsed) {
@@ -497,6 +496,7 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
           className="fiori-search__button h-(--fiori-search-icon-size-default) w-9 min-w-(--fiori-search-icon-size-default) rounded-(--fiori-shellbar-button-border-radius) bg-(--fiori-x-search-elements-background) text-(--sapShell_InteractiveTextColor) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:bg-(--sapShell_Hover_Background) hover:text-(--sapShell_InteractiveTextColor)"
           onClick={() => {
             core.fire(core.shown)
+            focusInput.current = true
             toggle()
           }}
         >

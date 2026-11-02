@@ -52,21 +52,32 @@ type AppShellProps = {
 
 /** A popover positioned against whichever element the shell bar reports as `targetRef` (the overflow button, once it has moved there). */
 function ShellPopover({ target, onClose, title, children, ...props }: Omit<React.ComponentProps<typeof PopoverContent>, "title"> & { target: HTMLElement | null; onClose: () => void; title?: string }) {
-  const anchor = React.useMemo(() => ({ current: target }), [target])
+  // The target is cleared on close, but it still anchors the closing surface and gets the focus back.
+  const last = React.useRef(target)
+  if (target) last.current = target
+  // Decided as it closes: Radix's close-focus callback can run later, when focus may be in another popup's hands.
+  const surface = React.useRef<HTMLDivElement>(null)
+  const restoreFocus = React.useRef(false)
+  React.useLayoutEffect(() => {
+    if (target) return
+    const active = document.activeElement
+    restoreFocus.current = active === document.body || !!surface.current?.contains(active)
+  }, [target])
   return (
     <Popover open={!!target} onOpenChange={(o) => !o && onClose()}>
-      <PopoverAnchor virtualRef={anchor as React.RefObject<HTMLElement>} />
+      <PopoverAnchor virtualRef={last as React.RefObject<HTMLElement>} />
       <PopoverContent
+        ref={surface}
         side="bottom"
         align="end"
         hideArrow
         // The button that opened it toggles it on its own click.
         onInteractOutside={(e) => {
-          if (target?.contains(e.target as Node)) e.preventDefault()
+          if (last.current?.contains(e.target as Node)) e.preventDefault()
         }}
         onCloseAutoFocus={(e) => {
           e.preventDefault()
-          target?.focus()
+          if (restoreFocus.current) last.current?.focus()
         }}
         {...props}
       >
@@ -91,7 +102,6 @@ export default function AppShell({ sideNavigation, children }: AppShellProps) {
   const groups = [...new Set(notifications.map((n) => n.group))]
 
   const toggle = (name: NonNullable<OpenPopup>["name"]) => (e: ShellBarClickEvent) => {
-    // Called from the overflow popover, it would close and take the focus: keep the sequence simple.
     setPopup((p) => (p?.name === name ? null : { name, target: e.targetRef }))
   }
   const close = () => setPopup(null)
@@ -174,7 +184,7 @@ export default function AppShell({ sideNavigation, children }: AppShellProps) {
 
       <div className="flex min-h-0 flex-1">
         {typeof sideNavigation === "function" ? sideNavigation({ collapsed }) : sideNavigation}
-        <main className="min-w-0 flex-1 overflow-auto p-(--fiori-app-shell-padding,2rem)">
+        <main className="min-w-0 flex-1 overflow-auto p-8">
           {children ?? (
             <Card className="max-w-3xl">
               <div className="grid gap-2 p-4">

@@ -100,7 +100,18 @@ function UserMenu({
   const [scrolled, setScrolled] = React.useState(false)
   const [titleInHeader, setTitleInHeader] = React.useState(false)
   const [current, setCurrent] = React.useState(0)
-  const anchor = React.useMemo(() => ({ current: opener ?? null }), [opener])
+  // Callers may clear `opener` as they close the menu; it still anchors the closing surface and gets the focus back.
+  const lastOpener = React.useRef(opener)
+  if (opener) lastOpener.current = opener
+  const anchor = lastOpener as React.RefObject<HTMLElement>
+  // Decided as it closes, while the surface is still mounted: Radix's close-focus callback can run much later, when
+  // focus may legitimately have gone elsewhere (another popup opened from the bar, and even closed again).
+  const restoreFocus = React.useRef(false)
+  React.useLayoutEffect(() => {
+    if (open) return
+    const active = document.activeElement
+    restoreFocus.current = active === document.body || !!surfaceRef.current?.contains(active)
+  }, [open])
   const close = () => onOpenChange?.(false)
 
   const items = () => [...(listRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])]
@@ -138,7 +149,7 @@ function UserMenu({
   const defaultFooter = footer === undefined
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverAnchor virtualRef={anchor as React.RefObject<HTMLElement>} />
+      <PopoverAnchor virtualRef={anchor} />
       <PopoverContent
         ref={surfaceRef}
         data-slot="user-menu"
@@ -160,12 +171,13 @@ function UserMenu({
           onCloseAutoFocus?.(e)
           if (e.defaultPrevented) return
           e.preventDefault()
-          opener?.focus()
+          // Not when the user has moved on, e.g. by clicking another button of the shell bar.
+          if (restoreFocus.current) lastOpener.current?.focus()
         }}
         onInteractOutside={(e) => {
           onInteractOutside?.(e)
           // The opener toggles on its own click.
-          if (opener?.contains(e.target as Node)) e.preventDefault()
+          if (lastOpener.current?.contains(e.target as Node)) e.preventDefault()
         }}
         onKeyDown={(e) => {
           onKeyDown?.(e)
