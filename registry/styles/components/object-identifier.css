@@ -56,3 +56,10 @@
 .fiori-object-attribute .fiori-object-attribute__link {
   color: var(--sapLinkColor);
 }
+/* Inside a table (sapMListTbl): title at the base font size, list text color. */
+[role="gridcell"] .fiori-object-identifier__title {
+  font-size: var(--sapFontSize);
+}
+[role="gridcell"] .fiori-object-identifier__title-text {
+  color: var(--sapList_TextColor);
+}
