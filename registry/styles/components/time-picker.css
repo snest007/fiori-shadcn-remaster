@@ -1,0 +1,271 @@
+/* TimePicker (ports ui5-time-picker's popover content: TimeSelectionClocks.css and TimePickerClock.css,
+   plus TimePickerPopover.css). Class names keep UI5's (ui5- -> fiori-); .fiori-tp-clock-host stands for the
+   ui5-time-picker-clock host (data-skip-animation = its _skip-animation attribute). */
+.fiori-time-selection-clocks {
+  display: block;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+}
+.fiori-time-picker-tsc-container {
+  margin:0 auto;
+  box-sizing:border-box;
+  width:100%;
+  padding:1rem;
+  text-align:center;
+}
+.fiori-time-picker-tsc-container:focus-visible {
+  outline:none;
+}
+.fiori-time-picker-tsc-buttons {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding-bottom:1rem;
+  width:100%;
+}
+.fiori-time-picker-tsc-buttons .fiori-time-selection-separator {
+  box-sizing: content-box;
+  min-width:.5rem;
+  padding:0 .125rem;
+  text-align:center;
+  font-family:var(--sapFontFamily);
+  font-size:var(--sapFontSize);
+  color:var(--sapTextColor);
+}
+.fiori-time-picker-tsc-clocks {
+  display:block;
+  text-align:center;
+  width:100%;
+  touch-action:none;
+}
+.fiori-tp-clock {
+  position:relative;
+  width:auto;
+  padding:.5625rem;
+  outline:none;
+  display:none;
+}
+.fiori-tp-clock-active {
+  display:block;
+}
+.fiori-tp-clock-dial {
+  position:relative;
+  width:auto;
+  display:block;
+  border-radius:100%;
+  background-color:var(--sapLegend_WorkingBackground);
+  text-align:center;
+  z-index:1;
+}
+.fiori-tp-clock-dial:before {
+  content:attr(data-label);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:absolute;
+  font-family:var(--sapFontFamily);
+  font-size:var(--sapFontSize);
+  color:var(--sapContent_LabelColor);
+  inset:2.75rem;
+  border-radius:100%;
+  z-index:2;
+}
+.fiori-tp-clock-dial:after {
+  content:"";
+  display:block;
+  padding-bottom:100%;
+}
+.fiori-tp-clock-inner .fiori-tp-clock-dial:before {
+  background-color:var(--sapLegend_WorkingBackground);
+}
+.fiori-tp-clock-cover {
+  position:absolute;
+  inset:-.25rem;
+  border-radius:100%;
+  z-index:10;
+  touch-action:none;
+}
+.fiori-tp-clock-item {
+  position:absolute;
+  top:0;
+  left:50%;
+  display:inline-block;
+  width:2.75rem;
+  height:100%;
+  z-index:3;
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  -khtml-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+}
+.fiori-tp-clock-item.fiori-tp-clock-marker {
+  z-index:4;
+}
+.fiori-tp-clock-dot {
+  display:block;
+  box-sizing:border-box;
+  width:.25rem;
+  height:.3125rem;
+  margin:0 auto .25rem;
+  border-radius:100%;
+  background-color:var(--sapField_BorderColor);
+}
+.fiori-tp-clock-mid-dot {
+  display:block;
+  box-sizing:border-box;
+  width:.125rem;
+  height:.1875rem;
+  margin:0 auto .375rem;
+  border-radius:100%;
+  background-color:var(--sapField_BorderColor);
+}
+.fiori-tp-clock-select-marker {
+  box-sizing:border-box;
+  width:.25rem;
+  height:.5625rem;
+  margin:0 auto;
+  border-radius:100%;
+  background-color:var(--sapButton_Selected_Background);
+  border:.0625rem solid var(--sapButton_Selected_BorderColor);
+}
+.fiori-tp-clock-hover-marker {
+  box-sizing:border-box;
+  width:.25rem;
+  height:.5625rem;
+  margin:0 auto;
+  border-radius:100%;
+  background-color:var(--sapList_Hover_Background);
+  border:.0625rem solid var(--sapGroup_TitleBorderColor);
+}
+.fiori-tp-clock-number {
+  box-sizing:border-box;
+  display:inline-block;
+  width:2.75rem;
+  height:2.75rem;
+  border-radius:100%;
+  line-height:2.75rem;
+  text-align:center;
+  vertical-align:top;
+  font-family:var(--sapFontBoldFamily);
+  font-size:var(--sapFontSize);
+  color:var(--sapTextColor);
+  border:.0625rem solid transparent;
+}
+.fiori-tp-clock-number.fiori-tp-clock-number-hover:not(.fiori-tp-clock-selected) {
+  background-color:var(--sapList_Hover_Background);
+  z-index:5;
+}
+.fiori-tp-clock-selected {
+  color:var(--sapButton_Selected_TextColor);
+  background-color:var(--sapButton_Selected_Background);
+  border:.0625rem solid var(--sapButton_Selected_BorderColor);
+}
+.fiori-tp-clock-hovered {
+  background-color:var(--sapList_Hover_Background);
+  z-index:5;
+}
+.fiori-tp-clock-pointer {
+  cursor:pointer;
+}
+.fiori-tp-clock-items,
+.fiori-tp-clock-markers {
+  position:absolute;
+  inset:0;
+}
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-items .fiori-tp-clock-number,
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-items .fiori-tp-clock-mid-dot,
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-number.fiori-tp-clock-selected,
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-select-marker,
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-dial:before {
+  opacity:0;
+}
+.fiori-tp-clock-transition .fiori-tp-clock-items .fiori-tp-clock-number {
+  animation-name:fiori-tp-fadeOutClockItems;
+  animation-delay:.15s;
+  animation-duration:.2s;
+  animation-timing-function:ease-out;
+  animation-fill-mode:forwards;
+}
+.fiori-tp-clock-transition .fiori-tp-clock-dial:before {
+  animation-name:fiori-tp-fadeOutClockLabel;
+  animation-duration:.35s;
+  animation-timing-function:ease-out;
+  animation-fill-mode:forwards;
+}
+.fiori-tp-clock-transition .fiori-tp-clock-number.fiori-tp-clock-selected,
+.fiori-tp-clock-transition .fiori-tp-clock-select-marker {
+  animation-name:fiori-tp-fadeOutSelectedItem;
+  animation-delay:.1s;
+  animation-duration:.15s;
+  animation-timing-function:ease-out;
+  animation-fill-mode:forwards;
+}
+.fiori-tp-clock-transition .fiori-tp-clock-items .fiori-tp-clock-mid-dot {
+  animation-name:fiori-tp-fadeOutSelectedItem;
+  animation-delay:.15s;
+  animation-duration:.2s;
+  animation-timing-function:ease-out;
+  animation-fill-mode:forwards;
+}
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-items .fiori-tp-clock-number {
+  animation-name:fiori-tp-fadeInClockItems;
+  animation-delay:.15s;
+  animation-duration:.2s;
+  animation-timing-function:ease-in;
+  animation-fill-mode:forwards;
+}
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-dial:before {
+  animation-name:fiori-tp-fadeInClockLabel;
+  animation-duration:.35s;
+  animation-timing-function:ease-in;
+  animation-fill-mode:forwards;
+}
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-number.fiori-tp-clock-selected,
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-select-marker {
+  animation-name:fiori-tp-fadeInSelectedItem;
+  animation-delay:.1s;
+  animation-duration:.15s;
+  animation-timing-function:ease-in;
+  animation-fill-mode:forwards;
+}
+.fiori-tp-clock-host:not([data-skip-animation]) .fiori-tp-clock-active:not(.fiori-tp-clock-transition) .fiori-tp-clock-items .fiori-tp-clock-mid-dot {
+  animation-name:fiori-tp-fadeInSelectedItem;
+  animation-delay:.15s;
+  animation-duration:.2s;
+  animation-timing-function:ease-in;
+  animation-fill-mode:forwards;
+}
+@keyframes fiori-tp-fadeOutClockItems { 0% { opacity:1; display:block}
+to { opacity:0; display:block}
+}
+@keyframes fiori-tp-fadeOutClockLabel { 0% { opacity:1; display:flex; transform:translateY(0)}
+to { opacity:0; display:flex; transform:translateY(-16px)}
+}
+@keyframes fiori-tp-fadeOutSelectedItem { 0% { opacity:1; display:block}
+to { opacity:0; display:block}
+}
+@keyframes fiori-tp-fadeInClockItems { 0% { opacity:0; display:block}
+to { opacity:1; display:block}
+}
+@keyframes fiori-tp-fadeInClockLabel { 0% { opacity:0; display:flex; transform:translateY(16px)}
+to { opacity:1; display:flex; transform:translateY(0)}
+}
+@keyframes fiori-tp-fadeInSelectedItem { 0% { opacity:0; display:block}
+50% { opacity:.5; display:block}
+to { opacity:1; display:block}
+}
+
+
+
+.fiori-time-picker-popover {
+  width: 20rem;
+}
+.fiori-time-picker-footer {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  height: fit-content;
+}

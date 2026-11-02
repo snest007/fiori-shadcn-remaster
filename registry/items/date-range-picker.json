@@ -1,0 +1,6 @@
+{
+  "title": "DateRangePicker",
+  "description": "Fiori date range picker: a start - end field with a range-selecting calendar.",
+  "registryDependencies": ["@fiori/icons", "@fiori/input", "@fiori/calendar", "@fiori/date-picker", "@fiori/picker-field"],
+  "files": [{ "path": "registry/lib/fiori-dates.ts", "type": "registry:lib" }]
+}

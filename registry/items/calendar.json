@@ -1,0 +1,6 @@
+{
+  "title": "Calendar",
+  "description": "Fiori calendar: day / month / year / year-range pickers, single, multiple or range selection, week numbers, special days and legend, the SAP keyboard model. Gregorian, Intl-based.",
+  "registryDependencies": ["@fiori/icons"],
+  "files": [{ "path": "registry/lib/fiori-dates.ts", "type": "registry:lib" }]
+}

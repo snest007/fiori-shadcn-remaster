@@ -1,0 +1,151 @@
+/* Field + popover shared by DatePicker, DateRangePicker, DateTimePicker and TimePicker
+   (ports ui5-input's icon slot, DatePicker.css / TimePicker.css .inputIcon, and the ResponsivePopover
+   with a value-state header: ValueStateMessage.css .ui5-valuestatemessage-header). */
+.fiori-picker-field__icon-root {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--fiori-input-icon-min-width);
+  height: 100%;
+}
+.fiori-picker-field__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  box-sizing: content-box;
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
+  padding: var(--fiori-input-icon-padding);
+  border-inline-start: var(--fiori-input-icon-border);
+  border-radius: var(--fiori-input-icon-border-radius);
+  color: var(--fiori-input-icon-color);
+  cursor: pointer;
+  outline: none;
+}
+.fiori-picker-field__icon > svg {
+  width: 1rem;
+  height: 1rem;
+  color: inherit;
+  pointer-events: none;
+}
+.fiori-picker-field:is([data-value-state="negative"], [data-value-state="critical"]) .fiori-picker-field__icon {
+  padding: var(--fiori-input-error-warning-icon-padding);
+}
+.fiori-picker-field[data-value-state="information"] .fiori-picker-field__icon {
+  padding: var(--fiori-input-information-icon-padding);
+}
+.fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  background: var(--fiori-input-icon-hover-bg);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+}
+.fiori-picker-field__icon:hover {
+  border-inline-start: var(--fiori-select-hover-icon-left-border);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+}
+.fiori-picker-field__icon[data-pressed] {
+  background: var(--fiori-input-icon-pressed-bg);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+  border-inline-start: var(--fiori-select-hover-icon-left-border);
+  color: var(--fiori-input-icon-pressed-color);
+}
+.fiori-picker-field__icon:active {
+  background-color: var(--sapButton_Active_Background);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+  border-inline-start: var(--fiori-select-hover-icon-left-border);
+  color: var(--fiori-input-icon-pressed-color);
+}
+.fiori-picker-field[data-value-state="negative"] .fiori-picker-field__icon:is(:active, [data-pressed]),
+.fiori-picker-field[data-value-state="negative"] .fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  box-shadow: var(--fiori-input-error-icon-box-shadow);
+}
+.fiori-picker-field[data-value-state="critical"] .fiori-picker-field__icon:is(:active, [data-pressed]),
+.fiori-picker-field[data-value-state="critical"] .fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  box-shadow: var(--fiori-input-warning-icon-box-shadow);
+}
+.fiori-picker-field[data-value-state="information"] .fiori-picker-field__icon:is(:active, [data-pressed]),
+.fiori-picker-field[data-value-state="information"] .fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  box-shadow: var(--fiori-input-information-icon-box-shadow);
+}
+.fiori-picker-field[data-value-state="positive"] .fiori-picker-field__icon:is(:active, [data-pressed]),
+.fiori-picker-field[data-value-state="positive"] .fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  box-shadow: var(--fiori-input-success-icon-box-shadow);
+}
+.fiori-picker-field[data-disabled] .fiori-picker-field__icon {
+  cursor: default;
+}
+
+/* Popover: ResponsivePopover, hide-arrow, content padding 0. */
+.fiori-picker-popover {
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  min-width: 6.25rem;
+  min-height: 2rem;
+  border-radius: var(--fiori-popup-border-radius);
+  background: var(--fiori-popover-background);
+  box-shadow: var(--fiori-popover-no-arrow-box-shadow);
+  outline: none;
+}
+.fiori-picker-popover__content {
+  flex: auto;
+  min-height: 0;
+  overflow: auto;
+  color: var(--sapTextColor);
+}
+.fiori-picker-popover__header {
+  flex-shrink: 0;
+  min-height: var(--fiori-value-state-message-popover-header-min-height);
+  min-width: var(--fiori-value-state-message-popover-header-min-width);
+  width: 100%;
+  /* The date/time picker popovers always carry ui5-popover-with-value-state-header-phone, so the
+     header takes the "phone" padding and icon offset on desktop too. */
+  padding: var(--fiori-value-state-message-padding-phone);
+  border: var(--fiori-value-state-header-border);
+  border-bottom: var(--fiori-value-state-header-border-bottom);
+}
+.fiori-picker-popover__header > svg {
+  inset-inline-start: var(--fiori-value-state-message-icon-offset-phone);
+}
+.fiori-picker-popover__header[data-value-state="negative"] { box-shadow: var(--fiori-value-state-header-box-shadow-error); }
+.fiori-picker-popover__header[data-value-state="critical"] { box-shadow: var(--fiori-value-state-header-box-shadow-warning); }
+.fiori-picker-popover__header[data-value-state="information"] { box-shadow: var(--fiori-value-state-header-box-shadow-information); }
+.fiori-picker-popover__footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  padding-inline: var(--fiori-popup-header-footer-padding-s);
+  background: var(--sapPageFooter_Background);
+  border-top: 1px solid var(--sapPageFooter_BorderColor);
+  color: var(--sapPageFooter_TextColor);
+}
+
+/* ui5-date-picker / ui5-time-picker repeat the value state's shadow on their host around the inner
+   ui5-input, so the (inset) state shadow is drawn twice. */
+.fiori-picker-field[data-value-state]:not([data-readonly]):not([data-disabled])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inherit;
+  pointer-events: none;
+}
+/* Disabled: the icon is dimmed on top of the field's own opacity (--_ui5_input_icon_state_opacity). */
+.fiori-picker-field[data-disabled] .fiori-picker-field__icon {
+  opacity: var(--sapContent_DisabledOpacity);
+}
+
+/* The footer content sets the height (UI5: ::slotted([slot=footer]) height, which the pickers override). */
+:where(.fiori-picker-popover__footer > *) {
+  height: var(--fiori-popup-footer-height);
+}
+.fiori-picker-popover__footer:is([data-media-range="M"], [data-media-range="L"]) {
+  padding-inline: var(--fiori-popup-header-footer-padding-m-l);
+}
+.fiori-picker-popover__footer[data-media-range="XL"] {
+  padding-inline: var(--fiori-popup-header-footer-padding-xl);
+}
