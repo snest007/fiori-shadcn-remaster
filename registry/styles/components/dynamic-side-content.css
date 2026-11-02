@@ -1,0 +1,57 @@
+/* DynamicSideContent (ui5-dynamic-side-content). Mechanical port of DynamicSideContent.css (UI5 2.28):
+   :host -> .fiori-dsc, attributes -> data-* (enum values in kebab case). */
+.fiori-dsc{display:block;width:100%;height:100%;position:relative;container-type:inline-size}
+.fiori-dsc__root{width:100%;height:100%;position:relative;overflow-x:hidden;overflow-y:auto;display:flex;flex-direction:row}
+.fiori-dsc__main,.fiori-dsc__side{display:block;position:relative;overflow-x:hidden;overflow-y:auto;box-sizing:border-box;flex:none}
+.fiori-dsc[data-hide-main-content] .fiori-dsc__main{display:none}
+.fiori-dsc[data-hide-main-content] .fiori-dsc__side{width:100%;min-width:0}
+.fiori-dsc[data-hide-side-content] .fiori-dsc__side{display:none}
+.fiori-dsc[data-hide-side-content] .fiori-dsc__main{width:100%;min-width:0}
+.fiori-dsc[data-hide-main-content][data-hide-side-content] .fiori-dsc__root{display:none}
+.fiori-dsc[data-equal-split] .fiori-dsc__main,.fiori-dsc[data-equal-split] .fiori-dsc__side{width:50%;min-width:0}
+@container (min-width: 1441px){.fiori-dsc__main{width:75%;min-width:320px}
+.fiori-dsc__side{width:25%;min-width:320px}
+.fiori-dsc[data-hide-main-content] .fiori-dsc__side,.fiori-dsc[data-hide-side-content] .fiori-dsc__main{width:100%;min-width:0}
+}
+@container (min-width: 1025px) and (max-width: 1440px){.fiori-dsc__main{width:66.666%;min-width:320px}
+.fiori-dsc__side{width:33.333%;min-width:320px}
+.fiori-dsc[data-side-content-fall-down="below-xl"] .fiori-dsc__root{flex-direction:column}
+.fiori-dsc[data-side-content-fall-down="below-xl"] .fiori-dsc__main,.fiori-dsc[data-side-content-fall-down="below-xl"] .fiori-dsc__side{width:100%}
+.fiori-dsc[data-side-content-visibility="show-above-l"] .fiori-dsc__side{display:none}
+.fiori-dsc[data-side-content-visibility="show-above-l"] .fiori-dsc__main{width:100%;min-width:0}
+.fiori-dsc[data-hide-main-content] .fiori-dsc__side,.fiori-dsc[data-hide-side-content] .fiori-dsc__main,.fiori-dsc[data-side-content-fall-down="below-xl"][data-hide-main-content] .fiori-dsc__side,.fiori-dsc[data-side-content-fall-down="below-xl"][data-hide-side-content] .fiori-dsc__main{width:100%;min-width:0}
+}
+@container (min-width: 721px) and (max-width: 1024px){.fiori-dsc__main{width:calc(100% - 340px)}
+.fiori-dsc__side{width:340px}
+.fiori-dsc[data-side-content-fall-down="below-xl"] .fiori-dsc__root,.fiori-dsc[data-side-content-fall-down="below-l"] .fiori-dsc__root{flex-direction:column}
+.fiori-dsc[data-side-content-fall-down="below-xl"] .fiori-dsc__main,.fiori-dsc[data-side-content-fall-down="below-xl"] .fiori-dsc__side,.fiori-dsc[data-side-content-fall-down="below-l"] .fiori-dsc__main,.fiori-dsc[data-side-content-fall-down="below-l"] .fiori-dsc__side{width:100%}
+.fiori-dsc[data-side-content-visibility="show-above-m"] .fiori-dsc__side,.fiori-dsc[data-side-content-visibility="show-above-l"] .fiori-dsc__side{display:none}
+.fiori-dsc[data-side-content-visibility="show-above-m"] .fiori-dsc__main,.fiori-dsc[data-side-content-visibility="show-above-l"] .fiori-dsc__main{width:100%;min-width:0}
+.fiori-dsc[data-hide-main-content] .fiori-dsc__side,.fiori-dsc[data-hide-side-content] .fiori-dsc__main{width:100%;min-width:0}
+}
+@container (min-width: 721px) and (max-width: 960px){.fiori-dsc[data-side-content-fall-down="on-minimum-width"] .fiori-dsc__root{flex-direction:column}
+.fiori-dsc[data-side-content-fall-down="on-minimum-width"] .fiori-dsc__main,.fiori-dsc[data-side-content-fall-down="on-minimum-width"] .fiori-dsc__side{width:100%}
+.fiori-dsc[data-side-content-fall-down="on-minimum-width"]:not([data-side-content-visibility="never-show"]):not([data-side-content-visibility="show-above-m"]):not([data-side-content-visibility="show-above-l"]):not([data-hide-side-content]) .fiori-dsc__side{display:block}
+.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-side-content-visibility="never-show"] .fiori-dsc__side,.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-side-content-visibility="show-above-m"] .fiori-dsc__side,.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-side-content-visibility="show-above-l"] .fiori-dsc__side,.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-hide-side-content] .fiori-dsc__side{display:none}
+.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-side-content-visibility="never-show"] .fiori-dsc__main,.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-side-content-visibility="show-above-m"] .fiori-dsc__main,.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-side-content-visibility="show-above-l"] .fiori-dsc__main,.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-hide-side-content] .fiori-dsc__main{width:100%;min-width:0}
+.fiori-dsc[data-side-content-fall-down="on-minimum-width"][data-hide-main-content] .fiori-dsc__side{width:100%;min-width:0}
+}
+@container (max-width: 720px){.fiori-dsc__main,.fiori-dsc__side{width:100%}
+.fiori-dsc__root{flex-direction:column}
+.fiori-dsc[data-equal-split] .fiori-dsc__main,.fiori-dsc[data-equal-split] .fiori-dsc__side{width:100%;min-width:0}
+.fiori-dsc:not([data-side-content-visibility="always-show"]):not([data-hide-side-content]) .fiori-dsc__side{display:none}
+.fiori-dsc:not([data-side-content-visibility="always-show"]):not([data-hide-main-content]) .fiori-dsc__main{display:block}
+.fiori-dsc[data-side-content-visibility="always-show"]:not([data-hide-side-content]) .fiori-dsc__side{display:block}
+.fiori-dsc[data-side-content-visibility="always-show"]:not([data-hide-main-content]) .fiori-dsc__main{display:block}
+.fiori-dsc[data-hide-main-content] .fiori-dsc__side,.fiori-dsc[data-hide-side-content] .fiori-dsc__main{width:100%;min-width:0}
+}
+.fiori-dsc[data-side-content-visibility="never-show"]:not([data-hide-main-content]) .fiori-dsc__side{display:none}
+.fiori-dsc[data-side-content-visibility="never-show"]:not([data-hide-side-content]) .fiori-dsc__main{display:block;width:100%;min-width:0}
+@container (min-width: 1441px){.fiori-dsc[data-side-content-visibility="show-above-l"]:not([data-hide-side-content]) .fiori-dsc__side{display:block}
+}
+@container (min-width: 1025px){.fiori-dsc[data-side-content-visibility="show-above-m"]:not([data-hide-side-content]) .fiori-dsc__side{display:block}
+}
+@container (min-width: 721px){.fiori-dsc[data-side-content-visibility="show-above-s"]:not([data-hide-side-content]) .fiori-dsc__side{display:block}
+}
+.fiori-dsc:not([data-side-content-visibility="never-show"]):not([data-hide-main-content]) .fiori-dsc__root[data-toggled] .fiori-dsc__main{display:none}
+.fiori-dsc:not([data-side-content-visibility="never-show"]):not([data-hide-side-content]) .fiori-dsc__root[data-toggled] .fiori-dsc__side{display:block;width:100%;min-width:0}

@@ -21,12 +21,14 @@ function PageDemo() {
         <Page
           aria-label="Page demo"
           fixedFooter={fixed}
+          // Scrollable content must be reachable by keyboard (no focusable children here).
+          contentProps={{ tabIndex: 0, "aria-label": "Supplier details" }}
           hideFooter={hidden}
           header={<Bar design="header"><Label>Edit Supplier</Label></Bar>}
           footer={
             <Bar
               design={fixed ? "footer" : "floating-footer"}
-              endContent={<><Button variant="emphasized">Save</Button><Button>Cancel</Button></>}
+              endContent={<><Button variant="emphasized">Accept</Button><Button>Discard</Button></>}
             />
           }
         >
