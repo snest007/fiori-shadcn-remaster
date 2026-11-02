@@ -1,0 +1,290 @@
+/* Wizard (ui5-wizard, ui5-wizard-tab). Port of Wizard.css + WizardTab.css (UI5 2.28).
+   .fiori-wiz = the ui5-wizard host, .fiori-wiz-tab = a ui5-wizard-tab host, data-* = its attributes. */
+.fiori-wiz {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  container-type: inline-size;
+}
+.fiori-wiz[hidden] {
+  display: none;
+}
+.fiori-wiz__hidden-text {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  user-select: none;
+  left: -1000px;
+  top: -1000px;
+  pointer-events: none;
+  font-size: 0;
+}
+.fiori-wiz__nav,
+.fiori-wiz__content-item {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@container (min-width: 600px) {
+  .fiori-wiz__nav,
+  .fiori-wiz__content-item {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+@container (min-width: 1440px) {
+  .fiori-wiz__nav,
+  .fiori-wiz__content-item {
+    padding-left: 3rem;
+    padding-right: 3rem;
+  }
+}
+.fiori-wiz__root {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+.fiori-wiz__content {
+  position: relative;
+  overflow: auto;
+  height: calc(100% - 4rem);
+  box-sizing: border-box;
+  background: var(--sapBackgroundColor);
+}
+.fiori-wiz__content-item {
+  display: block;
+  box-sizing: border-box;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.fiori-wiz[data-content-layout="singleStep"] .fiori-wiz__content-item:not([data-selected]) {
+  display: none;
+}
+.fiori-wiz__content-item-wrapper {
+  display: block;
+  padding: var(--fiori-wiz-content-item-wrapper-padding);
+  background-color: var(--fiori-wiz-content-item-wrapper-bg);
+  border-radius: var(--sapElement_BorderCornerRadius);
+}
+.fiori-wiz__content-item[hidden] {
+  display: none;
+}
+.fiori-wiz__content-item[data-stretch] {
+  min-height: 100%;
+}
+.fiori-wiz__nav {
+  box-sizing: border-box;
+  height: 4rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  user-select: none;
+  background-color: var(--sapObjectHeader_Background);
+  font-size: 0.875rem;
+  box-shadow: var(--sapContent_HeaderShadow);
+  outline: none;
+  display: flex;
+  align-items: center;
+  transform: scale(1);
+}
+.fiori-wiz__nav-list {
+  display: table;
+  table-layout: fixed;
+  position: relative;
+  list-style: none;
+  margin: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 2rem;
+  padding: 0;
+}
+.fiori-wiz-tab {
+  display: table-cell;
+  position: relative;
+  min-width: 1px;
+}
+.fiori-wiz-tab[data-expanded-tab="true"] + .fiori-wiz-tab[data-expanded-tab="false"] {
+  width: 2rem;
+  padding-left: 0.5rem;
+}
+.fiori-wiz-tab[data-expanded-tab="false"] {
+  width: 0.25rem;
+  padding: 0;
+}
+.fiori-wiz-tab[data-expanded-tab="false"] + .fiori-wiz-tab[data-expanded-tab="false"] {
+  width: 0.25rem;
+}
+.fiori-wiz-tab[data-expanded-tab-prev="true"],
+.fiori-wiz-tab[data-expanded-tab="false"] + .fiori-wiz-tab[data-expanded-tab-prev="true"] {
+  width: 2rem;
+  padding-right: 0.75rem;
+}
+
+/* Tab. UI5's shadow DOM is content-box unless a rule says otherwise (Tailwind's preflight is border-box). */
+.fiori-wiz-tab,
+.fiori-wiz-tab * {
+  box-sizing: content-box;
+}
+.fiori-wiz-tab__root {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  font-size: var(--sapFontSize);
+  font-family: var(--sapFontFamily);
+  outline: none;
+}
+.fiori-wiz-tab__main {
+  max-width: 100%;
+  text-align: center;
+  white-space: nowrap;
+}
+.fiori-wiz-tab:not([data-disabled]) .fiori-wiz-tab__main {
+  cursor: pointer;
+}
+.fiori-wiz-tab__root:focus-visible .fiori-wiz-tab__main {
+  outline: var(--fiori-wiz-tab-focus-outline);
+  outline-offset: 1px;
+  border-radius: var(--fiori-wiz-tab-focus-border-radius);
+}
+.fiori-wiz-tab__circle {
+  display: inline-flex;
+  box-sizing: border-box;
+  vertical-align: middle;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 2rem;
+  height: 2rem;
+  margin: 0 0.1875rem;
+  line-height: 1.875rem;
+  border-radius: 50%;
+  background: var(--sapObjectHeader_Background);
+  border: var(--fiori-wiz-tab-border);
+  position: relative;
+}
+.fiori-wiz-tab__icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--fiori-wiz-tab-icon-color);
+  pointer-events: none;
+}
+.fiori-wiz-tab__number {
+  color: var(--fiori-wiz-tab-icon-color);
+}
+.fiori-wiz-tab[data-selected]:not([data-disabled]) .fiori-wiz-tab__circle {
+  background: var(--fiori-wiz-tab-selected-bg);
+}
+.fiori-wiz-tab[data-selected]:not([data-disabled]) .fiori-wiz-tab__title {
+  color: var(--sapContent_Selected_ForegroundColor);
+}
+.fiori-wiz-tab[data-selected]:not([data-disabled]) .fiori-wiz-tab__circle::after {
+  content: "";
+  position: absolute;
+  border-bottom: 0.25rem solid var(--fiori-wiz-tab-selection-line);
+  border-top-left-radius: 0.1875rem;
+  border-top-right-radius: 0.1875rem;
+  left: 0;
+  right: 0;
+  bottom: -1rem;
+}
+.fiori-wiz-tab[data-selected]:not([data-disabled]) .fiori-wiz-tab__icon {
+  color: var(--sapContent_ContrastIconColor);
+}
+.fiori-wiz-tab[data-selected]:not([data-disabled]) .fiori-wiz-tab__number {
+  color: var(--sapContent_ContrastTextColor);
+}
+.fiori-wiz-tab[data-disabled] .fiori-wiz-tab__circle {
+  border-color: var(--sapList_BorderColor);
+  background: var(--sapObjectHeader_Background);
+}
+.fiori-wiz-tab[data-disabled] .fiori-wiz-tab__title,
+.fiori-wiz-tab[data-disabled] .fiori-wiz-tab__icon,
+.fiori-wiz-tab[data-disabled] .fiori-wiz-tab__number {
+  color: var(--sapContent_LabelColor);
+}
+.fiori-wiz-tab__texts {
+  display: inline-block;
+  max-width: calc(100% - 3rem);
+  vertical-align: middle;
+  text-align: left;
+  padding: 0 0.5rem 0 0.1875rem;
+  max-height: 3rem;
+  overflow: hidden;
+  background: var(--sapObjectHeader_Background);
+}
+.fiori-wiz-tab__title,
+.fiori-wiz-tab__subtitle {
+  color: var(--fiori-wiz-tab-title-color);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.fiori-wiz-tab__title {
+  font-family: var(--fiori-wiz-tab-title-font-family);
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.fiori-wiz-tab[data-has-subtitle] .fiori-wiz-tab__title {
+  -webkit-line-clamp: 1;
+}
+.fiori-wiz-tab[data-expanded-tab-prev="true"] .fiori-wiz-tab__title,
+.fiori-wiz-tab[data-expanded-tab-prev="true"] .fiori-wiz-tab__subtitle,
+.fiori-wiz-tab[data-expanded-tab="false"] .fiori-wiz-tab__texts,
+.fiori-wiz-tab[data-expanded-tab="false"] .fiori-wiz-tab__title,
+.fiori-wiz-tab[data-expanded-tab="false"] .fiori-wiz-tab__subtitle {
+  display: none;
+}
+.fiori-wiz-tab__subtitle {
+  margin-top: 0.125rem;
+  font-family: var(--sapFontFamily);
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSmallSize);
+}
+.fiori-wiz-tab__hr {
+  display: inline-block;
+  border-bottom-color: var(--sapList_BorderColor);
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  height: 1px;
+  flex-grow: 1;
+  margin-right: 0.25rem;
+  min-width: 0.5rem;
+}
+.fiori-wiz-tab[data-active-separator] .fiori-wiz-tab__hr {
+  border-bottom-color: var(--fiori-wiz-tab-active-separator-color);
+}
+.fiori-wiz-tab[data-branching-separator] .fiori-wiz-tab__hr {
+  border-bottom-style: dashed;
+}
+.fiori-wiz-tab[data-expanded-tab="false"] .fiori-wiz-tab__root {
+  display: inline;
+  position: absolute;
+  top: 0;
+}
+.fiori-wiz-tab[data-after-current-tab="true"] .fiori-wiz-tab__root {
+  right: 0;
+}
+.fiori-wiz-tab[data-expanded-tab="false"] .fiori-wiz-tab__hr {
+  display: none;
+}
+
+/* Popover listing a collapsed stack of steps */
+.fiori-wiz-popover {
+  box-shadow: var(--sapContent_Shadow1);
+}
+.fiori-wiz-popover__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.fiori-wiz-popover__step {
+  width: 200px;
+  justify-content: flex-start;
+}
+.fiori-wiz-popover__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.25rem 0;
+  width: 100%;
+}
