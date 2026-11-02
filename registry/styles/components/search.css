@@ -100,7 +100,6 @@
   color: var(--sapContent_ContrastTextColor);
 }
 .fiori-search__separator {
-  flex-shrink: 0;
   width: 0.0625rem;
   height: 1.5rem;
   box-sizing: border-box;
@@ -164,6 +163,9 @@
 .fiori-search__scope.fiori-field:focus-within {
   box-shadow: var(--fiori-x-search-input-scope-active-shadow);
   background-color: var(--fiori-x-search-elements-background);
+}
+.fiori-search__scope [data-slot="select-trigger"] {
+  min-width: calc(var(--fiori-input-min-width) + var(--fiori-input-icon-width));
 }
 .fiori-search__scope .fiori-select__value {
   padding: 0 0.25rem 0 0.5rem;

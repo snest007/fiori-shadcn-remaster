@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { bell, grid, overflow as overflowIcon, slimArrowDown, search as searchIcon, type FioriIconData } from "@/lib/fiori-icons"
+import { bell, da, grid, overflow as overflowIcon, slimArrowDown, search as searchIcon, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
@@ -132,7 +132,6 @@ function ShellBarMenuButton({ logo, children, secondaryTitle, menu, accessibleNa
           <button
             type="button"
             data-slot="shell-bar-menu-button"
-            data-has-logo={logo ? "" : undefined}
             aria-label={accessibleName ?? (typeof children === "string" ? children : undefined)}
             className={cn("fiori-shellbar-menu-button", className)}
             {...props}
@@ -394,6 +393,8 @@ function ShellBar({
     })
     const overflowing = () => inner.offsetWidth > outer.offsetWidth
     setVisible("overflow", false)
+    // Not in `list` while expanded, but it may have been hidden while collapsed.
+    setVisible("search", true)
     list.forEach((it) => setVisible(it.id, true))
     const hidden: string[] = []
     let overflowBtn = false
@@ -500,6 +501,7 @@ function ShellBar({
   const overflowEntries = [
     ...(isHidden("search") ? [{ id: "search", icon: searchIcon, text: texts.search, count: undefined as string | undefined, order: 0 }] : []),
     ...(isHidden("notifications") ? [{ id: "notifications", icon: bell, text: texts.notificationsNoCount, count: notificationsCount, order: 1 }] : []),
+    ...(isHidden("assistant") ? [{ id: "assistant", icon: da, text: texts.assistant, count: undefined as string | undefined, order: 2 }] : []),
     ...items.filter((c) => isHidden(itemId(c))).map((c, n) => ({ id: itemId(c), icon: c.props.icon as FioriIconData, text: c.props.text as string, count: c.props.count as string | undefined, order: 3 + n })),
   ].sort((x, y) => x.order - y.order)
   const counted = overflowEntries.filter((e) => e.count)
@@ -509,6 +511,8 @@ function ShellBar({
     let keepOpen = false
     if (id === "notifications") keepOpen = fire(onNotificationsClick, notificationsTarget())
     else if (id === "search") keepOpen = toggleSearch()
+    // UI5's entry only closes the popover; here it also works the hidden assistant button.
+    else if (id === "assistant") hostRef.current?.querySelector<HTMLElement>('[data-sb-id="assistant"] button')?.click()
     else {
       const item = items.find((c) => itemId(c) === id)
       let prevented = false

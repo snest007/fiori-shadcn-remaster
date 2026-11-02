@@ -26,7 +26,7 @@ export default defineFixtures<Props>({
     if (suggestions) {
       return (
         <div className={inPlace}>
-          <Search open portal={false} defaultValue="Lap" noTypeahead aria-label="Search" style={{ width: SEARCH_WIDTH }}>
+          <Search open portal={false} defaultValue="Lap" noTypeahead style={{ width: SEARCH_WIDTH }}>
             <SearchItem text="Laptop" icon={history} />
             <SearchItem text="Lap desk" description="Office supplies" />
             <SearchItemGroup headerText="Products">

@@ -325,12 +325,6 @@
   user-select: none;
   outline-color: var(--fiori-shellbar-logo-outline-color);
 }
-.fiori-shellbar-menu-button[data-has-logo] {
-  margin-inline-start: 0.5rem;
-}
-.fiori-shellbar[data-breakpoint="S"] .fiori-shellbar-menu-button {
-  margin-inline-start: 0;
-}
 .fiori-shellbar-menu-button:hover {
   background: var(--sapShell_Hover_Background);
   border-color: var(--sapButton_Lite_Hover_BorderColor);

@@ -494,7 +494,7 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
           aria-label={core.texts.open}
           aria-expanded={false}
           disabled={core.fieldLoading}
-          className="fiori-search__button w-9 min-w-(--fiori-search-icon-size-default) rounded-(--fiori-shellbar-button-border-radius) bg-(--fiori-x-search-elements-background) text-(--sapShell_InteractiveTextColor) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:bg-(--sapShell_Hover_Background) hover:text-(--sapShell_InteractiveTextColor)"
+          className="fiori-search__button h-(--fiori-search-icon-size-default) w-9 min-w-(--fiori-search-icon-size-default) rounded-(--fiori-shellbar-button-border-radius) bg-(--fiori-x-search-elements-background) text-(--sapShell_InteractiveTextColor) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:bg-(--sapShell_Hover_Background) hover:text-(--sapShell_InteractiveTextColor)"
           onClick={() => {
             core.fire(core.shown)
             toggle()
