@@ -1,0 +1,178 @@
+import * as React from "react"
+
+import { DataTable, createDataTableColumnHelper } from "@/components/ui/data-table"
+import {
+  Table,
+  TableCell,
+  TableGroupRow,
+  TableHeaderCell,
+  TableHeaderRow,
+  TableRow,
+  TableRowAction,
+  TableRowActionNavigation,
+  type TableRowHighlight,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { deleteIcon, edit } from "@/lib/fiori-icons"
+
+import { defineDemo } from "./types"
+
+type Product = { id: string; name: string; supplier: string; price: number; status: TableRowHighlight }
+const SUPPLIERS = ["Very Best Screens", "Smartcards", "Technocom", "Red Point Stores"]
+const STATUS: TableRowHighlight[] = ["none", "positive", "critical", "negative", "information"]
+const makeProducts = (from: number, count: number): Product[] =>
+  Array.from({ length: count }, (_, k) => {
+    const i = from + k
+    return {
+      id: `P${String(i + 1).padStart(4, "0")}`,
+      name: `Product ${i + 1}`,
+      supplier: SUPPLIERS[i % SUPPLIERS.length],
+      price: Math.round(((i * 37) % 1000) * 100 + 999) / 100,
+      status: STATUS[i % STATUS.length],
+    }
+  })
+const fmt = (n: number) => `${n.toFixed(2)} EUR`
+
+function SelectionTable() {
+  const [mode, setMode] = React.useState<"multi" | "single">("multi")
+  const [selected, setSelected] = React.useState<string[]>(["P0002"])
+  const [rows, setRows] = React.useState(() => makeProducts(0, 6))
+  const [log, setLog] = React.useState("")
+  return (
+    <div className="grid gap-2">
+      <div className="flex gap-2">
+        <Button id="table-mode-multi" aria-pressed={mode === "multi"} onClick={() => setMode("multi")}>Multi</Button>
+        <Button id="table-mode-single" aria-pressed={mode === "single"} onClick={() => { setMode("single"); setSelected((s) => s.slice(0, 1)) }}>Single</Button>
+      </div>
+      <Table
+        id="table-products"
+        aria-label="Products"
+        selectionMode={mode}
+        selectedRows={selected}
+        onSelectionChange={setSelected}
+        rowActionCount={2}
+        growing="button"
+        onLoadMore={() => setRows((r) => [...r, ...makeProducts(r.length, 3)])}
+        onRowClick={(key) => setLog(`Row: ${key}`)}
+        className="max-h-96 overflow-auto"
+      >
+        <TableHeaderRow sticky>
+          <TableHeaderCell importance={2}>Product</TableHeaderCell>
+          <TableHeaderCell>Supplier</TableHeaderCell>
+          <TableHeaderCell horizontalAlign="End" width="10rem">Price</TableHeaderCell>
+        </TableHeaderRow>
+        {rows.map((p, i) => (
+          <TableRow
+            key={p.id}
+            rowKey={p.id}
+            interactive
+            navigated={i === 2}
+            highlight={p.status}
+            actions={
+              <>
+                <TableRowAction icon={edit} text="Edit" onClick={() => setLog(`Edit: ${p.id}`)} />
+                <TableRowAction icon={deleteIcon} text="Delete" onClick={() => setLog(`Delete: ${p.id}`)} />
+              </>
+            }
+          >
+            <TableCell>{p.name}</TableCell>
+            <TableCell>{p.supplier}</TableCell>
+            <TableCell>{fmt(p.price)}</TableCell>
+          </TableRow>
+        ))}
+      </Table>
+      <p className="text-(--sapContent_LabelColor)">
+        Selected: <b id="table-selected">{selected.join(", ") || "none"}</b> · <span id="table-log">{log}</span>
+      </p>
+    </div>
+  )
+}
+
+function PopinTable() {
+  return (
+    <div className="resize-x overflow-hidden" style={{ width: "22rem" }}>
+      <Table id="table-popin" aria-label="Popin products" overflowMode="popin" alternateRowColors rowActionCount={1}>
+        <TableHeaderRow>
+          <TableHeaderCell importance={3} minWidth="8rem">Product</TableHeaderCell>
+          <TableHeaderCell importance={1} minWidth="9rem">Supplier</TableHeaderCell>
+          <TableHeaderCell importance={2} minWidth="7rem" horizontalAlign="End">Price</TableHeaderCell>
+        </TableHeaderRow>
+        <TableGroupRow>Screens</TableGroupRow>
+        {makeProducts(0, 3).map((p) => (
+          <TableRow key={p.id} rowKey={p.id} actions={<TableRowActionNavigation />}>
+            <TableCell>{p.name}</TableCell>
+            <TableCell>
+              <input aria-label={`Supplier of ${p.name}`} defaultValue={p.supplier} className="w-full border border-(--sapField_BorderColor) px-1" />
+            </TableCell>
+            <TableCell>{fmt(p.price)}</TableCell>
+          </TableRow>
+        ))}
+      </Table>
+    </div>
+  )
+}
+
+const col = createDataTableColumnHelper<Product>()
+const columns = col.columns([
+  col.accessor("id", { header: "ID", meta: { width: "7rem" } }),
+  col.accessor("name", { header: "Product" }),
+  col.accessor("supplier", { header: "Supplier" }),
+  col.accessor("price", { header: "Price", cell: (c) => fmt(c.getValue()), meta: { horizontalAlign: "End" } }),
+])
+const bigData = makeProducts(0, 10_000)
+const smallData = makeProducts(0, 5)
+
+function DataTables() {
+  const [sel, setSel] = React.useState<string[]>([])
+  return (
+    <div className="grid gap-6">
+      <DataTable
+        id="table-data-menu"
+        aria-label="Sortable products"
+        data={smallData}
+        columns={columns}
+        getRowId={(r) => r.id}
+        selectionMode="multi"
+        selectedRows={sel}
+        onSelectionChange={setSel}
+      />
+      <DataTable
+        id="table-data-click"
+        aria-label="Click-sortable products"
+        data={smallData}
+        columns={columns}
+        getRowId={(r) => r.id}
+        sortTrigger="click"
+      />
+      <DataTable
+        id="table-data-virtual"
+        aria-label="10000 products"
+        data={bigData}
+        columns={columns}
+        getRowId={(r) => r.id}
+        virtualize
+        rowHeight={45}
+        virtualHeight="20rem"
+        selectionMode="single"
+      />
+    </div>
+  )
+}
+
+function TableDemo() {
+  return (
+    <div className="grid gap-6">
+      <SelectionTable />
+      <PopinTable />
+      <Table id="table-empty" aria-label="Empty" noDataText="No products found">
+        <TableHeaderRow>
+          <TableHeaderCell>Product</TableHeaderCell>
+          <TableHeaderCell>Supplier</TableHeaderCell>
+        </TableHeaderRow>
+      </Table>
+      <DataTables />
+    </div>
+  )
+}
+
+export default defineDemo({ title: "Table", order: 200, Demo: TableDemo })

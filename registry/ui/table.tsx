@@ -1,0 +1,1607 @@
+import * as React from "react"
+
+import { clearAll, navigationRightArrow, overflow, sortAscending, sortDescending } from "@/lib/fiori-icons"
+import type { FioriIconData } from "@/lib/fiori-icons"
+import { cn } from "@/lib/utils"
+import { BusyIndicator } from "@/components/ui/busy-indicator"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Icon } from "@/components/ui/icon"
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/menu"
+
+// Mirrors ui5-table 2.28 (Horizon) and its parts: ui5-table-header-row / -header-cell / -row / -cell /
+// -group-row / -row-action(-navigation) / -growing and the selection features (single / multi).
+// Each UI5 host and its shadow parts are flattened into one element; styles live in
+// registry/styles/components/table.css (class names follow the UI5 part they port).
+//
+// Keyboard (as UI5's TableNavigation): the table is one tab stop. Arrows move between rows and cells,
+// Home/End, PageUp/PageDown (20 rows), Ctrl+Home/End (first/last row), F2 or Enter on a cell moves into
+// its content and F2 / Escape back to the cell, F7 switches between row and cell. Space toggles the
+// focused row's selection (Enter too in "rowOnly" behaviour); in multi mode Shift+↑/↓ extend a range,
+// Shift+Space selects from the last toggled row, Ctrl+A selects all and Ctrl+Shift+A deselects all.
+
+type TableTexts = {
+  noData: string
+  more: string
+  moreDescription: string
+  selection: string
+  rowSelector: string
+  selectAll: string
+  deselectAll: string
+  selectAllDescription: string
+  clearAllDescription: string
+  checked: string
+  notChecked: string
+  disabled: string
+  multiSelectable: string
+  singleSelectable: string
+  rowActions: string
+  rowPopin: string
+  columnHeaderRow: string
+  groupRow: string
+  moreActions: string
+  navigation: string
+  colon: string
+}
+
+/** UI5's English defaults (ui5 messagebundle). Pass `texts` to translate. */
+const defaultTableTexts: TableTexts = {
+  noData: "No Data",
+  more: "More",
+  moreDescription: "To load more rows, press Enter or Space",
+  selection: "Selection",
+  rowSelector: "Row Selector",
+  selectAll: "Select All Rows",
+  deselectAll: "Deselect All Rows",
+  selectAllDescription: "Select All Checkbox",
+  clearAllDescription: "Clear All Button",
+  checked: "Checked",
+  notChecked: "Not checked",
+  disabled: "Disabled",
+  multiSelectable: "Multi Selection Table",
+  singleSelectable: "Single Selection Table",
+  rowActions: "Row Actions",
+  rowPopin: "Row Popin",
+  columnHeaderRow: "Column Header Row",
+  groupRow: "Group Row",
+  moreActions: "More Actions",
+  navigation: "Navigation",
+  colon: ":",
+}
+
+type TableHorizontalAlign = "Left" | "Start" | "Right" | "End" | "Center"
+type TableRowHighlight = "none" | "negative" | "critical" | "positive" | "information"
+type SortIndicator = "none" | "ascending" | "descending"
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Contexts                                                                                         */
+
+type ColumnInfo = {
+  width?: string
+  minWidth?: string
+  importance: number
+  popinText?: string
+  popinHidden: boolean
+  horizontalAlign?: TableHorizontalAlign
+  label: React.ReactNode
+}
+
+type TableContextValue = {
+  texts: TableTexts
+  selectionMode: "none" | "single" | "multi"
+  rowOnly: boolean
+  headerSelector: "selectAll" | "clearAll"
+  hasSelector: boolean
+  isSelected: (key: string | undefined) => boolean
+  allSelected: boolean
+  anySelected: boolean
+  onSelectionClick: (key: string | null, e: React.MouseEvent) => void
+  rowActionCount: number
+  renderNavigated: boolean
+  renderDummy: boolean
+  hasPopin: boolean
+  popped: ReadonlySet<number>
+  columns: ReadonlyMap<number, ColumnInfo>
+  registerColumn: (index: number, info: ColumnInfo) => void
+  unregisterColumn: (index: number) => void
+  registerRow: (id: string, info: RowInfo) => void
+  unregisterRow: (id: string) => void
+  virtual: boolean
+}
+type RowInfo = { order: number; key?: string; navigated: boolean }
+
+const TableContext = React.createContext<TableContextValue | null>(null)
+const useTableContext = (part: string) => {
+  const ctx = React.useContext(TableContext)
+  if (!ctx) throw new Error(`<${part}> must be used inside <Table>`)
+  return ctx
+}
+
+/** first/last: first/last row of its kind (UI5 styles rows with :first-of-type / :last-of-type). */
+type RowPlacement = { order: number; alternate: boolean; first: boolean; last: boolean }
+const RowPlacementContext = React.createContext<RowPlacement>({ order: 0, alternate: false, first: false, last: false })
+
+type CellPlacement = { index: number; popin: boolean; first: boolean }
+const CellPlacementContext = React.createContext<CellPlacement>({ index: -1, popin: false, first: false })
+
+/** Flattens fragments and arrays (React.Children.toArray doesn't descend into fragments). */
+function flatChildren(children: React.ReactNode): React.ReactElement[] {
+  return React.Children.toArray(children).flatMap((c) => {
+    if (!React.isValidElement(c)) return []
+    if (c.type === React.Fragment) return flatChildren((c.props as { children?: React.ReactNode }).children)
+    return [c]
+  })
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Keyboard navigation (port of UI5 TableNavigation + GridWalker, on the DOM)                        */
+
+const PAGE_SIZE = 20
+const isNavRow = (el: Element | null): el is HTMLElement => !!el && el.hasAttribute("data-table-nav-row")
+const tabbablesIn = (el: Element) =>
+  [
+    ...el.querySelectorAll<HTMLElement>(
+      'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"]), [contenteditable="true"]'
+    ),
+  ].filter((t) => !t.hasAttribute("disabled") && !t.closest("[inert]") && t.getAttribute("tabindex") !== "-1" && t.getClientRects().length > 0)
+
+function navGrid(grid: HTMLElement): HTMLElement[][] {
+  const rows = [...grid.querySelectorAll<HTMLElement>("[data-table-nav-row]")].filter(
+    (r) => r.closest("[data-table-grid]") === grid && !r.hidden
+  )
+  return rows.map((r) => [r, ...r.querySelectorAll<HTMLElement>(":scope > [data-table-nav-cell]")])
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Table                                                                                            */
+
+type TableProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
+  /** "scroll" (default): columns keep their width and the table scrolls horizontally. "popin": columns that don't fit move into the row as "label: value". */
+  overflowMode?: "scroll" | "popin"
+  selectionMode?: "none" | "single" | "multi"
+  /** "rowSelector" (default) renders a selection column; "rowOnly" selects by clicking the row (no column). */
+  selectionBehavior?: "rowSelector" | "rowOnly"
+  /** Multi selection header: a select-all checkbox (default) or a "clear all" icon. */
+  headerSelector?: "selectAll" | "clearAll"
+  /** Selected row keys (controlled). Single selection holds at most one key. */
+  selectedRows?: string[]
+  defaultSelectedRows?: string[]
+  onSelectionChange?: (selectedRows: string[]) => void
+  /** Text of the "No data" row (default "No Data"). */
+  noDataText?: string
+  /** Custom content of the "No data" row (wins over `noDataText`). */
+  noData?: React.ReactNode
+  /** Shows a busy indicator over the rows (after `loadingDelay` ms) and makes them non-interactive. */
+  loading?: boolean
+  loadingDelay?: number
+  /** Number of row action slots per row (width of the actions column). */
+  rowActionCount?: number
+  alternateRowColors?: boolean
+  /** Sticky top offset of a sticky header row, e.g. when other sticky bars sit above the table. */
+  stickyTop?: string
+  /** Growing: "button" renders a "More" button below the rows, "scroll" loads when the end is scrolled into view. */
+  growing?: "button" | "scroll"
+  growingText?: string
+  growingSubtext?: string
+  onLoadMore?: () => void
+  /** Fired when an interactive or navigable row is pressed (not in "rowOnly" selection). */
+  onRowClick?: (rowKey: string | undefined, event: React.SyntheticEvent) => void
+  /** Virtual scrolling geometry (used by DataTable): total row count, fixed row height (px) and the y offset of the first rendered row. */
+  virtualRows?: { count: number; rowHeight: number; offset: number }
+  /** The element with role="grid" (the scroll container in virtual mode). */
+  gridRef?: React.Ref<HTMLDivElement>
+  /** Override any built-in text (accessibility texts included). */
+  texts?: Partial<TableTexts>
+}
+
+function Table({
+  overflowMode = "scroll",
+  selectionMode = "none",
+  selectionBehavior = "rowSelector",
+  headerSelector = "selectAll",
+  selectedRows,
+  defaultSelectedRows,
+  onSelectionChange,
+  noDataText,
+  noData,
+  loading = false,
+  loadingDelay = 1000,
+  rowActionCount = 0,
+  alternateRowColors = false,
+  stickyTop = "0",
+  growing,
+  growingText,
+  growingSubtext,
+  onLoadMore,
+  onRowClick,
+  virtualRows,
+  gridRef,
+  texts: textsProp,
+  className,
+  style,
+  children,
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
+  onKeyDown,
+  onKeyUp,
+  onClick,
+  onFocus,
+  onPointerDown,
+  ...props
+}: TableProps) {
+  const texts = React.useMemo(() => ({ ...defaultTableTexts, ...textsProp }), [textsProp])
+  const rootRef = React.useRef<HTMLDivElement>(null)
+  const gridEl = React.useRef<HTMLDivElement>(null)
+  const beforeRef = React.useRef<HTMLDivElement>(null)
+  const afterRef = React.useRef<HTMLDivElement>(null)
+  const growingRef = React.useRef<HTMLDivElement>(null)
+  const endRowRef = React.useRef<HTMLDivElement>(null)
+  const setGridRef = React.useCallback(
+    (el: HTMLDivElement | null) => {
+      gridEl.current = el
+      if (typeof gridRef === "function") gridRef(el)
+      else if (gridRef) (gridRef as React.RefObject<HTMLDivElement | null>).current = el
+    },
+    [gridRef]
+  )
+
+  // Children: the header row plus body rows (each body row learns its order / alternation).
+  const all = flatChildren(children)
+  const headerRow = all.find((c) => c.type === TableHeaderRow)
+  const bodyRows = all.filter((c) => c !== headerRow)
+  const rowCount = bodyRows.length
+  // As Table.onBeforeRendering: the header row takes alternation index 0, so the 2nd, 4th... rows alternate;
+  // a group row restarts the count.
+  let alternateIndex = headerRow ? 1 : 0
+  const firstOf = (t: unknown) => bodyRows.findIndex((r) => (r.type === TableGroupRow) === (t === TableGroupRow))
+  const lastOf = (t: unknown) => bodyRows.length - 1 - [...bodyRows].reverse().findIndex((r) => (r.type === TableGroupRow) === (t === TableGroupRow))
+  const placedRows = bodyRows.map((row, order) => {
+    const isGroup = row.type === TableGroupRow
+    const alternate = !isGroup && alternateRowColors && alternateIndex++ % 2 === 0
+    if (isGroup) alternateIndex = 1
+    const placement = { order, alternate, first: firstOf(row.type) === order, last: lastOf(row.type) === order }
+    return (
+      <RowPlacementContext.Provider key={row.key ?? order} value={placement}>
+        {row}
+      </RowPlacementContext.Provider>
+    )
+  })
+
+  // Column registry (filled by TableHeaderCell) and row registry (filled by TableRow).
+  const [columns, setColumns] = React.useState<ReadonlyMap<number, ColumnInfo>>(new Map())
+  const registerColumn = React.useCallback((index: number, info: ColumnInfo) => {
+    setColumns((prev) => {
+      const old = prev.get(index)
+      if (old && (Object.keys(info) as (keyof ColumnInfo)[]).every((k) => old[k] === info[k])) return prev
+      return new Map(prev).set(index, info)
+    })
+  }, [])
+  const unregisterColumn = React.useCallback((index: number) => {
+    setColumns((prev) => {
+      if (!prev.has(index)) return prev
+      const next = new Map(prev)
+      next.delete(index)
+      return next
+    })
+  }, [])
+  const [rowsInfo, setRowsInfo] = React.useState<ReadonlyMap<string, RowInfo>>(new Map())
+  const registerRow = React.useCallback((id: string, info: RowInfo) => {
+    setRowsInfo((prev) => {
+      const old = prev.get(id)
+      if (old && old.order === info.order && old.key === info.key && old.navigated === info.navigated) return prev
+      return new Map(prev).set(id, info)
+    })
+  }, [])
+  const unregisterRow = React.useCallback((id: string) => {
+    setRowsInfo((prev) => {
+      if (!prev.has(id)) return prev
+      const next = new Map(prev)
+      next.delete(id)
+      return next
+    })
+  }, [])
+  const rowKeys = React.useMemo(
+    () => [...rowsInfo.values()].sort((a, b) => a.order - b.order).flatMap((r) => (r.key ? [r.key] : [])),
+    [rowsInfo]
+  )
+  const renderNavigated = React.useMemo(() => [...rowsInfo.values()].some((r) => r.navigated), [rowsInfo])
+
+  // Selection (TableSelectionSingle / TableSelectionMulti)
+  const [uncontrolledSel, setUncontrolledSel] = React.useState<string[]>(defaultSelectedRows ?? [])
+  const selected = selectedRows ?? uncontrolledSel
+  const selectedRef = React.useRef(new Set(selected))
+  selectedRef.current = new Set(selected)
+  const commitSelection = (next: Set<string>) => {
+    const arr = selectionMode === "single" ? [...next].slice(-1) : [...next]
+    selectedRef.current = new Set(arr)
+    if (selectedRows === undefined) setUncontrolledSel(arr)
+    onSelectionChange?.(arr)
+  }
+  const selectable = selectionMode !== "none"
+  const multi = selectionMode === "multi"
+  const rowOnly = selectionBehavior === "rowOnly"
+  const hasSelector = rowCount > 0 && selectable && !rowOnly
+  const isSelected = React.useCallback((key: string | undefined) => !!key && selectedRef.current.has(key), [selected]) // eslint-disable-line react-hooks/exhaustive-deps
+  const allSelected = rowKeys.length > 0 && rowKeys.every((k) => selected.includes(k))
+  const anySelected = rowKeys.some((k) => selected.includes(k))
+  const rangeRef = React.useRef<{ selected: boolean; isUp: boolean | null; rows: string[]; isMouse: boolean; shiftPressed: boolean } | null>(null)
+  const anchorRef = React.useRef<string | null>(null)
+  const keysNow = () => {
+    const grid = gridEl.current
+    if (!grid) return rowKeys
+    return [...grid.querySelectorAll<HTMLElement>("[data-row-key]")]
+      .filter((r) => r.closest("[data-table-grid]") === grid)
+      .map((r) => r.dataset.rowKey!)
+  }
+  /** TableSelectionBase._onRowSelectionChange: multi toggles, single selects. */
+  const toggleRow = (key: string | undefined) => {
+    if (!key) return
+    const next = new Set(selectedRef.current)
+    const sel = multi ? !next.has(key) : true
+    if (multi) {
+      if (sel) next.add(key)
+      else next.delete(key)
+    } else {
+      next.clear()
+      next.add(key)
+    }
+    anchorRef.current = key
+    if (sel !== selectedRef.current.has(key) || !multi) commitSelection(next)
+  }
+  const toggleAll = () => {
+    const keys = keysNow()
+    const select = headerSelector === "clearAll" ? false : !keys.every((k) => selectedRef.current.has(k))
+    const next = new Set(selectedRef.current)
+    keys.forEach((k) => (select ? next.add(k) : next.delete(k)))
+    commitSelection(next)
+  }
+  const setAll = (select: boolean) => {
+    const next = new Set(selectedRef.current)
+    keysNow().forEach((k) => (select ? next.add(k) : next.delete(k)))
+    commitSelection(next)
+  }
+  const handleRangeSelection = (target: string, change: number) => {
+    const range = rangeRef.current
+    if (!range) return
+    const isUp = change > 0
+    range.isUp ??= isUp
+    const shouldReverse = isUp !== range.isUp && !range.isMouse
+    let changed = shouldReverse && selectedRef.current.has(target)
+    const next = new Set(selectedRef.current)
+    if (shouldReverse) {
+      const row = range.rows.pop()
+      if (row) next.delete(row)
+      if (range.rows.length === 1) range.isUp = null
+    } else {
+      const keys = keysNow()
+      const idx = keys.indexOf(target)
+      const [start, end] = [idx, idx - change].sort((a, b) => a - b)
+      for (const k of keys.slice(Math.max(0, start), end + 1)) {
+        if (!range.rows.includes(k)) range.rows.push(k)
+        changed ||= next.has(k) !== range.selected
+        if (range.selected) next.add(k)
+        else next.delete(k)
+      }
+    }
+    if (changed) commitSelection(next)
+  }
+  const onSelectionClick = (key: string | null, e: React.MouseEvent) => {
+    e.preventDefault() // the control is driven by the table's state, not by Radix
+    if (key === null) {
+      rangeRef.current = null
+      toggleAll()
+      return
+    }
+    const range = rangeRef.current
+    if (multi && e.shiftKey && range?.isMouse) {
+      const keys = keysNow()
+      const start = range.rows[0]
+      const startIndex = keys.indexOf(start)
+      const endIndex = keys.indexOf(key)
+      if (startIndex === -1 || endIndex === -1 || key === start || key === range.rows[range.rows.length - 1]) return
+      handleRangeSelection(key, endIndex - startIndex)
+      return
+    }
+    const willSelect = multi ? !selectedRef.current.has(key) : true
+    toggleRow(key)
+    if (multi) rangeRef.current = { selected: willSelect, isUp: null, rows: [key], isMouse: true, shiftPressed: false }
+  }
+
+  // Popin (Table._onResize): move the least important columns into the row until nothing overflows.
+  const [popped, setPopped] = React.useState<ReadonlyMap<number, number>>(new Map()) // index -> width
+  const containerWidth = React.useRef(0)
+  const columnsRef = React.useRef(columns)
+  columnsRef.current = columns
+  const poppedRef = React.useRef(popped)
+  poppedRef.current = popped
+  React.useEffect(() => {
+    if (overflowMode !== "popin") {
+      setPopped((p) => (p.size ? new Map() : p))
+      return
+    }
+    const root = rootRef.current
+    if (!root) return
+    const ordered = (reverse: boolean) => {
+      let idx = [...columnsRef.current.keys()].sort((a, b) => a - b).reverse()
+      idx = idx.sort((a, b) => columnsRef.current.get(a)!.importance - columnsRef.current.get(b)!.importance)
+      idx.pop() // the most important column always stays
+      return reverse ? idx.reverse() : idx
+    }
+    const onResize = () => {
+      const grid = gridEl.current
+      if (!grid) return
+      const { clientWidth, scrollWidth } = grid
+      const over = scrollWidth - clientWidth
+      const next = new Map(poppedRef.current)
+      if (over > 1) {
+        let total = 0
+        for (const i of ordered(false)) {
+          if (total >= over) break
+          if (next.has(i)) continue
+          const cell = grid.querySelector<HTMLElement>(`:scope > [data-slot="table-header-row"] > [data-col-index="${i}"]`)
+          const w = Math.ceil(cell?.getBoundingClientRect().width ?? 0)
+          total += w
+          next.set(i, w)
+        }
+        containerWidth.current = clientWidth - (total - over)
+      } else {
+        for (const i of ordered(true).filter((i) => next.has(i))) {
+          const w = next.get(i)!
+          if (clientWidth - containerWidth.current < w) break
+          containerWidth.current += w
+          next.delete(i)
+        }
+      }
+      if (next.size !== poppedRef.current.size || [...next.keys()].some((k) => !poppedRef.current.has(k))) setPopped(next)
+    }
+    const ro = new ResizeObserver(onResize)
+    ro.observe(root)
+    return () => ro.disconnect()
+  }, [overflowMode, columns.size])
+  const poppedSet = React.useMemo(() => new Set(popped.keys()), [popped])
+  const hasPopin = overflowMode === "popin" && rowCount > 0 && [...poppedSet].some((i) => !columns.get(i)?.popinHidden)
+
+  // Grid columns (Table._gridTemplateColumns)
+  const visibleColumns = [...columns.entries()].sort((a, b) => a[0] - b[0]).filter(([i]) => !poppedSet.has(i))
+  const hasFlexibleColumns = visibleColumns.some(([, c]) => !isValidColumnWidth(c.width))
+  const effectiveActionCount = rowActionCount > 0 && rowCount > 0 ? rowActionCount : 0
+  const widths: string[] = []
+  if (hasSelector) widths.push("min-content")
+  for (const [, c] of visibleColumns) {
+    const minWidth = c.minWidth ?? "3rem"
+    let width = `minmax(${minWidth}, 1fr)`
+    if (isValidColumnWidth(c.width)) width = c.width!.includes("%") ? `max(${minWidth}, ${c.width})` : c.width!
+    widths.push(width)
+  }
+  if (!hasFlexibleColumns && hasPopin) widths.push("minmax(0, 1fr)")
+  if (effectiveActionCount > 0)
+    widths.push(
+      `calc(var(--fiori-button-base-min-width) * ${effectiveActionCount} + var(--fiori-table-row-actions-gap) * ${effectiveActionCount - 1} + var(--fiori-table-cell-horizontal-padding) * 2)`
+    )
+  if (renderNavigated) widths.push("var(--fiori-table-navigated-cell-width)")
+  if (!hasFlexibleColumns && !hasPopin) widths.push("minmax(0, 1fr)")
+
+  const ariaColCount =
+    (headerRow ? visibleColumns.length : 0) + (hasSelector ? 1 : 0) + (effectiveActionCount ? 1 : 0) + (hasPopin ? 1 : 0)
+
+  // Loading (busy after a delay, as ui5-busy-indicator)
+  const [busy, setBusy] = React.useState(false)
+  React.useEffect(() => {
+    if (!loading) return setBusy(false)
+    const t = setTimeout(() => setBusy(true), Math.max(0, loadingDelay))
+    return () => clearTimeout(t)
+  }, [loading, loadingDelay])
+
+  // Growing
+  const [scrollNeedsButton, setScrollNeedsButton] = React.useState(false)
+  React.useLayoutEffect(() => {
+    if (growing !== "scroll" || !gridEl.current) return
+    const container = virtualRows ? gridEl.current : findVerticalScrollContainer(gridEl.current)
+    setScrollNeedsButton(container.clientHeight >= gridEl.current.scrollHeight)
+  })
+  const showGrowingButton = rowCount > 0 && (growing === "button" || (growing === "scroll" && scrollNeedsButton))
+  const pendingGrowFocus = React.useRef<{ last: string | undefined } | null>(null)
+  const loadMore = () => {
+    if (showGrowingButton) pendingGrowFocus.current = { last: keysNow().at(-1) }
+    onLoadMore?.()
+  }
+  React.useEffect(() => {
+    const pending = pendingGrowFocus.current
+    const grid = gridEl.current
+    if (!pending || !grid) return
+    const rows = navGrid(grid).map((r) => r[0]).filter((r) => r.hasAttribute("data-row-key"))
+    const lastIndex = rows.findIndex((r) => r.dataset.rowKey === pending.last)
+    const next = rows[lastIndex + 1]
+    if (next) {
+      pendingGrowFocus.current = null
+      focusElement(next)
+    }
+  })
+  React.useEffect(() => {
+    if (growing !== "scroll" || showGrowingButton || !endRowRef.current || !gridEl.current) return
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && onLoadMoreRef.current?.(), {
+      root: virtualRows ? gridEl.current : scrollRootFor(gridEl.current),
+      rootMargin: "5px",
+    })
+    io.observe(endRowRef.current)
+    return () => io.disconnect()
+  }, [growing, showGrowingButton, rowCount, !!virtualRows]) // eslint-disable-line react-hooks/exhaustive-deps
+  const onLoadMoreRef = React.useRef(onLoadMore)
+  onLoadMoreRef.current = onLoadMore
+  const [growingActive, setGrowingActive] = React.useState(false)
+  const growingId = React.useId()
+
+  // Navigation state
+  const walker = React.useRef({ row: -1, col: 0 })
+  const lastFocused = React.useRef<HTMLElement | null>(null)
+  const ignoreFocusIn = React.useRef(false)
+  const pendingVirtualFocus = React.useRef<{ position: number; col: number } | null>(null)
+  const firstRowPos = () => (headerRow && gridEl.current?.querySelector(':scope > [data-slot="table-header-row"]:not([hidden])') ? 1 : 0)
+  const getGrid = () => (gridEl.current ? navGrid(gridEl.current) : [])
+  const clampPos = (g: HTMLElement[][]) => {
+    if (!g.length) return null
+    if (walker.current.row < 0) walker.current.row = Math.min(firstRowPos(), g.length - 1)
+    const row = Math.min(walker.current.row, g.length - 1)
+    const col = Math.min(walker.current.col, g[row].length - 1)
+    return { row, col }
+  }
+  const current = (g = getGrid()) => {
+    const p = clampPos(g)
+    return p ? g[p.row][p.col] : null
+  }
+  const setCurrent = (el: Element, g = getGrid()) => {
+    g.forEach((r, ri) => r.forEach((c, ci) => c === el && (walker.current = { row: ri, col: ci })))
+  }
+  const focusElement = (el: HTMLElement | null | undefined, ignore = true, viaPointer = false) => {
+    // Rows and cells focused by a click get no focus ring (Fiori shows it for keyboard focus only).
+    if (el && viaPointer) el.setAttribute("data-pointer-focus", "")
+    if (!el || el === document.activeElement) return
+    const items = getGrid().flat()
+    if (lastFocused.current && items.includes(lastFocused.current)) lastFocused.current.removeAttribute("tabindex")
+    if (items.includes(el)) {
+      el.setAttribute("tabindex", "-1")
+      lastFocused.current = el
+    }
+    ignoreFocusIn.current = ignore
+    el.focus({ preventScroll: el === beforeRef.current || el === afterRef.current })
+    if (el instanceof HTMLInputElement) el.select()
+    ignoreFocusIn.current = false
+  }
+
+  // Virtual mode: a target row outside the rendered window is scrolled in, then focused.
+  React.useLayoutEffect(() => {
+    const pending = pendingVirtualFocus.current
+    if (!pending || !gridEl.current) return
+    const g = getGrid()
+    const ri = g.findIndex((r) => r[0].dataset.position === String(pending.position))
+    if (ri === -1) return
+    pendingVirtualFocus.current = null
+    walker.current = { row: ri, col: pending.col }
+    focusElement(current(g))
+  })
+  const virtualMove = (e: React.KeyboardEvent, from: HTMLElement): boolean => {
+    if (!virtualRows || !gridEl.current || !from.closest("[data-position]")) return false
+    const row = from.closest<HTMLElement>("[data-position]")!
+    const pos = Number(row.dataset.position)
+    const ctrl = e.ctrlKey || e.metaKey
+    let target: number | null = null
+    if (e.key === "ArrowDown" && !e.altKey && !ctrl) target = pos + 1
+    else if (e.key === "ArrowUp" && !e.altKey && !ctrl) target = pos - 1
+    else if (e.key === "PageDown") target = pos + PAGE_SIZE
+    else if (e.key === "PageUp") target = pos - PAGE_SIZE
+    else if (e.key === "End" && ctrl) target = virtualRows.count - 1
+    else if (e.key === "Home" && ctrl) target = 0
+    if (target === null) return false
+    target = Math.max(0, Math.min(virtualRows.count - 1, target))
+    if (target === pos) return false
+    const g = getGrid()
+    if (g.some((r) => r[0].dataset.position === String(target))) return false // rendered: normal handling
+    const p = clampPos(g)
+    pendingVirtualFocus.current = { position: target, col: p?.col ?? 0 }
+    const grid = gridEl.current
+    const headerH = grid.querySelector<HTMLElement>(':scope > [data-slot="table-header-row"]')?.offsetHeight ?? 0
+    const top = target * virtualRows.rowHeight
+    if (target > pos) grid.scrollTop = top + virtualRows.rowHeight - (grid.clientHeight - headerH)
+    else grid.scrollTop = top
+    e.preventDefault()
+    return true
+  }
+
+  const isFromCurrentItem = (e: React.SyntheticEvent) => e.target === current()
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    onKeyDown?.(e)
+    ;(e.target as HTMLElement).removeAttribute?.("data-pointer-focus")
+    if (e.defaultPrevented) return
+    const origin = e.target as HTMLElement
+    const grid = gridEl.current
+    if (!grid) return
+    if (growingRef.current?.contains(origin)) {
+      // The growing button: ArrowUp returns to the last row.
+      if (e.key === "ArrowUp" && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+        const rows = getGrid()
+        focusElement(rows.at(-1)?.[0])
+        e.preventDefault()
+      }
+      return
+    }
+    if (!grid.contains(origin)) return
+    if (busy) return
+    const g = getGrid()
+    const items = g.flat()
+    if (!isFromCurrentItem(e) && items.includes(origin)) setCurrent(origin, g)
+    const mod = e.shiftKey || e.altKey || e.ctrlKey || e.metaKey
+    const ctrl = (e.ctrlKey || e.metaKey) && !e.altKey
+
+    // Selection keys (TableSelectionBase._onkeydown) run after navigation in UI5; Space/Enter don't navigate.
+    const row = origin.closest<HTMLElement>("[data-table-nav-row]")
+    if (selectable && row && (e.key === " " || e.key === "Enter") && !mod) {
+      const isHeader = row.dataset.slot === "table-header-row"
+      const fromBody = origin === row && !isHeader && row.hasAttribute("data-row-key") && (e.key === " " || rowOnly)
+      const fromSelectionCell = origin.hasAttribute("data-selection-cell")
+      if (fromBody || fromSelectionCell) {
+        if (isHeader) {
+          if (multi) {
+            rangeRef.current = null
+            toggleAll()
+          }
+        } else toggleRow(row.dataset.rowKey)
+        e.preventDefault()
+        return
+      }
+    }
+    if (multi && row && origin === row && row.hasAttribute("data-row-key")) {
+      if (e.key === " " && e.shiftKey && !e.altKey && !ctrl) {
+        // Shift+Space: select from the last toggled row to this one.
+        const keys = keysNow()
+        const a = keys.indexOf(anchorRef.current ?? row.dataset.rowKey!)
+        const b = keys.indexOf(row.dataset.rowKey!)
+        const next = new Set(selectedRef.current)
+        keys.slice(Math.min(a, b), Math.max(a, b) + 1).forEach((k) => next.add(k))
+        commitSelection(next)
+        e.preventDefault()
+        return
+      }
+    }
+    if (multi && ctrl && (e.key === "a" || e.key === "A") && items.includes(origin)) {
+      setAll(!e.shiftKey)
+      e.preventDefault()
+      return
+    }
+
+    // Interactive row: Enter presses it.
+    if (origin === row && row?.hasAttribute("data-interactive") && e.key === "Enter" && !mod) {
+      row.setAttribute("data-active", "")
+      document.addEventListener("keyup", () => row.removeAttribute("data-active"), { once: true })
+      fireRowClick(row, e)
+    }
+
+    if (virtualMove(e, origin)) return afterNavigation(e)
+
+    switch (e.key) {
+      case "F2": {
+        if (isFromCurrentItem(e)) focusElement(tabbablesIn(origin)[0])
+        else {
+          const item = items.find((i) => i !== origin && i.contains(origin) && !isNavRow(i))
+          if (item) {
+            setCurrent(item, g)
+            focusElement(item)
+          }
+        }
+        e.preventDefault()
+        return
+      }
+      case "Enter": {
+        if (origin.hasAttribute("data-table-nav-cell") && isFromCurrentItem(e) && !mod) {
+          focusElement(tabbablesIn(origin)[0])
+          e.preventDefault()
+        }
+        return
+      }
+      case "Escape": {
+        if (!items.includes(origin)) {
+          const item = items.find((i) => i.contains(origin) && !isNavRow(i))
+          if (item) {
+            setCurrent(item, g)
+            focusElement(item)
+            e.preventDefault()
+          }
+        }
+        return
+      }
+      case "F7": {
+        if (isNavRow(origin)) {
+          walker.current.col = colMemory.current.col
+          let el = current(g)
+          if (el && colMemory.current.tab > -1) {
+            const t = tabbablesIn(el)
+            el = t[colMemory.current.tab] ?? t.pop() ?? el
+          }
+          focusElement(el)
+        } else {
+          const item = items.find((i) => i === origin || (i.contains(origin) && !isNavRow(i)))
+          if (item) {
+            setCurrent(item, g)
+            colMemory.current = { tab: tabbablesIn(item).indexOf(origin), col: walker.current.col }
+            walker.current.col = 0
+            focusElement(current(g))
+          }
+        }
+        e.preventDefault()
+        return
+      }
+      case "Tab": {
+        if (isFromCurrentItem(e)) focusElement(e.shiftKey ? beforeRef.current : afterRef.current)
+        else {
+          const t = tabbablesIn(grid)
+          if (e.shiftKey && t[0] === origin) focusElement(beforeRef.current)
+          if (!e.shiftKey && t[t.length - 1] === origin) focusElement(afterRef.current)
+        }
+        return
+      }
+      case "ArrowUp":
+      case "ArrowDown": {
+        const direction = e.key === "ArrowUp" ? -1 : 1
+        const lastRow = g.at(-1)?.[0]
+        if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && direction === 1 && origin === lastRow && growingRef.current && lastRow?.hasAttribute("data-row-key")) {
+          focusElement(growingRef.current)
+          e.preventDefault()
+          return
+        }
+        if (!isFromCurrentItem(e)) {
+          if (mod || /^(input|textarea)$/i.test(origin.nodeName)) return
+          // From content inside a cell: same content position in the next/previous row.
+          const item = items.find((i) => i.contains(origin) && !isNavRow(i))
+          if (!item) return
+          setCurrent(item, g)
+          const tab = tabbablesIn(item).indexOf(origin)
+          walker.current.row = Math.max(0, Math.min(g.length - 1, walker.current.row + direction))
+          let el = current(g)
+          if (el) {
+            const t = tabbablesIn(el)
+            el = t[tab] ?? t.pop() ?? el
+          }
+          focusElement(el)
+          e.preventDefault()
+          return
+        }
+        break
+      }
+    }
+
+    if (!isFromCurrentItem(e)) return
+    const p = clampPos(g)
+    if (!p) return
+    const rtl = getComputedStyle(grid).direction === "rtl"
+    const lastRowPos = g.length - 1
+    const first = firstRowPos()
+    let { row: r, col: c } = p
+    const cells = g[r].length
+    if ((e.key === "ArrowLeft" || e.key === "ArrowRight") && !e.altKey && !ctrl && !e.shiftKey) {
+      const left = (e.key === "ArrowLeft") !== rtl
+      if (cells > 1) c = left ? Math.max(c - 1, 0) : Math.min(c + 1, cells - 1)
+    } else if (e.key === "ArrowUp" && !e.altKey && !ctrl) r = Math.max(r - 1, 0)
+    else if (e.key === "ArrowDown" && !e.altKey && !ctrl) r = Math.min(r + 1, lastRowPos)
+    else if (e.key === "Home" && ctrl && !e.shiftKey) r = first
+    else if (e.key === "End" && ctrl && !e.shiftKey) r = lastRowPos
+    else if (e.key === "Home" && !mod) {
+      if (c === 0) r = r > first ? first : 0
+      else c = c > 1 ? 1 : 0
+    } else if (e.key === "End" && !mod) {
+      if (c === 0) r = lastRowPos
+      else c = c < g[r].length - 1 ? g[r].length - 1 : 0
+    } else if (e.key === "PageUp" && !mod) r = Math.max(r > first ? first : 0, r - PAGE_SIZE)
+    else if (e.key === "PageDown" && !mod) r = Math.min(lastRowPos, r + PAGE_SIZE)
+    else return afterNavigation(e)
+    walker.current = { row: r, col: c }
+    focusElement(current(g))
+    e.preventDefault()
+    afterNavigation(e)
+  }
+  const colMemory = React.useRef({ tab: -1, col: 0 })
+
+  /** TableSelectionMulti._onkeydown: Shift (+↑/↓) range selection, after focus has moved. */
+  const afterNavigation = (e: React.KeyboardEvent) => {
+    if (!multi || !e.shiftKey) return
+    const focused = document.activeElement as HTMLElement | null
+    const isBodyRow = !!focused?.hasAttribute("data-row-key") && isNavRow(focused) && gridEl.current?.contains(focused)
+    if (!(isBodyRow || rangeRef.current?.isMouse)) {
+      rangeRef.current = null
+      return
+    }
+    if (!rangeRef.current) {
+      const key = focused!.dataset.rowKey!
+      rangeRef.current = { selected: selectedRef.current.has(key), isUp: null, rows: [key], isMouse: false, shiftPressed: false }
+    } else if ((e.key === "ArrowUp" || e.key === "ArrowDown") && isBodyRow) {
+      handleRangeSelection(focused!.dataset.rowKey!, e.key === "ArrowUp" ? -1 : 1)
+    }
+    if (rangeRef.current) rangeRef.current.shiftPressed = e.shiftKey
+  }
+
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    onKeyUp?.(e)
+    const origin = e.target as HTMLElement
+    if (!origin.hasAttribute("data-row-key") || !rangeRef.current || !e.shiftKey) rangeRef.current = null
+    if (rangeRef.current) rangeRef.current.shiftPressed = e.shiftKey
+  }
+
+  const fireRowClick = (row: HTMLElement, e: React.SyntheticEvent) => {
+    const selectableRowBody = selectable && rowOnly
+    if (!selectableRowBody && (row.hasAttribute("data-interactive-prop") || row.hasAttribute("data-navigable"))) onRowClick?.(row.dataset.rowKey, e)
+  }
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    onClick?.(e)
+    const grid = gridEl.current
+    if (!grid || !grid.contains(e.target as Node) || busy) return
+    // TableNavigation._onclick: focus the clicked row unless the click landed in focused content.
+    const items = getGrid().flat()
+    let item: HTMLElement | null = null
+    let focusable: HTMLElement | null = null
+    for (let el = e.target as HTMLElement | null; el && el !== grid; el = el.parentElement) {
+      if (el.getAttribute("data-excluded-from-navigation") === "nofocus") break
+      if (el.matches(":focus-within")) {
+        focusable = el
+        break
+      }
+      if (items.includes(el)) {
+        item = el
+        break
+      }
+    }
+    if (focusable && focusable !== lastFocused.current) {
+      lastFocused.current?.removeAttribute("tabindex")
+      lastFocused.current = null
+    } else if (item) {
+      setCurrent(item)
+      walker.current.col = 0
+      focusElement(current(), true, true)
+    }
+    // TableRow._onclick + TableSelectionBase._onclick
+    const row = (e.target as HTMLElement).closest<HTMLElement>("[data-table-nav-row]")
+    if (row && row === document.activeElement && row.hasAttribute("data-row-key")) {
+      fireRowClick(row, e)
+      if (selectable && rowOnly) toggleRow(row.dataset.rowKey)
+    }
+    if (!(e.target as HTMLElement).closest("[data-selection-cell]")) rangeRef.current = null
+  }
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    onPointerDown?.(e)
+    if (e.button !== 0) return
+    const row = (e.target as HTMLElement).closest<HTMLElement>("[data-table-nav-row][data-interactive]")
+    if (!row || !gridEl.current?.contains(row)) return
+    const target = e.target as HTMLElement
+    setTimeout(() => {
+      // Pressing content that takes focus (a button in a cell) doesn't activate the row.
+      const active = document.activeElement
+      if (active && active !== row && row.contains(active) && active.contains(target)) return
+      if (active && active !== row && row.contains(active) && target.contains(active)) return
+      row.setAttribute("data-active", "")
+      document.addEventListener("pointerup", () => row.removeAttribute("data-active"), { once: true })
+    })
+  }
+
+  const handleFocus = (e: React.FocusEvent<HTMLDivElement>) => {
+    onFocus?.(e)
+    if (ignoreFocusIn.current) return
+    const origin = e.target as HTMLElement
+    if (origin === beforeRef.current || origin === afterRef.current) {
+      if (busy) {
+        rootRef.current?.querySelector<HTMLElement>(".fiori-table__loading [role=progressbar]")?.focus()
+        return
+      }
+      walker.current.col = 0
+      focusElement(current())
+      return
+    }
+    const items = getGrid().flat()
+    if (origin !== lastFocused.current && items.includes(origin)) {
+      if (lastFocused.current !== origin && lastFocused.current && items.includes(lastFocused.current)) lastFocused.current.removeAttribute("tabindex")
+      origin.setAttribute("tabindex", "-1")
+      lastFocused.current = origin
+      setCurrent(origin)
+    }
+    if (gridEl.current?.contains(origin)) scrollIntoViewPastStickyHeader(origin, gridEl.current, !!virtualRows)
+  }
+
+  const multiDescription = selectable && rowCount > 0 ? (multi ? texts.multiSelectable : texts.singleSelectable) : undefined
+  const ctx: TableContextValue = {
+    texts,
+    selectionMode,
+    rowOnly,
+    headerSelector,
+    hasSelector,
+    isSelected,
+    allSelected,
+    anySelected,
+    onSelectionClick,
+    rowActionCount: effectiveActionCount,
+    renderNavigated,
+    renderDummy: !hasFlexibleColumns,
+    hasPopin,
+    popped: poppedSet,
+    columns,
+    registerColumn,
+    unregisterColumn,
+    registerRow,
+    unregisterRow,
+    virtual: !!virtualRows,
+  }
+
+  return (
+    <TableContext.Provider value={ctx}>
+      <div
+        ref={rootRef}
+        data-slot="table"
+        data-overflow-mode={overflowMode}
+        data-busy={busy ? "" : undefined}
+        className={cn("fiori-table", className)}
+        style={{ "--fiori-x-table-sticky-top": stickyTop, ...style } as React.CSSProperties}
+        onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
+        onClick={handleClick}
+        onFocus={handleFocus}
+        onPointerDown={handlePointerDown}
+        {...props}
+      >
+        {/* Focus sentinels (UI5's #before/#after): tabbing onto them moves focus to the current row/cell. */}
+        <div ref={beforeRef} tabIndex={0} className="fiori-table__sentinel" data-table-sentinel="" />
+        <div
+          ref={setGridRef}
+          role="grid"
+          data-table-grid=""
+          data-virtual={virtualRows ? "" : undefined}
+          className="fiori-table__grid"
+          style={
+            {
+              gridTemplateColumns: headerRow ? widths.join(" ") : undefined,
+              "--fiori-x-table-row-height": virtualRows ? `${virtualRows.rowHeight}px` : "auto",
+            } as React.CSSProperties
+          }
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
+          aria-description={multiDescription}
+          aria-rowcount={virtualRows ? virtualRows.count + 1 : rowCount + 1}
+          aria-colcount={ariaColCount}
+          aria-multiselectable={selectable && rowCount > 0 ? multi : undefined}
+          aria-busy={busy || undefined}
+        >
+          {headerRow}
+          <div className="fiori-table__rows" style={virtualRows ? { height: virtualRows.count * virtualRows.rowHeight } : undefined} inert={busy || undefined}>
+            <div
+              className="fiori-table__spacer"
+              style={virtualRows && virtualRows.offset > 0 ? { transform: `translateY(${virtualRows.offset}px)`, willChange: "transform" } : undefined}
+            >
+              {placedRows}
+            </div>
+          </div>
+          {rowCount === 0 && (
+            <div role="row" aria-rowindex={2} data-table-nav-row="" data-no-data-row="" data-first="" data-last="" className="fiori-table-row-base fiori-table-row">
+              <div role="gridcell" aria-colindex={1} data-first-cell="" className="fiori-table-cell-base fiori-table-cell fiori-table__no-data-cell">
+                {noData ?? noDataText ?? texts.noData}
+              </div>
+            </div>
+          )}
+          <div ref={endRowRef} aria-hidden="true" />
+          {loading && busy && (
+            <BusyIndicator active delay={0} className="fiori-table__loading" />
+          )}
+        </div>
+        <div ref={afterRef} tabIndex={0} className="fiori-table__sentinel" data-table-sentinel="" />
+        {showGrowingButton && (
+          <div
+            ref={growingRef}
+            data-slot="table-growing"
+            role="button"
+            tabIndex={0}
+            data-active={growingActive ? "" : undefined}
+            className="fiori-table-growing"
+            aria-labelledby={cn(`${growingId}-text`, growingSubtext && `${growingId}-subtext`)}
+            aria-describedby={`${growingId}-description`}
+            onClick={loadMore}
+            onKeyDown={(e) => {
+              if (e.key === " " && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                e.preventDefault()
+                setGrowingActive(true)
+              }
+              if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                loadMore()
+                setGrowingActive(true)
+              }
+            }}
+            onKeyUp={(e) => {
+              if (e.key === " ") loadMore()
+              setGrowingActive(false)
+            }}
+            onBlur={() => setGrowingActive(false)}
+          >
+            <span id={`${growingId}-text`} className="fiori-table-growing__text">{growingText ?? texts.more}</span>
+            {growingSubtext && <span id={`${growingId}-subtext`} className="fiori-table-growing__subtext">{growingSubtext}</span>}
+            <span id={`${growingId}-description`} hidden>{texts.moreDescription}</span>
+          </div>
+        )}
+      </div>
+    </TableContext.Provider>
+  )
+}
+
+function isValidColumnWidth(width?: string) {
+  if (!width) return false
+  if (typeof CSS !== "undefined" && CSS.supports) return CSS.supports("width", `max(3rem, ${width})`)
+  return true
+}
+
+function findVerticalScrollContainer(el: HTMLElement | null): HTMLElement {
+  for (let e = el; e; e = e.parentElement) {
+    const { overflowY } = getComputedStyle(e)
+    if (overflowY === "auto" || overflowY === "scroll") return e
+  }
+  return (document.scrollingElement as HTMLElement) ?? document.documentElement
+}
+const scrollRootFor = (el: HTMLElement) => {
+  const c = findVerticalScrollContainer(el)
+  return c === document.scrollingElement || c === document.documentElement ? null : c
+}
+
+/** Table._scrollElementIntoView: keep the focused item clear of a sticky header row. */
+function scrollIntoViewPastStickyHeader(el: HTMLElement, grid: HTMLElement, virtual: boolean) {
+  const header = grid.querySelector<HTMLElement>(':scope > [data-slot="table-header-row"][data-sticky]')
+  if (!header || header.contains(el)) return
+  let container: HTMLElement | null = null
+  for (let e: HTMLElement | null = virtual ? grid : grid; e; e = e.parentElement) {
+    const { overflowY } = getComputedStyle(e)
+    if ((overflowY === "auto" || overflowY === "scroll") && e.scrollHeight > e.clientHeight) {
+      container = e
+      break
+    }
+  }
+  container ??= (document.scrollingElement as HTMLElement) ?? document.documentElement
+  const isDoc = container === document.scrollingElement || container === document.documentElement
+  const cRect = isDoc ? { top: 0, bottom: window.innerHeight } : container.getBoundingClientRect()
+  const r = el.getBoundingClientRect()
+  const pin = Math.max(0, header.getBoundingClientRect().bottom - cRect.top)
+  const viewTop = cRect.top + pin
+  if (r.top <= cRect.top && r.bottom >= cRect.bottom) return
+  let delta = 0
+  if (r.height > cRect.bottom - viewTop) delta = r.top - viewTop
+  else if (r.top < viewTop) delta = r.top - viewTop
+  else if (r.bottom > cRect.bottom) delta = r.bottom - cRect.bottom
+  if (delta) container.scrollBy({ top: delta })
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Header row and header cells                                                                      */
+
+type TableHeaderRowProps = React.ComponentProps<"div"> & {
+  /** Keeps the header row visible while the rows scroll (ui5 `sticky`). */
+  sticky?: boolean
+}
+
+function TableHeaderRow({ sticky, className, children, ...props }: TableHeaderRowProps) {
+  const ctx = useTableContext("TableHeaderRow")
+  const { texts, hasSelector, selectionMode, headerSelector } = ctx
+  const multi = selectionMode === "multi"
+  const cells = flatChildren(children)
+  let colIndex = 1
+  const selDescription = multi
+    ? headerSelector === "selectAll"
+      ? `${texts.selectAllDescription} ${ctx.allSelected ? texts.checked : texts.notChecked}`
+      : texts.clearAllDescription + (ctx.anySelected ? "" : ` ${texts.disabled}`)
+    : undefined
+  const headerSelected = headerSelector === "clearAll" ? true : ctx.allSelected
+  const visible = cells.map((cell, index) => ({ cell, index })).filter(({ index }) => !ctx.popped.has(index))
+  const firstVisible = visible[0]?.index
+  return (
+    <div
+      role="row"
+      aria-rowindex={1}
+      aria-roledescription={texts.columnHeaderRow}
+      aria-selected={multi && hasSelector ? headerSelected : undefined}
+      data-slot="table-header-row"
+      data-table-nav-row=""
+      data-sticky={sticky ? "" : undefined}
+      data-render-dummy={ctx.renderDummy ? "" : undefined}
+      data-has-popin={ctx.hasPopin ? "" : undefined}
+      className={cn("fiori-table-row-base fiori-table-header-row", className)}
+      {...props}
+    >
+      {hasSelector && (
+        <div
+          role="columnheader"
+          aria-colindex={colIndex++}
+          aria-label={texts.selection}
+          aria-description={selDescription}
+          aria-selected={multi ? headerSelected : undefined}
+          data-selection-cell=""
+          data-sticky-cell=""
+          data-table-nav-cell=""
+          className="fiori-table-cell-base fiori-table-header-cell"
+        >
+          {/* Single selection has no header control; clipped text keeps the column header named. */}
+          {!multi && <div className="fiori-table__clipped">{texts.selection}</div>}
+          {multi &&
+            (headerSelector === "clearAll" ? (
+              <span title={texts.deselectAll} className="inline-flex cursor-pointer" onClick={(e) => ctx.onSelectionClick(null, e)}>
+                <Icon
+                  icon={clearAll}
+                  className={cn("size-(--fiori-checkbox-inner-width-height)", ctx.anySelected ? "text-(--sapContent_IconColor)" : "text-(--sapContent_NonInteractiveIconColor)")}
+                />
+              </span>
+            ) : (
+              <Checkbox
+                tabIndex={-1}
+                checked={ctx.allSelected}
+                aria-label={texts.rowSelector}
+                title={ctx.allSelected ? texts.deselectAll : texts.selectAll}
+                onClick={(e) => ctx.onSelectionClick(null, e)}
+              />
+            ))}
+        </div>
+      )}
+      {cells.map((cell, index) => {
+        const popin = ctx.popped.has(index)
+        const placement = { index, popin, first: index === firstVisible }
+        const colindex = popin ? undefined : colIndex++
+        return (
+          <CellPlacementContext.Provider key={cell.key ?? index} value={placement}>
+            <HeaderColIndex.Provider value={colindex}>{cell}</HeaderColIndex.Provider>
+          </CellPlacementContext.Provider>
+        )
+      })}
+      {ctx.renderDummy && ctx.hasPopin && <div role="none" aria-hidden data-dummy-cell="" data-excluded-from-navigation="" className="fiori-table-cell-base fiori-table-header-cell" />}
+      {ctx.rowActionCount > 0 && (
+        <div role="columnheader" aria-colindex={colIndex++} data-actions-cell="" data-sticky-cell="" data-table-nav-cell="" className="fiori-table-cell-base fiori-table-header-cell">
+          <div className="fiori-table__clipped">{texts.rowActions}</div>
+        </div>
+      )}
+      {ctx.renderNavigated && (
+        <div role="none" aria-hidden data-navigated-cell="" data-sticky-cell="" className="fiori-table-cell-base fiori-table-header-cell">
+          <div className="fiori-table-row__navigated" />
+        </div>
+      )}
+      {ctx.renderDummy && !ctx.hasPopin && (
+        <div role="none" aria-hidden data-dummy-cell="" data-excluded-from-navigation="nofocus" className="fiori-table-cell-base fiori-table-header-cell" />
+      )}
+      {ctx.hasPopin && (
+        <div role="columnheader" aria-colindex={colIndex++} data-popin-cell="" className="fiori-table-cell-base fiori-table-header-cell">
+          <div className="fiori-table__clipped">{texts.rowPopin}</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const HeaderColIndex = React.createContext<number | undefined>(undefined)
+
+type TableHeaderCellProps = React.ComponentProps<"div"> & {
+  /** Column width (any CSS width; default `minmax(minWidth, 1fr)`). */
+  width?: string
+  /** Minimum column width (default 3rem). In popin mode, columns move into the row when they no longer fit. */
+  minWidth?: string
+  /** Popin priority: columns with lower importance move into the popin first. */
+  importance?: number
+  /** Label shown in the popin instead of the header content. */
+  popinText?: string
+  /** Hide the column entirely instead of showing it in the popin. */
+  popinHidden?: boolean
+  horizontalAlign?: TableHorizontalAlign
+  /** Shows a sort icon and sets aria-sort. */
+  sortIndicator?: SortIndicator
+  /** An icon button rendered before the header content (ui5 `action` slot). */
+  action?: React.ReactNode
+}
+
+function TableHeaderCell({
+  width,
+  minWidth,
+  importance = 0,
+  popinText,
+  popinHidden = false,
+  horizontalAlign,
+  sortIndicator = "none",
+  action,
+  className,
+  style,
+  children,
+  ...props
+}: TableHeaderCellProps) {
+  const ctx = useTableContext("TableHeaderCell")
+  const { index, popin, first } = React.useContext(CellPlacementContext)
+  const colIndex = React.useContext(HeaderColIndex)
+  const { registerColumn, unregisterColumn } = ctx
+  React.useLayoutEffect(() => {
+    registerColumn(index, { width, minWidth, importance, popinText, popinHidden, horizontalAlign, label: children })
+  }, [registerColumn, index, width, minWidth, importance, popinText, popinHidden, horizontalAlign, children])
+  React.useLayoutEffect(() => () => unregisterColumn(index), [unregisterColumn, index])
+  const empty = !action && sortIndicator === "none" && (children == null || children === "" || children === false)
+  return (
+    <div
+      role={popin ? undefined : "columnheader"}
+      aria-colindex={colIndex}
+      aria-sort={sortIndicator !== "none" ? sortIndicator : undefined}
+      hidden={popin || undefined}
+      data-slot="table-header-cell"
+      data-col-index={index}
+      data-first-cell={first ? "" : undefined}
+      data-table-nav-cell={popin ? undefined : ""}
+      className={cn("fiori-table-cell-base fiori-table-header-cell", empty && "p-0", className)}
+      style={horizontalAlign ? { textAlign: alignToText(horizontalAlign), justifyContent: alignToJustify(horizontalAlign), ...style } : style}
+      {...props}
+    >
+      {action && <span className="fiori-table-header-cell__action">{action}</span>}
+      {children}
+      {sortIndicator !== "none" && (
+        <Icon icon={sortIndicator === "ascending" ? sortAscending : sortDescending} className="fiori-table-header-cell__sort-icon" />
+      )}
+    </div>
+  )
+}
+
+const alignToJustify = (a: TableHorizontalAlign) => ({ Left: "left", Start: "start", Right: "right", End: "end", Center: "center" })[a]
+const alignToText = (a: TableHorizontalAlign) => ({ Left: "left", Start: "start", Right: "right", End: "end", Center: "center" })[a] as React.CSSProperties["textAlign"]
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Rows and cells                                                                                   */
+
+type TableRowProps = React.ComponentProps<"div"> & {
+  /** Unique key of the row; required for selection. */
+  rowKey?: string
+  /** The row reacts to press (hover/active styles, `onRowClick`). */
+  interactive?: boolean
+  /** Shows the navigated indicator at the row end. */
+  navigated?: boolean
+  /** Status bar at the row start (sap.m list/table highlight). */
+  highlight?: TableRowHighlight
+  /** Row actions: `TableRowAction` / `TableRowActionNavigation` elements. */
+  actions?: React.ReactNode
+  /** Absolute row index in virtual mode (sets aria-rowindex). */
+  position?: number
+}
+
+function TableRow({ rowKey, interactive = false, navigated = false, highlight = "none", actions, position, className, children, ...props }: TableRowProps) {
+  const ctx = useTableContext("TableRow")
+  const { order, alternate, first, last } = React.useContext(RowPlacementContext)
+  const id = React.useId()
+  const { registerRow, unregisterRow } = ctx
+  React.useLayoutEffect(() => {
+    registerRow(id, { order: position ?? order, key: rowKey, navigated })
+  }, [registerRow, id, position, order, rowKey, navigated])
+  React.useLayoutEffect(() => () => unregisterRow(id), [unregisterRow, id])
+
+  const cells = flatChildren(children)
+  const selectable = ctx.selectionMode !== "none"
+  const selected = selectable && ctx.isSelected(rowKey)
+  const actionList = flatChildren(actions)
+  const plan = planActions(actionList, ctx.rowActionCount, ctx.texts.navigation)
+  const navigable = actionList.some((a) => a.type === TableRowActionNavigation && !(a.props as TableRowActionNavigationProps).invisible && !(a.props as TableRowActionNavigationProps).interactive)
+  const isInteractive = interactive || (selectable && ctx.rowOnly) || navigable
+  const hasPopin = ctx.hasPopin && cells.some((_, i) => ctx.popped.has(i) && !ctx.columns.get(i)?.popinHidden)
+  const visible = cells.map((cell, index) => ({ cell, index })).filter(({ index }) => !ctx.popped.has(index))
+  const popinCells = cells.map((cell, index) => ({ cell, index })).filter(({ index }) => ctx.popped.has(index) && !ctx.columns.get(index)?.popinHidden)
+  const firstVisible = visible[0]
+  const firstMerged = !!firstVisible && !!(firstVisible.cell.props as TableCellProps).merged
+  let colIndex = 1
+
+  return (
+    <div
+      role="row"
+      aria-rowindex={(position ?? order) + 2}
+      aria-selected={selectable ? selected : undefined}
+      data-slot="table-row"
+      data-table-nav-row=""
+      data-row-key={rowKey}
+      data-position={position}
+      data-interactive={isInteractive ? "" : undefined}
+      data-interactive-prop={interactive ? "" : undefined}
+      data-navigable={navigable ? "" : undefined}
+      data-navigated={navigated ? "" : undefined}
+      data-alternate={alternate ? "" : undefined}
+      data-first={first ? "" : undefined}
+      data-last={last ? "" : undefined}
+      data-highlight={highlight !== "none" ? highlight : undefined}
+      data-has-popin={hasPopin ? "" : undefined}
+      data-render-dummy={ctx.renderDummy ? "" : undefined}
+      className={cn("fiori-table-row-base fiori-table-row", className)}
+      {...props}
+    >
+      {ctx.hasSelector && (
+        <div
+          role="gridcell"
+          aria-colindex={colIndex++}
+          aria-selected={selected}
+          data-selection-cell=""
+          data-sticky-cell=""
+          data-table-nav-cell=""
+          data-merged={firstMerged ? "" : undefined}
+          className="fiori-table-cell-base fiori-table-cell"
+        >
+          {ctx.selectionMode === "multi" ? (
+            <Checkbox tabIndex={-1} checked={selected} aria-label={ctx.texts.rowSelector} onClick={(e) => ctx.onSelectionClick(rowKey ?? "", e)} />
+          ) : (
+            <span
+              role="radio"
+              aria-checked={selected}
+              aria-label={ctx.texts.rowSelector}
+              tabIndex={-1}
+              data-state={selected ? "checked" : "unchecked"}
+              className="fiori-radio"
+              onClick={(e) => ctx.onSelectionClick(rowKey ?? "", e)}
+            >
+              <span className="fiori-radio__inner">
+                <svg className="fiori-radio__svg" focusable="false" aria-hidden="true">
+                  <circle className="fiori-radio__outer" cx="50%" cy="50%" r="50%" />
+                  <circle className="fiori-radio__dot" cx="50%" cy="50%" />
+                </svg>
+              </span>
+            </span>
+          )}
+        </div>
+      )}
+      {visible.map(({ cell, index }) => (
+        <CellPlacementContext.Provider key={cell.key ?? index} value={{ index, popin: false, first: cell === firstVisible.cell }}>
+          <CellColIndex.Provider value={colIndex++}>{cell}</CellColIndex.Provider>
+        </CellPlacementContext.Provider>
+      ))}
+      {ctx.renderDummy && hasPopin && <div role="none" aria-hidden data-dummy-cell="" data-excluded-from-navigation="" className="fiori-table-cell-base fiori-table-cell" />}
+      {ctx.rowActionCount > 0 && (
+        <div
+          role="gridcell"
+          aria-colindex={colIndex++}
+          data-actions-cell=""
+          data-sticky-cell=""
+          data-table-nav-cell=""
+          className="fiori-table-cell-base fiori-table-cell"
+        >
+          {plan.flexible.map((a) => a.element)}
+          {plan.overflow.length > 0 && <RowActionsOverflow actions={plan.overflow} tooltip={ctx.texts.moreActions} />}
+          {plan.fixed.map((a) => a.element)}
+        </div>
+      )}
+      {ctx.renderNavigated && (
+        <div role="none" aria-hidden data-navigated-cell="" data-sticky-cell="" data-excluded-from-navigation="" className="fiori-table-cell-base fiori-table-cell">
+          <div className="fiori-table-row__navigated" />
+        </div>
+      )}
+      {ctx.renderDummy && !hasPopin && (
+        <div role="none" aria-hidden data-dummy-cell="" data-merged="" data-excluded-from-navigation="nofocus" className="fiori-table-cell-base fiori-table-cell" />
+      )}
+      {hasPopin && (
+        <div role="gridcell" aria-colindex={colIndex++} data-popin-cell="" data-table-nav-cell="" className="fiori-table-cell-base fiori-table-cell">
+          {popinCells.map(({ cell, index }) => (
+            <CellPlacementContext.Provider key={cell.key ?? index} value={{ index, popin: true, first: false }}>
+              <CellColIndex.Provider value={undefined}>{cell}</CellColIndex.Provider>
+            </CellPlacementContext.Provider>
+          ))}
+        </div>
+      )}
+      {highlight !== "none" && <span aria-hidden className="fiori-table-row__highlight" data-highlight={highlight} />}
+    </div>
+  )
+}
+
+const CellColIndex = React.createContext<number | undefined>(undefined)
+
+type TableCellProps = React.ComponentProps<"div"> & {
+  horizontalAlign?: TableHorizontalAlign
+  /** Same value as the cell above: the border and (until the row is hovered or focused) the content are hidden. */
+  merged?: boolean
+}
+
+function TableCell({ horizontalAlign, merged, className, style, children, ...props }: TableCellProps) {
+  const ctx = useTableContext("TableCell")
+  const { index, popin, first } = React.useContext(CellPlacementContext)
+  const colIndex = React.useContext(CellColIndex)
+  const column = ctx.columns.get(index)
+  const align = horizontalAlign ?? column?.horizontalAlign
+  const alignStyle = align && !popin ? { textAlign: alignToText(align), justifyContent: alignToJustify(align) } : undefined
+  return (
+    <div
+      role={popin ? undefined : "gridcell"}
+      aria-colindex={colIndex}
+      data-slot="table-cell"
+      data-popin={popin ? "" : undefined}
+      data-merged={merged ? "" : undefined}
+      data-first-cell={first ? "" : undefined}
+      data-table-nav-cell={popin ? undefined : ""}
+      className={cn("fiori-table-cell-base fiori-table-cell", className)}
+      style={alignStyle || style ? { ...alignStyle, ...style } : undefined}
+      {...props}
+    >
+      {popin ? (
+        <>
+          <div className="fiori-table-cell__popin-header">{column?.popinText ?? column?.label}</div>
+          <span className="fiori-table-cell__popin-colon" aria-hidden="true">
+            {ctx.texts.colon}
+          </span>
+          {children}
+        </>
+      ) : (
+        children
+      )}
+    </div>
+  )
+}
+
+type TableGroupRowProps = React.ComponentProps<"div">
+
+/** A group header row spanning all columns (ui5-table-group-row). */
+function TableGroupRow({ className, children, ...props }: TableGroupRowProps) {
+  const ctx = useTableContext("TableGroupRow")
+  const { order, first } = React.useContext(RowPlacementContext)
+  const visibleCount = [...ctx.columns.keys()].filter((i) => !ctx.popped.has(i)).length || 1
+  const renderDummy = ctx.renderDummy && !ctx.hasPopin
+  return (
+    <div
+      role="row"
+      aria-rowindex={order + 2}
+      aria-roledescription={ctx.texts.groupRow}
+      data-slot="table-group-row"
+      data-table-nav-row=""
+      data-render-dummy={renderDummy ? "" : undefined}
+      data-first={first ? "" : undefined}
+      className={cn("fiori-table-row-base fiori-table-group-row", className)}
+      {...props}
+    >
+      <div role="gridcell" aria-colindex={1} aria-colspan={renderDummy ? visibleCount - 1 : visibleCount} data-group-cell="" className="fiori-table-cell-base fiori-table-cell">
+        {children}
+      </div>
+      {renderDummy && <div role="none" aria-hidden data-dummy-cell="" data-excluded-from-navigation="nofocus" className="fiori-table-cell-base fiori-table-cell" />}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Row actions                                                                                      */
+
+type TableRowActionProps = {
+  icon: FioriIconData
+  /** Tooltip and accessible name. */
+  text: string
+  onClick?: (event: React.MouseEvent | Event) => void
+  /** Keeps the action's space but renders nothing. */
+  invisible?: boolean
+}
+
+/** An icon button in the row's actions cell (ui5-table-row-action). Pass it in `TableRow` `actions`. */
+function TableRowAction({ icon, text, onClick, invisible }: TableRowActionProps) {
+  if (invisible) return <div data-slot="table-row-action" data-invisible="" className="fiori-table-row-action" />
+  return (
+    <Button
+      data-slot="table-row-action"
+      variant="transparent"
+      size="icon"
+      title={text}
+      aria-label={text}
+      className="fiori-table-row-action"
+      onClick={(e) => {
+        e.stopPropagation()
+        onClick?.(e)
+      }}
+    >
+      <Icon icon={icon} />
+    </Button>
+  )
+}
+
+type TableRowActionNavigationProps = {
+  /** Renders a button (fires `onClick`); otherwise a non-interactive arrow and the row becomes navigable. */
+  interactive?: boolean
+  onClick?: (event: React.MouseEvent | Event) => void
+  /** Tooltip / accessible name (default "Navigation"). */
+  text?: string
+  invisible?: boolean
+}
+
+/** The navigation arrow at the end of the actions cell (ui5-table-row-action-navigation). */
+function TableRowActionNavigation({ interactive = false, onClick, text, invisible }: TableRowActionNavigationProps) {
+  const ctx = useTableContext("TableRowActionNavigation")
+  const label = text ?? ctx.texts.navigation
+  if (invisible) return <div data-slot="table-row-action" data-invisible="" data-fixed="" className="fiori-table-row-action" />
+  if (interactive)
+    return (
+      <Button
+        data-slot="table-row-action"
+        data-fixed=""
+        variant="transparent"
+        size="icon"
+        title={label}
+        aria-label={label}
+        className="fiori-table-row-action"
+        onClick={(e) => {
+          e.stopPropagation()
+          onClick?.(e)
+        }}
+      >
+        <Icon icon={navigationRightArrow} />
+      </Button>
+    )
+  return (
+    <span data-slot="table-row-action" data-fixed="" className="fiori-table-row-action">
+      <Icon icon={navigationRightArrow} label={label} className="fiori-table-row-action__icon" />
+    </span>
+  )
+}
+
+type PlannedAction = { element: React.ReactElement; invisible: boolean; interactive: boolean; fixed: boolean; text: string; icon: FioriIconData; onClick?: (e: Event | React.MouseEvent) => void }
+
+/** TableRow._flexibleActions / _fixedActions / _overflowActions. */
+function planActions(elements: React.ReactElement[], count: number, navigationText: string) {
+  const actions: PlannedAction[] = elements.map((element, i) => {
+    const fixed = element.type === TableRowActionNavigation
+    const p = element.props as TableRowActionProps & TableRowActionNavigationProps
+    return {
+      element: React.cloneElement(element, { key: element.key ?? i }),
+      invisible: !!p.invisible,
+      interactive: fixed ? !!p.interactive : true,
+      fixed,
+      text: p.text ?? navigationText,
+      icon: fixed ? navigationRightArrow : p.icon,
+      onClick: p.onClick,
+    }
+  })
+  if (count < 1) return { flexible: [], fixed: [], overflow: [] }
+  let renderable = 0
+  const hasOverflow = actions.some((a) => {
+    if (a.fixed || !a.invisible) renderable++
+    return renderable > count
+  })
+  const flexibleAll = actions.filter((a) => !a.fixed)
+  const fixedAll = actions.filter((a) => a.fixed)
+  let maxFlexible = count - fixedAll.length
+  let flexible: PlannedAction[] = []
+  if (maxFlexible >= 1) {
+    if (flexibleAll.length <= maxFlexible) flexible = flexibleAll
+    else {
+      const visible = flexibleAll.filter((a) => !a.invisible)
+      if (visible.length > maxFlexible) maxFlexible--
+      flexible = visible.slice(0, maxFlexible)
+    }
+  }
+  const fixed = fixedAll.slice(0, hasOverflow ? count - 1 : count)
+  const overflowActions = actions.filter((a) => !a.invisible && !fixed.includes(a) && !flexible.includes(a))
+  return { flexible, fixed, overflow: overflowActions }
+}
+
+function RowActionsOverflow({ actions, tooltip }: { actions: PlannedAction[]; tooltip: string }) {
+  return (
+    <Menu>
+      <MenuTrigger asChild>
+        <Button variant="transparent" size="icon" title={tooltip} aria-label={tooltip} onClick={(e) => e.stopPropagation()}>
+          <Icon icon={overflow} />
+        </Button>
+      </MenuTrigger>
+      <MenuContent>
+        {actions.map((a, i) => (
+          <MenuItem key={i} icon={a.icon} disabled={!a.interactive} onSelect={(e) => a.onClick?.(e)}>
+            {a.text}
+          </MenuItem>
+        ))}
+      </MenuContent>
+    </Menu>
+  )
+}
+
+export {
+  Table,
+  TableHeaderRow,
+  TableHeaderCell,
+  TableRow,
+  TableCell,
+  TableGroupRow,
+  TableRowAction,
+  TableRowActionNavigation,
+  defaultTableTexts,
+  type TableProps,
+  type TableHeaderRowProps,
+  type TableHeaderCellProps,
+  type TableRowProps,
+  type TableCellProps,
+  type TableGroupRowProps,
+  type TableRowActionProps,
+  type TableRowActionNavigationProps,
+  type TableTexts,
+  type TableHorizontalAlign,
+  type TableRowHighlight,
+  type SortIndicator,
+}
