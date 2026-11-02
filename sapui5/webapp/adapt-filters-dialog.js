@@ -1,0 +1,1 @@
+../fixtures/adapt-filters-dialog.js
