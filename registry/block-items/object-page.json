@@ -1,0 +1,24 @@
+{
+  "title": "Object Page",
+  "description": "SAP Fiori Object Page floorplan: object header with avatar and facets, anchor navigation, sections General Information (form), Items (table) and Notes, edit mode with a Save / Cancel floating footer. Sample data inline.",
+  "registryDependencies": [
+    "@fiori/object-page",
+    "@fiori/dynamic-page",
+    "@fiori/form",
+    "@fiori/table",
+    "@fiori/toolbar",
+    "@fiori/bar",
+    "@fiori/breadcrumbs",
+    "@fiori/button",
+    "@fiori/input",
+    "@fiori/textarea",
+    "@fiori/text",
+    "@fiori/label",
+    "@fiori/title",
+    "@fiori/avatar",
+    "@fiori/object-status",
+    "@fiori/object-number",
+    "@fiori/object-identifier",
+    "@fiori/icons"
+  ]
+}
