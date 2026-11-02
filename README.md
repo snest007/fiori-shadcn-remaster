@@ -99,11 +99,13 @@ Adding a component: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Not done yet
 
+The backlog with task cards is in [docs/plan](docs/plan/README.md). Calendars are Gregorian only, by design.
+
 Collected from all phases; none blocks using the library.
 
-- **Components:** ColorPalette / ColorPicker, MediaGallery, Adapt Filters dialog and variant management (FilterBar only exposes callbacks/slots).
+- **Components:** ColorPalette / ColorPicker, MediaGallery, Adapt Filters dialog and variant management (planned as a full SAPUI5 port: `docs/plan`, wave F).
 - **Overflow handling:** Tabs / Toolbar / Breadcrumbs "More" overflow, AvatarGroup "+N", SideNavigation "More" item when collapsed and too tall.
-- **Features:** draggable/resizable Dialog, checkable menu items, ComboBox item groups, Table drag & drop and multi-column sorting, non-Gregorian calendars, vertical Slider, ObjectPage subsection menus / lazy blocks, notification "growing".
+- **Features:** draggable/resizable Dialog, checkable menu items, ComboBox item groups, Table drag & drop and multi-column sorting, vertical Slider, ObjectPage subsection menus / lazy blocks, notification "growing".
 - **Platform:** phone-specific layouts (full-screen dialogs for pickers and value help), F6 fast navigation groups, RTL is implemented but not tested.
 - **Testing:** hover / active / focus states are verified by screenshot only, not pixel-diffed.
 

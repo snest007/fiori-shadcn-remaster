@@ -49,14 +49,23 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 - [ ] [D2 F6 fast navigation](tasks/D2-f6-navigation.md) — M
 - [ ] [D3 RTL verification](tasks/D3-rtl.md) — M
 
+## Wave F — FilterBar personalization from SAPUI5 (decided by the owner: full SAPUI5 feature set)
+
+These controls don't exist in UI5 Web Components; the reference is **OpenUI5 1.154** (`sap.m.VariantManagement`,
+`sap.ui.mdc` FilterBar / Adapt Filters). F0 builds a second pixel-diff harness against real OpenUI5. Run in order;
+F1 and F2 can run in parallel after F0.
+
+- [ ] [F0 SAPUI5 reference harness](tasks/F0-sapui5-reference-harness.md) — M
+- [ ] [F1 VariantManagement](tasks/F1-variant-management.md) — L
+- [ ] [F2 Adapt Filters dialog](tasks/F2-adapt-filters.md) — L
+- [ ] [F3 Variants wired to FilterBar + List Report](tasks/F3-variants-integration.md) — M
+
 ## Wave E — quality infrastructure (any time; E1 first)
 
 - [ ] [E1 Interaction-state visual fixtures](tasks/E1-interaction-fixtures.md) — M
 - [ ] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
 - [ ] [E3 Publish: GitHub + registry hosting](tasks/E3-publish.md) — S (needs the owner's accounts — do last, with the owner)
 
-## Out of scope for agents
+## Out of scope (owner's decision)
 
-- FilterBar "Adapt Filters" dialog and variant management: SAPUI5-only (sap.ui.comp / sap.ui.fl), no UI5 Web Components
-  reference. Needs a product decision on scope first.
-- Non-Gregorian calendars: needs CLDR calendar data beyond Intl; decide whether it's wanted.
+- Non-Gregorian calendars: won't be built. Calendar/DatePicker stay Gregorian-only (documented in README).
