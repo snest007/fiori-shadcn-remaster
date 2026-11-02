@@ -1,0 +1,5 @@
+{
+  "title": "UploadCollection",
+  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/label", "@fiori/link", "@fiori/progress-indicator"],
+  "description": "Fiori upload collection: file list with thumbnails, progress and Complete/Error/Ready/Uploading states, retry/terminate/delete, drag & drop overlay (ui5-upload-collection). Upload transport is up to the caller."
+}

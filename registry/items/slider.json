@@ -1,0 +1,5 @@
+{
+  "title": "Slider",
+  "registryDependencies": ["@fiori/icons"],
+  "description": "Fiori Slider and RangeSlider: tickmarks with labels, tooltips, UI5 keyboard model (ui5-slider, ui5-range-slider)."
+}

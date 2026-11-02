@@ -1,0 +1,90 @@
+/* FileUploader (ui5-file-uploader). The field is .fiori-field (UI5 draws it on .ui5-file-uploader-display-elements). */
+.fiori-file-uploader {
+  width: var(--fiori-input-width);
+  margin: var(--fiori-input-margin-top-bottom) 0;
+  cursor: pointer;
+  vertical-align: middle;
+}
+.fiori-file-uploader--hidden-input {
+  position: relative;
+  display: inline-block;
+  width: max-content;
+  height: max-content;
+  margin: 0;
+}
+/* The native input keeps focus but is invisible; the visible parts sit on top of it. */
+.fiori-file-uploader__native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  font-size: 0;
+  pointer-events: none;
+}
+.fiori-file-uploader--hidden-input:has(.fiori-file-uploader__native:focus-visible)::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+  inset: var(--fiori-input-focus-offset);
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--fiori-input-focus-outline-color);
+  border-radius: var(--fiori-input-focus-border-radius);
+}
+.fiori-file-uploader > :not(.fiori-file-uploader__native) {
+  position: relative;
+}
+.fiori-file-uploader__display {
+  cursor: pointer;
+}
+.fiori-file-uploader__icon {
+  cursor: pointer;
+}
+.fiori-file-uploader__icon:hover {
+  background: var(--fiori-input-icon-hover-bg);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+}
+.fiori-file-uploader__icon:active {
+  background-color: var(--sapButton_Active_Background);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+  color: var(--fiori-input-icon-pressed-color);
+}
+/* Read-only tokens of the selected files (ui5-tokenizer readonly + ui5-token readonly). */
+.fiori-file-uploader__tokens {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-width: 0;
+  max-width: var(--fiori-file-uploader-tokenizer-width);
+  overflow: hidden;
+  padding-inline-start: var(--fiori-tokenizer-padding);
+  white-space: nowrap;
+}
+.fiori-file-uploader__token {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  height: var(--fiori-token-height);
+  margin-inline-end: var(--fiori-token-right-margin);
+  padding: var(--fiori-token-readonly-padding);
+  border: var(--sapButton_BorderWidth) solid var(--sapField_ReadOnly_BorderColor);
+  border-radius: var(--fiori-token-border-radius);
+  background: var(--fiori-token-readonly-background);
+  color: var(--fiori-token-readonly-color);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+}
+.fiori-file-uploader__token:last-child {
+  margin-inline-end: 0;
+}
+/*
+ * UI5 resets the host's field border and draws a fixed one on the display elements: value states,
+ * hover and focus change the background and shadow, never the border (width, style or color).
+ * :not(#\#) lifts the specificity above every .fiori-field state rule.
+ */
+.fiori-field.fiori-file-uploader:not(#\#) {
+  border: var(--fiori-x-input-border);
+}
