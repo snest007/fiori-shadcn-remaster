@@ -18,7 +18,7 @@ import { ShellBarSearchContext } from "@/components/ui/search"
 // The bar has no popovers of its own besides overflow: on*Click callers open theirs against `targetRef`.
 
 const shellButton =
-  "text-(--sapShell_TextColor) hover:bg-(--sapShell_Hover_Background) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:text-(--sapShell_InteractiveTextColor) active:text-(--fiori-shellbar-button-active-color)"
+  "w-9 min-w-(--fiori-button-base-min-width) text-(--sapShell_TextColor) hover:bg-(--sapShell_Hover_Background) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:text-(--sapShell_InteractiveTextColor) active:text-(--fiori-shellbar-button-active-color)"
 
 // ---------------------------------------------------------------------------------------------
 // Fast navigation (UI5 features/F6Navigation): one document listener however many bars are mounted.
@@ -79,7 +79,6 @@ function ShellBarBranding({ logo, children, accessibleName, href, className, onK
   return (
     <a
       data-slot="shell-bar-branding"
-      data-ui5-stable="logo"
       role={href ? "link" : "button"}
       href={href}
       tabIndex={0}
@@ -133,7 +132,6 @@ function ShellBarMenuButton({ logo, children, secondaryTitle, menu, accessibleNa
           <button
             type="button"
             data-slot="shell-bar-menu-button"
-            data-ui5-stable="menu"
             data-has-logo={logo ? "" : undefined}
             aria-label={accessibleName ?? (typeof children === "string" ? children : undefined)}
             className={cn("fiori-shellbar-menu-button", className)}
@@ -366,7 +364,7 @@ function ShellBar({
   contentHiddenCb.current = onContentItemVisibilityChange
 
   // UI5 ShellBarOverflow.updateOverflow: show everything, then hide one by one until nothing overflows.
-  // data-sb-hidden belongs to this function alone (React never renders that attribute).
+  // data-sb-hidden belongs to this function (React only ever writes it once, on the overflow button's mount).
   const measure = React.useCallback(() => {
     const host = hostRef.current
     const outer = outerRef.current
@@ -604,7 +602,6 @@ function ShellBar({
               <Button
                 ref={bellRef}
                 data-sb-id="notifications"
-                data-ui5-stable="notifications"
                 variant="transparent"
                 size="icon"
                 title={texts.notifications(notificationsCount || "0")}
@@ -630,7 +627,6 @@ function ShellBar({
                   ref={overflowBtnRef}
                   data-sb-id="overflow"
                   data-sb-hidden=""
-                  data-ui5-stable="overflow"
                   variant="transparent"
                   size="icon"
                   title={texts.overflow}
@@ -638,7 +634,6 @@ function ShellBar({
                   aria-haspopup={a11y.overflow?.hasPopup ?? "menu"}
                   aria-expanded={a11y.overflow?.expanded ?? overflowOpen}
                   data-has-badge={overflowBadge ? "" : undefined}
-                  data-shown={showOverflow ? "" : undefined}
                   className={cn(shellButton, "fiori-shellbar__gap-start fiori-shellbar__action")}
                   onClick={() => setOverflowOpen((o) => !o)}
                 >
@@ -669,7 +664,6 @@ function ShellBar({
             {profile && (
               <Button
                 ref={profileRef}
-                data-ui5-stable="profile"
                 variant="transparent"
                 size="icon"
                 title={a11y.profile?.name ?? texts.profile}
@@ -685,7 +679,6 @@ function ShellBar({
             {showProductSwitch && (
               <Button
                 ref={productsRef}
-                data-ui5-stable="product-switch"
                 variant="transparent"
                 size="icon"
                 title={texts.products}

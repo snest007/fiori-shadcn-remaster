@@ -1,6 +1,7 @@
 import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { ShellBar, ShellBarBranding, ShellBarItem, ShellBarSpacer } from "@/components/ui/shell-bar"
+import { MenuItem } from "@/components/ui/menu"
+import { ShellBar, ShellBarBranding, ShellBarItem, ShellBarMenuButton, ShellBarSpacer } from "@/components/ui/shell-bar"
 import { ShellBarSearch } from "@/components/ui/search"
 import { Tag } from "@/components/ui/tag"
 import { Text } from "@/components/ui/text"
@@ -22,6 +23,8 @@ export type ShellBarFixtureProps = {
   startButton?: boolean
   title?: string
   logo?: boolean
+  /** Menu button with this secondary title (ui5-shellbar's primary-title + menuItems) instead of the branding. */
+  menuButton?: string
   /** Content items before / after the spacer: "#text" is a Text, anything else a Tag. */
   start?: string[]
   end?: string[]
@@ -68,6 +71,19 @@ export default defineFixtures<ShellBarFixtureProps>({
       },
     },
     { id: "shell-bar-minimal", props: { width: "40rem", logo: true, title: "Corporate Portal", profile: true } },
+    { id: "shell-bar-menu-button", props: { width: "60rem", logo: true, title: "Corporate Portal", menuButton: "Secondary title", profile: true, productSwitch: true } },
+    { id: "shell-bar-title-only", props: { width: "40rem", title: "Corporate Portal", notifications: true } },
+    {
+      id: "shell-bar-overflow-dot",
+      props: {
+        width: "300px",
+        logo: true,
+        notifications: "5",
+        items: [{ icon: "help", text: "Help" }, { icon: "expense", text: "Expenses", count: "3" }],
+        profile: true,
+        productSwitch: true,
+      },
+    },
     {
       id: "shell-bar-s",
       props: {
@@ -93,7 +109,15 @@ export default defineFixtures<ShellBarFixtureProps>({
         ) : undefined
       }
       branding={
-        p.title || p.logo ? (
+        p.menuButton ? (
+          <ShellBarMenuButton
+            logo={p.logo ? <img src={SHELL_LOGO} alt="" /> : undefined}
+            secondaryTitle={p.menuButton}
+            menu={<MenuItem>Application 1</MenuItem>}
+          >
+            {p.title}
+          </ShellBarMenuButton>
+        ) : p.title || p.logo ? (
           <ShellBarBranding logo={p.logo ? <img src={SHELL_LOGO} alt="" /> : undefined}>{p.title}</ShellBarBranding>
         ) : undefined
       }

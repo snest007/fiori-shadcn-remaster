@@ -1,12 +1,10 @@
 import * as React from "react"
-import { Popover as PopoverPrimitive } from "radix-ui"
-
 import { log, personPlaceholder, userSettings, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Avatar, type AvatarColorScheme } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
-import { Popover, PopoverContent } from "@/components/ui/popover"
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
 // Mirrors ui5-user-menu (Horizon): a popover opened against the shell bar's profile button, with the account
 // header, a menu and a Sign Out footer. Keyboard (as UI5): opening focuses the first item, ↑/↓/Home/End move
@@ -140,7 +138,7 @@ function UserMenu({
   const defaultFooter = footer === undefined
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverPrimitive.Anchor virtualRef={anchor as React.RefObject<HTMLElement>} />
+      <PopoverAnchor virtualRef={anchor as React.RefObject<HTMLElement>} />
       <PopoverContent
         ref={surfaceRef}
         data-slot="user-menu"

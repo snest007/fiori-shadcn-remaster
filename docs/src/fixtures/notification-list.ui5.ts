@@ -5,6 +5,8 @@ import "@ui5/webcomponents-fiori/dist/NotificationListItem.js"
 import "@ui5/webcomponents-fiori/dist/NotificationListGroupItem.js"
 import "@ui5/webcomponents/dist/Avatar.js"
 import "@ui5/webcomponents/dist/Label.js"
+import "@ui5/webcomponents/dist/Menu.js"
+import "@ui5/webcomponents/dist/MenuItem.js"
 import "@ui5/webcomponents-icons/dist/decline.js"
 import "@ui5/webcomponents-icons/dist/overflow.js"
 import "@ui5/webcomponents-icons/dist/high-priority.js"
@@ -29,7 +31,9 @@ const item = (n: NotificationFixture) =>
       read: n.read,
       importance: n.important ? "Important" : undefined,
       "show-close": n.showClose,
+      "wrapping-type": n.wrapping ? "Normal" : undefined,
     },
+    ...(n.menu ? [h("ui5-menu", { slot: "menu" }, h("ui5-menu-item", { text: "Accept" }))] : []),
     ...(n.avatar ? [h("ui5-avatar", { slot: "avatar", size: "XS", initials: n.avatar })] : []),
     ...(n.footnotes ?? []).map((f) => h("ui5-label", { slot: "footnotes" }, f)),
     ...(n.description ? [n.description] : [])

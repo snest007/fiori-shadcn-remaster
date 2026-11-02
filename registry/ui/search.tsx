@@ -145,7 +145,10 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
 
   // The controlled value wins whenever it changes from outside.
   React.useEffect(() => {
-    if (valueProp !== undefined) setShown((s) => (s.toLowerCase().startsWith(valueProp.toLowerCase()) && matched === s ? s : valueProp))
+    // (Unless it is what the user typed and the field shows its type-ahead completion.)
+    if (valueProp === undefined || (matched === shown && shown.toLowerCase().startsWith(valueProp.toLowerCase()))) return
+    setShown(valueProp)
+    setTyped(valueProp)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valueProp])
 
@@ -424,7 +427,7 @@ function Search(props: SearchProps) {
   return (
     <Popover open={core.open} onOpenChange={core.setOpen}>
       <PopoverAnchor asChild>
-        <div ref={core.rootRef} data-slot="search" data-focused={undefined} className={cn("fiori-search", core.className)} {...core.rootProps}>
+        <div ref={core.rootRef} data-slot="search" className={cn("fiori-search", core.className)} {...core.rootProps}>
           {core.field}
         </div>
       </PopoverAnchor>
@@ -447,6 +450,7 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
   const collapsed = bar ? !bar.expanded : (collapsedProp ?? state)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
   const refocusButton = React.useRef(false)
+  const wasCollapsed = React.useRef(collapsed)
   const toggle = () => {
     if (bar) bar.toggle()
     else {
@@ -469,8 +473,15 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
     },
   })
   React.useLayoutEffect(() => {
-    if (collapsed && refocusButton.current) buttonRef.current?.focus()
+    if (collapsed) {
+      core.setOpen(false)
+      if (refocusButton.current) buttonRef.current?.focus()
+    } else if (wasCollapsed.current) {
+      core.inputRef.current?.focus()
+    }
     refocusButton.current = false
+    wasCollapsed.current = collapsed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collapsed])
   if (collapsed) {
     return (
@@ -483,7 +494,7 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
           aria-label={core.texts.open}
           aria-expanded={false}
           disabled={core.fieldLoading}
-          className="fiori-search__button rounded-(--fiori-shellbar-button-border-radius) bg-(--fiori-x-search-elements-background) text-(--sapShell_InteractiveTextColor) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:bg-(--sapShell_Hover_Background) hover:text-(--sapShell_InteractiveTextColor)"
+          className="fiori-search__button w-9 min-w-(--fiori-search-icon-size-default) rounded-(--fiori-shellbar-button-border-radius) bg-(--fiori-x-search-elements-background) text-(--sapShell_InteractiveTextColor) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:bg-(--sapShell_Hover_Background) hover:text-(--sapShell_InteractiveTextColor)"
           onClick={() => {
             core.fire(core.shown)
             toggle()
@@ -577,7 +588,6 @@ function SearchItem({ text, description, icon, image, scopeName, value, deletabl
       {...props}
     >
       <div className="fiori-search-item__begin">
-        {image && !icon}
         {!icon && image}
         {icon && <Icon icon={icon} className="fiori-search-item__icon" />}
         {scopeName && (

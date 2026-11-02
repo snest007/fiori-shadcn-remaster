@@ -6,6 +6,8 @@ import "@ui5/webcomponents-fiori/dist/ShellBarItem.js"
 import "@ui5/webcomponents-fiori/dist/ShellBarSpacer.js"
 import "@ui5/webcomponents-fiori/dist/ShellBarSearch.js"
 import "@ui5/webcomponents/dist/Avatar.js"
+import "@ui5/webcomponents/dist/ListItemStandard.js"
+import "@ui5/webcomponents-icons/dist/slim-arrow-down.js"
 import "@ui5/webcomponents/dist/Button.js"
 import "@ui5/webcomponents/dist/ToggleButton.js"
 import "@ui5/webcomponents/dist/Tag.js"
@@ -33,9 +35,17 @@ export default defineUi5(set, (p) => {
       "show-product-switch": p.productSwitch,
       "show-search-field": p.search === "expanded",
       "disable-search-collapse": true,
+      "primary-title": p.menuButton ? p.title : undefined,
+      "secondary-title": p.menuButton,
     },
     ...(p.startButton ? [h("ui5-button", { slot: "startButton", icon: "menu2", design: "Transparent", "accessible-name": "Menu" })] : []),
-    ...(p.title || p.logo
+    ...(p.menuButton
+      ? [
+          ...(p.logo ? [h("img", { slot: "logo", src: SHELL_LOGO, alt: "" })] : []),
+          h("ui5-li", { slot: "menuItems" }, "Application 1"),
+        ]
+      : []),
+    ...(!p.menuButton && (p.title || p.logo)
       ? [h("ui5-shellbar-branding", { slot: "branding" }, ...(p.logo ? [h("img", { slot: "logo", src: SHELL_LOGO, alt: "" })] : []), p.title ?? "")]
       : []),
     ...(p.start ?? []).map((t) => (t.startsWith("#") ? h("ui5-text", { slot: "content" }, t.slice(1)) : h("ui5-tag", { slot: "content" }, t))),

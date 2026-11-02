@@ -1,4 +1,5 @@
 import { Avatar } from "@/components/ui/avatar"
+import { MenuItem } from "@/components/ui/menu"
 import { NotificationList, NotificationListGroupItem, NotificationListItem } from "@/components/ui/notification-list"
 
 import { defineFixtures } from "../fixture-types"
@@ -37,6 +38,16 @@ export default defineFixtures<Props>({
       },
     },
     {
+      id: "notification-list-actions",
+      props: {
+        items: [
+          { title: "Purchase order awaiting approval", description: "Two buttons reserve more space next to the title, which then wraps earlier than without them.", menu: true, showClose: true, state: "information", footnotes: ["Procurement"] },
+          { title: "Menu only", description: LONG, menu: true, wrapping: true, read: true, avatar: "AB", footnotes: ["Anna Bauer", "5 Minutes", "Finance"] },
+          { title: "Title only" },
+        ],
+      },
+    },
+    {
       id: "notification-list-groups",
       props: {
         groups: [
@@ -63,6 +74,8 @@ export default defineFixtures<Props>({
         showClose={n.showClose}
         avatar={n.avatar ? <Avatar size="XS" initials={n.avatar} /> : undefined}
         footnotes={n.footnotes}
+        menu={n.menu ? <MenuItem>Accept</MenuItem> : undefined}
+        wrappingType={n.wrapping ? "normal" : undefined}
       >
         {n.description}
       </NotificationListItem>

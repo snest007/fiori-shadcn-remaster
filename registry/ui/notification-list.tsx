@@ -104,10 +104,29 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
   })
   const closeRef = React.useRef(onItemClose)
   closeRef.current = onItemClose
+  // A closed item takes the focus with it: hand it to whichever item takes its place.
+  const closedAt = React.useRef<number | null>(null)
+  React.useLayoutEffect(() => {
+    const at = closedAt.current
+    if (at === null) return
+    const items = navItems(core.rootRef.current).filter(isVisible)
+    if (document.activeElement === document.body || !document.activeElement) items[Math.min(at, items.length - 1)]?.focus()
+    if (!core.rootRef.current?.contains(document.activeElement) || items.includes(document.activeElement as HTMLElement)) closedAt.current = null
+  })
   const toggleRef = React.useRef(onItemToggle)
   toggleRef.current = onItemToggle
   const ctx = React.useMemo(
-    () => ({ texts, close: (v: string) => closeRef.current?.(v), toggle: (v: string, c: boolean) => toggleRef.current?.(v, c) }),
+    () => ({
+      texts,
+      close: (v: string) => {
+        const items = navItems(core.rootRef.current).filter(isVisible)
+        const active = document.activeElement as HTMLElement | null
+        const closing = items.find((el) => el.dataset.navKey === v)
+        closedAt.current = closing && active && closing.contains(active) ? items.indexOf(closing) : null
+        closeRef.current?.(v)
+      },
+      toggle: (v: string, c: boolean) => toggleRef.current?.(v, c),
+    }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [JSON.stringify(textsProp)]
   )
@@ -244,6 +263,7 @@ function NotificationListItem({
   const ctx = useNotificationContext()
   const id = React.useId()
   const { texts } = ctx
+  const core = React.useContext(ListCoreContext)
   const { value, handlers } = useListItemBehaviour({
     value: valueProp,
     type: "active",
@@ -317,7 +337,7 @@ function NotificationListItem({
       data-show-more-pressed={pressed ? "" : undefined}
       data-buttons={buttons || undefined}
       role="listitem"
-      tabIndex={React.useContext(ListCoreContext)?.currentKey === value ? 0 : -1}
+      tabIndex={core?.currentKey === value ? 0 : -1}
       aria-labelledby={labelledBy}
       className={cn("fiori-nli", className)}
       {...handlers}
@@ -449,6 +469,7 @@ function NotificationListGroupItem({
   const [state, setState] = React.useState(defaultCollapsed)
   const collapsed = collapsedProp ?? state
   const { texts } = ctx
+  const core = React.useContext(ListCoreContext)
   const { value, handlers } = useListItemBehaviour({
     value: valueProp,
     type: "inactive",
@@ -476,6 +497,8 @@ function NotificationListGroupItem({
     if (collapsedProp === undefined) setState(next)
     onCollapsedChange?.(next)
     ctx.toggle(value, next)
+    // The tab stop can't stay on an item that is now hidden.
+    if (next) core?.setCurrentKey(value)
   }
   return (
     <li
@@ -485,7 +508,7 @@ function NotificationListGroupItem({
       data-read={read ? "" : undefined}
       data-collapsed={collapsed ? "" : undefined}
       role="listitem"
-      tabIndex={React.useContext(ListCoreContext)?.currentKey === value ? 0 : -1}
+      tabIndex={core?.currentKey === value ? 0 : -1}
       aria-labelledby={loading ? `${id}-loading` : `${id}-title`}
       aria-description={`${texts.group} ${collapsed ? texts.collapsed : texts.expanded}`}
       aria-level={1}

@@ -6,10 +6,10 @@
   max-width: 100%;
   background: var(--sapShellColor);
   box-shadow: inset 0 -0.0625rem 0 0 var(--sapPageHeader_BorderColor);
-  /* UI5 overrides these on its host: the bar keeps its size in compact. */
+  /* The bar keeps its size in compact. The min width is deliberately not overridden: UI5's override stops at its
+     own host (ui5-button redeclares the parameter), so action buttons are 2.5rem wide in cozy HC themes. */
   --fiori-button-base-height: var(--sapElement_Height);
   --fiori-button-base-padding: 0.5625rem;
-  --fiori-button-base-min-width: 2.25rem;
   --fiori-x-button-badge-diameter: 0.75rem;
   --fiori-x-shellbar-separator-color: var(--sapGroup_ContentBorderColor);
   --fiori-x-shellbar-separator-height: 2rem;
@@ -42,7 +42,13 @@
 .fiori-shellbar [data-sb-hidden] {
   display: none !important;
 }
-/* Buttons placed by the caller (start, assistant): Button's utilities read these tokens. */
+/* Buttons placed by the caller (start, assistant): ::slotted(ui5-button) in UI5. !important beats Button's utilities. */
+.fiori-shellbar__start > button,
+.fiori-shellbar__assistant > button {
+  width: 2.25rem !important;
+  min-width: var(--fiori-button-base-min-width) !important;
+  padding: 0 !important;
+}
 .fiori-shellbar__start,
 .fiori-shellbar__assistant {
   --sapButton_Lite_TextColor: var(--sapShell_TextColor);

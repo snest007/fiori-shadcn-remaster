@@ -63,7 +63,8 @@ function ProductSwitch({ accessibleName = "Products", className, children, onKey
         let next: number | undefined
         if (e.key === "ArrowRight") next = rtl ? i - 1 : i + 1
         else if (e.key === "ArrowLeft") next = rtl ? i + 1 : i - 1
-        else if (e.key === "ArrowDown") next = i + size
+        // UI5 quirk kept: when a full row lies exactly below the last row's end, Down lands on the last item.
+        else if (e.key === "ArrowDown") next = i + size === list.length ? list.length - 1 : i + size
         else if (e.key === "ArrowUp") next = i - size
         else if (e.key === "Home") next = i - (i % range)
         else if (e.key === "End") next = Math.min(i + (range - 1 - (i % range)), list.length - 1)
