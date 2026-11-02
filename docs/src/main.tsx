@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Demo } from "./demos/types"
 import { FIELD_WIDTH, readPageOptions, snapSlots } from "./fixture-types"
 import { fixtureSets } from "./fixtures"
+import { sapui5FixtureSets } from "./fixtures-sapui5"
 import iconNames from "./icon-names.json"
 import "./index.css"
 
@@ -27,13 +28,16 @@ const opts = readPageOptions()
 document.documentElement.dataset.theme = opts.theme
 document.documentElement.dataset.density = opts.density
 
+const query = new URLSearchParams(location.search)
+const activeFixtureSets = query.has("fixtures-sapui5") ? sapui5FixtureSets : fixtureSets
+
 function FixtureGrid() {
   React.useEffect(() => {
     document.fonts.ready.then(snapSlots).then(() => (document.documentElement.dataset.ready = "true"))
   }, [])
   return (
     <div className="flex flex-wrap items-start gap-4" style={{ "--w": FIELD_WIDTH } as React.CSSProperties}>
-      {fixtureSets.flatMap((set) =>
+      {activeFixtureSets.flatMap((set) =>
         set.cases
           .filter((c) => !opts.only || c.id.startsWith(opts.only))
           .map((c) => (
@@ -138,10 +142,10 @@ function Docs() {
 
 // Expose case ids and tolerances for tests/visual.spec.ts. Anti-aliasing and sub-pixel text layout
 // differ slightly between shadow DOM and light DOM, hence the default 2% tolerance.
-;(window as any).__fixtures = fixtureSets.flatMap((set) =>
-  set.cases.filter((c) => !set.skipCompare?.includes(c.id)).map((c) => ({ id: c.id, tolerance: set.tolerance ?? 0.02 }))
+;(window as any).__fixtures = activeFixtureSets.flatMap((set) =>
+  set.cases.filter((c) => (!opts.only || c.id.startsWith(opts.only)) && !set.skipCompare?.includes(c.id)).map((c) => ({ id: c.id, tolerance: set.tolerance ?? 0.02 }))
 )
 
-const fixtureMode = new URLSearchParams(location.search).has("fixtures")
+const fixtureMode = query.has("fixtures") || query.has("fixtures-sapui5")
 if (fixtureMode) document.body.style.padding = "1rem"
 createRoot(document.getElementById("root")!).render(<React.StrictMode>{fixtureMode ? <FixtureGrid /> : <Docs />}</React.StrictMode>)

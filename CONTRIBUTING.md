@@ -57,6 +57,41 @@ Generated files (`registry.json`, `registry/styles/fiori-components.css`, `publi
 Commit only your component's own files. If you truly must change a shared file (`fiori-types`, `input.tsx`, a script),
 keep the change minimal and say so in your commit message.
 
+## Components from SAPUI5
+
+Controls absent from UI5 Web Components use **OpenUI5 1.154.0** as a second reference. The pinned `@openui5/*`
+packages and UI5 Tooling are dev dependencies only; the reference app in `sapui5/webapp/` is not built into the
+docs site or shadcn registry. Use the installed OpenUI5 JavaScript, renderer and theme LESS as the source of truth.
+
+The reference uses UI5 Tooling (option A). Its isolated `sapui5/package.json` intentionally has no dependencies:
+`ui5.yaml` resolves the framework, while the root package pins the development sources and CLI. This avoids
+Tooling discovering the same framework twice through npm and `ui5.yaml`. The first serve resolves the six
+OpenUI5 libraries into `~/.ui5/framework/packages/@openui5/<package>/1.154.0/` and may need registry access;
+subsequent serves and browser tests use that local cache. To prepare the cache explicitly, run
+`../node_modules/.bin/ui5 use openui5@1.154.0` from `sapui5/`, then start `pnpm sapui5:serve` once.
+
+Run `pnpm sapui5:serve` to open the local reference at `http://localhost:4174/index.html`. Add `?demo` to inspect
+the real VariantManagement, MDC FilterBar and Adapt Filters dialog. Both reference modes accept `?theme=`
+(`sap_horizon`, `sap_horizon_dark`, `sap_horizon_hcb`, `sap_horizon_hcw`) and `&density=compact`.
+
+To add a comparison:
+
+1. Add `docs/src/fixtures-sapui5/<name>.tsx`, default-exporting a `defineFixtures` set from `../fixture-types`.
+   The docs page collects these sets automatically and renders them at `/index.html?fixtures-sapui5`.
+2. Add the same case IDs and equivalent real OpenUI5 controls to `sapui5/webapp/fixtures.js`. Keep IDs prefixed
+   with the component name; both pages expose their comparison cases through `window.__fixtures`.
+3. Await asynchronous control initialization before declaring the reference ready. Open overlays using their
+   real API, then move their surface into the fixture cell with the app's in-place popup helper. Keep SAPUI5's
+   surface styling; override only viewport positioning. The harness disables animations and waits for themes,
+   rendering and fonts before setting `html[data-ready=true]`.
+4. Run `PORT=4310 pnpm exec playwright test tests/visual-sapui5.spec.ts`. Playwright starts both the built docs
+   and local reference servers. `SAPUI5_PORT` overrides reference port 4174 when another checkout uses it.
+
+The spec compares all cases in four themes and two densities, rejects missing or mismatched case IDs, and uses
+the same exact-size and 2% pixel-difference rules as the Web Components oracle. Failed images and reports go
+to `test-results/visual-sapui5/<theme>-<density>/`. It blocks remote requests, so the reference must load its
+framework, themes and fonts locally. The `sapui5-button` Default and Emphasized cases always run as smoke checks.
+
 ## Adding a block (page template / floorplan)
 
 | File | Purpose |
