@@ -105,6 +105,14 @@ test("dynamic-page: toggling while scrolled shows the header in the sticky area"
   const { scroll, expand, header } = parts(dp)
   await scroll.evaluate((el) => (el.scrollTop = 400))
   await expect(dp).toHaveAttribute("data-header-snapped", "")
+  // Snapping shrinks the scroll height, which can clamp scrollTop and fire one more (debounced) scroll;
+  // let the page settle (and bring it into the window) before toggling, as a user would.
+  await dp.scrollIntoViewIfNeeded()
+  await expect.poll(async () => {
+    const a = await scroll.evaluate((el) => el.scrollTop)
+    await page.waitForTimeout(50)
+    return a === (await scroll.evaluate((el) => el.scrollTop))
+  }).toBe(true)
   await expand.click()
   await expect(dp).not.toHaveAttribute("data-header-snapped")
   await expect(header).toBeInViewport()
