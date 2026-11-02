@@ -29,5 +29,12 @@ export default defineUi5(set, ({ manage, subtitle, icons }) => {
     h("ui5-user-menu-item", { text: "Help", icon: icons ? "sys-help" : undefined })
   )
   // ui5-user-menu draws its surface with an internal ui5-responsive-popover in its shadow root.
-  return showShadowPopupInPlace(menu, "#user-menu-rp")
+  const frame = showShadowPopupInPlace(menu, "#user-menu-rp")
+  const hideArrow = () => {
+    const popup = menu.shadowRoot?.querySelector("#user-menu-rp")
+    if (popup) popup.setAttribute("hide-arrow", "")
+    else requestAnimationFrame(hideArrow)
+  }
+  hideArrow()
+  return frame
 })

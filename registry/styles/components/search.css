@@ -266,10 +266,9 @@
   box-sizing: border-box;
 }
 .fiori-search-item__icon {
+  /* UI5: 1.25rem wide, 1rem high, 0.375rem padding, glyph centered. The glyph keeps Icon's 1rem; padding makes up the rest. */
   box-sizing: content-box;
-  width: 1.25rem;
-  height: 1rem;
-  padding: 0.375rem;
+  padding: 0.375rem 0.5rem;
   color: var(--sapContent_IconColor);
 }
 .fiori-search-item__titles {

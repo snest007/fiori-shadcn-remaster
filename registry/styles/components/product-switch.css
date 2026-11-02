@@ -2,6 +2,7 @@
 .fiori-product-switch {
   display: flex;
   flex-wrap: wrap;
+  box-sizing: content-box;
   width: 752px;
   padding: 1.25rem 0.75rem;
   font-family: var(--sapFontFamily);
@@ -61,8 +62,6 @@
 }
 .fiori-product-switch-item__icon {
   box-sizing: border-box;
-  width: 3rem;
-  height: 3rem;
   margin-bottom: 0.5rem;
   padding: 0.75rem;
   color: var(--sapContent_IconColor);
@@ -105,6 +104,7 @@
   .fiori-product-switch,
   .fiori-product-switch[data-columns] {
     flex-direction: column;
+    box-sizing: border-box;
     width: 100%;
     padding: 0;
   }

@@ -1,0 +1,257 @@
+/* NotificationList (ui5-notification-list). The list shell reuses .fiori-list__*; items keep UI5's host + root split. */
+.fiori-notification-list {
+  display: block;
+  -webkit-tap-highlight-color: transparent;
+}
+.fiori-nli {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-height: var(--fiori-list-item-base-height);
+  margin: var(--fiori-x-notification-item-margin);
+  background: var(--fiori-x-listitem-background-color);
+  border-left: var(--fiori-x-notification-item-border-top-left-right);
+  border-right: var(--fiori-x-notification-item-border-top-left-right);
+  border-top: var(--fiori-x-notification-item-border-top-left-right);
+  border-bottom: var(--fiori-x-notification-item-border-bottom);
+  border-radius: var(--fiori-x-notification-item-border-radius);
+  list-style: none;
+  cursor: pointer;
+  outline: none;
+}
+.fiori-nli__root {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--fiori-x-notification-item-border-radius);
+  cursor: pointer;
+}
+.fiori-nli__root:hover {
+  background-color: var(--fiori-x-notification-item-background-color-hover);
+}
+.fiori-nli:active:focus > .fiori-nli__root {
+  background-color: var(--fiori-x-notification-item-background-color-active);
+  border: var(--fiori-x-notification-item-border-active);
+}
+/* UI5 also rings a mouse-focused item on desktop (:host([desktop]) …:focus). */
+.fiori-nli:focus > .fiori-nli__root::after {
+  content: "";
+  position: absolute;
+  inset: var(--fiori-x-notification-item-focus-offset);
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  border-radius: var(--fiori-x-notification-item-border-radius);
+  pointer-events: none;
+}
+.fiori-nli__busy {
+  display: block;
+  width: 100%;
+  border-radius: var(--fiori-x-notification-item-border-radius);
+}
+.fiori-nli__wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: row-reverse;
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline: var(--fiori-x-notification-item-root-padding-inline);
+  padding-block: 1rem;
+}
+.fiori-nli__content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding-inline: var(--fiori-x-notification-item-content-padding);
+  font-family: var(--sapFontFamily);
+}
+.fiori-nli__content[data-importance] {
+  margin-bottom: 2rem;
+}
+.fiori-nli__importance {
+  position: absolute;
+  bottom: 1rem;
+  width: fit-content;
+}
+.fiori-nli__title-wrapper {
+  display: flex;
+  flex-direction: row;
+}
+.fiori-nli__state {
+  box-sizing: content-box;
+  width: 1rem;
+  min-width: 1rem;
+  height: 1rem;
+  min-height: 1rem;
+  padding-inline-end: var(--fiori-x-notification-item-state-icon-padding);
+}
+.fiori-nli__state[data-state="negative"] {
+  color: var(--sapNegativeElementColor);
+}
+.fiori-nli__state[data-state="critical"] {
+  color: var(--sapCriticalElementColor);
+}
+.fiori-nli__state[data-state="positive"] {
+  color: var(--sapPositiveElementColor);
+}
+.fiori-nli__state[data-state="information"] {
+  color: var(--sapInformativeElementColor);
+}
+.fiori-nli__title {
+  display: flex;
+  box-sizing: border-box;
+  margin-bottom: var(--fiori-x-notification-item-title-margin-bottom);
+  color: var(--sapGroup_TitleTextColor);
+  font-size: var(--sapFontHeader6Size);
+  font-weight: 700;
+}
+.fiori-nli[data-read] .fiori-nli__title {
+  font-weight: 400;
+}
+.fiori-nli[data-buttons="1"] .fiori-nli__title {
+  padding-inline-end: var(--fiori-x-notification-item-title-padding-end-one-button);
+}
+.fiori-nli[data-buttons="2"] .fiori-nli__title {
+  padding-inline-end: var(--fiori-x-notification-item-title-padding-end-two-buttons);
+}
+.fiori-nli__description {
+  display: flex;
+  box-sizing: border-box;
+  margin-top: var(--fiori-x-notification-item-description-margin-top);
+  color: var(--sapTextColor);
+  font-size: var(--sapFontSize);
+}
+.fiori-nli:not([data-wrapping="normal"]) :is(.fiori-nli__title, .fiori-nli__description) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.fiori-nli[data-show-more-pressed] :is(.fiori-nli__title, .fiori-nli__description) {
+  -webkit-line-clamp: unset;
+}
+.fiori-nli__footer {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  margin-top: var(--fiori-x-notification-item-footer-margin-top);
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSize);
+}
+.fiori-nli__footnotes {
+  display: flex;
+  min-width: 0;
+}
+/* Footnotes are ui5-labels in UI5, whose text wrapper has 0.075rem end padding. */
+.fiori-nli__footnote {
+  overflow: hidden;
+  padding-inline-end: 0.075rem;
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSize);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fiori-nli__divider {
+  position: relative;
+  align-items: center;
+  margin-inline: 0.5rem;
+}
+.fiori-nli__more {
+  margin-inline-start: 1rem;
+}
+.fiori-nli__actions {
+  position: absolute;
+  top: 0.5rem;
+  inset-inline-end: 0.5rem;
+}
+.fiori-nli__actions {
+  display: flex;
+}
+.fiori-nli__menu-btn {
+  margin-inline-end: 0.125rem;
+}
+
+/* Group (ui5-li-notification-group). */
+.fiori-nli-group {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  min-height: var(--fiori-list-item-base-height);
+  background: var(--fiori-x-listitem-background-color);
+  list-style: none;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.fiori-nli-group__wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+.fiori-nli-group__header {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 2.75rem;
+  margin-bottom: var(--fiori-x-notification-group-header-margin-expanded);
+  padding-inline: var(--fiori-x-notification-group-header-padding);
+  background: var(--sapList_GroupHeaderBackground);
+  border-bottom: var(--fiori-x-notification-group-header-border-bottom-width) solid var(--sapList_GroupHeaderBorderColor);
+  cursor: pointer;
+}
+.fiori-nli-group[data-collapsed] .fiori-nli-group__header {
+  margin-bottom: var(--fiori-x-notification-group-header-margin);
+}
+.fiori-nli-group:focus > .fiori-nli-group__wrapper > .fiori-nli-group__header::before {
+  content: "";
+  position: absolute;
+  inset: var(--fiori-x-notification-group-header-margin) 0;
+  height: 2.75rem;
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.fiori-nli-group__toggle {
+  min-width: 1rem;
+  min-height: 1rem;
+  margin-inline: 0.5rem;
+  color: var(--sapContent_IconColor);
+}
+.fiori-nli-group__title {
+  margin-inline-start: 0.75rem;
+  overflow: hidden;
+  color: var(--sapGroup_TitleTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontHeader5Size);
+  font-weight: 700;
+  line-height: 2rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fiori-nli-group[data-read] .fiori-nli-group__title {
+  font-weight: 400;
+}
+.fiori-nli-group__divider {
+  flex: 1;
+}
+.fiori-nli-group__busy {
+  display: block;
+  width: 100%;
+}
+.fiori-nli-group[data-collapsed] .fiori-nli-group__busy {
+  display: none;
+}
+.fiori-nli-group__items {
+  display: flow-root;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fiori-nli-group[data-collapsed] .fiori-nli-group__items {
+  display: none;
+}

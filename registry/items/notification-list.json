@@ -1,0 +1,6 @@
+{
+  "title": "Notification List",
+  "dependencies": [],
+  "registryDependencies": ["@fiori/icons", "@fiori/busy-indicator", "@fiori/button", "@fiori/link", "@fiori/list", "@fiori/menu", "@fiori/tag"],
+  "description": "Fiori notifications with state icons, read/unread, importance, actions menu, close button, More/Less and collapsible groups (ui5-notification-list)."
+}

@@ -132,7 +132,7 @@ function ProductSwitchItem({ titleText, subtitleText, icon, image, targetSrc, ta
   }
   const body = (
     <>
-      {image ? <span className="fiori-product-switch-item__image">{image}</span> : icon && <Icon icon={icon} className="fiori-product-switch-item__icon" />}
+      {image ? <span className="fiori-product-switch-item__image">{image}</span> : icon && <Icon icon={icon} className="fiori-product-switch-item__icon size-12" />}
       <span className="fiori-product-switch-item__text">
         {titleText && <span className="fiori-product-switch-item__title">{titleText}</span>}
         {subtitleText && <span className="fiori-product-switch-item__subtitle">{subtitleText}</span>}
