@@ -1,0 +1,205 @@
+/* Slider / RangeSlider (ui5-slider, ui5-range-slider, ui5-slider-scale, ui5-slider-handle, ui5-slider-tooltip). */
+.fiori-slider {
+  display: inline-block;
+  vertical-align: middle;
+  width: 100%;
+  height: var(--fiori-slider-height, 2.75rem);
+  box-sizing: border-box;
+  font-family: var(--sapFontFamily);
+}
+.fiori-slider[data-labels] {
+  height: 3.75rem;
+  align-items: flex-start;
+}
+.fiori-slider[data-disabled] {
+  opacity: var(--fiori-slider-disabled-opacity);
+  cursor: default;
+  pointer-events: none;
+}
+.fiori-slider__root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: var(--fiori-slider-root-side-padding);
+  box-sizing: border-box;
+  min-width: var(--fiori-slider-inner-min-width);
+  touch-action: none;
+}
+
+/* Scale (host of ui5-slider-scale) and its track (.ui5-slider-scale-root) */
+.fiori-slider__scale {
+  height: 2rem;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  user-select: none;
+  cursor: pointer;
+}
+.fiori-slider__track {
+  height: 0.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  box-sizing: var(--fiori-slider-scale-root-box-sizing);
+  border-radius: 0.25rem;
+  width: 100%;
+  position: relative;
+  background: var(--fiori-slider-scale-background);
+  border: var(--fiori-slider-scale-border);
+}
+.fiori-slider__track::before,
+.fiori-slider__track::after {
+  content: "";
+  position: absolute;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  box-sizing: border-box;
+  top: 50%;
+  transform: translateY(-50%);
+  display: var(--fiori-slider-scale-dots-display);
+}
+.fiori-slider__track::before {
+  background-color: var(--sapSlider_Selected_Background);
+  border: solid 0.0625rem var(--sapContent_Selected_MeasureIndicatorColor);
+  inset-inline-start: var(--fiori-slider-scale-dots-distance);
+}
+.fiori-slider__track::after {
+  background-color: var(--sapContent_MeasureIndicatorColor);
+  border: solid 0.0625rem var(--sapContent_MeasureIndicatorColor);
+  inset-inline-end: var(--fiori-slider-scale-dots-distance);
+}
+.fiori-slider__tickmarks {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.fiori-slider__tickmark {
+  position: absolute;
+  height: var(--fiori-slider-scale-tickmark-height);
+  border-left: 0.0625rem solid var(--sapField_BorderColor);
+}
+.fiori-slider__tickmark[data-in-range] {
+  border-left-color: var(--sapSlider_Selected_BorderColor);
+}
+.fiori-slider__tickmark-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translate(-50%);
+  margin-top: 0.875rem;
+  font-size: var(--sapFontSmallSize);
+  color: var(--sapContent_LabelColor);
+  white-space: nowrap;
+}
+.fiori-slider__progress {
+  position: absolute;
+  top: var(--fiori-slider-scale-progress-top);
+  height: var(--fiori-slider-scale-progress-height);
+  background-color: var(--fiori-slider-scale-progress-background);
+  border: var(--fiori-slider-scale-progress-border);
+  border-left: none;
+  box-sizing: border-box;
+  z-index: 4;
+  border-radius: var(--fiori-slider-scale-progress-border-radius);
+  outline: none;
+}
+/* RangeSlider: focus ring around the selected range (drawn by ::after as in UI5). */
+:is(.fiori-slider__progress:focus-visible, .fiori-slider__progress[data-pressed])::after {
+  content: "";
+  display: var(--fiori-range-slider-progress-focus-display);
+  position: absolute;
+  box-sizing: border-box;
+  border: var(--fiori-range-slider-progress-focus-border);
+  border-radius: var(--fiori-range-slider-progress-focus-border-radius, 0.5rem);
+  top: var(--fiori-range-slider-progress-focus-top);
+  left: var(--fiori-range-slider-progress-focus-left);
+  right: var(--fiori-range-slider-progress-focus-right);
+  padding: var(--fiori-range-slider-progress-focus-padding);
+  height: var(--fiori-range-slider-progress-focus-height);
+}
+:is(.fiori-slider__progress:focus-visible, .fiori-slider__progress[data-pressed])::before {
+  content: "";
+  display: var(--fiori-range-slider-legacy-progress-focus-display);
+  position: absolute;
+  box-sizing: border-box;
+  width: var(--fiori-range-slider-focus-outline-width);
+  border: var(--fiori-slider-progress-outline);
+  border-radius: var(--fiori-range-slider-focus-outline-radius);
+  top: var(--fiori-slider-progress-outline-offset);
+  height: var(--fiori-slider-outer-height);
+  left: var(--fiori-slider-progress-outline-offset-left);
+}
+
+/* Handle (ui5-slider-handle) */
+.fiori-slider__handle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: var(--fiori-slider-handle-box-sizing);
+  width: var(--fiori-slider-handle-width);
+  height: var(--fiori-slider-handle-height);
+  margin-inline-start: calc(var(--fiori-slider-handle-width) / -2);
+  background: var(--fiori-slider-handle-background);
+  border: var(--fiori-slider-handle-border);
+  border-radius: var(--fiori-slider-handle-border-radius);
+  outline: none;
+  cursor: pointer;
+}
+.fiori-slider__handle:hover {
+  background: var(--fiori-slider-handle-hover-background);
+  border: var(--fiori-slider-handle-hover-border);
+}
+.fiori-slider__handle:focus-visible {
+  outline: var(--fiori-slider-handle-outline);
+  outline-offset: var(--fiori-slider-handle-outline-offset);
+  z-index: 6;
+}
+.fiori-slider__handle:is(:focus, [data-active], :active) {
+  background-color: var(--fiori-slider-handle-background-focus);
+  border: var(--fiori-slider-handle-focus-border);
+}
+.fiori-slider__handle-icon {
+  display: var(--fiori-slider-handle-icon-display);
+  color: var(--sapContent_Selected_ForegroundColor);
+  width: var(--fiori-slider-handle-icon-size);
+  height: var(--fiori-slider-handle-icon-size);
+  pointer-events: none;
+}
+.fiori-slider__handle:is(:focus, [data-active], :active) .fiori-slider__handle-icon {
+  display: none;
+}
+
+/* Tooltip (ui5-slider-tooltip): shown while the slider is hovered or focused. */
+.fiori-slider__tooltip {
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  height: 1rem;
+  padding: 0 0.5rem;
+  overflow: hidden;
+  white-space: nowrap;
+  background: var(--sapBackgroundColor);
+  box-shadow: var(--sapContent_Shadow1);
+  border-radius: 0.0625rem;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSmallSize);
+  color: var(--sapTextColor);
+  pointer-events: none;
+}
+.fiori-slider:is(:hover, :focus-within) .fiori-slider__tooltip {
+  display: flex;
+}

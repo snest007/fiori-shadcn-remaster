@@ -1,0 +1,127 @@
+/* ProgressIndicator (ui5-progress-indicator). Root = host; __root = .ui5-progress-indicator-root. */
+.fiori-progress-indicator {
+  display: inline-block;
+  min-width: 4rem;
+  width: 100%;
+  height: var(--fiori-progress-indicator-host-height);
+  overflow: hidden;
+  box-sizing: var(--fiori-progress-indicator-host-box-sizing);
+  padding: var(--fiori-progress-indicator-padding);
+  padding-inline-end: var(--fiori-progress-indicator-padding-end);
+  vertical-align: top;
+}
+.fiori-progress-indicator[data-hide-value] {
+  padding-top: var(--fiori-progress-indicator-padding-novalue);
+  padding-bottom: var(--fiori-progress-indicator-padding-novalue);
+}
+.fiori-progress-indicator__root {
+  display: flex;
+  align-items: center;
+  background: var(--fiori-progress-indicator-background-none);
+  border-radius: var(--fiori-progress-indicator-root-border-radius);
+  overflow: var(--fiori-progress-indicator-root-overflow);
+  min-height: var(--fiori-progress-indicator-root-min-height);
+  height: var(--fiori-progress-indicator-root-height);
+  width: 100%;
+  font-size: var(--sapProgress_FontSize);
+  font-family: var(--sapFontFamily);
+  line-height: normal;
+  position: var(--fiori-progress-indicator-root-position);
+  box-sizing: border-box;
+}
+.fiori-progress-indicator__bar {
+  background: var(--fiori-progress-indicator-value-state-none);
+  justify-content: flex-end;
+  height: var(--fiori-progress-indicator-bar-height);
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  color: var(--fiori-progress-indicator-bar-color);
+  box-sizing: border-box;
+  border: var(--fiori-progress-indicator-bar-border-max);
+  border-radius: var(--fiori-progress-indicator-bar-border-radius);
+  z-index: 1;
+}
+.fiori-progress-indicator__root[data-min] .fiori-progress-indicator__bar,
+.fiori-progress-indicator__root[data-max] .fiori-progress-indicator__remaining {
+  border: none;
+}
+.fiori-progress-indicator__root[data-max] .fiori-progress-indicator__bar {
+  border-radius: 0.5rem;
+}
+.fiori-progress-indicator__root[data-min] .fiori-progress-indicator__remaining {
+  border-inline-start: var(--fiori-progress-indicator-border);
+  border-radius: 0.5rem;
+}
+.fiori-progress-indicator__remaining {
+  justify-content: flex-start;
+  width: var(--fiori-progress-indicator-remaining-bar-width);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  flex-grow: 1;
+  flex-basis: 0;
+  border: var(--fiori-progress-indicator-border);
+  border-inline-start: none;
+  border-radius: var(--fiori-progress-indicator-remaining-bar-border-radius);
+  box-sizing: border-box;
+  color: var(--fiori-progress-indicator-color);
+  overflow: var(--fiori-progress-indicator-remaining-bar-overflow);
+  position: var(--fiori-progress-indicator-remaining-bar-position);
+}
+.fiori-progress-indicator__value {
+  margin: var(--fiori-progress-indicator-value-margin);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  position: var(--fiori-progress-indicator-value-position);
+  top: var(--fiori-progress-indicator-value-top-position);
+  inset-inline-start: var(--fiori-progress-indicator-value-left-position);
+}
+.fiori-progress-indicator__icon {
+  margin-inline-start: 0.375rem;
+  width: var(--fiori-progress-indicator-icon-size);
+  height: var(--fiori-progress-indicator-icon-size);
+  display: var(--fiori-progress-indicator-icon-visibility);
+  position: var(--fiori-progress-indicator-icon-position);
+  inset-inline-end: var(--fiori-progress-indicator-icon-right-position);
+}
+.fiori-progress-indicator[data-value-state="negative"] .fiori-progress-indicator__icon { color: var(--fiori-progress-indicator-value-state-error-icon-color); }
+.fiori-progress-indicator[data-value-state="critical"] .fiori-progress-indicator__icon { color: var(--fiori-progress-indicator-value-state-warning-icon-color); }
+.fiori-progress-indicator[data-value-state="positive"] .fiori-progress-indicator__icon { color: var(--fiori-progress-indicator-value-state-success-icon-color); }
+.fiori-progress-indicator[data-value-state="information"] .fiori-progress-indicator__icon { color: var(--fiori-progress-indicator-value-state-information-icon-color); }
+.fiori-progress-indicator[data-value-state="negative"] .fiori-progress-indicator__bar { background: var(--fiori-progress-indicator-value-state-error); }
+.fiori-progress-indicator[data-value-state="critical"] .fiori-progress-indicator__bar { background: var(--fiori-progress-indicator-value-state-warning); }
+.fiori-progress-indicator[data-value-state="positive"] .fiori-progress-indicator__bar { background: var(--fiori-progress-indicator-value-state-success); }
+.fiori-progress-indicator[data-value-state="information"] .fiori-progress-indicator__bar { background: var(--fiori-progress-indicator-value-state-information); }
+.fiori-progress-indicator[data-value-state="negative"] .fiori-progress-indicator__root { background: var(--fiori-progress-indicator-background-error); }
+.fiori-progress-indicator[data-value-state="critical"] .fiori-progress-indicator__root { background: var(--fiori-progress-indicator-background-warning); }
+.fiori-progress-indicator[data-value-state="positive"] .fiori-progress-indicator__root { background: var(--fiori-progress-indicator-background-success); }
+.fiori-progress-indicator[data-value-state="information"] .fiori-progress-indicator__root { background: var(--fiori-progress-indicator-background-information); }
+.fiori-progress-indicator[data-value-state="negative"] .fiori-progress-indicator__remaining { border-color: var(--fiori-progress-indicator-border-color-error); }
+.fiori-progress-indicator[data-value-state="critical"] .fiori-progress-indicator__remaining { border-color: var(--fiori-progress-indicator-border-color-warning); }
+.fiori-progress-indicator[data-value-state="positive"] .fiori-progress-indicator__remaining { border-color: var(--fiori-progress-indicator-border-color-success); }
+.fiori-progress-indicator[data-value-state="information"] .fiori-progress-indicator__remaining { border-color: var(--fiori-progress-indicator-border-color-information); }
+/* Side dots at both ends of the track. */
+.fiori-progress-indicator__remaining::before,
+.fiori-progress-indicator__remaining::after {
+  content: "";
+  display: var(--fiori-progress-indicator-side-points-visibility);
+  width: 0.25rem;
+  height: 0.25rem;
+  position: absolute;
+  border-radius: 50%;
+  background: var(--fiori-progress-indicator-value-state-none);
+}
+.fiori-progress-indicator__remaining::before { left: 0.0625rem; }
+.fiori-progress-indicator__remaining::after { right: 0.0625rem; }
+.fiori-progress-indicator[data-value-state="negative"] .fiori-progress-indicator__remaining::before,
+.fiori-progress-indicator[data-value-state="negative"] .fiori-progress-indicator__remaining::after { background: var(--sapProgress_Value_NegativeBackground); }
+.fiori-progress-indicator[data-value-state="critical"] .fiori-progress-indicator__remaining::before,
+.fiori-progress-indicator[data-value-state="critical"] .fiori-progress-indicator__remaining::after { background: var(--sapProgress_Value_CriticalBackground); }
+.fiori-progress-indicator[data-value-state="positive"] .fiori-progress-indicator__remaining::before,
+.fiori-progress-indicator[data-value-state="positive"] .fiori-progress-indicator__remaining::after { background: var(--sapProgress_Value_PositiveBackground); }
+.fiori-progress-indicator[data-value-state="information"] .fiori-progress-indicator__remaining::before,
+.fiori-progress-indicator[data-value-state="information"] .fiori-progress-indicator__remaining::after { background: var(--sapProgress_Value_InformationBackground); }

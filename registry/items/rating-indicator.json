@@ -1,0 +1,5 @@
+{
+  "title": "RatingIndicator",
+  "registryDependencies": ["@fiori/icons"],
+  "description": "Fiori rating indicator: stars with half values, sizes S/M/L, read-only/display-only, UI5 keyboard model (ui5-rating-indicator)."
+}

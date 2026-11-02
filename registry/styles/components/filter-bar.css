@@ -1,0 +1,71 @@
+/* FilterBar: composite after the Fiori design guidelines (no UI5 Web Component). */
+.fiori-filter-bar {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem 0.75rem;
+  background: var(--sapObjectHeader_Background);
+  color: var(--sapTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+}
+.fiori-filter-bar__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: var(--fiori-button-base-height);
+}
+.fiori-filter-bar__title {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 0;
+  min-height: var(--fiori-button-base-height);
+}
+.fiori-filter-bar__summary {
+  color: var(--sapTextColor);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+/* Search, filter fields, then Go / Adapt Filters in one wrapping row of equal-width columns, the buttons
+   aligned to the fields' bottom edge at the end of the row, as in the guideline's "Filter Bar Expanded". */
+.fiori-filter-bar__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 1rem;
+}
+.fiori-filter-bar__content[hidden] {
+  display: none;
+}
+.fiori-filter-bar__fields {
+  display: contents;
+}
+.fiori-filter-bar__search,
+.fiori-filter-bar__item {
+  flex: 0 1 var(--fiori-x-filter-min-width);
+  min-width: 0;
+}
+.fiori-filter-bar__item {
+  display: flex;
+  flex-basis: var(--fiori-x-filter-min-width);
+  flex-direction: column;
+  min-width: 0;
+}
+.fiori-filter-bar__label {
+  padding-top: 0.25rem;
+}
+.fiori-filter-bar__item > :not(.fiori-filter-bar__label) {
+  width: 100%;
+}
+.fiori-filter-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block: var(--fiori-input-margin-top-bottom);
+  margin-inline-start: auto;
+}
