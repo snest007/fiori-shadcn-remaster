@@ -1,0 +1,5 @@
+{
+  "title": "Flexible Column Layout",
+  "description": "Fiori list-detail-detail layout with up to three columns, resizable separators, responsive column count and the useFlexibleColumnLayout navigation helper.",
+  "registryDependencies": ["@fiori/icons", "@fiori/button"]
+}
