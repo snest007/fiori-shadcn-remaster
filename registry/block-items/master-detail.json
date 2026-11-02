@@ -1,0 +1,5 @@
+{
+  "title": "Master-Detail (Flexible Column Layout)",
+  "description": "Fiori Flexible Column Layout app: searchable product list, product object view and sales order line item, navigated with useFlexibleColumnLayout.",
+  "registryDependencies": ["@fiori/icons", "@fiori/flexible-column-layout", "@fiori/bar", "@fiori/button", "@fiori/input", "@fiori/list", "@fiori/tag"]
+}
