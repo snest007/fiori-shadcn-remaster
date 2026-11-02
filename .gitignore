@@ -9,3 +9,5 @@ tests/__screenshots__/*-diff.png
 .claude/worktrees
 registry.json
 registry/styles/fiori-components.css
+sapui5/dist/
+sapui5/.ui5/

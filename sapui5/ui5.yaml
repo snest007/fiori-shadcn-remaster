@@ -1,0 +1,18 @@
+specVersion: "4.0"
+metadata:
+  name: shadcn-fiori.sapui5-reference
+type: application
+resources:
+  configuration:
+    paths:
+      webapp: webapp
+framework:
+  name: OpenUI5
+  version: "1.154.0"
+  libraries:
+    - name: sap.ui.core
+    - name: sap.m
+    - name: sap.ui.mdc
+    - name: sap.ui.fl
+    - name: sap.ui.layout
+    - name: themelib_sap_horizon

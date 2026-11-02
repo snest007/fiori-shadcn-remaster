@@ -1,0 +1,14 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "shadcn-fiori.sapui5-reference",
+    "type": "application",
+    "applicationVersion": { "version": "0.1.0" }
+  },
+  "sap.ui5": {
+    "dependencies": {
+      "minUI5Version": "1.154.0",
+      "libs": { "sap.m": {}, "sap.ui.mdc": {} }
+    }
+  }
+}

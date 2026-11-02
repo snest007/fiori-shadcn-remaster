@@ -55,7 +55,7 @@ These controls don't exist in UI5 Web Components; the reference is **OpenUI5 1.1
 `sap.ui.mdc` FilterBar / Adapt Filters). F0 builds a second pixel-diff harness against real OpenUI5. Run in order;
 F1 and F2 can run in parallel after F0.
 
-- [ ] [F0 SAPUI5 reference harness](tasks/F0-sapui5-reference-harness.md) — M
+- [x] [F0 SAPUI5 reference harness](tasks/F0-sapui5-reference-harness.md) — M
 - [ ] [F1 VariantManagement](tasks/F1-variant-management.md) — L
 - [ ] [F2 Adapt Filters dialog](tasks/F2-adapt-filters.md) — L
 - [ ] [F3 Variants wired to FilterBar + List Report](tasks/F3-variants-integration.md) — M
