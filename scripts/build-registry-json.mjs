@@ -25,6 +25,26 @@ const components = readdirSync("registry/items")
   .sort()
   .map((name) => ui(name, JSON.parse(readFileSync(`registry/items/${name}.json`, "utf8"))))
 
+// Blocks (floorplans / page templates): registry/blocks/<name>.tsx + registry/block-items/<name>.json
+// ({ title, description, dependencies?, registryDependencies?, files? }). Installed into components/.
+const blocks = readdirSync("registry/block-items")
+  .filter((f) => f.endsWith(".json"))
+  .map((f) => f.replace(/\.json$/, ""))
+  .sort()
+  .map((name) => {
+    const extra = JSON.parse(readFileSync(`registry/block-items/${name}.json`, "utf8"))
+    return {
+      name,
+      type: "registry:block",
+      title: extra.title,
+      description: extra.description,
+      registryDependencies: ["@fiori/fiori-theme", ...(extra.registryDependencies ?? [])],
+      dependencies: extra.dependencies ?? [],
+      files: [{ path: `registry/blocks/${name}.tsx`, type: "registry:block" }, ...(extra.files ?? [])],
+      categories: extra.categories ?? ["floorplan"],
+    }
+  })
+
 const registry = {
   $schema: "https://ui.shadcn.com/schema/registry.json",
   name: "fiori",
@@ -75,6 +95,7 @@ const registry = {
       ],
     },
     ...components,
+    ...blocks,
   ],
 }
 

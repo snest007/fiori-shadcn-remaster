@@ -15,6 +15,7 @@
     "paths": {
       "@/components/ui/*": ["registry/ui/*"],
       "@/lib/*": ["registry/lib/*"],
+      "@/components/blocks/*": ["registry/blocks/*"],
       "@/docs/*": ["docs/src/*"]
     }
   },

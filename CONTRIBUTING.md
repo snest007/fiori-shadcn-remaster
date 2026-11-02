@@ -56,3 +56,13 @@ or the dark/HC themes fall back to Morning Horizon parameters on the UI5 side.
 Generated files (`registry.json`, `registry/styles/fiori-components.css`, `public/r/`) are git-ignored; scripts rebuild them.
 Commit only your component's own files. If you truly must change a shared file (`fiori-types`, `input.tsx`, a script),
 keep the change minimal and say so in your commit message.
+
+## Adding a block (page template / floorplan)
+
+| File | Purpose |
+|---|---|
+| `registry/blocks/<name>.tsx` | Default-exports a full-page React component built only from `@/components/ui/*` (no fixed data fetching; sample data inline) |
+| `registry/block-items/<name>.json` | `{ title, description, registryDependencies: ["@fiori/…"] }` |
+| `tests/<name>.spec.ts` | Behaviour tests against `block.html?name=<name>` |
+
+Preview at `http://localhost:5173/block.html?name=<name>`. Blocks are compared to SAP's guideline images by screenshot, not pixel-diffed.

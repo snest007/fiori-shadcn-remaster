@@ -13,13 +13,14 @@ export default defineConfig({
     alias: [
       { find: /^@\/components\/ui\//, replacement: r("registry/ui/") },
       { find: /^@\/lib\//, replacement: r("registry/lib/") },
+      { find: /^@\/components\/blocks\//, replacement: r("registry/blocks/") },
       { find: /^@\/docs\//, replacement: r("docs/src/") },
     ],
   },
   build: {
     outDir: r("dist"),
     emptyOutDir: true,
-    rollupOptions: { input: { main: r("docs/index.html"), ui5: r("docs/ui5.html") } },
+    rollupOptions: { input: { main: r("docs/index.html"), ui5: r("docs/ui5.html"), block: r("docs/block.html") } },
   },
   server: { port: 5173 },
 })
