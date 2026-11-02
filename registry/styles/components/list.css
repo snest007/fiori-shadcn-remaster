@@ -1,0 +1,462 @@
+/* List (ui5-list), ListItemStandard (ui5-li), ListItemCustom (ui5-li-custom), ListItemGroup(+Header).
+   UI5's item host and its .ui5-li-root are merged into one <li class="fiori-li">; host rules and
+   root rules are both applied to it. Layout flags mirror UI5 host attributes as data-*. */
+.fiori-list {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+.fiori-list[data-indent] .fiori-list__container {
+  padding: 2rem;
+}
+.fiori-list__container,
+.fiori-list__busy {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+.fiori-list__busy {
+  display: block;
+}
+.fiori-list__scroll {
+  overflow: auto;
+  width: 100%;
+  height: 100%;
+}
+.fiori-list__ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+.fiori-list__ul:focus {
+  outline: none;
+}
+.fiori-list__focusarea {
+  position: fixed;
+  outline: none;
+}
+.fiori-list__marker {
+  display: none;
+}
+.fiori-list[data-growing="scroll"] .fiori-list__marker {
+  display: inline-block;
+}
+.fiori-list__header {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  font-size: var(--sapFontHeader4Size);
+  font-family: var(--sapFontFamily);
+  color: var(--sapGroup_TitleTextColor);
+  height: 3rem;
+  line-height: 3rem;
+  padding: 0 1rem;
+  background-color: var(--sapGroup_TitleBackground);
+  border-bottom: 1px solid var(--sapGroup_TitleBorderColor);
+}
+.fiori-list[data-sticky-header] .fiori-list__header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.fiori-list__footer {
+  height: 2rem;
+  box-sizing: border-box;
+  -webkit-text-size-adjust: none;
+  font-size: var(--sapFontSize);
+  font-family: var(--sapFontFamily);
+  line-height: 2rem;
+  background-color: var(--sapList_FooterBackground);
+  color: var(--fiori-list-footer-text-color);
+  padding: 0 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fiori-list__nodata {
+  box-sizing: content-box;
+  list-style-type: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sapTextColor);
+  background-color: var(--sapList_Background);
+  border-bottom: 1px solid var(--sapList_BorderColor);
+  padding: 0 1rem;
+  outline: none;
+  min-height: var(--fiori-list-no-data-height);
+  font-size: var(--fiori-list-no-data-font-size);
+  font-family: var(--sapFontFamily);
+  position: relative;
+}
+.fiori-list[data-separators="none"] .fiori-list__nodata {
+  border-bottom: 0;
+}
+.fiori-list__nodata:focus-visible::after {
+  content: "";
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  position: absolute;
+  inset: 0.125rem;
+  pointer-events: none;
+}
+.fiori-list__nodata-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  margin: var(--fiori-list-item-content-vertical-offset) 0;
+}
+
+/* Growing "More" button */
+.fiori-list__growing {
+  display: flex;
+  align-items: center;
+  padding: var(--fiori-load-more-padding);
+  border-top: 1px solid var(--sapList_BorderColor);
+  border-bottom: var(--fiori-load-more-border-bottom);
+  box-sizing: border-box;
+  cursor: pointer;
+  outline: none;
+}
+.fiori-list__growing-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  width: 100%;
+  color: var(--sapButton_TextColor);
+  background-color: var(--sapList_Background);
+  border: var(--fiori-load-more-border);
+  border-radius: var(--fiori-load-more-border-radius);
+  box-sizing: border-box;
+  outline: none;
+}
+.fiori-list__growing-inner:focus-visible {
+  outline: var(--fiori-load-more-outline-width) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: -0.125rem;
+  border-color: transparent;
+}
+.fiori-list__growing-inner:hover {
+  background-color: var(--sapList_Hover_Background);
+}
+.fiori-list__growing-inner:active,
+.fiori-list__growing-inner[data-active] {
+  background-color: var(--sapList_Active_Background);
+  border-color: var(--sapList_Active_Background);
+}
+.fiori-list__growing-inner:active > *,
+.fiori-list__growing-inner[data-active] > * {
+  color: var(--sapList_Active_TextColor);
+}
+/* UI5 sizes the text with --_ui5_load_more_text_height / _font_size, which no Horizon theme defines,
+   so the height is auto and the font size inherits. */
+.fiori-list__growing-text {
+  text-align: center;
+  font-family: var(--sapFontFamily);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+  padding: 0.875rem 1rem 1rem;
+  font-size: inherit;
+  font-weight: 700;
+}
+.fiori-list__growing-busy + .fiori-list__growing-text {
+  padding-left: 0.5rem;
+}
+
+/* Item (host + .ui5-li-root) */
+.fiori-li {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  height: var(--fiori-list-item-base-height);
+  padding: var(--fiori-list-item-base-padding);
+  background-color: var(--fiori-x-listitem-background-color);
+  border-bottom: 0.0625rem solid transparent;
+  outline: none;
+  list-style: none;
+}
+.fiori-li[data-disabled] {
+  opacity: var(--fiori-x-listitembase-disabled-opacity);
+  pointer-events: none;
+}
+.fiori-li[data-actionable] {
+  cursor: pointer;
+}
+.fiori-li[data-has-border] {
+  border-bottom: var(--fiori-x-listitem-border-bottom);
+}
+.fiori-li[data-selected] {
+  background-color: var(--sapList_SelectionBackgroundColor);
+  border-bottom: var(--fiori-x-listitem-selected-border-bottom);
+}
+.fiori-li[data-selected] .fiori-li__additional-text {
+  text-shadow: var(--sapContent_TextShadow);
+}
+.fiori-li[data-actionable]:not([data-active]):not(:active):not([data-selected]):hover {
+  background-color: var(--sapList_Hover_Background);
+}
+.fiori-li[data-actionable]:not([data-active]):not(:active):not([data-selected]):hover .fiori-li__additional-text {
+  text-shadow: var(--sapContent_TextShadow);
+}
+.fiori-li[data-actionable][data-selected]:not([data-active]):not(:active):hover {
+  background-color: var(--sapList_Hover_SelectionBackground);
+}
+.fiori-li[data-active][data-actionable] {
+  background-color: var(--sapList_Active_Background);
+  border-bottom-color: var(--sapList_Active_Background);
+}
+.fiori-li[data-active][data-actionable] .fiori-li__icon,
+.fiori-li[data-active][data-actionable] .fiori-li__title,
+.fiori-li[data-active][data-actionable] .fiori-li__desc,
+.fiori-li[data-active][data-actionable] .fiori-li__additional-text {
+  color: var(--sapList_Active_TextColor);
+}
+.fiori-li[data-active][data-actionable] .fiori-li__additional-text {
+  text-shadow: none;
+}
+/* Focus: keyboard only (UI5 also shows it on mouse focus on desktop). */
+.fiori-li:focus-visible::after,
+[data-slot="tree-item"]:focus-visible > .fiori-li::after {
+  content: "";
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  position: absolute;
+  inset: 0.125rem;
+  pointer-events: none;
+}
+
+.fiori-li__content {
+  display: flex;
+  align-items: center;
+  flex: auto;
+  overflow: hidden;
+  max-width: 100%;
+  font-family: var(--sapFontFamily);
+  color: var(--sapList_TextColor);
+}
+.fiori-li__title {
+  color: var(--sapList_TextColor);
+  font-size: var(--fiori-list-item-title-size);
+}
+.fiori-li__text-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: auto;
+  min-width: 1px;
+  line-height: normal;
+}
+.fiori-li__description-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+.fiori-li__additional-text,
+.fiori-li__title,
+.fiori-li__desc {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fiori-li__desc {
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSize);
+}
+.fiori-li__additional-text {
+  margin: 0 0.25rem;
+  color: var(--sapNeutralTextColor);
+  font-size: var(--sapFontSize);
+  min-width: 3.75rem;
+  text-align: end;
+}
+.fiori-li__additional-text[data-state="critical"] { color: var(--sapCriticalTextColor); }
+.fiori-li__additional-text[data-state="positive"] { color: var(--sapPositiveTextColor); }
+.fiori-li__additional-text[data-state="negative"] { color: var(--sapNegativeTextColor); }
+.fiori-li__additional-text[data-state="information"] { color: var(--sapInformativeTextColor); }
+
+/* Description: two lines, 5rem tall */
+.fiori-li[data-has-title][data-description],
+.fiori-li[data-has-title][data-image] {
+  height: 5rem;
+}
+.fiori-li[data-description] {
+  padding: 1rem;
+}
+.fiori-li[data-description] .fiori-li__content {
+  height: 3rem;
+}
+.fiori-li[data-has-title][data-description] .fiori-li__title {
+  padding-bottom: 0.5rem;
+}
+.fiori-li[data-description] .fiori-li__text-wrapper {
+  justify-content: space-between;
+  padding: 0.125rem 0;
+}
+.fiori-li[data-description] .fiori-li__additional-text {
+  align-self: flex-end;
+}
+
+/* Icon (a ui5-icon: 1rem box stretched by min-width/min-height) */
+.fiori-li__icon {
+  flex-shrink: 0;
+  box-sizing: content-box;
+  width: 1rem;
+  height: 1rem;
+  min-width: var(--fiori-list-item-icon-size);
+  min-height: var(--fiori-list-item-icon-size);
+  color: var(--sapContent_NonInteractiveIconColor);
+  padding-inline-end: var(--fiori-list-item-icon-padding-inline-end);
+}
+.fiori-li[data-icon-end] .fiori-li__icon {
+  padding-inline-start: var(--fiori-list-item-icon-padding-inline-end);
+}
+.fiori-li__nav-icon {
+  color: var(--sapContent_IconColor);
+}
+
+/* Image slot: avatar or img */
+.fiori-li__image {
+  display: flex;
+}
+.fiori-li__image > img {
+  width: var(--fiori-list-item-img-size);
+  height: var(--fiori-list-item-img-size);
+  border-radius: var(--fiori-x-avatar-border-radius);
+  object-fit: contain;
+}
+.fiori-li__image > [data-slot="avatar"] {
+  min-width: var(--fiori-list-item-img-size);
+  min-height: var(--fiori-list-item-img-size);
+  margin-top: var(--fiori-list-item-img-top-margin);
+  margin-bottom: var(--fiori-list-item-img-bottom-margin);
+  margin-inline-end: var(--fiori-list-item-img-hn-margin);
+}
+.fiori-li[data-image] {
+  height: 5rem;
+}
+
+/* Highlight bar and navigated indicator */
+.fiori-li__highlight {
+  position: absolute;
+  width: 0.375rem;
+  bottom: 0;
+  left: 0;
+  top: 0;
+  border-inline-end: 0.0625rem solid var(--fiori-x-listitem-background-color);
+  box-sizing: border-box;
+}
+.fiori-li[data-highlight="negative"] > .fiori-li__highlight { background: var(--sapErrorBorderColor); }
+.fiori-li[data-highlight="critical"] > .fiori-li__highlight { background: var(--sapWarningBorderColor); }
+.fiori-li[data-highlight="positive"] > .fiori-li__highlight { background: var(--sapSuccessBorderColor); }
+.fiori-li[data-highlight="information"] > .fiori-li__highlight { background: var(--sapInformationBorderColor); }
+.fiori-li__navigated {
+  width: 0.1875rem;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: var(--sapList_SelectionBorderColor);
+}
+
+/* Detail / delete buttons and selection controls */
+.fiori-li__detailbtn,
+.fiori-li__deletebtn {
+  display: flex;
+  align-items: center;
+  margin-left: var(--fiori-list-buttons-left-space);
+}
+.fiori-li__selection {
+  flex-shrink: 0;
+}
+.fiori-li[data-description] .fiori-li__selection {
+  align-self: flex-start;
+  margin-top: var(--fiori-list-item-selection-btn-margin-top);
+}
+.fiori-li[data-pad-selection][data-mode="singleStart"],
+.fiori-li[data-pad-selection][data-mode="multiple"] {
+  padding-inline: 0 1rem;
+}
+.fiori-li[data-pad-selection][data-mode="singleEnd"] {
+  padding-inline: 1rem 0;
+}
+
+/* ListItemCustom */
+/* UI5's host is min-height:base (border-box) and its root min-height:inherit, so the host ends up
+   base + its 1px bottom border tall. */
+.fiori-li[data-custom] {
+  height: auto;
+  min-height: calc(var(--fiori-list-item-base-height) + 0.0625rem);
+  min-width: var(--fiori-custom-list-item-rb-min-width);
+}
+.fiori-li[data-custom] .fiori-radio.fiori-li__selection {
+  display: flex;
+  align-items: center;
+  min-width: var(--fiori-custom-list-item-rb-min-width);
+}
+
+/* Group */
+.fiori-li-group {
+  list-style: none;
+  background: var(--fiori-x-group-header-listitem-background-color);
+  color: var(--sapList_TableGroupHeaderTextColor);
+}
+.fiori-li-group__ul {
+  width: 100%;
+  position: relative;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+.fiori-li-group-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  height: var(--fiori-group-header-list-item-height);
+  padding: var(--fiori-list-item-base-padding);
+  padding-top: 0.5rem;
+  margin: 0;
+  background: var(--fiori-x-group-header-listitem-background-color);
+  border-bottom: 0.0625rem solid transparent;
+  color: var(--sapList_TableGroupHeaderTextColor);
+  font-size: var(--sapFontHeader6Size);
+  font-weight: 400;
+  line-height: 2rem;
+  list-style: none;
+  outline: none;
+  cursor: default;
+}
+.fiori-li-group-header[data-has-border] {
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_GroupHeaderBorderColor);
+}
+.fiori-li-group-header:focus-visible::after {
+  content: "";
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  position: absolute;
+  inset: 0.125rem;
+  pointer-events: none;
+}
+.fiori-li-group-header__content {
+  display: flex;
+  align-items: center;
+  flex: auto;
+  width: 100%;
+  overflow: hidden;
+  max-width: 100%;
+  font-family: var(--sapFontFamily);
+  color: var(--sapList_TextColor);
+}
+.fiori-li-group-header__title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-family: var(--sapFontHeaderFamily);
+}

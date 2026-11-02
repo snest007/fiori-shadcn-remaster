@@ -1,0 +1,77 @@
+/* Tree (ui5-tree) and TreeItem (ui5-tree-item / ui5-tree-item-custom). The <li role="treeitem"> is the
+   UI5 host; its row (.fiori-li, shared with List) is the .ui5-li-root; sub-nodes follow in a <ul role="group">. */
+.fiori-tree-item__wrapper {
+  display: block;
+  list-style: none;
+}
+.fiori-tree-item {
+  display: block;
+  position: relative;
+  list-style: none;
+  outline: none;
+  background-color: var(--fiori-x-listitem-background-color);
+  border-bottom: 0.0625rem solid transparent;
+}
+.fiori-tree-item[data-has-border] {
+  border-bottom: none;
+}
+.fiori-tree-item[data-selected]:not([data-has-border]) {
+  border-bottom: var(--fiori-x-listitem-selected-border-bottom);
+}
+.fiori-tree-item[data-disabled] {
+  opacity: var(--fiori-x-listitembase-disabled-opacity);
+  pointer-events: none;
+}
+.fiori-tree-item > .fiori-li {
+  padding-inline-start: 0;
+}
+.fiori-tree-item > .fiori-li:not([data-has-border]) {
+  border-bottom: none;
+}
+.fiori-tree-item > .fiori-li[data-disabled] {
+  opacity: 1;
+}
+/* Nested levels use the alternating background (no hover unless the tree is selectable). */
+[data-slot="tree"] .fiori-tree-item:not([data-level="1"]) > .fiori-li:not([data-active]):not([data-selected]) {
+  background: var(--sapList_AlternatingBackground);
+}
+[data-slot="tree"] .fiori-tree-item > .fiori-li:not([data-mode="none"]):not([data-mode="delete"]):not([data-active]):not([data-selected]):hover {
+  background: var(--sapList_Hover_Background);
+  cursor: pointer;
+}
+[data-slot="tree"] .fiori-tree-item > .fiori-li:not([data-mode="none"]):not([data-mode="delete"]):not([data-active])[data-selected]:hover {
+  background-color: var(--sapList_Hover_SelectionBackground);
+}
+.fiori-tree-item__subtree {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fiori-tree-item__custom {
+  flex: auto;
+}
+
+/* Expand / collapse toggle (a ui5-icon in a fixed box; indentation is padding on the box) */
+.fiori-tree-item__toggle-box {
+  box-sizing: content-box;
+  min-width: var(--fiori-x-tree-toggle-box-width);
+  min-height: var(--fiori-x-tree-toggle-box-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.fiori-tree-item__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+  width: var(--fiori-x-tree-toggle-box-width);
+  height: var(--fiori-x-tree-toggle-box-height);
+  color: var(--sapContent_IconColor);
+  cursor: pointer;
+}
+.fiori-tree-item__toggle-icon {
+  width: var(--fiori-x-tree-toggle-icon-size);
+  height: var(--fiori-x-tree-toggle-icon-size);
+}

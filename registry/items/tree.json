@@ -1,0 +1,5 @@
+{
+  "title": "Tree",
+  "registryDependencies": ["@fiori/icons", "@fiori/list"],
+  "description": "Fiori tree: nested items with expand/collapse (→ / ←), indentation levels and the List selection modes."
+}
