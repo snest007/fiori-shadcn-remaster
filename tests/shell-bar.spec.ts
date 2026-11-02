@@ -218,7 +218,7 @@ test("shell-bar: reports which content items are hidden, by key", async ({ page 
   await narrow(page, "420px")
   await expect(hidden).toHaveText("Hidden content: trial")
   await setWidth(page, "300px")
-  await expect(hidden).toHaveText("Hidden content: app, trial")
+  await expect(hidden).toHaveText("Hidden content: trial, app") // in the order they hid
   await setWidth(page, "1600px")
   await expect(hidden).toHaveText("Hidden content: none")
 })
