@@ -1,0 +1,6 @@
+{
+  "title": "Product Switch",
+  "dependencies": [],
+  "registryDependencies": ["@fiori/icons"],
+  "description": "Fiori grid of product tiles with grid keyboard navigation, shown in a popover from the shell bar (ui5-product-switch)."
+}

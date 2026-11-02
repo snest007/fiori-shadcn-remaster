@@ -1,0 +1,412 @@
+/* ShellBar (ui5-shellbar). Root is the host; breakpoints come from its own width. */
+.fiori-shellbar {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  background: var(--sapShellColor);
+  box-shadow: inset 0 -0.0625rem 0 0 var(--sapPageHeader_BorderColor);
+  /* UI5 overrides these on its host: the bar keeps its size in compact. */
+  --fiori-button-base-height: var(--sapElement_Height);
+  --fiori-button-base-padding: 0.5625rem;
+  --fiori-button-base-min-width: 2.25rem;
+  --fiori-x-button-badge-diameter: 0.75rem;
+  --fiori-x-shellbar-separator-color: var(--sapGroup_ContentBorderColor);
+  --fiori-x-shellbar-separator-height: 2rem;
+  --fiori-shellbar-search-field-width: 25rem;
+}
+.fiori-shellbar[data-breakpoint="S"] {
+  padding: 0 1rem;
+}
+.fiori-shellbar:is([data-breakpoint="M"], [data-breakpoint="L"]) {
+  padding: 0 2rem;
+}
+.fiori-shellbar:is([data-breakpoint="XL"], [data-breakpoint="XXL"]) {
+  padding: 0 3rem;
+}
+.fiori-shellbar__root {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--fiori-shellbar-root-height);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  font-weight: 400;
+}
+.fiori-shellbar__gap-start {
+  margin-inline-start: 0.5rem;
+}
+.fiori-shellbar__gap-end {
+  margin-inline-end: 0.5rem;
+}
+.fiori-shellbar [data-sb-hidden] {
+  display: none !important;
+}
+/* Buttons placed by the caller (start, assistant): Button's utilities read these tokens. */
+.fiori-shellbar__start,
+.fiori-shellbar__assistant {
+  --sapButton_Lite_TextColor: var(--sapShell_TextColor);
+  --sapButton_Lite_Hover_Background: var(--sapShell_Hover_Background);
+  --sapButton_Lite_Hover_TextColor: var(--sapShell_TextColor);
+  --sapButton_Lite_Active_Background: var(--sapShell_Active_Background);
+  --sapButton_Active_TextColor: var(--fiori-shellbar-button-active-color);
+  --fiori-button-border-radius: var(--fiori-shellbar-button-border-radius);
+  --fiori-button-focused-border: var(--fiori-shellbar-button-focused-border);
+}
+.fiori-shellbar__assistant {
+  --sapButton_Selected_TextColor: var(--sapShell_Assistant_ForegroundColor);
+  display: flex;
+  align-items: center;
+}
+.fiori-shellbar__start {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+.fiori-shellbar__branding {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+.fiori-shellbar__overflow-outer {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: row-reverse;
+  align-items: center;
+  min-width: 0;
+  height: 100%;
+  overflow: visible;
+}
+.fiori-shellbar__overflow-inner {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: end;
+  min-width: 100%;
+}
+.fiori-shellbar__content {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+}
+.fiori-shellbar__content-item {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+.fiori-shellbar__spacer {
+  flex: 1 1 1rem;
+  height: 1px;
+}
+.fiori-shellbar__separator {
+  flex: 0 0 auto;
+  width: 1px;
+  height: var(--fiori-x-shellbar-separator-height);
+  background-color: var(--fiori-x-shellbar-separator-color);
+}
+.fiori-shellbar__custom-item {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  width: 2.25rem;
+}
+/* :state(has-overlay-badge) on ui5-button. */
+.fiori-shellbar__action[data-has-badge] {
+  margin-inline-end: 0.3125rem;
+}
+.fiori-shellbar__search-area {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 0;
+  margin-inline-start: auto;
+}
+.fiori-shellbar__gap-start.fiori-shellbar__search-area {
+  margin-inline-start: 0.5rem;
+}
+.fiori-shellbar__search-frame {
+  display: contents;
+}
+.fiori-shellbar__search-area > .fiori-shellbar__search-frame > .fiori-search:not([data-collapsed]) {
+  width: 100%;
+  min-width: var(--fiori-shellbar-search-field-width);
+}
+/* Doesn't fit next to the expanded field: it covers the bar (the area keeps its width for measuring). */
+.fiori-shellbar[data-full-width-search] .fiori-shellbar__search-area {
+  min-width: var(--fiori-shellbar-search-field-width);
+}
+.fiori-shellbar[data-full-width-search] .fiori-shellbar__overflow-outer {
+  position: static;
+}
+.fiori-shellbar[data-full-width-search] .fiori-shellbar__search-frame {
+  position: absolute;
+  bottom: 0.0625rem;
+  left: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0 1rem;
+  background: var(--sapShellColor);
+}
+.fiori-shellbar[data-full-width-search][data-breakpoint="M"] .fiori-shellbar__search-frame {
+  padding: 0 2rem;
+}
+.fiori-shellbar[data-full-width-search] .fiori-shellbar__search-frame > .fiori-search {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  max-width: unset;
+}
+
+/* Profile button with its avatar (::slotted([ui5-avatar][slot=profile])). */
+.fiori-shellbar__profile {
+  --fiori-avatar-icon-s: var(--fiori-avatar-fontsize-xs);
+  --fiori-avatar-icon-xs: var(--fiori-avatar-fontsize-xs);
+  --fiori-button-focused-border-radius: var(--fiori-shellbar-image-button-border-radius);
+}
+.fiori-shellbar__profile > .fiori-avatar {
+  display: flex;
+  width: 2rem;
+  height: 2rem;
+  min-width: 0;
+  min-height: 2rem;
+  font-size: var(--fiori-avatar-fontsize-xs);
+  font-weight: 400;
+}
+
+/* ui5-button-badge in OverlayText / AttentionDot design. Offsets count from the button's padding box. */
+.fiori-shellbar-badge {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 1rem;
+  margin: -0.5rem;
+  padding: var(--fiori-x-tag-text-padding);
+  border: 0.0625rem solid var(--sapContent_BadgeBorderColor);
+  border-radius: 0.5rem;
+  background-color: var(--sapContent_BadgeBackground);
+  color: var(--sapContent_BadgeTextColor);
+  font-family: var(--sapFontBoldFamily);
+  font-size: var(--sapFontSmallSize);
+  font-weight: var(--fiori-x-tag-font-weight);
+  letter-spacing: var(--fiori-x-tag-letter-spacing);
+  line-height: 0.625rem;
+  text-shadow: var(--fiori-x-tag-contrast-text-shadow);
+}
+.fiori-shellbar-badge[data-dot] {
+  width: var(--fiori-x-button-badge-diameter);
+  min-width: var(--fiori-x-button-badge-diameter);
+  height: var(--fiori-x-button-badge-diameter);
+  min-height: var(--fiori-x-button-badge-diameter);
+  margin: -0.25rem;
+  padding: 0;
+  border-radius: 100%;
+}
+
+/* ShellBarBranding (ui5-shellbar-branding). */
+.fiori-shellbar-branding {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 2.25rem;
+  margin-inline-start: 0.125rem;
+  margin-inline-end: 0.5rem;
+  padding-block: 0.125rem;
+  padding-inline: 0.25rem 0.5rem;
+  overflow: hidden;
+  background: var(--sapButton_Lite_Background);
+  border: 1px solid var(--sapButton_Lite_BorderColor);
+  color: var(--sapShell_TextColor);
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+}
+.fiori-shellbar-branding:focus-visible {
+  outline: var(--fiori-shellbar-logo-outline);
+  outline-offset: calc(-1 * var(--sapContent_FocusWidth));
+  border-radius: var(--fiori-shellbar-logo-border-radius);
+}
+.fiori-shellbar-branding:hover {
+  box-shadow: var(--fiori-shellbar-button-box-shadow);
+  border-radius: var(--fiori-shellbar-logo-border-radius);
+}
+.fiori-shellbar-branding:active:focus {
+  background: var(--sapShell_Active_Background);
+  border: 1px solid var(--sapButton_Lite_Active_BorderColor);
+  color: var(--sapShell_Active_TextColor);
+}
+.fiori-shellbar-branding__logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+.fiori-shellbar-branding__logo > :is(img, svg) {
+  width: auto;
+  max-height: 1.875rem;
+  padding-block: 0.0625rem;
+  padding-inline: 0.25rem;
+  box-sizing: content-box;
+  vertical-align: middle;
+}
+.fiori-shellbar-branding__title {
+  display: inline-block;
+  margin: 0;
+  margin-inline-start: 0.25rem;
+  overflow: hidden;
+  color: var(--sapShell_SubBrand_TextColor);
+  font-family: var(--sapFontSemiboldDuplexFamily);
+  font-size: var(--fiori-shellbar-menu-button-title-font-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fiori-shellbar[data-breakpoint="S"] .fiori-shellbar-branding__title {
+  display: none;
+}
+
+/* ShellBarMenuButton (ui5-shellbar's legacy branding area). */
+.fiori-shellbar-menu-logo,
+.fiori-shellbar-menu-button__logo {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding-block: 0.0625rem;
+  padding-inline: 0.25rem;
+  cursor: pointer;
+}
+.fiori-shellbar-menu-logo {
+  margin-inline-end: 0.5rem;
+}
+.fiori-shellbar-menu-logo > :is(img, svg),
+.fiori-shellbar-menu-button__logo > :is(img, svg) {
+  max-height: 1.875rem;
+}
+.fiori-shellbar-menu-button__logo {
+  display: none;
+}
+.fiori-shellbar[data-breakpoint="S"] .fiori-shellbar-menu-logo {
+  display: none;
+}
+.fiori-shellbar[data-breakpoint="S"] .fiori-shellbar-menu-button__logo {
+  display: flex;
+}
+.fiori-shellbar[data-breakpoint="S"] .fiori-shellbar-menu-button__title {
+  display: none;
+}
+.fiori-shellbar-menu-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 2.25rem;
+  padding: 0.25rem 0.5rem;
+  overflow: hidden;
+  background: var(--sapButton_Lite_Background);
+  border: var(--fiori-shellbar-button-border);
+  border-radius: var(--fiori-shellbar-button-border-radius);
+  color: var(--sapShell_TextColor);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  outline-color: var(--fiori-shellbar-logo-outline-color);
+}
+.fiori-shellbar-menu-button[data-has-logo] {
+  margin-inline-start: 0.5rem;
+}
+.fiori-shellbar[data-breakpoint="S"] .fiori-shellbar-menu-button {
+  margin-inline-start: 0;
+}
+.fiori-shellbar-menu-button:hover {
+  background: var(--sapShell_Hover_Background);
+  border-color: var(--sapButton_Lite_Hover_BorderColor);
+  color: var(--sapShell_TextColor);
+  box-shadow: var(--fiori-shellbar-button-box-shadow);
+}
+.fiori-shellbar-menu-button:active {
+  background: var(--sapShell_Active_Background);
+  border-color: var(--sapButton_Lite_Active_BorderColor);
+  color: var(--fiori-shellbar-button-active-color);
+  box-shadow: var(--fiori-shellbar-button-box-shadow-active);
+}
+.fiori-shellbar-menu-button:focus-visible {
+  outline: var(--fiori-shellbar-logo-outline);
+  outline-offset: var(--fiori-shellbar-outline-offset);
+}
+.fiori-shellbar-menu-button__title {
+  display: inline-block;
+  margin: 0;
+  overflow: hidden;
+  color: var(--sapShell_SubBrand_TextColor);
+  font-family: var(--sapFontSemiboldDuplexFamily);
+  font-size: var(--fiori-shellbar-menu-button-title-font-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fiori-shellbar-menu-button__arrow {
+  display: inline-block;
+  margin: 0;
+  margin-inline-start: 0.375rem;
+  color: var(--sapShell_SubBrand_TextColor);
+}
+.fiori-shellbar-menu-button:active .fiori-shellbar-menu-button__arrow,
+.fiori-shellbar-menu-button:active .fiori-shellbar-menu-button__title {
+  color: var(--sapShell_Active_TextColor);
+}
+.fiori-shellbar-secondary-title {
+  display: flex;
+  align-items: center;
+  margin-inline: 0.5rem;
+  overflow: hidden;
+  color: var(--sapShell_TextColor);
+  font-size: var(--sapFontSmallSize);
+  font-weight: 400;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fiori-shellbar[data-breakpoint="S"] .fiori-shellbar-secondary-title {
+  display: none;
+}
+
+/* Overflow popover. The count is drawn as a badge (ShellBarItem.css). */
+.fiori-shellbar-overflow .fiori-li__icon {
+  align-self: center;
+  color: var(--sapList_TextColor);
+}
+.fiori-shellbar-overflow .fiori-li__title {
+  font-size: var(--sapFontSize);
+}
+.fiori-shellbar-overflow .fiori-li__text-wrapper {
+  flex: 0 1 auto;
+}
+.fiori-shellbar-overflow .fiori-li__additional-text {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 1rem;
+  height: 1rem;
+  margin-inline-start: 0.25rem;
+  padding: 0 0.3125rem;
+  border: var(--fiori-shellbar-button-badge-border);
+  border-radius: 0.5rem;
+  background: var(--sapContent_BadgeBackground);
+  color: var(--sapContent_BadgeTextColor);
+  font-family: var(--sapFontBoldFamily);
+  font-size: var(--sapFontSmallSize);
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: none;
+}
