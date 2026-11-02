@@ -1,0 +1,90 @@
+/* FlexibleColumnLayout: ports ui5-flexible-column-layout (FlexibleColumnLayout.css, Horizon). */
+.fiori-fcl {
+  display: block;
+  background: var(--fiori-fcl-solid-bg);
+}
+.fiori-fcl__root {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+.fiori-fcl__column {
+  background: inherit;
+  box-sizing: border-box;
+  will-change: width;
+  overflow-y: auto;
+}
+.fiori-fcl[data-resizing] .fiori-fcl__column {
+  pointer-events: none;
+}
+.fiori-fcl__column[data-animated] {
+  transition: width 0.56s cubic-bezier(0.1, 0, 0.05, 1), visibility 0.56s ease-in;
+}
+.fiori-fcl__column:not([data-collapsing]) {
+  min-width: 15.5rem;
+}
+.fiori-fcl__column[data-hidden] {
+  display: none;
+}
+/* UI5 hides the slotted content of a hidden (or collapsing) column. */
+.fiori-fcl__column[aria-hidden] > * {
+  visibility: hidden;
+}
+.fiori-fcl__separator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  background-color: var(--sapShell_Background);
+  border-inline-start: var(--fiori-fcl-column-border);
+  border-inline-end: var(--fiori-fcl-column-border);
+  position: relative;
+  box-sizing: border-box;
+  z-index: 1;
+  outline: none;
+}
+.fiori-fcl__separator:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: calc(-1 * var(--sapContent_FocusWidth));
+}
+.fiori-fcl__grip {
+  cursor: col-resize;
+  overflow: visible;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.5rem;
+  height: 2rem;
+  z-index: 10;
+}
+.fiori-fcl__grip-icon {
+  color: var(--sapButton_TextColor);
+}
+.fiori-fcl__grip::before {
+  background-image: var(--fiori-fcl-decoration-top);
+  bottom: calc(50% + 1rem);
+}
+.fiori-fcl__grip::after {
+  background-image: var(--fiori-fcl-decoration-bottom);
+  top: calc(50% + 1rem);
+}
+.fiori-fcl__grip::before,
+.fiori-fcl__grip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  height: 4rem;
+  width: 100%;
+  transition: all 0.1s ease-in;
+  background-repeat: no-repeat;
+  background-size: 0.0625rem 100%;
+  background-position-x: calc(50% - 0.03125rem);
+}
+.fiori-fcl__separator:hover .fiori-fcl__grip::before,
+.fiori-fcl__separator:hover .fiori-fcl__grip::after {
+  height: calc(50% - 1rem);
+}
+.fiori-fcl__separator:hover .fiori-fcl__arrow + .fiori-fcl__grip::before {
+  height: calc(40% - 1rem);
+}
