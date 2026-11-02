@@ -1,6 +1,8 @@
 /* NotificationList (ui5-notification-list). The list shell reuses .fiori-list__*; items keep UI5's host + root split. */
 .fiori-notification-list {
   display: block;
+  /* Pages inherit Tailwind preflight's 1.5; UI5 lays all of this out with `normal`. */
+  line-height: normal;
   -webkit-tap-highlight-color: transparent;
 }
 .fiori-nli {

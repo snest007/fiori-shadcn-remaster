@@ -70,6 +70,8 @@ type SearchProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onInput" 
   /** Fired with what the user typed (not with type-ahead completions). */
   onValueChange?: (value: string) => void
   placeholder?: string
+  /** Names the field and its search landmark. Set it when a page has several searches. */
+  accessibleName?: string
   showClearIcon?: boolean
   /** Turns off completing the first matching suggestion while typing. */
   noTypeahead?: boolean
@@ -108,6 +110,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     defaultValue = "",
     onValueChange,
     placeholder,
+    accessibleName,
     showClearIcon,
     noTypeahead,
     fieldLoading,
@@ -290,6 +293,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     <BusyIndicator active={fieldLoading} delay={0} className="fiori-search__busy">
       <div
         role="search"
+        aria-label={accessibleName}
         className="fiori-search__root"
         onBlur={(e) => {
           const to = e.relatedTarget as Node | null
@@ -307,7 +311,12 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
                   onScopeChange?.(v)
                 }}
               >
-                <SelectTrigger aria-label={texts.scope} title={texts.scope} wrapperClassName="fiori-search__scope">
+                <SelectTrigger
+                  aria-label={texts.scope}
+                  title={texts.scope}
+                  wrapperClassName="fiori-search__scope"
+                  className="min-w-[calc(var(--fiori-input-min-width)+var(--fiori-input-icon-width))]"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -325,7 +334,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
             {...inputProps}
             ref={inputRef}
             role="searchbox"
-            aria-label={inputProps?.["aria-label"] ?? texts.field}
+            aria-label={inputProps?.["aria-label"] ?? accessibleName ?? texts.field}
             aria-autocomplete="both"
             className="fiori-search__input"
             value={shown}

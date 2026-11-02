@@ -1,6 +1,8 @@
 /* ShellBar (ui5-shellbar). Root is the host; breakpoints come from its own width. */
 .fiori-shellbar {
   display: inline-block;
+  /* Pages inherit Tailwind preflight's 1.5; UI5 lays all of this out with `normal`. */
+  line-height: normal;
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;

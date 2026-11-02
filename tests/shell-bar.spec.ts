@@ -211,3 +211,14 @@ test("shell-bar: expanding or collapsing the search because of the bar's width l
   await expect(button(page, "Open Search")).toBeVisible()
   await expect(start).toBeFocused()
 })
+
+test("shell-bar: reports which content items are hidden, by key", async ({ page }) => {
+  const hidden = page.locator("#shell-bar-demo-hidden")
+  await expect(hidden).toHaveText("Hidden content: none")
+  await narrow(page, "420px")
+  await expect(hidden).toHaveText("Hidden content: trial")
+  await setWidth(page, "300px")
+  await expect(hidden).toHaveText("Hidden content: app, trial")
+  await setWidth(page, "1600px")
+  await expect(hidden).toHaveText("Hidden content: none")
+})

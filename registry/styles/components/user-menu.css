@@ -1,6 +1,8 @@
 /* UserMenu (ui5-user-menu). Item rows build on .fiori-list-item / .fiori-menu-item. */
 .fiori-user-menu.fiori-popup {
   width: 20rem;
+  /* Pages inherit Tailwind preflight's 1.5; UI5 lays all of this out with `normal`. */
+  line-height: normal;
 }
 .fiori-user-menu__bar {
   position: relative;

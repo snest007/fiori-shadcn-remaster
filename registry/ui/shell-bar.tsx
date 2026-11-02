@@ -155,7 +155,7 @@ function ShellBarSpacer() {
 
 type ShellBarItemProps = Omit<React.ComponentProps<"button">, "children"> & {
   icon: FioriIconData
-  /** Accessible name in the bar; the visible text in the overflow popover. */
+  /** Accessible name in the bar (with the count appended); the visible text in the overflow popover. */
   text: string
   /** Badge text. */
   count?: string
@@ -168,7 +168,7 @@ function ShellBarItem({ icon, text, count, className, ...props }: ShellBarItemPr
       data-slot="shell-bar-item"
       variant="transparent"
       size="icon"
-      aria-label={text}
+      aria-label={count ? `${text} ${count}` : text}
       className={cn(shellButton, className)}
       {...props}
     >
@@ -256,7 +256,7 @@ type ShellBarProps = Omit<React.ComponentProps<"div">, "content"> & {
   onSearchButtonClick?: (e: ShellBarSearchButtonEvent) => void
   /** Cancel in the full-width search; preventDefault keeps the field's value. */
   onSearchFieldClear?: (e: ShellBarClickEvent) => void
-  /** Keys of the `content` items currently hidden. */
+  /** The `key`s of the `content` items currently hidden. */
   onContentItemVisibilityChange?: (hiddenKeys: string[]) => void
   onBreakpointChange?: (breakpoint: ShellBarBreakpoint) => void
   accessibilityAttributes?: {
@@ -420,7 +420,7 @@ function ShellBar({
     if (!sameIds(hidden, l.hiddenIds)) {
       const contentHidden = (ids: string[]) => ids.filter((x) => x.startsWith("content-"))
       if (!sameIds(contentHidden(hidden), contentHidden(l.hiddenIds))) {
-        contentHiddenCb.current?.(contentHidden(hidden).map((x) => x.slice("content-".length).replace(/\.\$?/g, "")))
+        contentHiddenCb.current?.(contentHidden(hidden).map((x) => x.split("/").pop()!.replace(/^(content-)?\.\$?/, "")))
       }
       setHiddenIds(hidden)
     }
@@ -644,7 +644,7 @@ function ShellBar({
                   variant="transparent"
                   size="icon"
                   title={texts.overflow}
-                  aria-label={texts.overflow}
+                  aria-label={counted.length === 1 ? `${texts.overflow} ${counted[0].count}` : texts.overflow}
                   aria-haspopup={a11y.overflow?.hasPopup ?? "menu"}
                   aria-expanded={a11y.overflow?.expanded ?? overflowOpen}
                   data-has-badge={overflowBadge ? "" : undefined}
@@ -661,7 +661,7 @@ function ShellBar({
                 side="bottom"
                 align="end"
                 aria-label={texts.overflow}
-                className="fiori-shellbar-overflow"
+                className="fiori-shellbar-overflow leading-[normal]"
                 onCloseAutoFocus={(e) => {
                   e.preventDefault()
                   // Not when the chosen entry moved the focus on (search field, the caller's popover).

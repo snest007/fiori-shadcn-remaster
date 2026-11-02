@@ -34,6 +34,17 @@ test("app-shell: notifications popover: closing and reading items updates the ba
   await expect(button(page, "1 Notifications")).toBeFocused()
 })
 
+test("app-shell: popups aren't loosened by the line height pages inherit from Tailwind's preflight", async ({ page }) => {
+  expect(await page.locator("body").evaluate((el) => getComputedStyle(el).lineHeight)).not.toBe("normal")
+  await button(page, "3 Notifications").click()
+  const text = page.getByRole("dialog", { name: "Notifications" }).getByText("Needs your approval.")
+  expect((await text.boundingBox())!.height).toBe(16)
+  await page.keyboard.press("Escape")
+  await button(page, "User Menu").click()
+  const email = page.getByRole("dialog", { name: "User menu for John Doe" }).getByText("john.doe@example.com")
+  expect((await email.boundingBox())!.height).toBe(16)
+})
+
 test("app-shell: user menu opens against the profile button and only one popup is open at a time", async ({ page }) => {
   await button(page, "User Menu").click()
   const menu = page.getByRole("dialog", { name: "User menu for John Doe" })
@@ -69,4 +80,9 @@ test("app-shell: search starts collapsed, then expands and suggests", async ({ p
   await page.keyboard.type("Sal")
   await expect(page.locator(".fiori-search__popover").getByRole("option")).toHaveCount(3)
   await expect(page.getByRole("searchbox")).toHaveValue("Sales orders")
+})
+
+test("app-shell: the bar and the content are fast navigation groups", async ({ page }) => {
+  await expect(page.locator("main")).toHaveAttribute("data-sap-ui-fastnavgroup", "true")
+  await expect(page.locator("[data-slot=shell-bar]")).toHaveAttribute("data-sap-ui-fastnavgroup", "true")
 })

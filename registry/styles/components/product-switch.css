@@ -1,6 +1,8 @@
 /* ProductSwitch (ui5-product-switch / ui5-product-switch-item). Item host and root stay separate, as in UI5. */
 .fiori-product-switch {
   display: flex;
+  /* Pages inherit Tailwind preflight's 1.5; UI5 lays all of this out with `normal`. */
+  line-height: normal;
   flex-wrap: wrap;
   box-sizing: content-box;
   width: 752px;

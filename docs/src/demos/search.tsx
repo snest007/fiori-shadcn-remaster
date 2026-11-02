@@ -11,6 +11,7 @@ function SearchDemo() {
     <div className="grid justify-items-start gap-3">
       <Search
         id="search-demo"
+        accessibleName="Product search"
         placeholder="Search"
         showClearIcon
         className="w-96"
@@ -22,7 +23,7 @@ function SearchDemo() {
           <SearchItem text="Monitor" />
         </SearchItemGroup>
       </Search>
-      <Search id="search-demo-scoped" className="w-96" scopes={[{ value: "all", text: "All" }, { value: "apps", text: "Apps" }]} />
+      <Search id="search-demo-scoped" accessibleName="Scoped search" className="w-96" scopes={[{ value: "all", text: "All" }, { value: "apps", text: "Apps" }]} />
       <span id="search-demo-last" className="text-(--sapContent_LabelColor)">{`Last search: ${last}`}</span>
     </div>
   )

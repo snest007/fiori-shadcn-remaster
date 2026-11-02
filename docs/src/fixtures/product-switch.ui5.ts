@@ -16,8 +16,9 @@ import set, { PRODUCTS } from "./product-switch"
 
 // In the HC themes UI5 2.28 declares --_ui5_product_switch_item_border twice: "1px solid" in the fiori package, which
 // owns the component, and a stale "none" in the main package. Whichever bundle's promise resolves last wins, so the
-// reference renders either one from load to load (measured: 9 of 30 loads with the border on a small page). Pinned to the
-// owning package's value, which is what fiori.css generates, so that the comparison doesn't depend on that race.
+// reference renders either one from load to load (measured with the border: 9 of 30 loads of a small page, 0 of 12 of the
+// full fixture page). Pinned to the owning package's value, which is what fiori.css generates, so that the comparison
+// doesn't depend on that race. The tiles therefore have a 1px border in HC that an unpinned UI5 page usually lacks.
 const pinBorder = (item: HTMLElement) => {
   if (readPageOptions().theme.includes("_hc")) item.style.setProperty("--_ui5_product_switch_item_border", "1px solid var(--sapField_BorderColor)")
   return item

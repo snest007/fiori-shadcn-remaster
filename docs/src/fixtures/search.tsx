@@ -25,7 +25,10 @@ export default defineFixtures<Props>({
     if (collapsed) return <ShellBarSearch defaultCollapsed />
     if (suggestions) {
       return (
-        <div className={inPlace}>
+        // Only the suggestion surface is compared: the field is hidden on both pages (ui5-search's host is a fixed-height
+        // flex box, so its in-place popup can't sit below the field). The field has its own cases above. It keeps its
+        // width at zero height here, because the popover takes its width from the anchor.
+        <div className={`${inPlace} [&_[data-slot=search]]:invisible [&_[data-slot=search]]:h-0!`}>
           <Search open portal={false} defaultValue="Lap" noTypeahead style={{ width: SEARCH_WIDTH }}>
             <SearchItem text="Laptop" icon={history} />
             <SearchItem text="Lap desk" description="Office supplies" />
@@ -38,7 +41,4 @@ export default defineFixtures<Props>({
     }
     return <Search defaultValue={value} placeholder={placeholder} showClearIcon={clear} scopes={scopes ? SEARCH_SCOPES : undefined} style={{ width: SEARCH_WIDTH }} />
   },
-  // UI5 highlights typed text only after input events and sizes its popover with a live --search_width in the top
-  // layer, so the open list is checked visually and by tests/search.spec.ts rather than compared.
-  skipCompare: ["search-suggestions"],
 })

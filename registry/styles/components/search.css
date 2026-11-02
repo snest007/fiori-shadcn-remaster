@@ -1,6 +1,8 @@
 /* Search (ui5-search / ui5-shellbar-search). Root merges the host and its .ui5-search-field-busy-indicator. */
 .fiori-search {
   display: flex;
+  /* Pages inherit Tailwind preflight's 1.5; UI5 lays all of this out with `normal`. */
+  line-height: normal;
   align-items: center;
   box-sizing: border-box;
   height: 2.25rem;
@@ -164,9 +166,6 @@
   box-shadow: var(--fiori-x-search-input-scope-active-shadow);
   background-color: var(--fiori-x-search-elements-background);
 }
-.fiori-search__scope [data-slot="select-trigger"] {
-  min-width: calc(var(--fiori-input-min-width) + var(--fiori-input-icon-width));
-}
 .fiori-search__scope .fiori-select__value {
   padding: 0 0.25rem 0 0.5rem;
   flex: 0 1 auto;
@@ -184,6 +183,7 @@
 
 /* Suggestions (ui5-search's popover). */
 .fiori-search__popover.fiori-popup {
+  line-height: normal;
   width: var(--radix-popper-anchor-width);
   max-height: var(--fiori-search-popover-max-height);
 }
@@ -311,17 +311,18 @@
 .fiori-search-group {
   list-style: none;
 }
+/* Measured from ui5-search-item-group's rendering: its own 2.75rem host height doesn't reach the inner header. */
 .fiori-search-group__header {
   display: flex;
   align-items: center;
-  box-sizing: border-box;
-  height: 2.75rem;
-  padding: 0 1rem 0.5rem;
+  box-sizing: content-box;
+  height: 1rem;
+  padding: 0.5rem 1rem;
   line-height: normal;
   background: var(--sapList_GroupHeaderBackground);
   border-bottom: var(--sapList_BorderWidth) solid var(--sapList_GroupHeaderBorderColor);
   color: var(--sapList_TableGroupHeaderTextColor);
-  font-family: var(--sapFontFamily);
-  font-size: var(--sapFontHeader6Size);
+  font-family: var(--sapFontBoldFamily);
+  font-size: var(--sapFontSize);
   font-weight: 700;
 }

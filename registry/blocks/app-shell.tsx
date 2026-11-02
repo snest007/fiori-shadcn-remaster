@@ -184,7 +184,7 @@ export default function AppShell({ sideNavigation, children }: AppShellProps) {
 
       <div className="flex min-h-0 flex-1">
         {typeof sideNavigation === "function" ? sideNavigation({ collapsed }) : sideNavigation}
-        <main className="min-w-0 flex-1 overflow-auto p-8">
+        <main data-sap-ui-fastnavgroup="true" className="min-w-0 flex-1 overflow-auto p-8">
           {children ?? (
             <Card className="max-w-3xl">
               <div className="grid gap-2 p-4">

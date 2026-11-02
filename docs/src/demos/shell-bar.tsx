@@ -21,11 +21,13 @@ const LOGO =
 
 function ShellBarDemo() {
   const [last, setLast] = React.useState("none")
+  const [hidden, setHidden] = React.useState<string[]>([])
   return (
     <div className="grid gap-4">
       <ShellBar
         id="shell-bar-demo"
         aria-label="Application header"
+        onContentItemVisibilityChange={setHidden}
         startButton={
           <Button id="shell-bar-demo-start" variant="transparent" size="icon" aria-label="Menu" onClick={() => setLast("start")}>
             <Icon icon={menu2} />
@@ -44,7 +46,7 @@ function ShellBarDemo() {
           </>
         }
         search={
-          <ShellBarSearch placeholder="Search" onSearch={({ value }) => setLast(`search:${value}`)}>
+          <ShellBarSearch accessibleName="Portal search" placeholder="Search" onSearch={({ value }) => setLast(`search:${value}`)}>
             <SearchItem text="Laptop" />
             <SearchItem text="Lap desk" description="Office supplies" />
             <SearchItem text="Monitor" />
@@ -67,6 +69,7 @@ function ShellBarDemo() {
         <ShellBarItem key="expenses" icon={travelExpense} text="Expenses" count="3" onClick={() => setLast("expenses")} />
       </ShellBar>
       <span id="shell-bar-demo-last" className="text-(--sapContent_LabelColor)">{`Last action: ${last}`}</span>
+      <span id="shell-bar-demo-hidden" className="text-(--sapContent_LabelColor)">{`Hidden content: ${hidden.join(", ") || "none"}`}</span>
       <ShellBar
         id="shell-bar-demo-menu"
         branding={
