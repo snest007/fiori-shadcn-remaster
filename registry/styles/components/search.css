@@ -1,0 +1,328 @@
+/* Search (ui5-search / ui5-shellbar-search). Root merges the host and its .ui5-search-field-busy-indicator. */
+.fiori-search {
+  display: flex;
+  /* Pages inherit Tailwind preflight's 1.5; UI5 lays all of this out with `normal`. */
+  line-height: normal;
+  align-items: center;
+  box-sizing: border-box;
+  height: 2.25rem;
+}
+.fiori-search:not([data-collapsed]) {
+  min-width: 18rem;
+  max-width: 36rem;
+  margin: 0;
+  color: var(--fiori-x-search-field-text-color);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  font-style: normal;
+  text-align: start;
+  box-shadow: var(--sapField_Shadow);
+  border-radius: var(--fiori-search-input-border-radius);
+  background: var(--sapField_BackgroundStyle);
+  background-color: var(--fiori-x-search-wrapper-background);
+  position: relative;
+}
+.fiori-search:not([data-collapsed]):hover,
+.fiori-search:not([data-collapsed]):focus-within {
+  box-shadow: var(--sapField_Hover_Shadow);
+  background: var(--fiori-x-search-wrapper-hover-background);
+  background-color: var(--fiori-x-search-wrapper-hover-background-color);
+}
+.fiori-search:not([data-collapsed]):focus-within {
+  background-color: var(--fiori-x-search-wrapper-active-background-color);
+}
+.fiori-search__busy {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--fiori-search-input-border-radius);
+}
+.fiori-search__busy > .fiori-busy-indicator__root {
+  height: 100%;
+}
+.fiori-search__root {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: transparent;
+  color: inherit;
+  outline: none;
+  border-radius: var(--fiori-search-input-border-radius);
+  transition: border-color 0.2s ease-in-out;
+}
+.fiori-search:has(.fiori-search__input:focus) .fiori-search__root {
+  outline: var(--fiori-search-wrapper-outline);
+  outline-offset: -0.125rem;
+}
+.fiori-search__content {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
+}
+.fiori-search__input {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0;
+  padding-inline-start: 0.875rem;
+  padding-inline-end: var(--fiori-search-input-end-padding);
+  border: var(--fiori-x-search-border);
+  outline: none;
+  background-color: var(--fiori-x-search-elements-background);
+  color: inherit;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  font-style: normal;
+}
+.fiori-search__input:focus {
+  outline: var(--fiori-search-input-outline);
+  outline-offset: -0.3125rem;
+  border-radius: var(--fiori-search-input-border-radius);
+}
+.fiori-search__input:hover {
+  background-color: var(--fiori-x-search-elements-hover-background);
+}
+.fiori-search__input:focus-within {
+  background-color: var(--fiori-x-search-elements-active-background);
+}
+.fiori-search__input::placeholder {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--sapField_PlaceholderTextColor);
+  padding-inline-start: 0.125rem;
+}
+.fiori-search__input::selection {
+  background: var(--sapSelectedColor);
+  color: var(--sapContent_ContrastTextColor);
+}
+.fiori-search__separator {
+  width: 0.0625rem;
+  height: 1.5rem;
+  box-sizing: border-box;
+  background: var(--fiori-search-separator-background);
+}
+.fiori-search__icon {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  min-width: var(--fiori-search-icon-size);
+  height: var(--fiori-search-icon-size);
+  box-sizing: border-box;
+  margin-inline-end: 0.25rem;
+  margin-inline-start: 0.1875rem;
+  border: var(--fiori-x-search-icon-border);
+  border-radius: var(--fiori-search-icon-border-radius);
+  background-color: var(--fiori-x-search-elements-background);
+  color: var(--sapShell_InteractiveTextColor);
+  cursor: pointer;
+  outline: none;
+}
+.fiori-search__icon:hover {
+  background: var(--sapShell_Hover_Background);
+  border: 1px solid var(--sapButton_Lite_Hover_BorderColor);
+  color: var(--sapShell_InteractiveTextColor);
+}
+.fiori-search__icon[data-search-icon] {
+  background-color: var(--sapButton_Emphasized_Background);
+  border-color: var(--sapButton_Emphasized_BorderColor);
+  color: var(--sapButton_Emphasized_TextColor);
+}
+
+/* Scope select, drawn flat inside the field. */
+.fiori-search__scope.fiori-field {
+  flex: 0 1 auto;
+  width: fit-content;
+  min-width: auto;
+  max-width: 18rem;
+  height: var(--fiori-x-search-select-height);
+  margin: var(--fiori-x-search-scope-spacing);
+  border: var(--fiori-x-search-border);
+  border-radius: var(--fiori-search-input-border-radius);
+  outline: none;
+  box-shadow: none;
+  background: unset;
+  background-color: var(--fiori-x-search-elements-background);
+  --fiori-select-label-color: var(--sapShell_TextColor);
+  --fiori-input-focus-outline-color: transparent;
+  --fiori-select-bottom-border-gradient: none;
+}
+.fiori-search__scope.fiori-field::before,
+.fiori-search__scope.fiori-field::after {
+  display: none;
+}
+.fiori-search__scope.fiori-field:hover:not(:active):not(:focus-within) {
+  box-shadow: var(--fiori-x-search-input-scope-hover-shadow);
+  background-color: var(--fiori-x-search-elements-background);
+}
+.fiori-search__scope.fiori-field:active,
+.fiori-search__scope.fiori-field:focus-within {
+  box-shadow: var(--fiori-x-search-input-scope-active-shadow);
+  background-color: var(--fiori-x-search-elements-background);
+}
+.fiori-search__scope .fiori-select__value {
+  padding: 0 0.25rem 0 0.5rem;
+  flex: 0 1 auto;
+}
+.fiori-search__scope .fiori-field__icon {
+  height: 100%;
+  width: auto;
+  min-width: 0;
+  padding: 0 0.5rem;
+  border-radius: var(--fiori-search-input-border-radius);
+  color: var(--sapShell_InteractiveTextColor);
+  background: none;
+  border: none;
+}
+
+/* Suggestions (ui5-search's popover). */
+.fiori-search__popover.fiori-popup {
+  line-height: normal;
+  width: var(--radix-popper-anchor-width);
+  max-height: var(--fiori-search-popover-max-height);
+}
+.fiori-search__popover-content {
+  position: relative;
+  overflow: auto;
+}
+.fiori-search__popover-content[data-loading] {
+  min-height: 2rem;
+}
+.fiori-search__popover-busy {
+  position: absolute;
+  inset: 0;
+  z-index: 42;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.fiori-search__popover-busy::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--fiori-x-search-loading-overlay-background);
+  opacity: var(--fiori-x-search-loading-overlay-transparency);
+  border-radius: var(--fiori-popup-border-radius);
+}
+.fiori-search__popover-busy > * {
+  z-index: 1;
+}
+.fiori-search__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fiori-search__action {
+  display: flex;
+  border-top: 1px solid var(--sapPageFooter_BorderColor);
+}
+.fiori-search__action > * {
+  width: 100%;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.fiori-search-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: var(--fiori-list-item-base-height);
+  padding: var(--fiori-search-item-vertical-padding) 1rem;
+  background-color: var(--fiori-x-listitem-background-color);
+  outline: none;
+  cursor: pointer;
+  list-style: none;
+}
+.fiori-search-item[data-description] {
+  padding-top: var(--fiori-search-byline-vertical-padding);
+  padding-bottom: var(--fiori-search-byline-vertical-padding);
+}
+.fiori-search-item:not([data-selected]):hover {
+  background-color: var(--sapList_Hover_Background);
+}
+.fiori-search-item[data-selected] {
+  background-color: var(--sapList_SelectionBackgroundColor);
+}
+.fiori-search-item[data-selected]:hover {
+  background-color: var(--sapList_Hover_SelectionBackground);
+}
+.fiori-search-item:focus-within {
+  background-color: var(--sapList_SelectionBackgroundColor);
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: calc(-1 * var(--sapContent_FocusWidth) - 0.125rem);
+}
+.fiori-search-item__begin {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+.fiori-search-item__icon {
+  /* UI5: 1.25rem wide, 1rem high, 0.375rem padding, glyph centered. The glyph keeps Icon's 1rem; padding makes up the rest. */
+  box-sizing: content-box;
+  padding: 0.375rem 0.5rem;
+  color: var(--sapContent_IconColor);
+}
+.fiori-search-item__titles {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.25rem;
+  max-width: 100%;
+}
+.fiori-search-item__text {
+  display: inline-block;
+  color: var(--sapList_TextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  font-weight: 400;
+  line-height: 1rem;
+}
+.fiori-search-item__description {
+  display: inline-block;
+  color: var(--sapContent_LabelColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  font-weight: 400;
+}
+.fiori-search-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+.fiori-search-item__delete {
+  display: none;
+}
+.fiori-search-item:hover .fiori-search-item__delete,
+.fiori-search-item:focus-within .fiori-search-item__delete {
+  display: inline-flex;
+}
+.fiori-search-group {
+  list-style: none;
+}
+/* Measured from ui5-search-item-group's rendering: its own 2.75rem host height doesn't reach the inner header. */
+.fiori-search-group__header {
+  display: flex;
+  align-items: center;
+  box-sizing: content-box;
+  height: 1rem;
+  padding: 0.5rem 1rem;
+  line-height: normal;
+  background: var(--sapList_GroupHeaderBackground);
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_GroupHeaderBorderColor);
+  color: var(--sapList_TableGroupHeaderTextColor);
+  font-family: var(--sapFontBoldFamily);
+  font-size: var(--sapFontSize);
+  font-weight: 700;
+}

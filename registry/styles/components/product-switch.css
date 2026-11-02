@@ -1,0 +1,145 @@
+/* ProductSwitch (ui5-product-switch / ui5-product-switch-item). Item host and root stay separate, as in UI5. */
+.fiori-product-switch {
+  display: flex;
+  /* Pages inherit Tailwind preflight's 1.5; UI5 lays all of this out with `normal`. */
+  line-height: normal;
+  flex-wrap: wrap;
+  box-sizing: content-box;
+  width: 752px;
+  padding: 1.25rem 0.75rem;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+}
+.fiori-product-switch[data-columns="3"] {
+  width: 564px;
+}
+.fiori-product-switch[data-columns="2"] {
+  width: 376px;
+}
+.fiori-product-switch-item {
+  box-sizing: border-box;
+  width: var(--fiori-product-switch-item-width);
+  min-height: var(--fiori-product-switch-item-height);
+  margin: 0.25rem;
+  background: var(--sapList_Background);
+  border-radius: 0.25rem;
+}
+.fiori-product-switch-item__root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  border: var(--fiori-product-switch-item-border);
+  outline: none;
+  text-decoration: none;
+  user-select: none;
+  cursor: pointer;
+}
+.fiori-product-switch-item[data-selected] .fiori-product-switch-item__root {
+  padding: 0.375rem;
+  background: var(--sapList_SelectionBackgroundColor);
+  border: 0.125rem solid var(--sapList_SelectionBorderColor);
+}
+.fiori-product-switch-item:hover .fiori-product-switch-item__root {
+  background: var(--sapList_Hover_Background);
+}
+.fiori-product-switch-item[data-selected]:hover .fiori-product-switch-item__root {
+  background: var(--sapList_Hover_SelectionBackground);
+}
+.fiori-product-switch-item[data-active] .fiori-product-switch-item__root {
+  background: var(--sapList_Active_Background);
+}
+.fiori-product-switch-item[data-active] :is(.fiori-product-switch-item__icon, .fiori-product-switch-item__title, .fiori-product-switch-item__subtitle) {
+  color: var(--sapList_Active_TextColor);
+}
+.fiori-product-switch-item__root:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: var(--fiori-product-switch-item-outline-offset);
+}
+.fiori-product-switch-item[data-active] .fiori-product-switch-item__root:focus-visible {
+  outline-color: var(--fiori-product-switch-item-active-outline-color);
+}
+.fiori-product-switch-item__icon {
+  box-sizing: border-box;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  color: var(--sapContent_IconColor);
+  pointer-events: none;
+}
+.fiori-product-switch-item__image {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 0.5rem;
+}
+.fiori-product-switch-item__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 10.25rem;
+}
+.fiori-product-switch-item__title,
+.fiori-product-switch-item__subtitle {
+  max-width: 100%;
+  line-height: 1.25rem;
+  overflow-wrap: break-word;
+  text-align: center;
+  white-space: normal;
+  pointer-events: none;
+}
+.fiori-product-switch-item__title {
+  color: var(--sapGroup_TitleTextColor);
+  font-size: var(--sapFontHeader6Size);
+}
+.fiori-product-switch-item__subtitle {
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSmallSize);
+}
+@media only screen and (max-width: 900px) {
+  .fiori-product-switch:not([data-columns="2"]) {
+    width: 564px;
+  }
+}
+@media only screen and (max-width: 600px) {
+  .fiori-product-switch,
+  .fiori-product-switch[data-columns] {
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0;
+  }
+  .fiori-product-switch-item {
+    width: 100%;
+    max-width: 600px;
+    min-height: 5rem;
+    height: auto;
+    margin: 0;
+    border-radius: 0;
+  }
+  .fiori-product-switch-item__root {
+    flex-direction: row;
+    padding: 0 1rem;
+  }
+  .fiori-product-switch-item__icon {
+    margin: 0 0.75rem 0 0;
+    padding: 0.875rem;
+    color: var(--sapContent_NonInteractiveIconColor);
+  }
+  .fiori-product-switch-item__image {
+    margin: 0 0.75rem 0 0;
+  }
+  .fiori-product-switch-item__text {
+    align-items: flex-start;
+    max-width: calc(100% - 3.75rem);
+  }
+  .fiori-product-switch-item__title,
+  .fiori-product-switch-item__subtitle {
+    line-height: normal;
+  }
+  .fiori-product-switch-item__subtitle {
+    padding-top: 0.75rem;
+    font-size: var(--sapFontSize);
+  }
+}

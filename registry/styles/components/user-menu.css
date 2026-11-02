@@ -1,0 +1,131 @@
+/* UserMenu (ui5-user-menu). Item rows build on .fiori-list-item / .fiori-menu-item. */
+.fiori-user-menu.fiori-popup {
+  width: 20rem;
+  /* Pages inherit Tailwind preflight's 1.5; UI5 lays all of this out with `normal`. */
+  line-height: normal;
+}
+.fiori-user-menu__bar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: var(--fiori-bar-base-height);
+  background: var(--sapPageHeader_Background);
+}
+.fiori-user-menu__bar[data-scrolled] {
+  box-shadow: var(--sapContent_HeaderShadow);
+}
+.fiori-user-menu__bar-title {
+  overflow: hidden;
+  color: var(--sapGroup_TitleTextColor);
+  font-family: var(--sapFontHeaderFamily);
+  font-size: var(--sapFontHeader5Size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fiori-user-menu__content {
+  flex: auto;
+  box-sizing: border-box;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 0.5rem 0.5rem;
+  color: var(--sapTextColor);
+}
+.fiori-user-menu__account {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-block-end: 0.5rem;
+  overflow: hidden;
+}
+.fiori-user-menu__avatar-wrap {
+  display: block;
+}
+.fiori-user-menu__avatar.fiori-avatar {
+  display: inline-flex;
+  margin-block-start: 0.25rem;
+  margin-block-end: 0.5rem;
+}
+.fiori-user-menu__title {
+  margin-block: 0.25rem;
+  color: var(--sapTextColor);
+  font-family: var(--sapFontSemiboldDuplexFamily);
+  font-size: var(--sapFontLargeSize);
+  text-align: center;
+}
+.fiori-user-menu__subtitle,
+.fiori-user-menu__text {
+  color: var(--sapContent_LabelColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  text-align: center;
+}
+.fiori-user-menu__subtitle {
+  margin-bottom: 0.25rem;
+}
+.fiori-user-menu__subtitle:has(+ .fiori-user-menu__info) {
+  margin-bottom: 0;
+}
+.fiori-user-menu__additional {
+  margin-top: 0.25rem;
+}
+.fiori-user-menu__info {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  margin-block: 0.5rem;
+  margin-inline: -0.5rem;
+  padding: 0.5rem;
+}
+.fiori-user-menu__manage {
+  margin-block-start: 1rem;
+  font-family: var(--sapFontSemiboldDuplexFamily);
+}
+.fiori-user-menu__info + .fiori-user-menu__manage {
+  margin-block-start: 0;
+}
+.fiori-user-menu__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.fiori-user-menu-item.fiori-list-item {
+  height: 2.5rem;
+  min-height: 2.5rem;
+  border: none;
+}
+/* UI5 shows the ring for mouse focus too: hovering an item focuses it. */
+.fiori-user-menu-item:focus::after {
+  content: "";
+  position: absolute;
+  inset: 0.125rem;
+  pointer-events: none;
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+}
+.fiori-user-menu-item[data-disabled] {
+  opacity: 1;
+  pointer-events: none;
+}
+.fiori-user-menu-item[data-disabled] > .fiori-menu-item__content {
+  opacity: var(--fiori-x-listitembase-disabled-opacity);
+}
+/* When any item has an icon, the others keep its space (ui5-menu-item-dummy-icon). */
+.fiori-user-menu__list:has(.fiori-menu-item__icon) .fiori-user-menu-item:not(:has(.fiori-menu-item__icon)) > .fiori-menu-item__content::before {
+  content: "";
+  box-sizing: content-box;
+  flex-shrink: 0;
+  width: var(--fiori-list-item-icon-size);
+  height: var(--fiori-list-item-icon-size);
+  padding-inline-end: 0.75rem;
+}
+.fiori-user-menu.fiori-popup .fiori-user-menu__footer {
+  padding-inline: 0.5rem;
+}
+.fiori-user-menu__footer > * {
+  margin: 0;
+}
+.fiori-user-menu__sign-out {
+  font-family: var(--sapFontSemiboldDuplexFamily);
+}

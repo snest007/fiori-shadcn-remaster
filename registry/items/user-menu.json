@@ -1,0 +1,6 @@
+{
+  "title": "User Menu",
+  "dependencies": [],
+  "registryDependencies": ["@fiori/icons", "@fiori/avatar", "@fiori/button", "@fiori/popover"],
+  "description": "Fiori user menu popover with account header, manage account, menu items and sign out (ui5-user-menu)."
+}
