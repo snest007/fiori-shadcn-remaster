@@ -22,7 +22,7 @@ type ExpandableTextProps = React.ComponentProps<"div"> & {
   showMoreText?: string
   showLessText?: string
   closeText?: string
-  /** Accessible names of the link in Popover mode. */
+  /** Accessible descriptions of the link in Popover mode. */
   showFullTextLabel?: string
   closePopoverLabel?: string
   /** Announced in place of the dash (default "Empty Value"). */
@@ -57,7 +57,8 @@ function ExpandableText({
       className="fiori-expandable-text__toggle"
       role="button"
       aria-expanded={expanded}
-      aria-label={popover ? (expanded ? closePopoverLabel : showFullTextLabel) : undefined}
+      // UI5 uses these as the accessible name; that hides the visible text from it (WCAG 2.5.3).
+      aria-description={popover ? (expanded ? closePopoverLabel : showFullTextLabel) : undefined}
       onClick={
         popover
           ? undefined
@@ -92,7 +93,7 @@ function ExpandableText({
             {popover ? (
               <Popover open={expanded} onOpenChange={setExpanded}>
                 <PopoverTrigger asChild>{toggle}</PopoverTrigger>
-                <PopoverContent className="fiori-expandable-text__popover" aria-label={text}>
+                <PopoverContent className="fiori-expandable-text__popover max-w-(--radix-popover-content-available-width)" aria-label={text}>
                   <PopoverBody>
                     <span className="fiori-expandable-text__popover-text">{text}</span>
                   </PopoverBody>

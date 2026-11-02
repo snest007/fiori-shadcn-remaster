@@ -32,7 +32,7 @@ type UploadCollectionProps = React.ComponentProps<"div"> & {
   header?: React.ReactNode
   /** Empty state title (default "No files found"). */
   noDataText?: React.ReactNode
-  /** Empty state description (default "Drop files to upload, or use the Upload button."). */
+  /** Empty state description (default: UI5's text, 'Drop files to upload them or use the "Upload" button'). */
   noDataDescription?: React.ReactNode
   /** Files dropped on the drop overlay. */
   onDropFiles?: (files: File[]) => void
@@ -49,7 +49,7 @@ type UploadCollectionProps = React.ComponentProps<"div"> & {
 function UploadCollection({
   header,
   noDataText = "No files found",
-  noDataDescription = "Drop files to upload, or use the Upload button.",
+  noDataDescription = 'Drop files to upload them or use the "Upload" button',
   onDropFiles,
   hideDragOverlay,
   dragText = "Drag files here",

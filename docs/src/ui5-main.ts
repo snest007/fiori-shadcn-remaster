@@ -50,6 +50,15 @@ const shadowIcons = (node: ParentNode): Element[] =>
 const iconsDrawn = () => shadowIcons(root).every((i) => !i.getAttribute("name") || i.shadowRoot?.querySelector("path"))
 for (let i = 0; i < 300 && !iconsDrawn(); i++) await new Promise((r) => requestAnimationFrame(r))
 await renderFinished()
+// ui5-illustrated-message (also inside other shadow roots) picks its media from a ResizeObserver and
+// loads its SVG asynchronously, so it settles after renderFinished.
+const deepAll = (node: ParentNode): Element[] => [...node.querySelectorAll("*")].flatMap((e) => [e, ...(e.shadowRoot ? deepAll(e.shadowRoot) : [])])
+const illustrationsDrawn = () =>
+  deepAll(root)
+    .filter((e) => e.localName === "ui5-illustrated-message")
+    .every((m) => m.getAttribute("media") === "base" || m.shadowRoot?.querySelector(".ui5-illustrated-message-illustration svg"))
+for (let i = 0; i < 300 && !illustrationsDrawn(); i++) await new Promise((r) => requestAnimationFrame(r))
+await renderFinished()
 // setTheme resolves before the theme's CSS variables are applied; wait until the background is the theme's.
 const EXPECTED_BG: Record<string, string> = { sap_horizon: "#f5f6f7", sap_horizon_dark: "#12171c", sap_horizon_hcb: "#000", sap_horizon_hcw: "#fff" }
 const bg = () => getComputedStyle(document.documentElement).getPropertyValue("--sapBackgroundColor").trim().toLowerCase()

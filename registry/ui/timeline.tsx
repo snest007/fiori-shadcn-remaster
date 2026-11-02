@@ -10,7 +10,8 @@ import { ToggleButton } from "@/components/ui/toggle-button"
 
 // Mirrors ui5-timeline / ui5-timeline-item / ui5-timeline-group-item (Horizon, @ui5/webcomponents-fiori).
 // Keyboard (as ui5-timeline): the items form one Tab stop. Vertical: ↑/↓, horizontal: ←/→ (mirrored in
-// RTL) move between items and group toggles; Home/End, PageUp/PageDown (10 items); no wrap-around.
+// RTL) move between items and group toggles; Home/PageUp go to the first, End/PageDown to the last
+// (UI5's ItemNavigation without a skip size); no wrap-around.
 // From the last item ↓/→ reaches the "Load More" button and ↑/← returns. F2 moves into the focused
 // item's first focusable element and back. In horizontal layout the vertical wheel scrolls sideways.
 // TimelineItem and TimelineGroupItem must be direct children (fragments are fine), because the lines
@@ -84,6 +85,10 @@ function TimelineItem({
   const pos = React.useContext(PositionContext)
   const stateDescription = state === "None" ? undefined : (stateText ?? `${state} State`)
   const label = [name, titleText, subtitleText, stateDescription, iconTooltip].filter(Boolean).join(", ")
+  // UI5 labels both roles. A treeitem takes its name from its content, and a label that leaves out the
+  // visible text (the item's slot) fails WCAG 2.5.3, so in a tree the extras go to the description.
+  const isTree = itemRole === "treeitem"
+  const description = isTree ? [stateDescription, iconTooltip].filter(Boolean).join(", ") || undefined : stateDescription
   return (
     <div
       data-slot="timeline-item"
@@ -116,7 +121,7 @@ function TimelineItem({
             )}
           </div>
         </div>
-        <div data-timeline-nav="" className="fiori-tli__bubble" role={itemRole} tabIndex={-1} aria-label={label} aria-description={stateDescription}>
+        <div data-timeline-nav="" className="fiori-tli__bubble" role={itemRole} tabIndex={-1} aria-label={isTree ? undefined : label} aria-description={description}>
           <div className="fiori-tli__title">
             {name &&
               (nameClickable ? (
@@ -185,7 +190,7 @@ function TimelineGroupItem({
       className={cn("fiori-tlgi", className)}
       {...props}
     >
-      <div className="fiori-tlgi__root" role="treeitem" aria-label={groupName ?? "Group"}>
+      <div className="fiori-tlgi__root" role="treeitem">
         <div className="fiori-tlgi__btn-root">
           <div className="fiori-tlgi__icon-placeholder">
             <div className="fiori-tlgi__icon-dot" />
@@ -257,7 +262,6 @@ type TimelineProps = React.ComponentProps<"div"> & {
 }
 
 const FOCUSABLE = 'a[href],a[tabindex="0"],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]'
-const PAGE_SIZE = 10
 const SCROLL_DEBOUNCE = 250
 
 function Timeline({
@@ -337,10 +341,8 @@ function Timeline({
     let to: number | undefined
     if (e.key === nextKey) to = i + 1
     else if (e.key === prevKey) to = i - 1
-    else if (e.key === "Home") to = 0
-    else if (e.key === "End") to = all.length - 1
-    else if (e.key === "PageDown") to = Math.min(i + PAGE_SIZE, all.length - 1)
-    else if (e.key === "PageUp") to = Math.max(i - PAGE_SIZE, 0)
+    else if (e.key === "Home" || e.key === "PageUp") to = 0
+    else if (e.key === "End" || e.key === "PageDown") to = all.length - 1
     // From the last item either "forward" arrow reaches the Load More button (UI5's _handleDown).
     if ((e.key === "ArrowDown" || e.key === "ArrowRight") && i === all.length - 1 && growing === "Button") {
       e.preventDefault()
@@ -445,7 +447,7 @@ function Timeline({
                 ))}
               </TimelineContext.Provider>
               {growing === "Button" && (
-                <div className="fiori-timeline__list-item fiori-timeline__list-growing" role={hasGroups ? "none" : "listitem"}>
+                <div className="fiori-timeline__list-item fiori-timeline__list-growing" role={hasGroups ? "treeitem" : "listitem"} aria-label={hasGroups ? loadMoreText : undefined}>
                   <div>
                     <Button ref={growingBtn} size="icon" title={loadMoreText} aria-label={loadMoreText} onClick={onLoadMore}>
                       <Icon icon={layout === "Horizontal" ? processIcon : drillDown} />

@@ -31,6 +31,10 @@ test("items form one Tab stop; arrows move, without wrapping", async ({ page }) 
   await expect(items.nth(2)).toBeFocused()
   await page.keyboard.press("Home")
   await expect(items.nth(0)).toBeFocused()
+  await page.keyboard.press("PageDown")
+  await expect(items.nth(2)).toBeFocused()
+  await page.keyboard.press("PageUp")
+  await expect(items.nth(0)).toBeFocused()
 })
 
 test("vertical navigation passes through the group toggle and skips collapsed items", async ({ page }) => {
@@ -73,10 +77,12 @@ test("F2 moves into the item's link and back; the clickable name fires", async (
   await expect(bubble).toBeFocused()
 })
 
-test("item label includes name, title, time stamp and state", async ({ page }) => {
-  const bubble = page.locator("#timeline-vertical .fiori-tli__bubble", { hasText: "Called supplier" })
-  await expect(bubble).toHaveAttribute("aria-label", "Called supplier, Dec 15, 2026, 16:30, Positive State")
-  await expect(bubble).toHaveAttribute("aria-description", "Positive State")
+test("list items are labelled; tree items are named by their content, with the state as description", async ({ page }) => {
+  const listItem = page.locator("#timeline-horizontal .fiori-tli__bubble", { hasText: "Kick-off" })
+  await expect(listItem).toHaveAttribute("aria-label", "Kick-off, Jan 12")
+  const treeItem = page.locator("#timeline-vertical").getByRole("treeitem", { name: /Called supplier/ }).last()
+  await expect(treeItem).toHaveAttribute("aria-description", "Positive State")
+  await expect(treeItem).not.toHaveAttribute("aria-label")
 })
 
 test("horizontal layout: focus scrolls the item into view and the wheel scrolls sideways", async ({ page }) => {

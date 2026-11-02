@@ -193,3 +193,8 @@
 .fiori-carousel__root {
   touch-action: pan-y;
 }
+/* The items have explicit pixel widths computed from the host's width. They must not feed back into it,
+   or a host in a grid/flex parent (min-width:auto) grows without end. */
+.fiori-carousel__viewport {
+  contain: inline-size;
+}
