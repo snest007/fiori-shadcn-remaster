@@ -50,6 +50,9 @@ are written to `test-results/visual/<theme>-<density>/` as `<id>-ours.png`, `-ui
 Raise `tolerance` or use `skipCompare` only for a reason you can name (e.g. UI5 animates something we can't freeze),
 and put the reason in a code comment.
 
+Fixtures that use `@ui5/webcomponents-fiori` must import `@ui5/webcomponents-fiori/dist/Assets.js` in their `.ui5.ts`,
+or the dark/HC themes fall back to Morning Horizon parameters on the UI5 side.
+
 Generated files (`registry.json`, `registry/styles/fiori-components.css`, `public/r/`) are git-ignored; scripts rebuild them.
 Commit only your component's own files. If you truly must change a shared file (`fiori-types`, `input.tsx`, a script),
 keep the change minimal and say so in your commit message.

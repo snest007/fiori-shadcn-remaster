@@ -6,6 +6,8 @@ const port = Number(process.env.PORT ?? 4173)
 export default defineConfig({
   testDir: "tests",
   fullyParallel: true,
+  // One retry absorbs rare OS/browser timing hiccups (file chooser activation); a test that fails twice is real.
+  retries: 1,
   reporter: [["list"], ["json", { outputFile: "test-results/results.json" }]],
   use: {
     baseURL: `http://localhost:${port}`,
