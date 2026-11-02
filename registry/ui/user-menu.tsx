@@ -172,7 +172,7 @@ function UserMenu({
           if (e.defaultPrevented) return
           e.preventDefault()
           // Not when the user has moved on, e.g. by clicking another button of the shell bar.
-          if (restoreFocus.current) lastOpener.current?.focus()
+          if (restoreFocus.current && document.activeElement === document.body) lastOpener.current?.focus()
         }}
         onInteractOutside={(e) => {
           onInteractOutside?.(e)

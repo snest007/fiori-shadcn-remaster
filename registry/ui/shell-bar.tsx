@@ -665,7 +665,7 @@ function ShellBar({
                 onCloseAutoFocus={(e) => {
                   e.preventDefault()
                   // Not when the chosen entry moved the focus on (search field, the caller's popover).
-                  if (showOverflow && restoreOverflowFocus.current) overflowBtnRef.current?.focus()
+                  if (showOverflow && restoreOverflowFocus.current && document.activeElement === document.body) overflowBtnRef.current?.focus()
                 }}
               >
                 <PopoverBody className="p-0">

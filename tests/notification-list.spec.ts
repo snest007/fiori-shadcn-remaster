@@ -104,6 +104,9 @@ test("notification-list: actions button and Shift+F10 open the menu; F2 enters t
   await page.keyboard.press("Shift+F10")
   await expect(page.getByRole("menuitem", { name: "Accept" })).toBeVisible()
   await page.keyboard.press("Escape")
+  // The closing menu hands focus back to its button; wait for that before moving on.
+  await expect(page.getByRole("menuitem", { name: "Accept" })).toHaveCount(0)
+  await expect(actions).toBeFocused()
   await delayed.focus()
   await page.keyboard.press("F2")
   await expect(actions).toBeFocused()

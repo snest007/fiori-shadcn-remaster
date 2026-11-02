@@ -77,7 +77,7 @@ function ShellPopover({ target, onClose, title, children, ...props }: Omit<React
         }}
         onCloseAutoFocus={(e) => {
           e.preventDefault()
-          if (restoreFocus.current) last.current?.focus()
+          if (restoreFocus.current && document.activeElement === document.body) last.current?.focus()
         }}
         {...props}
       >
