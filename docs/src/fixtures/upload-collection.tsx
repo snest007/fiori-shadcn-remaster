@@ -31,7 +31,4 @@ export default defineFixtures<Props>({
       )}
     </UploadCollection>
   ),
-  // The empty state: UI5 renders an IllustratedMessage ("Tent" SVG scene) we don't ship; ours shows
-  // only its title and description, so it is not comparable pixel by pixel.
-  skipCompare: ["upload-collection-empty"],
 })

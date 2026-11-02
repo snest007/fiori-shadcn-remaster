@@ -5,7 +5,7 @@
 // follow the theme without any JS. We emit:
 //   <Name>-<Size>.ts      one SVG string per illustration and size (TNT: normal + high-contrast)
 //   <Name>.ts             the IllustrationData object for <IllustratedMessage illustration={…}>
-//   tnt/…                 the same for SAP's TNT set (V5 + V5/HC; shipped on demand only)
+//   tnt/…                 the same for SAP's TNT set (V5 + V5/HC, V4 where those lack it; on demand only)
 //   types.ts, index.ts    the data type and the list of names
 //   registry-items.json   registry items (illustrations-core + one item per illustration), read by
 //                         scripts/build-registry-json.mjs
@@ -148,20 +148,24 @@ export default ${name}
 }
 
 // --- TNT set (V5 for Morning/Evening Horizon, V5/HC for the high-contrast themes) --------------
+// Same fallback as UI5's asset registry: a collection without this illustration uses the V4 one.
+const tntV4Dir = join(dist, "illustrations/tnt")
 const tntDir = join(dist, "illustrations-v5/tnt")
 const tntHcDir = join(tntDir, "hc")
-for (const file of readdirSync(tntDir).filter((f) => /^[A-Z]\w*\.js$/.test(f)).sort()) {
+const firstWith = (file, ...dirs) => dirs.find((d) => existsSync(join(d, file)))
+for (const file of readdirSync(tntV4Dir).filter((f) => /^[A-Z]\w*\.js$/.test(f)).sort()) {
   const name = file.replace(/\.js$/, "")
-  const entry = readEntry(join(tntDir, file))
-  const hcEntry = existsSync(join(tntHcDir, file)) ? readEntry(join(tntHcDir, file)) : entry
-  const hcDir = existsSync(join(tntHcDir, file)) ? tntHcDir : tntDir
+  const normalDir = firstWith(file, tntDir, tntV4Dir)
+  const hcDir = firstWith(file, tntHcDir, tntV4Dir)
+  const entry = readEntry(join(normalDir, file))
+  const hcEntry = readEntry(join(hcDir, file))
   const files = []
   const imports = []
   const fields = []
   const hcFields = []
   for (const size of SIZES) {
     const mod = `${name}-${Cap(size)}`
-    const normal = readSvg(join(tntDir, `${entry.sizes[size]}.js`))
+    const normal = readSvg(join(normalDir, `${entry.sizes[size]}.js`))
     const hc = readSvg(join(hcDir, `${hcEntry.sizes[size]}.js`))
     writeFileSync(
       join(OUT, "tnt", `${mod}.ts`),

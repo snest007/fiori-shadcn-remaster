@@ -1,0 +1,51 @@
+/* ExpandableText (ui5-expandable-text). Ported from UI5's component CSS. */
+.fiori-expandable-text {
+  display: inline-block;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  color: var(--sapTextColor);
+}
+.fiori-expandable-text[hidden] {
+  display: none;
+}
+.fiori-expandable-text__text {
+  display: inline;
+  white-space: inherit;
+}
+.fiori-expandable-text__text,
+.fiori-expandable-text__toggle {
+  font-family: inherit;
+  font-size: inherit;
+}
+.fiori-expandable-text__text,
+.fiori-expandable-text__ellipsis {
+  color: inherit;
+}
+.fiori-expandable-text__popover,
+.fiori-expandable-text__popover-text {
+  white-space: inherit;
+  font-family: inherit;
+  font-size: inherit;
+}
+.fiori-expandable-text__popover [data-slot=popover-body] {
+  padding-inline: 1rem;
+}
+.fiori-expandable-text__footer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.fiori-expandable-text {
+  line-height: normal;
+}
+.fiori-expandable-text__text {
+  cursor: text;
+  overflow-wrap: break-word;
+}
+/* ui5-link's host is inline-flex on the text's baseline; our Link root is inline-block/top. */
+.fiori-expandable-text .fiori-expandable-text__toggle {
+  display: inline-flex;
+  vertical-align: baseline;
+}

@@ -1,0 +1,5 @@
+{
+  "title": "Carousel",
+  "description": "Fiori carousel: items per page by container width, arrows over the content or beside the page indicator, dots or numeric indicator, cyclic navigation, swipe, the SAP keyboard model (ui5-carousel).",
+  "registryDependencies": ["@fiori/icons"]
+}

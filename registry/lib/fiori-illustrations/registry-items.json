@@ -3406,6 +3406,41 @@
     ]
   },
   {
+    "name": "illustration-tnt-empty-content-pane",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration EmptyContentPane",
+    "description": "TNT illustration \"EmptyContentPane\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/EmptyContentPane-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/EmptyContentPane-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/EmptyContentPane-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/EmptyContentPane-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/EmptyContentPane.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
     "name": "illustration-tnt-external-link",
     "type": "registry:lib",
     "title": "SAP TNT illustration ExternalLink",
@@ -4246,6 +4281,41 @@
     ]
   },
   {
+    "name": "illustration-tnt-unable-to-load",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration UnableToLoad",
+    "description": "TNT illustration \"UnableToLoad\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnableToLoad-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnableToLoad-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnableToLoad-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnableToLoad-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnableToLoad.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
     "name": "illustration-tnt-unlock",
     "type": "registry:lib",
     "title": "SAP TNT illustration Unlock",
@@ -4311,6 +4381,41 @@
       },
       {
         "path": "registry/lib/fiori-illustrations/tnt/UnsuccessfulAuth.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-user2",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration User2",
+    "description": "TNT illustration \"User2\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/User2-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/User2-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/User2-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/User2-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/User2.ts",
         "type": "registry:lib"
       }
     ]

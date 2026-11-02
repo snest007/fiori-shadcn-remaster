@@ -39,6 +39,8 @@ type IllustratedMessageProps = Omit<React.ComponentProps<"div">, "title"> & {
   subtitleText?: React.ReactNode
   /** Semantic level of the title heading (default H2, as ui5-title). */
   titleLevel?: TitleLevel
+  /** "None" keeps the title on one line. */
+  titleWrappingType?: "Normal" | "None"
   /** Accessible name of the illustration (default: the illustration's name, as UI5). */
   accessibleName?: string
   /** Hide the illustration from assistive technology. */
@@ -81,6 +83,7 @@ function IllustratedMessage({
   titleText,
   subtitleText,
   titleLevel = "H2",
+  titleWrappingType,
   accessibleName,
   decorative,
   className,
@@ -97,30 +100,34 @@ function IllustratedMessage({
   const fixed: Media | undefined = design === "Auto" ? undefined : (design.toLowerCase() as Media)
   const media = fixed ?? autoMedia
 
-  React.useLayoutEffect(() => {
-    if (fixed) return
+  const apply = React.useCallback(() => {
     const el = ref.current
-    if (!el) return
-    const apply = () => {
-      const current = el.dataset.media as Media | undefined
-      if (current && el.scrollHeight > el.clientHeight) {
-        const inner = el.querySelector<HTMLElement>(".fiori-illustrated-message__inner")
-        if (inner?.scrollHeight) needed.current[current] = inner.scrollHeight
-      }
-      let i = MEDIA.indexOf(mediaForWidth(el.offsetWidth))
-      while (i > 0 && (needed.current[MEDIA[i]] ?? 0) > el.clientHeight) i--
-      setAutoMedia(MEDIA[i])
+    if (!el || fixed) return
+    const current = el.dataset.media as Media | undefined
+    if (current && el.scrollHeight > el.clientHeight) {
+      const inner = el.querySelector<HTMLElement>(".fiori-illustrated-message__inner")
+      if (inner?.scrollHeight) needed.current[current] = inner.scrollHeight
     }
-    apply()
-    const ro = new ResizeObserver(apply)
-    ro.observe(el)
-    return () => ro.disconnect()
+    let i = MEDIA.indexOf(mediaForWidth(el.offsetWidth))
+    while (i > 0 && (needed.current[MEDIA[i]] ?? 0) > el.clientHeight) i--
+    setAutoMedia(MEDIA[i])
   }, [fixed])
 
-  // Texts changed: recorded heights are stale.
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
+    if (fixed || !ref.current) return
+    const ro = new ResizeObserver(apply)
+    ro.observe(ref.current)
+    return () => ro.disconnect()
+  }, [fixed, apply])
+
+  // New content: recorded heights are stale.
+  React.useLayoutEffect(() => {
     needed.current = {}
-  }, [illustration, titleText, subtitleText])
+    apply()
+  }, [apply, illustration, titleText, subtitleText])
+
+  // A design was just applied: it may still overflow a height-constrained container, then step down again.
+  React.useLayoutEffect(apply, [apply, autoMedia])
 
   const title = titleText === undefined ? illustration.title : titleText
   const subtitle = subtitleText === undefined ? illustration.subtitle : subtitleText
@@ -161,7 +168,7 @@ function IllustratedMessage({
             {title != null && title !== "" && (
               <div className="fiori-illustrated-message__title" data-slot="illustrated-message-title">
                 {typeof title === "string" ? (
-                  <Title level={titleLevel} size={TITLE_SIZE[media ?? "scene"]}>{title}</Title>
+                  <Title level={titleLevel} size={TITLE_SIZE[media ?? "scene"]} wrappingType={titleWrappingType}>{title}</Title>
                 ) : (
                   title
                 )}
