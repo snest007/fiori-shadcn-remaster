@@ -7,16 +7,16 @@ SAP's official implementation.
 
 > Built on the SAP Horizon design language. This is not an SAP product. "SAP" and "Fiori" are trademarks of SAP SE.
 
-## Status: Phase 1 (core components)
+## Status: Phase 2 (complex controls)
 
 | | |
 |---|---|
 | Themes | Morning Horizon, Evening Horizon, High Contrast Black, High Contrast White (`data-theme`) |
 | Density | cozy (default), compact (`data-density="compact"`, works on any subtree) |
-| Tokens | 1479 `--sap*` variables per theme + 1204 component parameters from UI5 |
+| Tokens | 1479 `--sap*` variables per theme + 1477 component parameters from UI5 (main + fiori packages) |
 | Icons | 705 SAP Horizon icons, tree-shakeable |
-| Components (30) | **Actions** Button, ToggleButton, SegmentedButton · **Forms** Label, Input, TextArea, Select, ComboBox, StepInput, CheckBox, RadioGroup, Switch · **Overlays** Dialog, Popover, Menu, Toast · **Display** MessageStrip, Tag, Avatar/AvatarGroup, Card, Panel, BusyIndicator, Link, Title, Text · **Navigation** Tabs (IconTabBar), Breadcrumbs, Toolbar, Bar |
-| Verified | ~310 fixtures pixel-diffed vs UI5 2.28 in 4 themes × 2 densities (worst cell 1.3%); axe; 124 Playwright tests incl. Fiori keyboard models |
+| Components (52) | **Actions** Button, ToggleButton, SegmentedButton · **Forms** Label, Input, TextArea, Select, ComboBox, MultiComboBox, MultiInput (+Token, Tokenizer), StepInput, CheckBox, RadioGroup, Switch, Slider/RangeSlider, RatingIndicator, FileUploader · **Dates** Calendar, DatePicker, DateRangePicker, TimePicker, DateTimePicker · **Data** Table, DataTable (TanStack, virtualized), List, Tree, UploadCollection · **Overlays** Dialog, Popover, Menu, Toast, ViewSettingsDialog, ValueHelpDialog · **Display** MessageStrip, Tag, Avatar/AvatarGroup, Card, Panel, BusyIndicator, ProgressIndicator, Link, Title, Text · **Navigation** Tabs (IconTabBar), Breadcrumbs, Toolbar, Bar, FilterBar |
+| Verified | 477 fixtures pixel-diffed vs UI5 2.28 in 4 themes × 2 densities (3816 cells, worst 1.6%); FilterBar/ValueHelpDialog checked against SAP's guideline images; axe; 249 Playwright tests incl. Fiori keyboard models |
 
 ## Install into an app
 
@@ -95,10 +95,9 @@ Adding a component: see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Roadmap
 
-Deferred from Phase 1: Tabs/Toolbar/Breadcrumbs overflow ("More"), AvatarGroup "+N", draggable/resizable Dialog,
+Deferred: NotificationList (→ Phase 3); Adapt Filters dialog & variant management; non-Gregorian calendars; Table drag & drop; Slider vertical; from Phase 1: Tabs/Toolbar/Breadcrumbs overflow ("More"), AvatarGroup "+N", draggable/resizable Dialog,
 checkable menu items, ComboBox item groups, automated hover/focus fixtures.
 
-2. Complex: Date/Time pickers, MultiInput, Table, Tree, List, Value Help Dialog, Filter Bar, Upload.
 3. Layouts and floorplans: ShellBar, Side Navigation, Dynamic Page, Object Page, Flexible Column Layout, List Report.
 
 ## License
