@@ -1,0 +1,6 @@
+{
+  "title": "DataTable",
+  "dependencies": ["@tanstack/react-table", "@tanstack/react-virtual"],
+  "registryDependencies": ["@fiori/table", "@fiori/icons", "@fiori/button", "@fiori/menu"],
+  "description": "Data-driven Fiori table from TanStack Table column definitions: sorting via header menu or click, selection, popin, growing and row virtualization."
+}
