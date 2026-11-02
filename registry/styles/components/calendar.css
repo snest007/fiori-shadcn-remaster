@@ -668,6 +668,7 @@
 
 /* Legend */
 .fiori-calendar-legend-root {
+  box-sizing: content-box;
   column-width:7.5rem;
   gap:.5rem;
   padding:var(--fiori-x-calendar-legend-root-padding);
@@ -676,6 +677,7 @@
   background-color:var(--sapList_Background);
 }
 .fiori-calendar-legend-item {
+  box-sizing: content-box;
   display:flex;
   flex-direction:row;
   flex-wrap:wrap;

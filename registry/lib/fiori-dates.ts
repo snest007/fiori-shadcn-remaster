@@ -173,7 +173,10 @@ const quote = (s: string) => (/[a-zA-Z']/.test(s) ? `'${s.replace(/'/g, "''")}'`
 function partsToPattern(locale: string, parts: Intl.DateTimeFormatPart[]) {
   const hasPeriod = parts.some((p) => p.type === "dayPeriod")
   return parts
-    .map(({ type, value }) => {
+    .map(({ type, value }, i) => {
+      // CLDR (and so UI5) separates the day period with a narrow no-break space; engines differ
+      // (some give a plain space), so normalize to CLDR's.
+      if (type === "literal" && /^\s$/.test(value) && (parts[i + 1]?.type === "dayPeriod" || parts[i - 1]?.type === "dayPeriod")) return "\u202f"
       switch (type) {
         case "year":
           return value.length === 2 ? "yy" : "y"
@@ -335,7 +338,7 @@ export function formatDate(d: Date, pattern: string, locale = "en-US") {
 }
 
 const NUMERIC = new Set(["y", "Y", "d", "H", "h", "k", "K", "m", "s"])
-const SEPARATORS = /^[\s.,\-/:  ]*$/
+const SEPARATORS = /^[\s.,\-/:\u00a0\u202f]*$/
 
 /**
  * Parses `text` with an LDML pattern, leniently like UI5: case-insensitive names (full or abbreviated),
@@ -349,7 +352,7 @@ export function parseWithPattern(text: string, pattern: string, locale = "en-US"
   let pos = 0
   const v: { y?: number; y2?: boolean; M?: number; d?: number; H?: number; h?: number; m?: number; s?: number; pm?: boolean } = {}
   const skipSeparators = () => {
-    while (pos < s.length && /[\s.,\-/:  ]/.test(s[pos])) pos++
+    while (pos < s.length && /[\s.,\-/:\u00a0\u202f]/.test(s[pos])) pos++
   }
   const matchName = (names: string[]) => {
     const rest = s.slice(pos).toLowerCase()

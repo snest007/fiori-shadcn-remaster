@@ -119,3 +119,18 @@
   border-top: 1px solid var(--sapPageFooter_BorderColor);
   color: var(--sapPageFooter_TextColor);
 }
+
+/* ui5-date-picker / ui5-time-picker repeat the value state's shadow on their host around the inner
+   ui5-input, so the (inset) state shadow is drawn twice. */
+.fiori-picker-field[data-value-state]:not([data-readonly]):not([data-disabled])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inherit;
+  pointer-events: none;
+}
+/* Disabled: the icon is dimmed on top of the field's own opacity (--_ui5_input_icon_state_opacity). */
+.fiori-picker-field[data-disabled] .fiori-picker-field__icon {
+  opacity: var(--sapContent_DisabledOpacity);
+}

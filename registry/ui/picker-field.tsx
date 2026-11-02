@@ -41,6 +41,8 @@ type PickerFieldProps = Omit<React.ComponentProps<"input">, "value" | "defaultVa
   /** Keys pressed in the field or the popover. Call preventDefault() to stop the default handling. */
   onPickerKeyDown?: (e: React.KeyboardEvent<HTMLElement>, inPopover: boolean) => void
   inputRef?: React.Ref<HTMLInputElement>
+  /** F4 also closes the open popover (TimePicker). Off for the date pickers, where F4 is the calendar's. */
+  f4Closes?: boolean
 }
 
 const isShowKey = (e: React.KeyboardEvent) =>
@@ -67,6 +69,7 @@ function PickerField({
   className,
   onPickerKeyDown,
   inputRef: inputRefProp,
+  f4Closes,
   disabled,
   readOnly,
   id,
@@ -115,7 +118,7 @@ function PickerField({
     onPickerKeyDown?.(e, inPopover)
     if (e.defaultPrevented) return
     if (isShowKey(e)) {
-      if (open && e.key === "F4") return // F4 inside the popover is the calendar's month picker shortcut
+      if (open && e.key === "F4" && !f4Closes) return // F4 inside the popover is the calendar's month picker shortcut
       e.preventDefault()
       if (open) close()
       else if (!readOnly && !disabled) {
