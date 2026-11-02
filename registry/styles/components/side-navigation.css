@@ -35,9 +35,6 @@
 .fiori-sn-popover {
   padding: 0;
 }
-.fiori-sn-popover .fiori-popup__root {
-  overflow: visible;
-}
 .fiori-sn__root {
   height: 100%;
   display: flex;

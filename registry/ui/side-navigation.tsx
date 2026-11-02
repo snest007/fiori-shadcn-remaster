@@ -443,6 +443,7 @@ function SideNavigationGroup({
         tabIndex={-1}
         aria-expanded={hasItems ? expanded : undefined}
         aria-label={accessibleName}
+        aria-labelledby={accessibleName ? undefined : `${groupId}-text`}
         aria-owns={hasItems && expanded ? groupId : undefined}
         title={tooltip}
         className="fiori-sn-item"
@@ -463,7 +464,9 @@ function SideNavigationGroup({
           }
         }}
       >
-        <div className="fiori-sn-item__text">{text}</div>
+        <div id={`${groupId}-text`} className="fiori-sn-item__text">
+          {text}
+        </div>
         {hasItems && (
           <SnIcon
             icon={expanded ? navigationDownArrow : navigationRightArrow}
@@ -574,8 +577,8 @@ function useActivation({
       if (e.key === " ") e.preventDefault()
       // A link activates through its native click on Enter.
       if (e.key === "Enter" && !href) {
-        e.preventDefault()
         if (!unselectable) activate(e)
+        e.preventDefault()
       }
     },
     onKeyUp: (e: React.KeyboardEvent<HTMLElement>) => {
@@ -878,7 +881,7 @@ function CollapsedItem(props: SideNavigationItemProps) {
             <div ref={popoverTreeRef} className="fiori-sn fiori-sn--popover" data-in-popover="">
               <div className="fiori-sn__root" role="none">
                 <PopoverModeProvider closePopover={closePopover}>
-                  <SideNavigationItem {...props} expanded defaultExpanded onExpandedChange={undefined} />
+                  <SideNavigationItem {...props} icon={undefined} expanded defaultExpanded onExpandedChange={undefined} />
                 </PopoverModeProvider>
               </div>
             </div>
@@ -957,6 +960,7 @@ function SideNavigationSubItem({
         aria-current={isSelected ? "page" : undefined}
         aria-disabled={disabled || undefined}
         aria-label={accessibleName}
+        aria-labelledby={accessibleName ? undefined : `${id}-text`}
         aria-describedby={tag ? `${id}-tag` : undefined}
         title={tooltip}
         href={effectiveHref}
@@ -978,7 +982,9 @@ function SideNavigationSubItem({
         }}
       >
         {icon && <SnIcon icon={icon} className="fiori-sn-item__icon" />}
-        <div className="fiori-sn-item__text">{text}</div>
+        <div id={`${id}-text`} className="fiori-sn-item__text">
+          {text}
+        </div>
         {tag && (
           <div id={`${id}-tag`} className="fiori-sn-item__tag">
             {tag}
