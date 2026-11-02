@@ -1,0 +1,4318 @@
+[
+  {
+    "name": "illustrations-core",
+    "type": "registry:lib",
+    "title": "SAP illustrations (common)",
+    "description": "The common Fiori empty/error/success illustrations in all four sizes: NoData, NoEntries, NoSearchResults, NoFilterResults, BeforeSearch, EmptyList, UnableToLoad, UnableToUpload, Tent, Connection, PageNotFound, ErrorScreen, ReloadScreen, SuccessScreen. Others: @fiori/illustration-<name>.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/index.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-achievement",
+    "type": "registry:lib",
+    "title": "SAP illustration Achievement",
+    "description": "Fiori illustration \"Achievement\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Achievement-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Achievement-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Achievement-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Achievement-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Achievement.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-add-column",
+    "type": "registry:lib",
+    "title": "SAP illustration AddColumn",
+    "description": "Fiori illustration \"AddColumn\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddColumn-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddColumn-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddColumn-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddColumn-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddColumn.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-add-dimensions",
+    "type": "registry:lib",
+    "title": "SAP illustration AddDimensions",
+    "description": "Fiori illustration \"AddDimensions\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddDimensions-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddDimensions-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddDimensions-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddDimensions-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddDimensions.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-add-people",
+    "type": "registry:lib",
+    "title": "SAP illustration AddPeople",
+    "description": "Fiori illustration \"AddPeople\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeople-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeople-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeople-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeople-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeople.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-add-people-to-calendar",
+    "type": "registry:lib",
+    "title": "SAP illustration AddPeopleToCalendar",
+    "description": "Fiori illustration \"AddPeopleToCalendar\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeopleToCalendar-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeopleToCalendar-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeopleToCalendar-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeopleToCalendar-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddPeopleToCalendar.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-adding-columns",
+    "type": "registry:lib",
+    "title": "SAP illustration AddingColumns",
+    "description": "Fiori illustration \"AddingColumns\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddingColumns-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddingColumns-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddingColumns-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddingColumns-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/AddingColumns.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-balloon-sky",
+    "type": "registry:lib",
+    "title": "SAP illustration BalloonSky",
+    "description": "Fiori illustration \"BalloonSky\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BalloonSky-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BalloonSky-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BalloonSky-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BalloonSky-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BalloonSky.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-before-search",
+    "type": "registry:lib",
+    "title": "SAP illustration BeforeSearch",
+    "description": "Fiori illustration \"BeforeSearch\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/BeforeSearch.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-connection",
+    "type": "registry:lib",
+    "title": "SAP illustration Connection",
+    "description": "Fiori illustration \"Connection\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Connection.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-drag-files-to-upload",
+    "type": "registry:lib",
+    "title": "SAP illustration DragFilesToUpload",
+    "description": "Fiori illustration \"DragFilesToUpload\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/DragFilesToUpload-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/DragFilesToUpload-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/DragFilesToUpload-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/DragFilesToUpload-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/DragFilesToUpload.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-empty-calendar",
+    "type": "registry:lib",
+    "title": "SAP illustration EmptyCalendar",
+    "description": "Fiori illustration \"EmptyCalendar\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyCalendar-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyCalendar-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyCalendar-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyCalendar-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyCalendar.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-empty-list",
+    "type": "registry:lib",
+    "title": "SAP illustration EmptyList",
+    "description": "Fiori illustration \"EmptyList\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyList.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-empty-planning-calendar",
+    "type": "registry:lib",
+    "title": "SAP illustration EmptyPlanningCalendar",
+    "description": "Fiori illustration \"EmptyPlanningCalendar\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyPlanningCalendar-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyPlanningCalendar-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyPlanningCalendar-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyPlanningCalendar-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/EmptyPlanningCalendar.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-error-screen",
+    "type": "registry:lib",
+    "title": "SAP illustration ErrorScreen",
+    "description": "Fiori illustration \"ErrorScreen\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ErrorScreen.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-filter-table",
+    "type": "registry:lib",
+    "title": "SAP illustration FilterTable",
+    "description": "Fiori illustration \"FilterTable\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilterTable-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilterTable-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilterTable-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilterTable-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilterTable.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-filtering-columns",
+    "type": "registry:lib",
+    "title": "SAP illustration FilteringColumns",
+    "description": "Fiori illustration \"FilteringColumns\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilteringColumns-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilteringColumns-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilteringColumns-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilteringColumns-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/FilteringColumns.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-group-table",
+    "type": "registry:lib",
+    "title": "SAP illustration GroupTable",
+    "description": "Fiori illustration \"GroupTable\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupTable-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupTable-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupTable-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupTable-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupTable.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-grouping-columns",
+    "type": "registry:lib",
+    "title": "SAP illustration GroupingColumns",
+    "description": "Fiori illustration \"GroupingColumns\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupingColumns-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupingColumns-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupingColumns-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupingColumns-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/GroupingColumns.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-key-task",
+    "type": "registry:lib",
+    "title": "SAP illustration KeyTask",
+    "description": "Fiori illustration \"KeyTask\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/KeyTask-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/KeyTask-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/KeyTask-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/KeyTask-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/KeyTask.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-new-mail",
+    "type": "registry:lib",
+    "title": "SAP illustration NewMail",
+    "description": "Fiori illustration \"NewMail\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NewMail-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NewMail-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NewMail-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NewMail-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NewMail.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-activities",
+    "type": "registry:lib",
+    "title": "SAP illustration NoActivities",
+    "description": "Fiori illustration \"NoActivities\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoActivities-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoActivities-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoActivities-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoActivities-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoActivities.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-chart-data",
+    "type": "registry:lib",
+    "title": "SAP illustration NoChartData",
+    "description": "Fiori illustration \"NoChartData\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoChartData-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoChartData-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoChartData-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoChartData-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoChartData.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-columns-set",
+    "type": "registry:lib",
+    "title": "SAP illustration NoColumnsSet",
+    "description": "Fiori illustration \"NoColumnsSet\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoColumnsSet-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoColumnsSet-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoColumnsSet-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoColumnsSet-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoColumnsSet.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-data",
+    "type": "registry:lib",
+    "title": "SAP illustration NoData",
+    "description": "Fiori illustration \"NoData\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoData.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-dimensions-set",
+    "type": "registry:lib",
+    "title": "SAP illustration NoDimensionsSet",
+    "description": "Fiori illustration \"NoDimensionsSet\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoDimensionsSet-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoDimensionsSet-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoDimensionsSet-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoDimensionsSet-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoDimensionsSet.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-entries",
+    "type": "registry:lib",
+    "title": "SAP illustration NoEntries",
+    "description": "Fiori illustration \"NoEntries\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoEntries.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-filter-results",
+    "type": "registry:lib",
+    "title": "SAP illustration NoFilterResults",
+    "description": "Fiori illustration \"NoFilterResults\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoFilterResults.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-mail",
+    "type": "registry:lib",
+    "title": "SAP illustration NoMail",
+    "description": "Fiori illustration \"NoMail\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-mail-v1",
+    "type": "registry:lib",
+    "title": "SAP illustration NoMail_v1",
+    "description": "Fiori illustration \"NoMail_v1\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail_v1-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail_v1-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail_v1-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail_v1-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoMail_v1.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-notifications",
+    "type": "registry:lib",
+    "title": "SAP illustration NoNotifications",
+    "description": "Fiori illustration \"NoNotifications\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoNotifications-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoNotifications-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoNotifications-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoNotifications-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoNotifications.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-saved-items",
+    "type": "registry:lib",
+    "title": "SAP illustration NoSavedItems",
+    "description": "Fiori illustration \"NoSavedItems\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-saved-items-v1",
+    "type": "registry:lib",
+    "title": "SAP illustration NoSavedItems_v1",
+    "description": "Fiori illustration \"NoSavedItems_v1\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems_v1-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems_v1-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems_v1-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems_v1-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSavedItems_v1.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-search-results",
+    "type": "registry:lib",
+    "title": "SAP illustration NoSearchResults",
+    "description": "Fiori illustration \"NoSearchResults\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoSearchResults.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-tasks",
+    "type": "registry:lib",
+    "title": "SAP illustration NoTasks",
+    "description": "Fiori illustration \"NoTasks\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-no-tasks-v1",
+    "type": "registry:lib",
+    "title": "SAP illustration NoTasks_v1",
+    "description": "Fiori illustration \"NoTasks_v1\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks_v1-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks_v1-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks_v1-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks_v1-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/NoTasks_v1.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-page-not-found",
+    "type": "registry:lib",
+    "title": "SAP illustration PageNotFound",
+    "description": "Fiori illustration \"PageNotFound\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/PageNotFound.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-receive-appreciation",
+    "type": "registry:lib",
+    "title": "SAP illustration ReceiveAppreciation",
+    "description": "Fiori illustration \"ReceiveAppreciation\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReceiveAppreciation-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReceiveAppreciation-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReceiveAppreciation-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReceiveAppreciation-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReceiveAppreciation.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-reload-screen",
+    "type": "registry:lib",
+    "title": "SAP illustration ReloadScreen",
+    "description": "Fiori illustration \"ReloadScreen\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ReloadScreen.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-resize-column",
+    "type": "registry:lib",
+    "title": "SAP illustration ResizeColumn",
+    "description": "Fiori illustration \"ResizeColumn\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizeColumn-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizeColumn-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizeColumn-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizeColumn-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizeColumn.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-resizing-columns",
+    "type": "registry:lib",
+    "title": "SAP illustration ResizingColumns",
+    "description": "Fiori illustration \"ResizingColumns\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizingColumns-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizingColumns-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizingColumns-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizingColumns-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/ResizingColumns.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-search-earth",
+    "type": "registry:lib",
+    "title": "SAP illustration SearchEarth",
+    "description": "Fiori illustration \"SearchEarth\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchEarth-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchEarth-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchEarth-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchEarth-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchEarth.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-search-folder",
+    "type": "registry:lib",
+    "title": "SAP illustration SearchFolder",
+    "description": "Fiori illustration \"SearchFolder\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchFolder-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchFolder-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchFolder-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchFolder-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SearchFolder.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-sign-out",
+    "type": "registry:lib",
+    "title": "SAP illustration SignOut",
+    "description": "Fiori illustration \"SignOut\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SignOut-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SignOut-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SignOut-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SignOut-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SignOut.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-balloon",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleBalloon",
+    "description": "Fiori illustration \"SimpleBalloon\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBalloon-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBalloon-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBalloon-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBalloon-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBalloon.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-bell",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleBell",
+    "description": "Fiori illustration \"SimpleBell\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBell-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBell-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBell-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBell-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleBell.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-calendar",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleCalendar",
+    "description": "Fiori illustration \"SimpleCalendar\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCalendar-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCalendar-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCalendar-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCalendar-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCalendar.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-check-mark",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleCheckMark",
+    "description": "Fiori illustration \"SimpleCheckMark\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCheckMark-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCheckMark-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCheckMark-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCheckMark-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleCheckMark.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-connection",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleConnection",
+    "description": "Fiori illustration \"SimpleConnection\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleConnection-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleConnection-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleConnection-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleConnection-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleConnection.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-empty-doc",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleEmptyDoc",
+    "description": "Fiori illustration \"SimpleEmptyDoc\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyDoc-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyDoc-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyDoc-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyDoc-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyDoc.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-empty-list",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleEmptyList",
+    "description": "Fiori illustration \"SimpleEmptyList\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyList-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyList-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyList-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyList-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleEmptyList.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-error",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleError",
+    "description": "Fiori illustration \"SimpleError\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleError-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleError-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleError-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleError-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleError.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-magnifier",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleMagnifier",
+    "description": "Fiori illustration \"SimpleMagnifier\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMagnifier-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMagnifier-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMagnifier-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMagnifier-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMagnifier.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-mail",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleMail",
+    "description": "Fiori illustration \"SimpleMail\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMail-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMail-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMail-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMail-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleMail.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-no-saved-items",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleNoSavedItems",
+    "description": "Fiori illustration \"SimpleNoSavedItems\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNoSavedItems-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNoSavedItems-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNoSavedItems-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNoSavedItems-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNoSavedItems.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-not-found-magnifier",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleNotFoundMagnifier",
+    "description": "Fiori illustration \"SimpleNotFoundMagnifier\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNotFoundMagnifier-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNotFoundMagnifier-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNotFoundMagnifier-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNotFoundMagnifier-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleNotFoundMagnifier.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-reload",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleReload",
+    "description": "Fiori illustration \"SimpleReload\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleReload-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleReload-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleReload-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleReload-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleReload.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-simple-task",
+    "type": "registry:lib",
+    "title": "SAP illustration SimpleTask",
+    "description": "Fiori illustration \"SimpleTask\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleTask-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleTask-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleTask-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleTask-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SimpleTask.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-sleeping-bell",
+    "type": "registry:lib",
+    "title": "SAP illustration SleepingBell",
+    "description": "Fiori illustration \"SleepingBell\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SleepingBell-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SleepingBell-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SleepingBell-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SleepingBell-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SleepingBell.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-sort-column",
+    "type": "registry:lib",
+    "title": "SAP illustration SortColumn",
+    "description": "Fiori illustration \"SortColumn\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortColumn-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortColumn-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortColumn-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortColumn-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortColumn.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-sorting-columns",
+    "type": "registry:lib",
+    "title": "SAP illustration SortingColumns",
+    "description": "Fiori illustration \"SortingColumns\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortingColumns-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortingColumns-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortingColumns-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortingColumns-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SortingColumns.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-success-balloon",
+    "type": "registry:lib",
+    "title": "SAP illustration SuccessBalloon",
+    "description": "Fiori illustration \"SuccessBalloon\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessBalloon-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessBalloon-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessBalloon-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessBalloon.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-success-check-mark",
+    "type": "registry:lib",
+    "title": "SAP illustration SuccessCheckMark",
+    "description": "Fiori illustration \"SuccessCheckMark\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessCheckMark-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessCheckMark-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessCheckMark-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessCheckMark.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-success-high-five",
+    "type": "registry:lib",
+    "title": "SAP illustration SuccessHighFive",
+    "description": "Fiori illustration \"SuccessHighFive\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessHighFive-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessHighFive-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessHighFive-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessHighFive-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessHighFive.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-success-screen",
+    "type": "registry:lib",
+    "title": "SAP illustration SuccessScreen",
+    "description": "Fiori illustration \"SuccessScreen\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/SuccessScreen.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-survey",
+    "type": "registry:lib",
+    "title": "SAP illustration Survey",
+    "description": "Fiori illustration \"Survey\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Survey-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Survey-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Survey-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Survey-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Survey.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tent",
+    "type": "registry:lib",
+    "title": "SAP illustration Tent",
+    "description": "Fiori illustration \"Tent\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/Tent.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-unable-to-load",
+    "type": "registry:lib",
+    "title": "SAP illustration UnableToLoad",
+    "description": "Fiori illustration \"UnableToLoad\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoad.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-unable-to-load-image",
+    "type": "registry:lib",
+    "title": "SAP illustration UnableToLoadImage",
+    "description": "Fiori illustration \"UnableToLoadImage\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoadImage-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoadImage-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoadImage-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoadImage-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToLoadImage.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-unable-to-upload",
+    "type": "registry:lib",
+    "title": "SAP illustration UnableToUpload",
+    "description": "Fiori illustration \"UnableToUpload\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UnableToUpload.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-upload-collection",
+    "type": "registry:lib",
+    "title": "SAP illustration UploadCollection",
+    "description": "Fiori illustration \"UploadCollection\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadCollection-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadCollection-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadCollection-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadCollection-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadCollection.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-upload-to-cloud",
+    "type": "registry:lib",
+    "title": "SAP illustration UploadToCloud",
+    "description": "Fiori illustration \"UploadToCloud\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadToCloud-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadToCloud-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadToCloud-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadToCloud-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UploadToCloud.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-user-has-signed-up",
+    "type": "registry:lib",
+    "title": "SAP illustration UserHasSignedUp",
+    "description": "Fiori illustration \"UserHasSignedUp\" (Scene, Dialog, Spot, Dot) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UserHasSignedUp-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UserHasSignedUp-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UserHasSignedUp-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UserHasSignedUp-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/UserHasSignedUp.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-avatar",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Avatar",
+    "description": "TNT illustration \"Avatar\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Avatar-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Avatar-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Avatar-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Avatar-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Avatar.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-calculator",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Calculator",
+    "description": "TNT illustration \"Calculator\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Calculator-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Calculator-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Calculator-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Calculator-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Calculator.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-area",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartArea",
+    "description": "TNT illustration \"ChartArea\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-area2",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartArea2",
+    "description": "TNT illustration \"ChartArea2\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea2-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea2-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea2-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea2-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartArea2.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-bpmnflow",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartBPMNFlow",
+    "description": "TNT illustration \"ChartBPMNFlow\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBPMNFlow-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBPMNFlow-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBPMNFlow-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBPMNFlow-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBPMNFlow.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-bar",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartBar",
+    "description": "TNT illustration \"ChartBar\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBar-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBar-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBar-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBar-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBar.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-bullet",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartBullet",
+    "description": "TNT illustration \"ChartBullet\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBullet-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBullet-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBullet-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBullet-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartBullet.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-doughnut",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartDoughnut",
+    "description": "TNT illustration \"ChartDoughnut\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartDoughnut-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartDoughnut-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartDoughnut-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartDoughnut-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartDoughnut.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-flow",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartFlow",
+    "description": "TNT illustration \"ChartFlow\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartFlow-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartFlow-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartFlow-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartFlow-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartFlow.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-gantt",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartGantt",
+    "description": "TNT illustration \"ChartGantt\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartGantt-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartGantt-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartGantt-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartGantt-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartGantt.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-org",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartOrg",
+    "description": "TNT illustration \"ChartOrg\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartOrg-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartOrg-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartOrg-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartOrg-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartOrg.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-chart-pie",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ChartPie",
+    "description": "TNT illustration \"ChartPie\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartPie-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartPie-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartPie-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartPie-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ChartPie.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-code-placeholder",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration CodePlaceholder",
+    "description": "TNT illustration \"CodePlaceholder\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/CodePlaceholder-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/CodePlaceholder-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/CodePlaceholder-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/CodePlaceholder-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/CodePlaceholder.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-company",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Company",
+    "description": "TNT illustration \"Company\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Company-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Company-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Company-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Company-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Company.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-compass",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Compass",
+    "description": "TNT illustration \"Compass\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Compass-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Compass-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Compass-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Compass-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Compass.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-components",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Components",
+    "description": "TNT illustration \"Components\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Components-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Components-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Components-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Components-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Components.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-dialog",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Dialog",
+    "description": "TNT illustration \"Dialog\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Dialog-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Dialog-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Dialog-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Dialog-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Dialog.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-external-link",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration ExternalLink",
+    "description": "TNT illustration \"ExternalLink\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ExternalLink-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ExternalLink-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ExternalLink-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ExternalLink-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/ExternalLink.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-face-id",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration FaceID",
+    "description": "TNT illustration \"FaceID\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/FaceID-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/FaceID-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/FaceID-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/FaceID-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/FaceID.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-fingerprint",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Fingerprint",
+    "description": "TNT illustration \"Fingerprint\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Fingerprint-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Fingerprint-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Fingerprint-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Fingerprint-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Fingerprint.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-handshake",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Handshake",
+    "description": "TNT illustration \"Handshake\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Handshake-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Handshake-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Handshake-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Handshake-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Handshake.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-help",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Help",
+    "description": "TNT illustration \"Help\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Help-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Help-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Help-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Help-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Help.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-lock",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Lock",
+    "description": "TNT illustration \"Lock\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Lock-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Lock-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Lock-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Lock-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Lock.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-mission",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Mission",
+    "description": "TNT illustration \"Mission\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Mission-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Mission-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Mission-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Mission-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Mission.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-mission-failed",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration MissionFailed",
+    "description": "TNT illustration \"MissionFailed\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/MissionFailed-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/MissionFailed-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/MissionFailed-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/MissionFailed-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/MissionFailed.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-no-applications",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration NoApplications",
+    "description": "TNT illustration \"NoApplications\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoApplications-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoApplications-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoApplications-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoApplications-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoApplications.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-no-flows",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration NoFlows",
+    "description": "TNT illustration \"NoFlows\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoFlows-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoFlows-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoFlows-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoFlows-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoFlows.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-no-users",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration NoUsers",
+    "description": "TNT illustration \"NoUsers\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoUsers-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoUsers-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoUsers-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoUsers-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/NoUsers.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-radar",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Radar",
+    "description": "TNT illustration \"Radar\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Radar-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Radar-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Radar-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Radar-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Radar.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-road-map",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration RoadMap",
+    "description": "TNT illustration \"RoadMap\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/RoadMap-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/RoadMap-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/RoadMap-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/RoadMap-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/RoadMap.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-secrets",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Secrets",
+    "description": "TNT illustration \"Secrets\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Secrets-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Secrets-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Secrets-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Secrets-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Secrets.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-services",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Services",
+    "description": "TNT illustration \"Services\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Services-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Services-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Services-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Services-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Services.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-session-expired",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration SessionExpired",
+    "description": "TNT illustration \"SessionExpired\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpired-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpired-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpired-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpired-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpired.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-session-expiring",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration SessionExpiring",
+    "description": "TNT illustration \"SessionExpiring\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpiring-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpiring-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpiring-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpiring-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SessionExpiring.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-settings",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Settings",
+    "description": "TNT illustration \"Settings\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Settings-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Settings-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Settings-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Settings-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Settings.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-success",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Success",
+    "description": "TNT illustration \"Success\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Success-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Success-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Success-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Success-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Success.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-successful-auth",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration SuccessfulAuth",
+    "description": "TNT illustration \"SuccessfulAuth\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SuccessfulAuth-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SuccessfulAuth-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SuccessfulAuth-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SuccessfulAuth-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/SuccessfulAuth.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-systems",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Systems",
+    "description": "TNT illustration \"Systems\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Systems-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Systems-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Systems-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Systems-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Systems.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-teams",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Teams",
+    "description": "TNT illustration \"Teams\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Teams-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Teams-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Teams-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Teams-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Teams.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-tools",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Tools",
+    "description": "TNT illustration \"Tools\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tools-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tools-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tools-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tools-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tools.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-tutorials",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Tutorials",
+    "description": "TNT illustration \"Tutorials\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tutorials-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tutorials-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tutorials-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tutorials-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Tutorials.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-unlock",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration Unlock",
+    "description": "TNT illustration \"Unlock\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Unlock-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Unlock-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Unlock-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Unlock-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/Unlock.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "illustration-tnt-unsuccessful-auth",
+    "type": "registry:lib",
+    "title": "SAP TNT illustration UnsuccessfulAuth",
+    "description": "TNT illustration \"UnsuccessfulAuth\" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.",
+    "registryDependencies": [
+      "@fiori/fiori-theme"
+    ],
+    "files": [
+      {
+        "path": "registry/lib/fiori-illustrations/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnsuccessfulAuth-Scene.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnsuccessfulAuth-Dialog.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnsuccessfulAuth-Spot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnsuccessfulAuth-Dot.ts",
+        "type": "registry:lib"
+      },
+      {
+        "path": "registry/lib/fiori-illustrations/tnt/UnsuccessfulAuth.ts",
+        "type": "registry:lib"
+      }
+    ]
+  }
+]
