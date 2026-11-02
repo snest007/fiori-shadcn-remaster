@@ -1,0 +1,121 @@
+/* Field + popover shared by DatePicker, DateRangePicker, DateTimePicker and TimePicker
+   (ports ui5-input's icon slot, DatePicker.css / TimePicker.css .inputIcon, and the ResponsivePopover
+   with a value-state header: ValueStateMessage.css .ui5-valuestatemessage-header). */
+.fiori-picker-field__icon-root {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--fiori-input-icon-min-width);
+  height: 100%;
+}
+.fiori-picker-field__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: start;
+  box-sizing: content-box;
+  width: 1rem;
+  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
+  padding: var(--fiori-input-icon-padding);
+  border-inline-start: var(--fiori-input-icon-border);
+  border-radius: var(--fiori-input-icon-border-radius);
+  color: var(--fiori-input-icon-color);
+  cursor: pointer;
+  outline: none;
+}
+.fiori-picker-field__icon > svg {
+  width: 1rem;
+  height: 1rem;
+  color: inherit;
+  pointer-events: none;
+}
+.fiori-picker-field:is([data-value-state="negative"], [data-value-state="critical"]) .fiori-picker-field__icon {
+  padding: var(--fiori-input-error-warning-icon-padding);
+}
+.fiori-picker-field[data-value-state="information"] .fiori-picker-field__icon {
+  padding: var(--fiori-input-information-icon-padding);
+}
+.fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  background: var(--fiori-input-icon-hover-bg);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+}
+.fiori-picker-field__icon:hover {
+  border-inline-start: var(--fiori-select-hover-icon-left-border);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+}
+.fiori-picker-field__icon[data-pressed] {
+  background: var(--fiori-input-icon-pressed-bg);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+  border-inline-start: var(--fiori-select-hover-icon-left-border);
+  color: var(--fiori-input-icon-pressed-color);
+}
+.fiori-picker-field__icon:active {
+  background-color: var(--sapButton_Active_Background);
+  box-shadow: var(--fiori-input-icon-box-shadow);
+  border-inline-start: var(--fiori-select-hover-icon-left-border);
+  color: var(--fiori-input-icon-pressed-color);
+}
+.fiori-picker-field[data-value-state="negative"] .fiori-picker-field__icon:is(:active, [data-pressed]),
+.fiori-picker-field[data-value-state="negative"] .fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  box-shadow: var(--fiori-input-error-icon-box-shadow);
+}
+.fiori-picker-field[data-value-state="critical"] .fiori-picker-field__icon:is(:active, [data-pressed]),
+.fiori-picker-field[data-value-state="critical"] .fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  box-shadow: var(--fiori-input-warning-icon-box-shadow);
+}
+.fiori-picker-field[data-value-state="information"] .fiori-picker-field__icon:is(:active, [data-pressed]),
+.fiori-picker-field[data-value-state="information"] .fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  box-shadow: var(--fiori-input-information-icon-box-shadow);
+}
+.fiori-picker-field[data-value-state="positive"] .fiori-picker-field__icon:is(:active, [data-pressed]),
+.fiori-picker-field[data-value-state="positive"] .fiori-picker-field__icon:not([data-pressed]):not(:active):hover {
+  box-shadow: var(--fiori-input-success-icon-box-shadow);
+}
+.fiori-picker-field[data-disabled] .fiori-picker-field__icon {
+  cursor: default;
+}
+
+/* Popover: ResponsivePopover, hide-arrow, content padding 0. */
+.fiori-picker-popover {
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  min-width: 6.25rem;
+  min-height: 2rem;
+  border-radius: var(--fiori-popup-border-radius);
+  background: var(--fiori-popover-background);
+  box-shadow: var(--fiori-popover-no-arrow-box-shadow);
+  outline: none;
+}
+.fiori-picker-popover__content {
+  flex: auto;
+  min-height: 0;
+  overflow: auto;
+  color: var(--sapTextColor);
+}
+.fiori-picker-popover__header {
+  flex-shrink: 0;
+  min-height: var(--fiori-value-state-message-popover-header-min-height);
+  min-width: var(--fiori-value-state-message-popover-header-min-width);
+  width: 100%;
+  padding: var(--fiori-value-state-header-padding);
+  border: var(--fiori-value-state-header-border);
+  border-bottom: var(--fiori-value-state-header-border-bottom);
+}
+.fiori-picker-popover__header[data-value-state="negative"] { box-shadow: var(--fiori-value-state-header-box-shadow-error); }
+.fiori-picker-popover__header[data-value-state="critical"] { box-shadow: var(--fiori-value-state-header-box-shadow-warning); }
+.fiori-picker-popover__header[data-value-state="information"] { box-shadow: var(--fiori-value-state-header-box-shadow-information); }
+.fiori-picker-popover__footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  height: var(--fiori-popup-footer-height);
+  padding-inline: var(--fiori-popup-header-footer-padding-s);
+  background: var(--sapPageFooter_Background);
+  border-top: 1px solid var(--sapPageFooter_BorderColor);
+  color: var(--sapPageFooter_TextColor);
+}

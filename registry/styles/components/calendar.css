@@ -1,0 +1,808 @@
+/* Calendar (ports ui5-calendar: Calendar.css, CalendarHeader.css, DayPicker.css, MonthPicker.css,
+   YearPicker.css, YearRangePicker.css, CalendarLegend*.css). Class names keep UI5's (ui5- -> fiori-).
+   Gregorian only, so the secondary-calendar-type rules are left out. :focus is :focus-visible here. */
+.fiori-calendar {
+  display: inline-block;
+  vertical-align: top;
+}
+.fiori-cal-root {
+  background: var(--sapList_Background);
+  box-sizing: border-box;
+  height: var(--fiori-calendar-height);
+  width: var(--fiori-calendar-width);
+  padding: var(--fiori-calendar-top-bottom-padding) var(--fiori-calendar-left-right-padding) 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+}
+.fiori-cal-root .fiori-calheader {
+  display: block;
+  height: var(--fiori-calendar-header-height);
+  font-family: var(--fiori-button-fontfamily);
+}
+.fiori-cal-root .fiori-cal-content {
+  padding: 0 var(--fiori-calendar-left-right-padding) var(--fiori-calendar-top-bottom-padding);
+}
+
+/* Header */
+.fiori-calheader-root {
+  display:flex;
+  height:100%;
+  padding:var(--fiori-calendar-header-padding);
+  box-sizing:border-box;
+}
+.fiori-calheader-arrowbtn {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:var(--fiori-calendar-header-arrow-button-width);
+  background-color:var(--sapButton_Lite_Background);
+  color:var(--sapButton_Lite_TextColor);
+  cursor:pointer;
+  overflow:hidden;
+  white-space:nowrap;
+  padding:0;
+  font-size:var(--sapFontSize);
+  user-select:none;
+  position:relative;
+  box-sizing:border-box;
+}
+.fiori-calheader-arrowbtn.fiori-calheader-arrowbtn-disabled:hover,
+.fiori-calheader-arrowbtn.fiori-calheader-arrowbtn-disabled:active,
+.fiori-calheader-arrowbtn.fiori-calheader-arrowbtn-disabled:focus-visible,
+.fiori-calheader-arrowbtn.fiori-calheader-arrowbtn-disabled {
+  opacity:.4;
+  cursor:default;
+  outline:none;
+  background-color:var(--sapButton_Lite_Background);
+  color:var(--sapButton_Lite_TextColor);
+}
+[hidden].fiori-calheader-arrowbtn.fiori-calheader-middlebtn {
+  display:none;
+}
+.fiori-calheader-arrowbtn:hover {
+  background-color:var(--sapButton_Lite_Hover_Background);
+  color:var(--sapButton_Lite_Hover_TextColor);
+  box-shadow:var(--fiori-calendar-header-arrow-button-box-shadow);
+  border-color:var(--sapButton_Lite_Hover_BorderColor);
+}
+.fiori-calheader-arrowbtn:active {
+  background-color:var(--sapButton_Active_Background);
+  color:var(--sapButton_Active_TextColor);
+  border-color:var(--sapButton_Lite_Active_BorderColor);
+}
+.fiori-calheader-arrowbtn,
+.fiori-calheader-middlebtn {
+  border:var(--sapButton_BorderWidth) solid var(--sapButton_Lite_BorderColor);
+  border-radius:var(--fiori-calendar-header-arrow-button-border-radius, var(--sapButton_BorderCornerRadius));
+  display:flex;
+  background-color:var(--sapButton_Lite_Background);
+}
+.fiori-calheader-middlebtn {
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+}
+.fiori-calheader-arrowicon {
+  color:currentColor;
+  pointer-events:none;
+}
+.fiori-calheader-midcontainer {
+  display:flex;
+  justify-content:space-around;
+  flex:1 1 auto;
+  padding:0 .5rem;
+}
+.fiori-calheader-midcontainer .fiori-calheader-middlebtn:first-child {
+  margin-inline-end:.5rem;
+}
+.fiori-calheader-middlebtn {
+  font-family:var(--fiori-button-fontfamily);
+  width:var(--fiori-calendar-header-middle-button-width);
+  flex:var(--fiori-calendar-header-middle-button-flex);
+  position:relative;
+  box-sizing:border-box;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+}
+.fiori-calheader-middlebtn:focus-visible,
+.fiori-calheader-arrowbtn:focus-visible {
+  border:var(--fiori-calendar-header-middle-button-focus-border);
+  border-radius:var(--fiori-calendar-header-middle-button-focus-border-radius, var(--sapButton_BorderCornerRadius));
+  outline:var(--fiori-calendar-header-middle-button-focus-outline);
+  outline-offset:-.125rem;
+  background:var(--fiori-calendar-header-middle-button-focus-background);
+}
+.fiori-calheader-middlebtn:focus-visible:active,
+.fiori-calheader-arrowbtn:focus-visible:active {
+  outline:var(--fiori-calendar-header-middle-button-focus-active-outline);
+  outline-offset:-.0625rem;
+  background:var(--fiori-calendar-header-middle-button-focus-active-background);
+}
+.fiori-calheader-middlebtn:focus-visible:after,
+.fiori-calheader-arrowbtn:focus-visible:after {
+  content:"";
+  display:var(--fiori-calendar-header-middle-button-focus-after-display);
+  width:var(--fiori-calendar-header-middle-button-focus-after-width);
+  height:var(--fiori-calendar-header-middle-button-focus-after-height);
+  border:var(--fiori-calendar-header-middle-button-focus-after-border);
+  position:absolute;
+  top:var(--fiori-calendar-header-middle-button-focus-after-top-offset);
+  left:var(--fiori-calendar-header-middle-button-focus-after-left-offset);
+}
+.fiori-calheader-middlebtn:focus-visible:active:after,
+.fiori-calheader-arrowbtn:focus-visible:active:after {
+  border-color:var(--sapContent_ContrastFocusColor);
+}
+.fiori-calheader-arrowicon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Day picker */
+.fiori-dp-root {
+  display: flex;
+  justify-content: center;
+}
+.fiori-dp-root[data-hide-week-numbers] .fiori-dp-content {
+  flex-basis: 100%;
+}
+.fiori-dp-weekname,
+.fiori-dp-dayname,
+.fiori-dp-item {
+  width:var(--fiori-day-picker-item-width);
+  height:var(--fiori-day-picker-item-height);
+  margin-block-start:var(--fiori-daypicker-item-margin);
+  margin-inline-end:var(--fiori-daypicker-item-margin);
+  font-family:var(--sapFontFamily);
+  border-radius:var(--fiori-daypicker-item-border-radius);
+}
+.fiori-dp-weekname,
+.fiori-dp-dayname {
+  cursor:default;
+}
+.fiori-dp-weekname {
+  color:var(--fiori-daypicker-weekname-color);
+}
+.fiori-dp-weeks-row {
+  display:flex;
+}
+.fiori-dp-content {
+  display:flex;
+  flex-basis:87.5%;
+  flex-direction:column;
+  font-family:var(--sapFontFamily);
+}
+.fiori-dp-days-names-container {
+  display:flex;
+  height:var(--fiori-daypicker-daynames-container-height);
+}
+.fiori-dp-weekname,
+.fiori-dp-dayname,
+.fiori-dp-weekname-container,
+.fiori-dp-item {
+  display:flex;
+  flex-grow:1;
+  justify-content:center;
+  align-items:center;
+  font-size:var(--sapFontSmallSize);
+  outline:none;
+  box-sizing:border-box;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+}
+.fiori-dp-item {
+  position:relative;
+  color:var(--sapTextColor);
+  background:var(--sapLegend_WorkingBackground);
+  font-size:var(--sapFontSize);
+  border:var(--fiori-daypicker-item-border);
+  border-radius:var(--fiori-daypicker-item-border-radius);
+  cursor:pointer;
+}
+.fiori-dp-item:hover {
+  background:var(--sapList_Hover_Background);
+}
+.fiori-dp-daytext {
+  display:flex;
+  width:100%;
+  height:100%;
+  justify-content:center;
+  align-items:center;
+  box-sizing:border-box;
+}
+.fiori-dp-dayname {
+  color:var(--fiori-daypicker-dayname-color);
+  height:100%;
+}
+.fiori-dp-item.fiori-dp-item--weekend {
+  background:var(--sapLegend_NonWorkingBackground);
+}
+.fiori-dp-item.fiori-dp-item--disabled {
+  pointer-events:none;
+  opacity:.5;
+}
+.fiori-dp-item.fiori-dp-item--weekend:hover {
+  background:var(--sapList_Hover_Background);
+  filter:var(--fiori-daypicker-item-weeekend-filter);
+}
+.fiori-dp-item.fiori-dp-item--othermonth {
+  color:var(--fiori-daypicker-item-othermonth-color);
+  background:var(--fiori-daypicker-item-othermonth-background-color);
+  border-color:transparent;
+}
+.fiori-dp-item.fiori-dp-item--othermonth:hover,
+.fiori-dp-item.fiori-dp-item--weekend.fiori-dp-item--othermonth:hover {
+  color:var(--fiori-daypicker-item-othermonth-hover-color);
+  background:var(--sapList_Hover_Background);
+}
+.fiori-dp-item:focus-visible:after {
+  content:"";
+  border:var(--fiori-daypicker-item-not-selected-focus-border);
+  position:absolute;
+  inset:var(--fiori-daypicker-item-no-selected-inset);
+  outline:none;
+  border-radius:var(--fiori-daypicker-item-border-radius-focus-after);
+}
+.fiori-dp-item.fiori-dp-item--now:before {
+  position:absolute;
+  inset:var(--fiori-daypicker-item-now-not-selected-inset);
+  border:.125rem solid var(--fiori-daypicker-item-now-border-color);
+  content:"";
+  border-radius:var(--fiori-daypicker-item-border-radius);
+  z-index:1;
+}
+.fiori-dp-item.fiori-dp-item--now.fiori-dp-item--selected {
+  box-shadow:var(--fiori-daypicker-item-now-box-shadow);
+}
+.fiori-dp-item.fiori-dp-item--selected {
+  background:var(--sapContent_Selected_Background);
+}
+.fiori-dp-item.fiori-dp-item--selected:not(.fiori-dp-item.fiori-dp-item--now) .fiori-dp-daytext:after {
+  position:absolute;
+  inset:0;
+  border:var(--fiori-daypicker-item-selected-border);
+  content:"";
+  border-radius:var(--fiori-daypicker-item-border-radius-item);
+  z-index:1;
+}
+.fiori-dp-item.fiori-dp-item--selected.fiori-dp-item.fiori-dp-item--now .fiori-dp-daytext {
+  border:var(--fiori-day-picker-item-selected-now-border);
+  outline:var(--fiori-daypicker-item-selected-text-outline);
+  outline-offset:var(--fiori-daypicker-item-now-selected-outline-offset);
+  border-radius:var(--fiori-daypicker-item-border-radius-item);
+  font-family:var(--fiori-daypicker-item-selected-text-font);
+}
+.fiori-dp-item.fiori-dp-item--selected .fiori-dp-daytext {
+  background:var(--fiori-daypicker-item-selected-background);
+  color:var(--sapContent_Selected_TextColor);
+  border-radius:var(--fiori-daypicker-item-border-radius);
+  border:var(--fiori-daypicker-item-selected-text-border);
+  font-family:var(--fiori-daypicker-item-selected-text-font);
+}
+.fiori-dp-item.fiori-dp-item--selected .fiori-dp-daytext {
+  background:var(--fiori-daypicker-item-selected-daytext-hover-background);
+  color:var(--sapContent_Selected_TextColor);
+}
+.fiori-dp-item.fiori-dp-item--now:focus-visible:after {
+  inset:var(--fiori-daypicker-item-now-inset);
+  border-radius:var(--fiori-daypicker-item-now-border-radius-focus-after);
+  border:var(--fiori-daypicker-item-now-border-focus-after);
+  position:absolute;
+  content:"";
+  width:auto;
+  height:auto;
+}
+.fiori-dp-item.fiori-dp-item--selected.fiori-dp-item--now:focus-visible:after {
+  inset:var(--fiori-daypicker-item-now-inset);
+  border-radius:var(--fiori-day-picker-item-selected-now-border-radius-focus);
+  border:var(--fiori-day-picker-item-selected-now-border-focus);
+  position:absolute;
+  content:"";
+  width:auto;
+  height:auto;
+}
+.fiori-dp-item.fiori-dp-item--selected:hover {
+  background:var(--fiori-daypicker-item-selected-hover);
+  color:var(--sapContent_ContrastTextColor);
+}
+.fiori-dp-item.fiori-dp-item--selected:focus-visible:after {
+  border-color:var(--fiori-daypicker-item-selected-focus-color);
+  border-width:var(--fiori-daypicker-item-selected-focus-width);
+}
+.fiori-dp-item.fiori-dp-item--selected-between .fiori-dp-daytext {
+  border-radius:var(--fiori-daypicker-item-border-radius);
+  font-weight:var(--fiori-daypicker-item-selected-between-text-font);
+}
+.fiori-dp-item.fiori-dp-item--selected-between.fiori-dp-item--now:not(.fiori-dp-item--selected) .fiori-dp-daytext:after {
+  content:"";
+  position:absolute;
+  inset:var(--fiori-daypicker-item-now-selected-between-inset);
+  border:var(--fiori-daypicker-item-now-selected-between-border);
+  border-radius:var(--fiori-daypicker-item-now-selected-between-border-radius);
+}
+.fiori-dp-item.fiori-dp-item--selected-between {
+  border:var(--fiori-daypicker-item-select-between-border);
+  border-radius:var(--fiori-daypicker-item-selected-between-border);
+  background:var(--fiori-daypicker-item-selected-between-background);
+}
+.fiori-dp-item.fiori-dp-item--selected-between:hover {
+  background:var(--fiori-daypicker-item-selected-between-hover-background);
+}
+.fiori-dp-item.fiori-dp-item--selected.fiori-dp-item--selected-between:focus-visible:after {
+  border-color:var(--sapContent_FocusColor);
+}
+.fiori-dp-specialday {
+  width:100%;
+  height:.375rem;
+  position:absolute;
+  box-sizing:border-box;
+  inset-block-start:var(--fiori-daypicker-special-day-top);
+  border-end-end-radius:var(--fiori-daypicker-special-day-border-bottom-radius);
+  border-end-start-radius:var(--fiori-daypicker-special-day-border-bottom-radius);
+  border-block-start:var(--fiori-daypicker-special-day-border-top);
+}
+.fiori-dp-specialday:is([data-type="NonWorking"],
+ [data-type="Working"]) {
+  border-block-start:none;
+}
+.fiori-dp-item--selected .fiori-dp-specialday {
+  width:var(--fiori-daypicker-selected-item-special-day-width);
+}
+.fiori-dp-item--selected.fiori-dp-item--now .fiori-dp-specialday {
+  inset-block-start:var(--fiori-daypicker-selected-item-now-special-day-top);
+  width:var(--fiori-daypicker-selected-item-now-special-day-width);
+  border-end-end-radius:var(--fiori-daypicker-selected-item-now-special-day-border-bottom-radius);
+  border-end-start-radius:var(--fiori-daypicker-selected-item-now-special-day-border-bottom-radius);
+}
+.fiori-dp-item--now .fiori-dp-specialday,
+.fiori-dp-item.fiori-dp-item--selected.fiori-dp-item--now .fiori-dp-specialday {
+  height:.3125rem;
+  border-end-end-radius:var(--fiori-daypicker-selected-item-now-special-day-border-bottom-radius-alternate);
+  border-end-start-radius:var(--fiori-daypicker-selected-item-now-special-day-border-bottom-radius-alternate);
+  inset-block-start:var(--fiori-daypicker-item-now-specialday-top);
+  width:var(--fiori-daypicker-item-now-specialday-width);
+}
+.fiori-dp-item:not(:focus-visible).fiori-dp-item--selected.fiori-dp-item--now .fiori-dp-specialday {
+  border-end-end-radius:var(--fiori-daypicker-special-day-selected-border-radius-bottom);
+  border-end-start-radius:var(--fiori-daypicker-special-day-selected-border-radius-bottom);
+}
+.fiori-dp-item--now .fiori-dp-specialday {
+  width:var(--fiori-daypicker-selected-item-now-special-day-width);
+  inset-block-start:var(--fiori-daypicker-selected-item-now-special-day-top);
+}
+.fiori-dp-item[data-special-day].fiori-dp-item--selected.fiori-dp-item--now .fiori-dp-daytext {
+  border-radius:var(--fiori-x-daypicker-item-selected-now-border-radius);
+}
+.fiori-dp-item[data-special-day].fiori-dp-item--selected.fiori-dp-item--now:focus-visible:after,
+.fiori-dp-item[data-special-day].fiori-dp-item--now:focus-visible:after {
+  margin:var(--fiori-daypicker-item-now-focus-margin);
+}
+.fiori-dp-item.fiori-dp-item--now:focus-visible .fiori-dp-specialday {
+  inset-block-start:var(--fiori-daypicker-specialday-focused-top);
+  width:var(--fiori-daypicker-specialday-focused-width);
+  border-end-end-radius:var(--fiori-daypicker-specialday-focused-border-bottom);
+  border-end-start-radius:var(--fiori-daypicker-specialday-focused-border-bottom);
+  height:.3125rem;
+}
+.fiori-dp-specialday[data-type="Type01"] {
+  background:var(--sapLegendColor1);
+}
+.fiori-dp-specialday[data-type="Type02"] {
+  background:var(--sapLegendColor2);
+}
+.fiori-dp-specialday[data-type="Type03"] {
+  background:var(--sapLegendColor3);
+}
+.fiori-dp-specialday[data-type="Type04"] {
+  background:var(--sapLegendColor4);
+}
+.fiori-dp-specialday[data-type="Type05"] {
+  background:var(--sapLegendColor5);
+}
+.fiori-dp-specialday[data-type="Type06"] {
+  background:var(--sapLegendColor6);
+}
+.fiori-dp-specialday[data-type="Type07"] {
+  background:var(--sapLegendColor7);
+}
+.fiori-dp-specialday[data-type="Type08"] {
+  background:var(--sapLegendColor8);
+}
+.fiori-dp-specialday[data-type="Type09"] {
+  background:var(--sapLegendColor9);
+}
+.fiori-dp-specialday[data-type="Type10"] {
+  background:var(--sapLegendColor10);
+}
+.fiori-dp-specialday[data-type="Type11"] {
+  background:var(--sapLegendColor11);
+}
+.fiori-dp-specialday[data-type="Type12"] {
+  background:var(--sapLegendColor12);
+}
+.fiori-dp-specialday[data-type="Type13"] {
+  background:var(--sapLegendColor13);
+}
+.fiori-dp-specialday[data-type="Type14"] {
+  background:var(--sapLegendColor14);
+}
+.fiori-dp-specialday[data-type="Type15"] {
+  background:var(--sapLegendColor15);
+}
+.fiori-dp-specialday[data-type="Type16"] {
+  background:var(--sapLegendColor16);
+}
+.fiori-dp-specialday[data-type="Type17"] {
+  background:var(--sapLegendColor17);
+}
+.fiori-dp-specialday[data-type="Type18"] {
+  background:var(--sapLegendColor18);
+}
+.fiori-dp-specialday[data-type="Type19"] {
+  background:var(--sapLegendColor19);
+}
+.fiori-dp-specialday[data-type="Type20"] {
+  background:var(--sapLegendColor20);
+}
+.fiori-dp-weekname-container[hidden] {
+  display: none;
+}
+
+/* Month / year / year range pickers */
+.fiori-mp-root {
+  box-sizing:border-box;
+  padding:2rem 0 1rem;
+  display:flex;
+  flex-direction:column;
+  font-family:var(--sapFontFamily);
+  font-size:var(--sapFontSize);
+  justify-content:center;
+  align-items:center;
+}
+.fiori-mp-quarter {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+}
+.fiori-mp-item {
+  display:flex;
+  flex-direction:column;
+  width:calc(33.333% - .125rem);
+  height:var(--fiori-month-picker-item-height);
+  color:var(--sapButton_Lite_TextColor);
+  background-color:var(--sapButton_Lite_Background);
+  align-items:center;
+  justify-content:center;
+  margin:var(--fiori-monthpicker-item-margin);
+  box-sizing:border-box;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+  cursor:pointer;
+  outline:none;
+  position:relative;
+  border:var(--fiori-monthpicker-item-border);
+  border-radius:var(--fiori-monthpicker-item-border-radius);
+}
+.fiori-mp-item.fiori-mp-item--selected,
+.fiori-mp-item.fiori-mp-item--selected-between {
+  background:var(--sapButton_Selected_Background);
+  border:var(--fiori-monthpicker-item-selected-border);
+  color:var(--sapButton_Selected_TextColor);
+}
+.fiori-mp-item:hover {
+  background:var(--sapButton_Lite_Hover_Background);
+  border:var(--fiori-monthpicker-item-hover-border);
+  color:var(--sapButton_Lite_Hover_TextColor);
+}
+.fiori-mp-item.fiori-mp-item--selected:hover,
+.fiori-mp-item.fiori-mp-item--selected-between:hover {
+  background:var(--sapButton_Selected_Hover_Background);
+  border:var(--fiori-monthpicker-item-selected-hover-border);
+  color:var(--sapButton_Selected_TextColor);
+}
+.fiori-mp-item:active,
+.fiori-mp-item.fiori-mp-item--selected:active,
+.fiori-mp-item.fiori-mp-item--selected-between:active {
+  background:var(--sapButton_Active_Background);
+  border:var(--fiori-monthpicker-item-active-border);
+  color:var(--sapButton_Active_TextColor);
+}
+.fiori-mp-item.fiori-mp-item--disabled {
+  pointer-events:none;
+  opacity:.5;
+}
+.fiori-mp-item:focus-visible:after {
+  content:"";
+  position:absolute;
+  inset:.0625rem;
+  border:var(--fiori-button-focused-border);
+  border-radius:var(--fiori-button-focused-border-radius);
+}
+.fiori-yp-root {
+  padding:2rem 0 1rem;
+  display:flex;
+  flex-direction:column;
+  font-family:var(--sapFontFamily);
+  font-size:var(--sapFontSize);
+  justify-content:center;
+  align-items:center;
+}
+.fiori-yp-interval-container {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+}
+.fiori-yp-item {
+  display:flex;
+  margin:var(--fiori-yearpicker-item-margin);
+  width:calc(25% - .125rem);
+  height:var(--fiori-year-picker-item-height);
+  color:var(--sapButton_Lite_TextColor);
+  background-color:var(--sapButton_Lite_Background);
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+  cursor:pointer;
+  outline:none;
+  position:relative;
+  border:var(--fiori-yearpicker-item-border);
+  border-radius:var(--fiori-yearpicker-item-border-radius);
+}
+.fiori-yp-item.fiori-yp-item--selected,
+.fiori-yp-item.fiori-yp-item--selected-between {
+  background:var(--sapButton_Selected_Background);
+  border:var(--fiori-yearpicker-item-selected-border);
+  color:var(--sapButton_Selected_TextColor);
+}
+.fiori-yp-item:hover {
+  background:var(--sapButton_Lite_Hover_Background);
+  border:var(--fiori-yearpicker-item-hover-border);
+  color:var(--sapButton_Lite_Hover_TextColor);
+}
+.fiori-yp-item.fiori-yp-item--selected:hover,
+.fiori-yp-item.fiori-yp-item--selected-between:hover {
+  background:var(--sapButton_Selected_Hover_Background);
+  border:var(--fiori-yearpicker-item-selected-hover-border);
+  color:var(--sapButton_Selected_TextColor);
+}
+.fiori-yp-item:active,
+.fiori-yp-item.fiori-yp-item--selected:active,
+.fiori-yp-item.fiori-yp-item--selected-between:active {
+  background:var(--sapButton_Active_Background);
+  border:var(--fiori-monthpicker-item-active-border);
+  color:var(--sapButton_Active_TextColor);
+}
+.fiori-yp-item.fiori-yp-item--disabled {
+  pointer-events:none;
+  opacity:.5;
+}
+.fiori-yp-item:focus-visible:after {
+  content:"";
+  position:absolute;
+  inset:.0625rem;
+  border:var(--fiori-button-focused-border);
+  border-radius:var(--fiori-button-focused-border-radius);
+}
+.fiori-yrp-root {
+  padding:2rem 0 1rem;
+  display:flex;
+  flex-direction:column;
+  font-family:var(--sapFontFamily);
+  font-size:var(--sapFontSize);
+  justify-content:center;
+  align-items:center;
+}
+.fiori-yrp-interval-container {
+  display:flex;
+  justify-content:space-evenly;
+  align-items:center;
+  width:100%;
+}
+.fiori-yrp-item {
+  display:flex;
+  margin:var(--fiori-yearpicker-item-margin);
+  width:calc(50% - .125rem);
+  height:var(--fiori-year-picker-item-height);
+  color:var(--sapButton_Lite_TextColor);
+  background-color:var(--sapButton_Lite_Background);
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+  cursor:pointer;
+  outline:none;
+  position:relative;
+  border:var(--fiori-yearpicker-item-border);
+  border-radius:var(--fiori-yearpicker-item-border-radius);
+}
+.fiori-yrp-item.fiori-yrp-item--selected,
+.fiori-yrp-item.fiori-yrp-item--selected-between {
+  background:var(--sapButton_Selected_Background);
+  border:var(--fiori-yearpicker-item-selected-border);
+  color:var(--sapButton_Selected_TextColor);
+}
+.fiori-yrp-item:hover {
+  background:var(--sapButton_Lite_Hover_Background);
+  border:var(--fiori-yearpicker-item-hover-border);
+  color:var(--sapButton_Lite_Hover_TextColor);
+}
+.fiori-yrp-item.fiori-yrp-item--selected:hover,
+.fiori-yrp-item.fiori-yrp-item--selected-between:hover {
+  background:var(--sapButton_Selected_Hover_Background);
+  border:var(--fiori-yearpicker-item-selected-hover-border);
+  color:var(--sapButton_Selected_TextColor);
+}
+.fiori-yrp-item:active,
+.fiori-yrp-item.fiori-yrp-item--selected:active,
+.fiori-yrp-item.fiori-yrp-item--selected-between:active {
+  background:var(--sapButton_Active_Background);
+  border:var(--fiori-monthpicker-item-active-border);
+  color:var(--sapButton_Active_TextColor);
+}
+.fiori-yrp-item.fiori-yrp-item--disabled {
+  pointer-events:none;
+  opacity:.5;
+}
+.fiori-yrp-item:focus-visible:after {
+  content:"";
+  position:absolute;
+  inset:.0625rem;
+  border:var(--fiori-button-focused-border);
+  border-radius:var(--fiori-button-focused-border-radius);
+}
+
+/* Legend */
+.fiori-calendar-legend-root {
+  column-width:7.5rem;
+  gap:.5rem;
+  padding:var(--fiori-x-calendar-legend-root-padding);
+  margin:1rem 0;
+  width:var(--fiori-x-calendar-legend-root-width);
+  background-color:var(--sapList_Background);
+}
+.fiori-calendar-legend-item {
+  display:flex;
+  flex-direction:row;
+  flex-wrap:wrap;
+  width:var(--fiori-x-calendar-legend-item-root-width);
+  white-space:pre-line;
+  text-overflow:ellipsis;
+  overflow:hidden;
+  cursor:pointer;
+  margin:.0625rem 0;
+}
+.fiori-calendar-legend-item-box {
+  display:inline-block;
+  box-sizing:border-box;
+  height:1rem;
+  width:1rem;
+  margin:var(--fiori-x-calendar-legend-item-box-margin);
+  margin-inline-end:var(--fiori-x-calendar-legend-item-box-inner-margin);
+  background:var(--sapLegend_WorkingBackground);
+  border:.0625rem solid var(--sapContent_ForegroundBorderColor);
+}
+.fiori-calendar-legend-item-text {
+  display:flex;
+  align-items:center;
+  font-size:.875rem;
+  line-height:1.25rem;
+  color:var(--sapContent_LabelColor);
+  font-weight:400;
+  font-family:var(--sapFontFamily);
+  font-size:var(--sapFontSmallSize);
+  white-space:pre-line;
+  text-overflow:ellipsis;
+  overflow:hidden;
+}
+.fiori-calendar-legend-item:focus-visible {
+  outline:var(--fiori-x-calendar-legend-item-root-focus-border);
+  outline-offset:var(--fiori-x-calendar-legend-item-root-focus-offset);
+  border-radius:var(--fiori-x-calendar-legend-item-root-focus-border-radius);
+  margin:.0625rem 0;
+}
+.fiori-calendar-legend-item[data-type="Today"] .fiori-calendar-legend-item-box {
+  border: 0.125rem solid var(--sapLegend_CurrentDateTime);
+}
+.fiori-calendar-legend-item[data-type="Selected"] .fiori-calendar-legend-item-box {
+  background: var(--sapContent_Selected_Background);
+  border: 0.0625rem solid var(--sapList_SelectionBorderColor);
+}
+.fiori-calendar-legend-item[data-type="Selected"] .fiori-calendar-legend-item-box::after {
+  content: "";
+  display: var(--fiori-x-calendar-legend-item-box-dot-display);
+  width: 0.25rem;
+  height: 0.25rem;
+  background: var(--sapContent_Selected_TextColor);
+  border-radius: 50%;
+  position: relative;
+  inset-block-start: 0.3125rem;
+  inset-inline-end: -0.3125rem;
+}
+.fiori-calendar-legend-item[data-type="NonWorking"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegend_NonWorkingBackground);
+}
+.fiori-calendar-legend-item[data-type="Type01"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor1);
+}
+.fiori-calendar-legend-item[data-type="Type02"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor2);
+}
+.fiori-calendar-legend-item[data-type="Type03"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor3);
+}
+.fiori-calendar-legend-item[data-type="Type04"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor4);
+}
+.fiori-calendar-legend-item[data-type="Type05"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor5);
+}
+.fiori-calendar-legend-item[data-type="Type06"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor6);
+}
+.fiori-calendar-legend-item[data-type="Type07"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor7);
+}
+.fiori-calendar-legend-item[data-type="Type08"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor8);
+}
+.fiori-calendar-legend-item[data-type="Type09"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor9);
+}
+.fiori-calendar-legend-item[data-type="Type10"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor10);
+}
+.fiori-calendar-legend-item[data-type="Type11"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor11);
+}
+.fiori-calendar-legend-item[data-type="Type12"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor12);
+}
+.fiori-calendar-legend-item[data-type="Type13"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor13);
+}
+.fiori-calendar-legend-item[data-type="Type14"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor14);
+}
+.fiori-calendar-legend-item[data-type="Type15"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor15);
+}
+.fiori-calendar-legend-item[data-type="Type16"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor16);
+}
+.fiori-calendar-legend-item[data-type="Type17"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor17);
+}
+.fiori-calendar-legend-item[data-type="Type18"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor18);
+}
+.fiori-calendar-legend-item[data-type="Type19"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor19);
+}
+.fiori-calendar-legend-item[data-type="Type20"] .fiori-calendar-legend-item-box {
+  background: var(--sapLegendColor20);
+}
+
+.fiori-calendar .fiori-hidden-text {
+  position: absolute;
+  clip: rect(1px, 1px, 1px, 1px);
+  user-select: none;
+  left: -1000px;
+  top: -1000px;
+  pointer-events: none;
+  font-size: 0;
+}
