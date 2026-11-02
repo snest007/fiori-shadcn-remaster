@@ -239,13 +239,13 @@ function DynamicPage({
     flags.current.isToggled = true
     toggleHeader()
     onTitleToggle?.(live.current.state.snapped)
-    afterRender.current.push(() => titleRef.current?.querySelector<HTMLElement>("[data-dp-focus-area]")?.focus())
+    afterRender.current.push(() => titleRef.current?.querySelector<HTMLElement>("[data-dp-focus-area]")?.focus({ preventScroll: true }))
   }
   const onExpandClick = () => {
     flags.current.isToggled = true
     toggleHeader()
     onTitleToggle?.(live.current.state.snapped)
-    afterRender.current.push(() => expandButtonRef.current?.focus())
+    afterRender.current.push(() => expandButtonRef.current?.focus({ preventScroll: true }))
   }
   const onPinClick = () => {
     const next = !live.current.pinned
@@ -253,7 +253,7 @@ function DynamicPage({
     const s = live.current.state
     if (next) commit({ ...s, stick: true })
     else if (scrollRef.current && scrollRef.current.scrollTop === 0) commit({ ...s, stick: false })
-    afterRender.current.push(() => pinButtonRef.current?.focus())
+    afterRender.current.push(() => pinButtonRef.current?.focus({ preventScroll: true }))
   }
 
   // `headerSnapped` changed from outside: toggle like the UI5 setter does.
