@@ -15,8 +15,7 @@
   vertical-align: top;
   color: var(--sapContent_LabelColor);
 }
-.fiori-object-status__title::after {
-  content: attr(data-colon);
+.fiori-object-status__colon {
   white-space: pre;
 }
 .fiori-object-status__wrapper {

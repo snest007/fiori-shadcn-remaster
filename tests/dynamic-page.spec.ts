@@ -22,7 +22,7 @@ test("dynamic-page: title is a toggle button with aria-expanded; header region l
   await expect(title).toHaveAttribute("aria-expanded", "true")
   await expect(title).toHaveAccessibleName("Laptop 15")
   await expect(title).toHaveAccessibleDescription("Toggle Header")
-  await expect(header.getByRole("region", { name: "Header Expanded" })).toBeVisible()
+  await expect(header.getByRole("region", { name: "Laptop 15 details" })).toBeVisible()
   await expect(dp.getByRole("region", { name: "Laptop 15 header" })).toBeVisible()
 })
 

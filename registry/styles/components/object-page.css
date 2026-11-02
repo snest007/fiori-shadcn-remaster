@@ -1,0 +1,133 @@
+/* ObjectPage: sap.uxap.ObjectPageLayout look (sap_horizon library.css) on top of DynamicPage. Paddings follow the
+   page width (container queries on the dynamic page root): titles at 3rem / blocks at 2rem in L/XL, 2rem / 1rem in M,
+   1rem / 0 in S. */
+.fiori-object-page .fiori-object-page__content {
+  padding: 0 0 1rem;
+}
+/* Room above the tab strip for the expand / pin buttons on the header edge (sapUxAPAnchorBar margin-top 0.8125rem). */
+.fiori-object-page__anchor-bar {
+  padding-top: 0.8125rem;
+  background: var(--sapObjectHeader_Background);
+}
+.fiori-object-page[data-header-snapped] .fiori-object-page__anchor-bar .fiori-tabs__header {
+  box-shadow: var(--sapContent_HeaderShadow);
+}
+
+/* Header content: avatar and facets in a wrapping row (sapUxAPObjectPageHeaderContentItem). */
+.fiori-object-page-header__content {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  column-gap: 2rem;
+}
+.fiori-object-page-header__content > * {
+  margin-bottom: 1rem;
+}
+.fiori-object-page-header-facet {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5rem;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  color: var(--sapTextColor);
+}
+/* Guideline "Header Facets": the facet title is regular text above its value (key-value / KPI facets). */
+.fiori-object-page-header-facet__title {
+  color: var(--sapTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: 1.5rem;
+}
+/* ObjectStatus with no semantic state shows in the title color inside object page headers and sections. */
+.fiori-object-page :is(.fiori-object-page-header, .fiori-object-page-section) .fiori-object-status[data-state="none"]:not([data-inverted]) {
+  --fiori-x-os-text-color: var(--sapGroup_TitleTextColor);
+  --fiori-x-os-icon-color: var(--sapGroup_TitleTextColor);
+}
+
+/* Sections */
+.fiori-object-page-section {
+  position: relative;
+  padding-top: 1.5rem;
+}
+.fiori-object-page-section[data-first] {
+  padding-top: 1rem;
+}
+.fiori-object-page[data-mode="tabs"] .fiori-object-page-section {
+  padding-top: 1rem;
+}
+.fiori-object-page-section[hidden] {
+  display: none;
+}
+.fiori-object-page-section__header {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: 2.75rem;
+  padding: 0 2.25rem 0 1rem;
+}
+.fiori-object-page-section__title {
+  max-width: 100%;
+}
+.fiori-object-page-subsection {
+  position: relative;
+  box-sizing: border-box;
+}
+.fiori-object-page-subsection + .fiori-object-page-subsection,
+.fiori-object-page-section__header.sr-only + .fiori-object-page-section__container > .fiori-object-page-subsection:first-child:has(> .fiori-object-page-subsection__header) {
+  padding-top: 1rem;
+}
+.fiori-object-page-subsection__header {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 0.75rem 0 1rem;
+  overflow-wrap: break-word;
+}
+.fiori-object-page-subsection__title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.fiori-object-page-subsection__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-inline-start: auto;
+}
+.fiori-object-page-subsection__block {
+  padding: 0.5rem 0;
+  border-radius: var(--sapElement_BorderCornerRadius);
+  background: var(--sapGroup_ContentBackground);
+}
+.fiori-object-page-subsection__block[data-transparent] {
+  padding: 0;
+  background: transparent;
+}
+/* A form inside a block uses the block as its card. */
+.fiori-object-page-subsection__block > .fiori-form > .fiori-form__root {
+  background: transparent;
+}
+
+@container (min-width: 600px) {
+  .fiori-object-page-section__header {
+    padding-left: 2rem;
+  }
+  .fiori-object-page-subsection__header {
+    padding: 0 1.25rem 0 2rem;
+  }
+  .fiori-object-page-subsection__block {
+    margin: 0 1rem;
+  }
+}
+@container (min-width: 1024px) {
+  .fiori-object-page-section__header {
+    padding-left: 3rem;
+  }
+  .fiori-object-page-subsection__header {
+    padding: 0 2.75rem 0 3rem;
+  }
+  .fiori-object-page-subsection__block {
+    margin: 0 2rem;
+  }
+}

@@ -49,7 +49,8 @@ function DynamicPageDemo() {
           </DynamicPageTitle>
         }
         header={
-          <DynamicPageHeader>
+          // Unique name: the docs page holds several dynamic pages (landmarks must be distinguishable).
+          <DynamicPageHeader accessibleName="Laptop 15 details">
             <div className="flex flex-wrap gap-8">
               <div className="flex flex-col gap-1">
                 <Label>Manufacturer: Robotech</Label>

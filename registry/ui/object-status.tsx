@@ -83,7 +83,10 @@ function ObjectStatus({
       className={cn("fiori-object-status", className)}
       {...props}
     >
-      {title != null && title !== "" && <span className="fiori-object-status__title" data-colon=":">{title}</span>}
+      {title != null && title !== "" && <span className="fiori-object-status__title">
+          {title}
+          <span className="fiori-object-status__colon">:</span>
+        </span>}
       {active ? (
         <span
           role="button"
