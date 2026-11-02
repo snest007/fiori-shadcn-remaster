@@ -1,0 +1,5 @@
+{
+  "title": "FilterBar",
+  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/input", "@fiori/label"],
+  "description": "Fiori filter bar (composite after the Fiori design guidelines): variant slot, basic search, labelled filter fields grid, Go, Adapt Filters (n), collapse with filter summary text."
+}

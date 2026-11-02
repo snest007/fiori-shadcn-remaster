@@ -1,0 +1,170 @@
+/* ViewSettingsDialog (ui5-view-settings-dialog). Builds on .fiori-dialog / .fiori-popup. */
+.fiori-vsd .fiori-popup__header.fiori-vsd__header {
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
+  gap: 0;
+  padding-bottom: 0.25rem;
+}
+.fiori-vsd__header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--fiori-vsd-header-container);
+  line-height: var(--fiori-vsd-header-container);
+}
+.fiori-vsd__header-start {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.fiori-vsd__back {
+  margin-inline-end: 0.5rem;
+}
+/* A ui5-title (H1, wrapping None) rather than the dialog's own header text. */
+.fiori-vsd .fiori-popup__title.fiori-vsd__title {
+  display: block;
+  height: auto;
+  line-height: inherit;
+  color: var(--sapGroup_TitleTextColor);
+  font-size: var(--sapFontHeader5Size);
+}
+.fiori-vsd__title > span {
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: bottom;
+}
+.fiori-vsd__sub-header {
+  height: var(--fiori-vsd-sub-header-container-height);
+  line-height: var(--fiori-vsd-sub-header-container-height);
+}
+.fiori-popup.fiori-vsd .fiori-popup__content.fiori-vsd__body {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-inline-end: 0;
+}
+.fiori-vsd__content {
+  height: var(--fiori-vsd-content-height);
+  min-width: 350px;
+  margin: 0 0.1px 0 -1rem;
+}
+.fiori-vsd__content[data-expand] {
+  height: var(--fiori-vsd-expand-content-height);
+}
+.fiori-vsd__sort {
+  width: 100%;
+  height: 100%;
+}
+.fiori-vsd__ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+.fiori-vsd__ul:focus {
+  outline: none;
+}
+/* Group header (ui5-li-group-header) */
+.fiori-vsd__group-header {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: var(--fiori-group-header-list-item-height);
+  padding: 0.5rem 1rem 0;
+  background: var(--fiori-x-group-header-listitem-background-color);
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_GroupHeaderBorderColor);
+  color: var(--sapList_TableGroupHeaderTextColor);
+  font-size: var(--sapFontHeader6Size);
+  line-height: 2rem;
+}
+.fiori-vsd__group-header > span {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-family: var(--sapFontHeaderFamily);
+}
+/* Items (ui5-li, separators "All") */
+.fiori-vsd__item {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: var(--fiori-list-item-base-height);
+  padding-inline: var(--fiori-vsd-content-li-padding) 1rem;
+  background-color: var(--fiori-x-listitem-background-color);
+  border-bottom: var(--fiori-x-listitem-border-bottom);
+  font-family: var(--sapFontFamily);
+  color: var(--sapList_TextColor);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+}
+.fiori-vsd__item[data-mode="none"] {
+  padding-inline-start: 1rem;
+}
+.fiori-vsd__item[data-selected] {
+  background-color: var(--sapList_SelectionBackgroundColor);
+  border-bottom: var(--fiori-x-listitem-selected-border-bottom);
+}
+.fiori-vsd__item:not([data-active]):not([data-selected]):hover {
+  background-color: var(--sapList_Hover_Background);
+}
+.fiori-vsd__item[data-selected]:not([data-active]):hover {
+  background-color: var(--sapList_Hover_SelectionBackground);
+}
+.fiori-vsd__item[data-active] {
+  background-color: var(--sapList_Active_Background);
+  border-bottom-color: var(--sapList_Active_Background);
+}
+.fiori-vsd__item[data-active] :is(.fiori-vsd__item-text, .fiori-vsd__item-additional) {
+  color: var(--sapList_Active_TextColor);
+}
+.fiori-vsd__item:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: 0.125rem;
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  pointer-events: none;
+}
+.fiori-vsd__item-text {
+  flex: auto;
+  min-width: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--fiori-list-item-title-size);
+  line-height: normal;
+}
+.fiori-vsd__item-additional {
+  margin: 0 0.25rem;
+  min-width: 3.75rem;
+  overflow: hidden;
+  color: var(--sapNeutralTextColor);
+  font-size: var(--sapFontSize);
+  text-align: end;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fiori-vsd__item[data-selected] .fiori-vsd__item-additional,
+.fiori-vsd__item:hover .fiori-vsd__item-additional {
+  text-shadow: var(--sapContent_TextShadow);
+}
+.fiori-vsd__radio,
+.fiori-vsd__checkbox {
+  flex-shrink: 0;
+}
+/* The radio in a list item has the list background inside its ring (RadioButton.css). */
+.fiori-vsd__radio .fiori-radio__outer {
+  fill: var(--sapList_Background);
+}
+/* Footer: a plain end-aligned row (not a ui5-bar) of footer height with 0.1875rem vertical margins.
+   OK gets min-width 4rem on its ui5-button host, which is content-box (+ its border), hence the calc in the TSX. */
+.fiori-vsd .fiori-popup__footer.fiori-vsd__footer {
+  height: calc(var(--fiori-popup-footer-height) + 0.375rem + 1px);
+  gap: 0.5rem;
+}
+.fiori-vsd .fiori-popup__footer.fiori-vsd__footer > * {
+  margin: 0;
+}

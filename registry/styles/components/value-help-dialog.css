@@ -1,0 +1,252 @@
+/* ValueHelpDialog: composite after the Fiori design guidelines (no UI5 Web Component).
+   Builds on .fiori-dialog; the tab bar is <Tabs> (transparent backgrounds so it reads as the header's tab bar). */
+.fiori-vhd {
+  width: min(60rem, 94vw);
+}
+.fiori-vhd .fiori-popup__content,
+.fiori-vhd__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+.fiori-vhd__tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.fiori-vhd__tabs .fiori-tabs__header {
+  background: var(--sapPageHeader_Background);
+  box-shadow: none;
+  border-bottom: 0.0625rem solid var(--sapPageHeader_BorderColor, var(--sapObjectHeader_BorderColor));
+}
+.fiori-vhd__tabs .fiori-tabs__content {
+  padding: 0;
+  background: transparent;
+  border-bottom: none;
+}
+.fiori-vhd__search-page,
+.fiori-vhd__conditions,
+.fiori-vhd__body {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 1rem 3rem 0;
+}
+/* Single selection: no tab bar; the dialog content already pads 1rem (S) / 2rem (M, L). */
+.fiori-vhd__body > .fiori-vhd__search-page {
+  padding-top: 0;
+}
+.fiori-vhd__search-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.fiori-vhd__search-row .fiori-vhd__search {
+  flex: 1 1 auto;
+  width: auto;
+}
+.fiori-vhd__search-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+.fiori-vhd__filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0 1rem;
+  margin-top: 0.25rem;
+}
+.fiori-vhd__section-title {
+  margin: 0;
+  color: var(--sapGroup_TitleTextColor);
+  font-family: var(--sapFontHeaderFamily);
+  font-size: var(--sapFontHeader5Size);
+  font-weight: normal;
+  line-height: 2.75rem;
+  text-shadow: var(--sapContent_TextShadow);
+}
+.fiori-vhd__items-title {
+  margin-top: 1rem;
+  padding-inline: 1rem;
+}
+
+/* Result table: semantic <table> styled like sap.m.Table (ui5-table) with --sapList tokens. */
+.fiori-vhd__table-wrap {
+  overflow: auto;
+}
+.fiori-vhd__table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  color: var(--sapList_TextColor);
+}
+.fiori-vhd__table th {
+  height: var(--fiori-list-item-base-height);
+  padding: 0.25rem 1rem;
+  background: var(--sapList_HeaderBackground);
+  border-top: var(--sapList_BorderWidth) solid var(--sapList_HeaderBorderColor);
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_HeaderBorderColor);
+  color: var(--sapList_HeaderTextColor);
+  font-family: var(--sapFontBoldFamily);
+  font-weight: normal;
+  text-align: start;
+  white-space: nowrap;
+}
+.fiori-vhd__table td {
+  height: var(--fiori-list-item-base-height);
+  padding: 0.25rem 1rem;
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_BorderColor);
+  background: var(--sapList_Background);
+}
+.fiori-vhd__table :is(th, td).fiori-vhd__select-cell {
+  width: 1px;
+  padding: 0 0 0 0.25rem;
+}
+.fiori-vhd__table tr[data-row] {
+  position: relative;
+  cursor: pointer;
+  outline: none;
+}
+.fiori-vhd__table tr[data-row]:hover td {
+  background: var(--sapList_Hover_Background);
+}
+.fiori-vhd__table tr[data-row][data-selected] td {
+  background: var(--sapList_SelectionBackgroundColor);
+  border-bottom-color: var(--sapList_SelectionBorderColor);
+}
+.fiori-vhd__table tr[data-row][data-selected]:hover td {
+  background: var(--sapList_Hover_SelectionBackground);
+}
+.fiori-vhd__table tr[data-row]:active td {
+  background: var(--sapList_Active_Background);
+  color: var(--sapList_Active_TextColor);
+}
+.fiori-vhd__table tr[data-row]:focus-visible td {
+  outline: none;
+  box-shadow:
+    inset 0 var(--sapContent_FocusWidth) 0 0 var(--sapContent_FocusColor),
+    inset 0 calc(-1 * var(--sapContent_FocusWidth)) 0 0 var(--sapContent_FocusColor);
+}
+.fiori-vhd__table tr[data-row]:focus-visible td:first-child {
+  box-shadow:
+    inset var(--sapContent_FocusWidth) var(--sapContent_FocusWidth) 0 0 var(--sapContent_FocusColor),
+    inset 0 calc(-1 * var(--sapContent_FocusWidth)) 0 0 var(--sapContent_FocusColor);
+}
+.fiori-vhd__table tr[data-row]:focus-visible td:last-child {
+  box-shadow:
+    inset calc(-1 * var(--sapContent_FocusWidth)) var(--sapContent_FocusWidth) 0 0 var(--sapContent_FocusColor),
+    inset 0 calc(-1 * var(--sapContent_FocusWidth)) 0 0 var(--sapContent_FocusColor);
+}
+.fiori-vhd__no-data {
+  text-align: center;
+  color: var(--sapTextColor);
+}
+
+/* Define Conditions */
+.fiori-vhd__condition {
+  display: grid;
+  grid-template-columns: minmax(10rem, 14rem) 1fr auto;
+  align-items: center;
+  gap: 0 0.5rem;
+}
+.fiori-vhd__condition-values {
+  display: flex;
+  gap: 0.5rem;
+}
+.fiori-vhd__condition-values > * {
+  flex: 1;
+}
+.fiori-vhd__add-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+  padding-inline-end: calc(var(--fiori-button-base-min-width) + 0.5rem);
+}
+
+/* Selected items and conditions: tokens in a field-like box (a multi-line tokenizer). */
+.fiori-vhd__selected {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 1rem 3rem 0.5rem;
+}
+.fiori-vhd--single .fiori-vhd__selected {
+  display: none;
+}
+.fiori-vhd__tokens-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.fiori-vhd__tokens {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--fiori-tokenizer-gap);
+  min-height: var(--fiori-input-height);
+  max-height: 6rem;
+  overflow-y: auto;
+  padding: var(--fiori-tokenizer-padding);
+  border: var(--fiori-x-input-border);
+  border-radius: var(--fiori-input-border-radius);
+  background: var(--sapField_Background);
+  box-shadow: var(--sapField_Shadow);
+}
+/* Token (ui5-token): text + decline icon, button-token colors. */
+.fiori-vhd__token {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: var(--fiori-token-height);
+  padding-inline-start: var(--fiori-token-left-padding);
+  border: var(--sapButton_BorderWidth) solid var(--sapButton_TokenBorderColor);
+  border-radius: var(--fiori-token-border-radius);
+  background: var(--fiori-token-background);
+  color: var(--sapTextColor);
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  white-space: nowrap;
+}
+.fiori-vhd__token:hover {
+  background: var(--sapButton_Hover_Background);
+}
+.fiori-vhd__token-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fiori-vhd__token-remove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--fiori-token-icon-padding);
+  border: none;
+  border-radius: var(--fiori-token-border-radius);
+  background: none;
+  color: var(--sapContent_IconColor);
+  cursor: pointer;
+  outline: none;
+}
+.fiori-vhd__token-remove > svg {
+  width: var(--fiori-token-icon-size);
+  height: var(--fiori-token-icon-size);
+}
+.fiori-vhd__token-remove:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: -0.125rem;
+}
+
+@media (max-width: 40rem) {
+  .fiori-vhd__search-page,
+  .fiori-vhd__conditions,
+  .fiori-vhd__selected {
+    padding-inline: 1rem;
+  }
+}
