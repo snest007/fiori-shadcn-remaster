@@ -1,0 +1,6 @@
+{
+  "title": "TimePicker",
+  "description": "Fiori time picker: a time field with the clock-dial time selection (hours, minutes, seconds, AM/PM).",
+  "registryDependencies": ["@fiori/icons", "@fiori/input", "@fiori/button", "@fiori/segmented-button", "@fiori/date-picker", "@fiori/picker-field"],
+  "files": [{ "path": "registry/lib/fiori-dates.ts", "type": "registry:lib" }]
+}

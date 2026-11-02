@@ -1,0 +1,43 @@
+/* DateTimePicker popover (ports DateTimePickerPopover.css + DatePickerPopover.css footer, desktop). */
+.fiori-date-time-picker-popover {
+  width: auto;
+}
+.fiori-dt-picker-content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  box-sizing: border-box;
+  height: var(--fiori-datetime-picker-height);
+  min-width: var(--fiori-datetime-picker-width);
+}
+.fiori-dt-cal {
+  display: flex;
+  justify-content: center;
+  width: auto;
+  box-sizing: border-box;
+}
+.fiori-dt-time {
+  width: 100%;
+  min-width: var(--fiori-datetime-timeview-width);
+  box-sizing: border-box;
+}
+.fiori-dt-picker-separator {
+  box-sizing: border-box;
+  width: 0;
+  height: calc(100% - 2rem);
+  margin-block: 1rem;
+  border-left: 1px solid var(--sapGroup_ContentBorderColor);
+}
+.fiori-dt-picker-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  height: 2.75rem;
+}
+.fiori-dt-picker-footer > [data-slot="button"] {
+  margin: 0.25rem;
+}
+.fiori-dt-picker-footer > .fiori-dt-picker-ok {
+  width: 4rem;
+}

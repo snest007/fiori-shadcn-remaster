@@ -80,6 +80,7 @@ function TimePickerClock({ entity, active, transitioning, skipAnimation, disable
   const hover = marker(fix(hovered))
   const down = React.useRef(false)
   const movValue = React.useRef(-1)
+  /** The clock root (UI5's getDomRef()): dimensions and the number size come from it. */
   const ref = React.useRef<HTMLDivElement>(null)
 
   const position = (e: React.PointerEvent) => {
@@ -110,7 +111,7 @@ function TimePickerClock({ entity, active, transitioning, skipAnimation, disable
       className={cn("fiori-tp-clock-host", !active && "hidden")}
       data-skip-animation={skipAnimation ? "" : undefined}
     >
-      <div className={cn("fiori-tp-clock", active && "fiori-tp-clock-active", transitioning && "fiori-tp-clock-transition")}>
+      <div ref={ref} className={cn("fiori-tp-clock", active && "fiori-tp-clock-active", transitioning && "fiori-tp-clock-transition")}>
         <div data-label={label} className="fiori-tp-clock-dial" />
         <div className="fiori-tp-clock-items">
           {items.map((it, i) => (
@@ -151,7 +152,6 @@ function TimePickerClock({ entity, active, transitioning, skipAnimation, disable
           )}
         </div>
         <div
-          ref={ref}
           className={cn("fiori-tp-clock-cover", hover && "fiori-tp-clock-pointer")}
           onPointerDown={(e) => {
             if (disabled || e.button !== 0) return
@@ -574,16 +574,7 @@ function TimePicker({
         else return
         commit(formatDate(d, pattern, locale))
       }}
-      footer={
-        <div className="fiori-time-picker-footer">
-          <Button variant="emphasized" onClick={submit}>
-            {submitLabel}
-          </Button>
-          <Button variant="transparent" onClick={() => setOpen(false)}>
-            {cancelLabel}
-          </Button>
-        </div>
-      }
+      footer={<TimePickerFooter submitLabel={submitLabel} cancelLabel={cancelLabel} onSubmit={submit} onCancel={() => setOpen(false)} />}
       {...props}
     >
       {s.open && (
@@ -593,4 +584,20 @@ function TimePicker({
   )
 }
 
-export { TimePicker, TimePickerClock, TimeSelectionClocks, type TimePickerProps, type TimeSelectionClocksProps, type TimeSelectionLabels }
+type TimePickerFooterProps = { submitLabel?: string; cancelLabel?: string; onSubmit?: () => void; onCancel?: () => void }
+
+/** The popover footer: OK (emphasized) and Cancel, each at least 20% wide (ui5-time-picker-footer). */
+function TimePickerFooter({ submitLabel = "OK", cancelLabel = "Cancel", onSubmit, onCancel }: TimePickerFooterProps) {
+  return (
+    <div className="fiori-time-picker-footer">
+      <Button variant="emphasized" className="m-[1%] min-w-[20%]" onClick={onSubmit}>
+        {submitLabel}
+      </Button>
+      <Button variant="transparent" className="m-[1%] min-w-[20%]" onClick={onCancel}>
+        {cancelLabel}
+      </Button>
+    </div>
+  )
+}
+
+export { TimePicker, TimePickerFooter, TimePickerClock, TimeSelectionClocks, type TimePickerProps, type TimeSelectionClocksProps, type TimeSelectionLabels }

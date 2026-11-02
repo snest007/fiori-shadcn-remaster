@@ -5,6 +5,7 @@ import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { usePopupMediaRange } from "@/components/ui/popover"
 
 // The field + value-help popover that ui5-date-picker, ui5-daterange-picker, ui5-datetime-picker and
 // ui5-time-picker share: a ui5-input (DateTimeInput) with a value-help icon, and a ResponsivePopover
@@ -109,6 +110,13 @@ function PickerField({
     if (o === open) return
     onOpenChange(o)
   }
+  // Closing (by any means) returns focus to the field when it was inside the popover (UI5 focuses the input).
+  const wasOpen = React.useRef(open)
+  React.useEffect(() => {
+    const active = document.activeElement
+    if (wasOpen.current && !open && (!active || active === document.body || contentRef.current?.contains(active))) inputRef.current?.focus()
+    wasOpen.current = open
+  }, [open])
   const close = () => {
     setOpen(false)
     inputRef.current?.focus()
@@ -237,21 +245,47 @@ function PickerField({
           onKeyDown={(e) => handleKey(e, true)}
           className={cn("fiori-popover fiori-picker-popover z-50 flex max-h-(--radix-popover-content-available-height) flex-col", popoverClassName)}
         >
-          {showHeader && (
-            <div data-value-state={valueState} className="fiori-value-state-message fiori-picker-popover__header">
-              <Icon icon={valueStateIcons[valueState]} />
-              {message}
-            </div>
-          )}
-          <div className="fiori-picker-popover__content">{children}</div>
-          {footer && <div className="fiori-picker-popover__footer">{footer}</div>}
+          <PickerPopoverBody valueState={showHeader ? valueState : "none"} message={message} footer={footer}>
+            {children}
+          </PickerPopoverBody>
         </PopoverPrimitive.Content>
       </PopoverPrimitive.Portal>
     </PopoverPrimitive.Root>
   )
 }
 
+type PickerPopoverBodyProps = {
+  /** Shown as the header when not "none" / "positive". */
+  valueState?: ValueState
+  message?: React.ReactNode
+  footer?: React.ReactNode
+  children?: React.ReactNode
+}
+
+/** What the picker popover shows: value state header, content, footer. */
+function PickerPopoverBody({ valueState = "none", message, footer, children }: PickerPopoverBodyProps) {
+  // The footer's side padding follows the popup's media range (S / M-L / XL), like every UI5 popup.
+  const [footerRef, range] = usePopupMediaRange<HTMLDivElement>()
+  const header = valueState !== "none" && valueState !== "positive"
+  return (
+    <>
+      {header && (
+        <div data-value-state={valueState} className="fiori-value-state-message fiori-picker-popover__header">
+          <Icon icon={valueStateIcons[valueState]} />
+          {message ?? valueStateDefaultText[valueState]}
+        </div>
+      )}
+      <div className="fiori-picker-popover__content">{children}</div>
+      {footer && (
+        <div ref={footerRef} data-media-range={range} className="fiori-picker-popover__footer">
+          {footer}
+        </div>
+      )}
+    </>
+  )
+}
+
 /** Placeholder text UI5 shows when none is given: "e.g. " + an example value. */
 const examplePlaceholder = (example: string, prefix = "e.g.") => `${prefix} ${example}`
 
-export { PickerField, examplePlaceholder, type PickerFieldProps }
+export { PickerField, PickerPopoverBody, examplePlaceholder, type PickerFieldProps, type PickerPopoverBodyProps }

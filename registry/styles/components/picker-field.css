@@ -100,9 +100,14 @@
   min-height: var(--fiori-value-state-message-popover-header-min-height);
   min-width: var(--fiori-value-state-message-popover-header-min-width);
   width: 100%;
-  padding: var(--fiori-value-state-header-padding);
+  /* The date/time picker popovers always carry ui5-popover-with-value-state-header-phone, so the
+     header takes the "phone" padding and icon offset on desktop too. */
+  padding: var(--fiori-value-state-message-padding-phone);
   border: var(--fiori-value-state-header-border);
   border-bottom: var(--fiori-value-state-header-border-bottom);
+}
+.fiori-picker-popover__header > svg {
+  inset-inline-start: var(--fiori-value-state-message-icon-offset-phone);
 }
 .fiori-picker-popover__header[data-value-state="negative"] { box-shadow: var(--fiori-value-state-header-box-shadow-error); }
 .fiori-picker-popover__header[data-value-state="critical"] { box-shadow: var(--fiori-value-state-header-box-shadow-warning); }
@@ -113,7 +118,6 @@
   align-items: center;
   justify-content: flex-end;
   box-sizing: border-box;
-  height: var(--fiori-popup-footer-height);
   padding-inline: var(--fiori-popup-header-footer-padding-s);
   background: var(--sapPageFooter_Background);
   border-top: 1px solid var(--sapPageFooter_BorderColor);
@@ -133,4 +137,15 @@
 /* Disabled: the icon is dimmed on top of the field's own opacity (--_ui5_input_icon_state_opacity). */
 .fiori-picker-field[data-disabled] .fiori-picker-field__icon {
   opacity: var(--sapContent_DisabledOpacity);
+}
+
+/* The footer content sets the height (UI5: ::slotted([slot=footer]) height, which the pickers override). */
+:where(.fiori-picker-popover__footer > *) {
+  height: var(--fiori-popup-footer-height);
+}
+.fiori-picker-popover__footer:is([data-media-range="M"], [data-media-range="L"]) {
+  padding-inline: var(--fiori-popup-header-footer-padding-m-l);
+}
+.fiori-picker-popover__footer[data-media-range="XL"] {
+  padding-inline: var(--fiori-popup-header-footer-padding-xl);
 }

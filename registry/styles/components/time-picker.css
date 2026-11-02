@@ -269,7 +269,3 @@ to { opacity:1; display:block}
   width: 100%;
   height: fit-content;
 }
-.fiori-time-picker-footer > [data-slot="button"] {
-  margin: 1%;
-  min-width: 20%;
-}
