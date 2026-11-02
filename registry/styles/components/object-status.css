@@ -1,0 +1,164 @@
+/* ObjectStatus: sap.m.ObjectStatus (sap_horizon library.css). No UI5 Web Component exists. */
+.fiori-object-status {
+  display: inline-block;
+  min-height: 1rem;
+  overflow: visible;
+  vertical-align: top;
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  line-height: normal;
+  color: var(--sapNeutralTextColor);
+}
+.fiori-object-status__title {
+  display: inline-block;
+  padding-right: 0.25rem;
+  vertical-align: top;
+  color: var(--sapContent_LabelColor);
+}
+.fiori-object-status__title::after {
+  content: attr(data-colon);
+  white-space: pre;
+}
+.fiori-object-status__wrapper {
+  display: inline-flex;
+}
+.fiori-object-status__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding-right: 0.25rem;
+  color: var(--fiori-x-os-icon-color);
+  text-shadow: var(--sapContent_TextShadow);
+}
+.fiori-object-status__icon > svg {
+  width: 1rem;
+  height: 1rem;
+}
+.fiori-object-status__icon--only {
+  padding-right: 0;
+}
+.fiori-object-status__text {
+  display: inline-block;
+  word-break: normal;
+  overflow-wrap: break-word;
+  color: var(--fiori-x-os-text-color);
+  text-shadow: var(--sapContent_TextShadow);
+}
+
+/* Semantic colors: text / icon */
+.fiori-object-status { --fiori-x-os-text-color: var(--sapNeutralTextColor); --fiori-x-os-icon-color: var(--sapNeutralElementColor); }
+.fiori-object-status[data-state="negative"] { --fiori-x-os-text-color: var(--sapNegativeTextColor); --fiori-x-os-icon-color: var(--sapNegativeElementColor); }
+.fiori-object-status[data-state="critical"] { --fiori-x-os-text-color: var(--sapCriticalTextColor); --fiori-x-os-icon-color: var(--sapCriticalElementColor); }
+.fiori-object-status[data-state="positive"] { --fiori-x-os-text-color: var(--sapPositiveTextColor); --fiori-x-os-icon-color: var(--sapPositiveElementColor); }
+.fiori-object-status[data-state="information"] { --fiori-x-os-text-color: var(--sapInformativeTextColor); --fiori-x-os-icon-color: var(--sapInformativeTextColor); }
+.fiori-object-status[data-state="indication1"] { --fiori-x-os-text-color: var(--sapIndicationColor_1); --fiori-x-os-icon-color: var(--sapIndicationColor_1); }
+.fiori-object-status[data-state="indication2"] { --fiori-x-os-text-color: var(--sapIndicationColor_2); --fiori-x-os-icon-color: var(--sapIndicationColor_2); }
+.fiori-object-status[data-state="indication3"] { --fiori-x-os-text-color: var(--sapIndicationColor_3); --fiori-x-os-icon-color: var(--sapIndicationColor_3); }
+.fiori-object-status[data-state="indication4"] { --fiori-x-os-text-color: var(--sapIndicationColor_4); --fiori-x-os-icon-color: var(--sapIndicationColor_4); }
+.fiori-object-status[data-state="indication5"] { --fiori-x-os-text-color: var(--sapIndicationColor_5); --fiori-x-os-icon-color: var(--sapIndicationColor_5); }
+.fiori-object-status[data-state="indication6"] { --fiori-x-os-text-color: var(--sapIndicationColor_6); --fiori-x-os-icon-color: var(--sapIndicationColor_6); }
+.fiori-object-status[data-state="indication7"] { --fiori-x-os-text-color: var(--sapIndicationColor_7); --fiori-x-os-icon-color: var(--sapIndicationColor_7); }
+.fiori-object-status[data-state="indication8"] { --fiori-x-os-text-color: var(--sapIndicationColor_8); --fiori-x-os-icon-color: var(--sapIndicationColor_8); }
+.fiori-object-status[data-state="indication9"] { --fiori-x-os-text-color: var(--sapIndicationColor_9); --fiori-x-os-icon-color: var(--sapIndicationColor_9); }
+.fiori-object-status[data-state="indication10"] { --fiori-x-os-text-color: var(--sapIndicationColor_10); --fiori-x-os-icon-color: var(--sapIndicationColor_10); }
+
+/* Large */
+.fiori-object-status[data-large] {
+  min-height: 2rem;
+  font-size: 1rem;
+}
+.fiori-object-status[data-large] :is(.fiori-object-status__title, .fiori-object-status__text, .fiori-object-status__icon) {
+  height: 2rem;
+  font-family: var(--sapFontLightFamily);
+  font-size: 1.5rem;
+}
+.fiori-object-status[data-large] .fiori-object-status__icon {
+  width: 2rem;
+}
+.fiori-object-status[data-large] .fiori-object-status__icon > svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Inverted: filled badge */
+.fiori-object-status[data-inverted] .fiori-object-status__wrapper {
+  border: 0.0625rem solid var(--fiori-x-os-inv-border, var(--fiori-x-os-inv-bg));
+  border-radius: var(--sapButton_BorderCornerRadius);
+  background-color: var(--fiori-x-os-inv-bg);
+}
+.fiori-object-status[data-inverted] :is(.fiori-object-status__text, .fiori-object-status__icon) {
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSmallSize);
+  font-weight: bold;
+  color: var(--fiori-x-os-inv-color);
+  text-shadow: var(--sapContent_ContrastTextShadow);
+}
+.fiori-object-status[data-inverted] .fiori-object-status__text {
+  padding: 0 0.25rem;
+  line-height: 1rem;
+}
+.fiori-object-status[data-inverted] .fiori-object-status__icon {
+  height: 0.875rem;
+  padding: 0 0 0 0.25rem;
+  align-self: center;
+}
+.fiori-object-status[data-inverted] .fiori-object-status__icon--only {
+  padding: 0 0.25rem;
+}
+.fiori-object-status[data-inverted] .fiori-object-status__icon > svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+.fiori-object-status[data-inverted][data-large] :is(.fiori-object-status__text, .fiori-object-status__icon) {
+  font-family: var(--sapFontLightFamily);
+  font-size: 1.25rem;
+  font-weight: normal;
+}
+.fiori-object-status[data-inverted] { --fiori-x-os-inv-bg: var(--sapNeutralBackground); --fiori-x-os-inv-border: var(--sapNeutralBorderColor); --fiori-x-os-inv-color: var(--sapTextColor); }
+.fiori-object-status[data-inverted][data-state="negative"] { --fiori-x-os-inv-bg: var(--sapButton_Negative_Background); --fiori-x-os-inv-border: var(--sapButton_Negative_BorderColor); --fiori-x-os-inv-color: var(--sapButton_Negative_TextColor); }
+.fiori-object-status[data-inverted][data-state="critical"] { --fiori-x-os-inv-bg: var(--sapButton_Critical_Background); --fiori-x-os-inv-border: var(--sapButton_Critical_BorderColor); --fiori-x-os-inv-color: var(--sapButton_Critical_TextColor); }
+.fiori-object-status[data-inverted][data-state="positive"] { --fiori-x-os-inv-bg: var(--sapButton_Success_Background); --fiori-x-os-inv-border: var(--sapButton_Success_BorderColor); --fiori-x-os-inv-color: var(--sapButton_Success_TextColor); }
+.fiori-object-status[data-inverted][data-state="information"] { --fiori-x-os-inv-bg: var(--sapButton_Information_Background); --fiori-x-os-inv-border: var(--sapButton_Information_BorderColor); --fiori-x-os-inv-color: var(--sapButton_Information_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication1"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_1_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_1_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_1_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication2"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_2_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_2_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_2_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication3"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_3_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_3_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_3_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication4"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_4_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_4_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_4_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication5"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_5_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_5_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_5_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication6"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_6_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_6_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_6_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication7"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_7_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_7_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_7_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication8"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_8_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_8_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_8_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication9"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_9_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_9_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_9_TextColor); }
+.fiori-object-status[data-inverted][data-state="indication10"] { --fiori-x-os-inv-bg: var(--sapIndicationColor_10_Background); --fiori-x-os-inv-border: var(--sapIndicationColor_10_BorderColor); --fiori-x-os-inv-color: var(--sapIndicationColor_10_TextColor); }
+
+/* Active (link-like button) */
+.fiori-object-status__link {
+  position: relative;
+  display: inline-block;
+  min-height: 1rem;
+  vertical-align: top;
+  border-radius: 0.125rem;
+  outline: none;
+  cursor: pointer;
+}
+.fiori-object-status[data-active]:not([data-inverted]) .fiori-object-status__text {
+  text-decoration: underline;
+}
+.fiori-object-status[data-active]:not([data-inverted]) .fiori-object-status__link:hover .fiori-object-status__text {
+  text-decoration: none;
+}
+.fiori-object-status[data-active]:not([data-inverted]) .fiori-object-status__link:focus-visible {
+  background: var(--sapContent_FocusColor);
+}
+.fiori-object-status[data-active]:not([data-inverted]) .fiori-object-status__link:focus-visible :is(.fiori-object-status__text, .fiori-object-status__icon) {
+  color: var(--sapContent_ContrastTextColor);
+  text-shadow: none;
+}
+.fiori-object-status[data-active][data-inverted] .fiori-object-status__link:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  outline: 1px dotted var(--sapContent_FocusColor);
+  pointer-events: none;
+}

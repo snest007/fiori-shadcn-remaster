@@ -1,0 +1,5 @@
+{
+  "title": "Form",
+  "description": "Fiori form (ui5-form): responsive label/field layout with columns per size range, labelSpan / emptySpan, groups, display (definition list) and edit modes.",
+  "registryDependencies": ["@fiori/title"]
+}

@@ -1,0 +1,58 @@
+/* ObjectIdentifier / ObjectAttribute: sap.m (sap_horizon library.css). No UI5 Web Components exist. */
+.fiori-object-identifier {
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  color: var(--sapContent_LabelColor);
+}
+.fiori-object-identifier__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: bold;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+.fiori-object-identifier__title-text {
+  color: var(--sapGroup_TitleTextColor);
+}
+.fiori-object-identifier__link,
+.fiori-object-attribute__link {
+  color: var(--sapLinkColor);
+  text-decoration: none;
+  cursor: pointer;
+  outline: none;
+  border-radius: 0.125rem;
+}
+.fiori-object-identifier__link:hover,
+.fiori-object-attribute__link:hover {
+  color: var(--sapLink_Hover_Color);
+  text-decoration: underline;
+}
+.fiori-object-identifier__link:focus-visible,
+.fiori-object-attribute__link:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: -0.0625rem;
+}
+.fiori-object-identifier__text {
+  font-size: var(--sapFontSize);
+  color: var(--sapContent_LabelColor);
+}
+.fiori-object-identifier__text--below {
+  margin-top: 0.5rem;
+}
+.fiori-object-attribute {
+  font-family: var(--sapFontFamily);
+  font-size: var(--sapFontSize);
+  color: var(--sapContent_LabelColor);
+  overflow-wrap: break-word;
+}
+.fiori-object-attribute :is(.fiori-object-attribute__title, .fiori-object-attribute__colon, .fiori-object-attribute__text) {
+  font-size: var(--sapFontSize);
+  color: var(--sapContent_LabelColor);
+  vertical-align: top;
+}
+.fiori-object-attribute__colon {
+  white-space: pre;
+}
+.fiori-object-attribute .fiori-object-attribute__link {
+  color: var(--sapLinkColor);
+}

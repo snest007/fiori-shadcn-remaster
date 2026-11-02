@@ -1,0 +1,5 @@
+{
+  "title": "ObjectStatus",
+  "description": "Fiori object status (sap.m.ObjectStatus look): label, icon and text in a semantic or indication color; inverted badge, large and active variants.",
+  "registryDependencies": ["@fiori/icons"]
+}

@@ -1,0 +1,138 @@
+/* Form: ports ui5-form + ui5-form-item CSS (Horizon). Ranges come from the form's own width (container queries). */
+.fiori-form {
+  display: block;
+  container-type: inline-size;
+  --fiori-x-form-item-label-justify-internal: start;
+  --fiori-x-form-item-label-padding-internal: 0.625rem 0.25rem 0 0.25rem;
+  --fiori-x-form-item-label-text-align-internal: left;
+}
+.fiori-form__root {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.75rem;
+  background-color: var(--sapGroup_ContentBackground);
+}
+.fiori-form__header {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--sapGroup_TitleBorderColor);
+}
+.fiori-form__layout {
+  display: grid;
+  column-gap: 1rem;
+  row-gap: 0.125rem;
+  padding: 1rem 0.75rem;
+}
+.fiori-form__group-layout {
+  display: block;
+  column-gap: 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0 transparent;
+}
+.fiori-form__group-heading {
+  height: var(--fiori-x-form-group-heading-height);
+  overflow: hidden;
+  padding-inline-start: 0.25rem;
+  line-height: var(--fiori-x-form-group-heading-height);
+}
+.fiori-form__column {
+  box-sizing: border-box;
+  min-width: 0;
+  padding-top: 0.5rem;
+  padding-bottom: 1rem;
+}
+
+@container (width < 600px) {
+  .fiori-form__layout { grid-template-columns: repeat(var(--fiori-x-form-columns-s), 1fr); }
+  .fiori-form__column { grid-column: span var(--fiori-x-form-column-span-s, 1); }
+  .fiori-form__group-layout { column-count: var(--fiori-x-form-column-span-s, 1); }
+  .fiori-form__column[data-standalone] .fiori-form__group-layout > .fiori-form__item:nth-child(2n) { margin-bottom: 0.5rem; }
+  .fiori-form__item { --fiori-x-form-item-layout: var(--fiori-x-form-item-layout-s); }
+  .fiori-form[data-label-top~="S"] .fiori-form__item {
+    --fiori-x-form-item-label-justify: var(--fiori-x-form-item-label-justify-internal);
+    --fiori-x-form-item-label-text-align: var(--fiori-x-form-item-label-text-align-internal);
+    --fiori-x-form-item-label-padding: var(--fiori-x-form-item-label-padding-internal);
+  }
+}
+@container (600px <= width < 1024px) {
+  .fiori-form__layout { grid-template-columns: repeat(var(--fiori-x-form-columns-m), 1fr); }
+  .fiori-form__column { grid-column: span var(--fiori-x-form-column-span-m, 1); }
+  .fiori-form__group-layout { column-count: var(--fiori-x-form-column-span-m, 1); }
+  .fiori-form__item { --fiori-x-form-item-layout: var(--fiori-x-form-item-layout-m); }
+  .fiori-form[data-label-top~="M"] .fiori-form__item {
+    --fiori-x-form-item-label-justify: var(--fiori-x-form-item-label-justify-internal);
+    --fiori-x-form-item-label-text-align: var(--fiori-x-form-item-label-text-align-internal);
+    --fiori-x-form-item-label-padding: var(--fiori-x-form-item-label-padding-internal);
+  }
+}
+@container (1024px <= width < 1440px) {
+  .fiori-form__layout { grid-template-columns: repeat(var(--fiori-x-form-columns-l), 1fr); }
+  .fiori-form__column { grid-column: span var(--fiori-x-form-column-span-l, 1); }
+  .fiori-form__group-layout { column-count: var(--fiori-x-form-column-span-l, 1); }
+  .fiori-form__item { --fiori-x-form-item-layout: var(--fiori-x-form-item-layout-l); }
+  .fiori-form[data-label-top~="L"] .fiori-form__item {
+    --fiori-x-form-item-label-justify: var(--fiori-x-form-item-label-justify-internal);
+    --fiori-x-form-item-label-text-align: var(--fiori-x-form-item-label-text-align-internal);
+    --fiori-x-form-item-label-padding: var(--fiori-x-form-item-label-padding-internal);
+  }
+}
+@container (width >= 1440px) {
+  .fiori-form__layout { grid-template-columns: repeat(var(--fiori-x-form-columns-xl), 1fr); }
+  .fiori-form__column { grid-column: span var(--fiori-x-form-column-span-xl, 1); }
+  .fiori-form__group-layout { column-count: var(--fiori-x-form-column-span-xl, 1); }
+  .fiori-form__item { --fiori-x-form-item-layout: var(--fiori-x-form-item-layout-xl); }
+  .fiori-form[data-label-top~="XL"] .fiori-form__item {
+    --fiori-x-form-item-label-justify: var(--fiori-x-form-item-label-justify-internal);
+    --fiori-x-form-item-label-text-align: var(--fiori-x-form-item-label-text-align-internal);
+    --fiori-x-form-item-label-padding: var(--fiori-x-form-item-label-padding-internal);
+  }
+}
+
+/* Item (ui5-form-item) */
+.fiori-form__item {
+  display: grid;
+  grid-template-columns: var(--fiori-x-form-item-layout, 4fr 8fr 0fr);
+  align-items: center;
+  width: 100%;
+  break-inside: avoid;
+}
+.fiori-form__item[hidden] {
+  display: none;
+}
+.fiori-form[data-item-spacing="large"] .fiori-form__item {
+  box-sizing: border-box;
+  min-height: var(--fiori-form-item-min-height);
+  padding-top: var(--fiori-form-item-padding);
+  padding-bottom: var(--fiori-form-item-padding);
+}
+.fiori-form__item-label {
+  justify-self: var(--fiori-x-form-item-label-justify, end);
+  margin: 0;
+  padding: var(--fiori-x-form-item-label-padding, 0.125rem 0);
+  padding-inline-end: 0.85rem;
+}
+.fiori-form__item-label > * {
+  width: 100%;
+  text-align: var(--fiori-x-form-item-label-text-align, right);
+}
+.fiori-form__item-content {
+  box-sizing: content-box; /* as UI5 (no global border-box there): width 100% plus padding */
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0 0.25rem;
+  overflow: hidden;
+  border: 0 transparent;
+}
+.fiori-form__item-content-child {
+  box-sizing: border-box;
+  width: 100%;
+  padding-inline-end: 0.5rem;
+}
+.fiori-form__item-content-child > * {
+  width: 100%;
+}
