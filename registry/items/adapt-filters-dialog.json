@@ -1,0 +1,19 @@
+{
+  "title": "Adapt Filters Dialog",
+  "description": "OpenUI5 Adapt Filters personalization: transactional filter values, visibility and order, List/Group views, search, Reset and keyboard reordering.",
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button",
+    "@fiori/checkbox",
+    "@fiori/combobox",
+    "@fiori/input",
+    "@fiori/label",
+    "@fiori/popover",
+    "@fiori/segmented-button",
+    "@fiori/select",
+    "@fiori/toggle-button"
+  ]
+}
