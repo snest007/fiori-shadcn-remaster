@@ -1118,6 +1118,8 @@ function TableHeaderRow({ sticky, className, children, ...props }: TableHeaderRo
           data-table-nav-cell=""
           className="fiori-table-cell-base fiori-table-header-cell"
         >
+          {/* Single selection has no header control; clipped text keeps the column header named. */}
+          {!multi && <div className="fiori-table__clipped">{texts.selection}</div>}
           {multi &&
             (headerSelector === "clearAll" ? (
               <span title={texts.deselectAll} className="inline-flex cursor-pointer" onClick={(e) => ctx.onSelectionClick(null, e)}>
