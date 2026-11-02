@@ -76,4 +76,5 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
   cover it with a behaviour test, and mention it in your final message.
 - Blocks install into `components/<name>.tsx`; a block may not share a name with a component (the build fails).
 - Fixture ids, demo element ids and test ids are prefixed with the component name.
-- The `file-uploader` "Enter opens the file picker" test is load-sensitive in Chromium; Playwright workers are capped at 75%.
+- `page.waitForEvent("filechooser")` enables interception asynchronously: do a round trip (`await page.evaluate(() => 0)`)
+  before the action that opens the chooser. Playwright workers are capped at 75%.

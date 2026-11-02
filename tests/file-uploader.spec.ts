@@ -19,6 +19,9 @@ for (const key of ["Enter", "Space", "F4", "Alt+ArrowDown"]) {
   test(`file-uploader: ${key} opens the file picker`, async ({ page }) => {
     await native(page).focus()
     const chooser = page.waitForEvent("filechooser")
+    // Adding the listener turns on file-chooser interception asynchronously; a round trip to the page
+    // guarantees it is active before the key press (Enter opens on keydown, earlier than the others).
+    await page.evaluate(() => 0)
     await page.keyboard.press(key)
     const fc = await chooser
     expect(fc.isMultiple()).toBe(true)
