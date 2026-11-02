@@ -57,7 +57,7 @@ F1 and F2 can run in parallel after F0.
 
 - [x] [F0 SAPUI5 reference harness](tasks/F0-sapui5-reference-harness.md) — M
 - [ ] [F1 VariantManagement](tasks/F1-variant-management.md) — L
-- [ ] [F2 Adapt Filters dialog](tasks/F2-adapt-filters.md) — L
+- [x] [F2 Adapt Filters dialog](tasks/F2-adapt-filters.md) — L
 - [ ] [F3 Variants wired to FilterBar + List Report](tasks/F3-variants-integration.md) — M
 
 ## Wave E — quality infrastructure (any time; E1 first)

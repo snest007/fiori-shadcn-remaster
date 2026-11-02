@@ -2,6 +2,7 @@ import * as React from "react"
 
 import { search as searchIcon, slimArrowDown, slimArrowUp } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
+import { AdaptFiltersDialog, type AdaptFiltersDialogProps, type FilterDefinition, type FilterValues } from "@/components/ui/adapt-filters-dialog"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Input, InputIcon } from "@/components/ui/input"
@@ -27,8 +28,12 @@ type FilterBarTexts = {
   noFiltersActive: string
   oneFilterActive: string
   filtersActive: string
+  searchTerms?: string
+  oneFilterActiveHidden?: string
+  filtersActiveHidden?: string
+  requiredFilterValueMissing?: string
 }
-const defaultTexts: FilterBarTexts = {
+const defaultTexts: Required<FilterBarTexts> = {
   go: "Go",
   adaptFilters: "Adapt Filters",
   showFilterBar: "Show Filter Bar",
@@ -37,6 +42,10 @@ const defaultTexts: FilterBarTexts = {
   noFiltersActive: "No filters active",
   oneFilterActive: "1 filter active",
   filtersActive: "{0} filters active",
+  searchTerms: "Search Terms",
+  oneFilterActiveHidden: "{0} filter active ({1} hidden)",
+  filtersActiveHidden: "{0} filters active ({1} hidden)",
+  requiredFilterValueMissing: "{0} is a required field.",
 }
 
 /** "No filters active" / "1 filter active: A" / "3 filters active: A, B, C" (Fiori summary text). */
@@ -45,6 +54,16 @@ function filterSummary(active: string[], texts: Partial<FilterBarTexts> = {}) {
   if (!active.length) return t.noFiltersActive
   const head = active.length === 1 ? t.oneFilterActive : t.filtersActive.replace("{0}", String(active.length))
   return `${head}: ${active.join(", ")}`
+}
+
+/** OpenUI5 FilterBarBase._getAssignedFiltersExpandedText: active keys, including hidden editors. */
+function filterExpandedSummary(activeCount: number, hiddenCount: number, texts: Partial<FilterBarTexts> = {}) {
+  const t = { ...defaultTexts, ...texts }
+  if (!activeCount) return t.noFiltersActive
+  const text = hiddenCount
+    ? activeCount === 1 ? t.oneFilterActiveHidden : t.filtersActiveHidden
+    : activeCount === 1 ? t.oneFilterActive : t.filtersActive
+  return text.replace("{0}", String(activeCount)).replace("{1}", String(hiddenCount))
 }
 
 const FilterBarContext = React.createContext<{ onGo?: () => void }>({})
@@ -61,6 +80,22 @@ type FilterBarProps = Omit<React.ComponentProps<"div">, "title"> & {
   /** Show the Go button (manual update mode). Default true. */
   showGoButton?: boolean
   onGo?: () => void
+  /** Search after each committed condition change, as in FilterBarBase.liveMode. */
+  liveMode?: boolean
+  /** Declarative filters. The same renderer is used in the bar and Adapt Filters dialog. */
+  filters?: FilterDefinition[]
+  values?: FilterValues
+  defaultValues?: FilterValues
+  onValuesChange?: (values: FilterValues) => void
+  /** Ordered keys of fields shown in the bar. Required fields always remain visible. */
+  visibleKeys?: string[]
+  defaultVisibleKeys?: string[]
+  onVisibleKeysChange?: (visibleKeys: string[]) => void
+  /** Initial/selected-variant state used by the dialog's Reset action. */
+  initialValues?: FilterValues
+  initialVisibleKeys?: string[]
+  p13nMode?: ("item" | "value")[]
+  adaptFiltersTexts?: AdaptFiltersDialogProps["texts"]
   /** Show "Adapt Filters (n)". Default true. */
   showAdaptFilters?: boolean
   onAdaptFilters?: () => void
@@ -86,6 +121,18 @@ function FilterBar({
   searchPlaceholder,
   showGoButton = true,
   onGo,
+  liveMode = false,
+  filters,
+  values: valuesProp,
+  defaultValues = {},
+  onValuesChange,
+  visibleKeys: visibleKeysProp,
+  defaultVisibleKeys,
+  onVisibleKeysChange,
+  initialValues,
+  initialVisibleKeys,
+  p13nMode = ["item", "value"],
+  adaptFiltersTexts,
   showAdaptFilters = true,
   onAdaptFilters,
   activeFilters = [],
@@ -110,8 +157,56 @@ function FilterBar({
   const [innerSearch, setInnerSearch] = React.useState(defaultSearchValue)
   const searchText = searchValue ?? innerSearch
   const filtersId = React.useId()
-  const ctx = React.useMemo(() => ({ onGo }), [onGo])
-  const count = activeFilters.length
+  const [innerValues, setInnerValues] = React.useState(defaultValues)
+  const values = valuesProp ?? innerValues
+  const [innerKeys, setInnerKeys] = React.useState(() => defaultVisibleKeys ?? filters?.filter((f) => f.visibleInFilterBar !== false || f.required).map((f) => f.key) ?? [])
+  const requestedKeys = visibleKeysProp ?? innerKeys
+  const requiredKeys = filters?.filter((filter) => filter.required).map((filter) => filter.key) ?? []
+  const keys = [...new Set([...requestedKeys.filter((key) => filters?.some((filter) => filter.key === key)), ...requiredKeys])]
+  const [baseline] = React.useState(() => ({
+    values: structuredClone(initialValues ?? values),
+    keys: [...(initialVisibleKeys ?? keys)],
+  }))
+  const [adaptOpen, setAdaptOpen] = React.useState(false)
+  const [invalidKeys, setInvalidKeys] = React.useState<string[]>([])
+  const updateValues = (next: FilterValues) => {
+    if (valuesProp === undefined) setInnerValues(next)
+    onValuesChange?.(next)
+    // Keep errors only for fields still missing a condition; valid edits clear them immediately.
+    setInvalidKeys((invalid) => invalid.filter((key) => !next[key]?.length))
+  }
+  const updateKeys = (next: string[]) => {
+    if (visibleKeysProp === undefined) setInnerKeys(next)
+    onVisibleKeysChange?.(next)
+  }
+  const fieldId = (key: string) => `${props.id ?? `filter-bar-${filtersId}`}-${key}`
+  const go = () => {
+    // OpenUI5 FilterBarBase._getRequiredFilterFieldValueText / triggerSearch validate required filters.
+    const missing = filters?.filter((filter) => filter.required && !values[filter.key]?.length).map((filter) => filter.key) ?? []
+    setInvalidKeys(missing)
+    if (missing.length) {
+      document.getElementById(fieldId(missing[0]))?.focus()
+      return
+    }
+    onGo?.()
+  }
+  const goRef = React.useRef(go)
+  goRef.current = go
+  const previousConditions = React.useRef({ values: JSON.stringify(values), search: searchText })
+  React.useEffect(() => {
+    const next = { values: JSON.stringify(values), search: searchText }
+    const previous = previousConditions.current
+    previousConditions.current = next
+    // OpenUI5 FilterBarBase._reportModelChange searches after applied conditions in live mode.
+    if (liveMode && (previous.values !== next.values || previous.search !== next.search)) goRef.current()
+  }, [values, searchText, liveMode])
+  const ctx = { onGo: go }
+  // OpenUI5 FilterBarBase.getAssignedFilterNames: search first, then active properties (also hidden).
+  const assigned = filters
+    ? [searchText && t.searchTerms, ...filters.filter((filter) => values[filter.key]?.length).map((filter) => filter.label)].filter(Boolean) as string[]
+    : activeFilters
+  const hiddenCount = (filters?.filter((filter) => values[filter.key]?.length && !keys.includes(filter.key)).length ?? 0) + (filters && !search && searchText ? 1 : 0)
+  const count = assigned.length
 
   return (
     <FilterBarContext.Provider value={ctx}>
@@ -123,13 +218,13 @@ function FilterBar({
         style={{ "--fiori-x-filter-min-width": fieldWidth, ...style } as React.CSSProperties}
         {...props}
       >
-        {(variant || showToggle || !expanded) && (
+        {(variant || showToggle || !expanded || filters) && (
           <div className="fiori-filter-bar__header">
             <div className="fiori-filter-bar__title">
               {variant}
-              {!expanded && (
+              {(!expanded || filters) && (
                 <div className="fiori-filter-bar__summary" data-slot="filter-bar-summary" aria-live="polite">
-                  {filterSummary(activeFilters, t)}
+                  {expanded ? filterExpandedSummary(count, hiddenCount, t) : filterSummary(assigned, t)}
                 </div>
               )}
             </div>
@@ -157,7 +252,7 @@ function FilterBar({
                   onSearchChange?.(e.target.value)
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") onGo?.()
+                  if (e.key === "Enter") go()
                 }}
                 icon={
                   <InputIcon>
@@ -167,22 +262,50 @@ function FilterBar({
               />
             </div>
           )}
-          <div className="fiori-filter-bar__fields">{children}</div>
-          {(showGoButton || showAdaptFilters) && (
+          <div className="fiori-filter-bar__fields">
+            {filters && keys.map((key) => {
+              const filter = filters.find((candidate) => candidate.key === key)!
+              const invalid = invalidKeys.includes(key) && !values[key]?.length
+              return (
+                <FilterBarItem key={key} label={filter.label} fieldId={fieldId(key)} required={filter.required} data-filter-key={key}>
+                  {filter.render({
+                    id: fieldId(key), conditions: values[key] ?? [], required: !!filter.required,
+                    valueState: invalid ? "negative" : "none",
+                    valueStateMessage: invalid ? t.requiredFilterValueMissing.replace("{0}", filter.label) : undefined,
+                    onConditionsChange: (conditions) => updateValues({ ...values, [key]: conditions }),
+                  })}
+                </FilterBarItem>
+              )
+            })}
+            {children}
+          </div>
+          {((showGoButton && !liveMode) || showAdaptFilters) && (
             <div className="fiori-filter-bar__actions">
-              {showGoButton && (
-                <Button variant="emphasized" onClick={onGo}>
+              {showGoButton && !liveMode && (
+                <Button variant="emphasized" onClick={go}>
                   {t.go}
                 </Button>
               )}
               {showAdaptFilters && (
-                <Button variant="transparent" onClick={onAdaptFilters} className="fiori-filter-bar__adapt">
+                <Button variant="transparent" onClick={() => {
+                  if (onAdaptFilters) onAdaptFilters()
+                  else if (filters) setAdaptOpen(true)
+                }} className="fiori-filter-bar__adapt" aria-haspopup={filters && !onAdaptFilters ? "dialog" : undefined} aria-expanded={filters && !onAdaptFilters ? adaptOpen : undefined}>
                   {count ? `${t.adaptFilters} (${count})` : t.adaptFilters}
                 </Button>
               )}
             </div>
           )}
         </div>
+        {filters && !onAdaptFilters && (
+          <AdaptFiltersDialog
+            id={`${props.id ?? `filter-bar-${filtersId}`}-adapt-dialog`}
+            open={adaptOpen} onOpenChange={setAdaptOpen} filters={filters} values={values} visibleKeys={keys}
+            p13nMode={p13nMode} initialValues={initialValues ?? baseline.values}
+            initialVisibleKeys={initialVisibleKeys ?? baseline.keys} texts={adaptFiltersTexts}
+            onApply={(next) => { updateValues(next.values); updateKeys(next.visibleKeys) }}
+          />
+        )}
       </div>
     </FilterBarContext.Provider>
   )
@@ -245,4 +368,4 @@ function FilterBarToggle({ expanded, onExpandedChange, showText = defaultTexts.s
   )
 }
 
-export { FilterBar, FilterBarItem, FilterBarToggle, filterSummary, type FilterBarProps, type FilterBarItemProps, type FilterBarTexts }
+export { FilterBar, FilterBarItem, FilterBarToggle, filterSummary, filterExpandedSummary, type FilterDefinition, type FilterValues, type FilterBarProps, type FilterBarItemProps, type FilterBarTexts }
