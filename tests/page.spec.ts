@@ -9,6 +9,8 @@ test("content scrolls while header and floating footer stay put", async ({ page 
   const demo = page.locator("#page-demo")
   const content = demo.locator("section")
   const footer = demo.locator("footer")
+  // Let the floating footer's 0.35s bounce-in animation finish first.
+  await footer.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)))
   const before = await footer.boundingBox()
   await content.evaluate((el) => (el.scrollTop = el.scrollHeight))
   expect(await content.evaluate((el) => el.scrollTop)).toBeGreaterThan(0)
@@ -26,6 +28,7 @@ test("hideFooter animates the floating footer out; fixed footer is docked", asyn
   await expect.poll(() => demo.locator("footer").evaluate((el) => getComputedStyle(el).opacity)).toBe("0")
   await page.getByRole("button", { name: "Hide footer" }).click()
   await page.getByRole("button", { name: "Fixed footer" }).click()
+  await demo.locator("footer").evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)))
   const pageBox = (await demo.locator("[data-slot=page]").boundingBox())!
   const f = (await demo.locator("footer").boundingBox())!
   expect(Math.round(pageBox.y + pageBox.height - (f.y + f.height))).toBe(0)

@@ -163,7 +163,8 @@ function Wizard({
   const [listWidth, setListWidth] = React.useState<number | null>(null)
   const [focusIndex, setFocusIndex] = React.useState<number | null>(null)
   const [stack, setStack] = React.useState<{ anchor: number; from: number; to: number } | null>(null)
-  const ignoreScroll = React.useRef(false)
+  /** Position of our own programmatic scroll; a scroll event landing there is not the user's. */
+  const ownScrollTop = React.useRef<number | null>(null)
   const byScroll = React.useRef(false)
   const scrollTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   // Starts at 0 so an initially selected later step is scrolled into view (as UI5 does on first render).
@@ -204,17 +205,16 @@ function Wizard({
     if (prevCurrent.current === current) return
     prevCurrent.current = current
     if (!byScroll.current && contentRef.current) {
-      ignoreScroll.current = contentRef.current.scrollTop !== scrollPosOf(current)
       contentRef.current.scrollTop = scrollPosOf(current)
+      ownScrollTop.current = contentRef.current.scrollTop
     }
     byScroll.current = false
   })
 
   const onScroll = () => {
-    if (ignoreScroll.current) {
-      ignoreScroll.current = false
-      return
-    }
+    const own = ownScrollTop.current
+    ownScrollTop.current = null
+    if (own != null && contentRef.current && Math.abs(contentRef.current.scrollTop - own) < 1) return
     if (contentLayout === "singleStep") return
     clearTimeout(scrollTimer.current)
     scrollTimer.current = setTimeout(() => {
@@ -250,7 +250,10 @@ function Wizard({
     if (steps[index].disabled) return
     focusFirstIn(itemRefs.current[index])
     if (index === current) {
-      if (contentRef.current) contentRef.current.scrollTop = scrollPosOf(current)
+      if (contentRef.current) {
+        contentRef.current.scrollTop = scrollPosOf(current)
+        ownScrollTop.current = contentRef.current.scrollTop
+      }
       return
     }
     if (!l || l.expanded || index === 0 || index === steps.length - 1) select(index, false)
