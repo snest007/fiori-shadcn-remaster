@@ -1,0 +1,5 @@
+{
+  "title": "Timeline",
+  "description": "Fiori timeline: TimelineItem and collapsible TimelineGroupItem, vertical and horizontal layouts, value-state icons, Load More / scroll growing, the SAP keyboard model (ui5-timeline).",
+  "registryDependencies": ["@fiori/icons", "@fiori/busy-indicator", "@fiori/button", "@fiori/link", "@fiori/toggle-button"]
+}
