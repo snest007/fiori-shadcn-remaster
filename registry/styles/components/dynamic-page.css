@@ -1,0 +1,264 @@
+/* DynamicPage: ports ui5-dynamic-page, -title, -header and -header-actions CSS (Horizon). Paddings follow the
+   page's own width (container queries), like UI5's @container rules. */
+.fiori-dynamic-page {
+  display: block;
+  height: 100%;
+  background-color: var(--fiori-dynamic-page-background);
+  isolation: isolate;
+  /* Font size and family are inherited, as with the UI5 host. */
+}
+.fiori-dynamic-page__root {
+  container-type: inline-size;
+  position: relative;
+  height: inherit;
+  overflow-y: hidden;
+}
+.fiori-dynamic-page__scroll {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+  overflow-anchor: none;
+}
+.fiori-dynamic-page__title-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+.fiori-dynamic-page__header-actions-wrapper {
+  position: sticky;
+  top: auto;
+  z-index: 4;
+}
+.fiori-dynamic-page__subheader {
+  position: sticky;
+  z-index: 2;
+}
+.fiori-dynamic-page__content {
+  position: relative;
+  flex-grow: 1;
+}
+.fiori-dynamic-page__fit-content {
+  position: absolute;
+  inset: 0;
+  padding: var(--fiori-dynamic-page-content-padding-s);
+}
+.fiori-dynamic-page__spacer {
+  height: var(--fiori-dynamic-page-footer-spacer);
+}
+.fiori-dynamic-page[data-show-footer] .fiori-dynamic-page__fit-content {
+  bottom: var(--fiori-dynamic-page-footer-spacer);
+}
+.fiori-dynamic-page__footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  padding: 0 0.5rem 0.5rem;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.35s ease-in-out, transform 0.35s ease-in-out;
+}
+.fiori-dynamic-page[data-show-footer] .fiori-dynamic-page__footer {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* UI5's ::slotted([slot=footerArea]) rule beats the footer bar's own styles, hence !important here. */
+.fiori-dynamic-page__footer > * {
+  box-sizing: content-box !important;
+  width: auto !important;
+  border-radius: 0.25rem !important;
+  background-color: var(--fiori-dynamic-page-header-background-color) !important;
+}
+.fiori-dynamic-page__title-header > .fiori-dynamic-page-title {
+  width: auto;
+  padding: var(--fiori-dynamic-page-title-padding-s);
+}
+.fiori-dynamic-page__header-area > .fiori-dynamic-page-header {
+  padding: var(--fiori-dynamic-page-header-padding-s);
+}
+@container (min-width: 600px) {
+  .fiori-dynamic-page__fit-content {
+    padding: var(--fiori-dynamic-page-content-padding-m);
+  }
+  .fiori-dynamic-page__title-header > .fiori-dynamic-page-title {
+    padding: var(--fiori-dynamic-page-title-padding-m);
+  }
+  .fiori-dynamic-page__header-area > .fiori-dynamic-page-header {
+    padding: var(--fiori-dynamic-page-header-padding-m);
+  }
+}
+@container (min-width: 1024px) {
+  .fiori-dynamic-page__fit-content {
+    padding: var(--fiori-dynamic-page-content-padding-l);
+  }
+  .fiori-dynamic-page__title-header > .fiori-dynamic-page-title {
+    padding: var(--fiori-dynamic-page-title-padding-l);
+  }
+  .fiori-dynamic-page__header-area > .fiori-dynamic-page-header {
+    padding: var(--fiori-dynamic-page-header-padding-l);
+  }
+}
+@container (min-width: 1440px) {
+  .fiori-dynamic-page__fit-content {
+    padding: var(--fiori-dynamic-page-content-padding-xl);
+  }
+  .fiori-dynamic-page__title-header > .fiori-dynamic-page-title {
+    padding: var(--fiori-dynamic-page-title-padding-xl);
+  }
+  .fiori-dynamic-page__header-area > .fiori-dynamic-page-header {
+    padding: var(--fiori-dynamic-page-header-padding-xl);
+  }
+}
+
+/* Title */
+.fiori-dynamic-page-title {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: content-box; /* as the UI5 host: min-height excludes the padding */
+  width: 100%;
+  min-height: var(--fiori-dynamic-page-title-min-height);
+  padding-top: var(--fiori-dynamic-page-title-padding-top);
+  padding-bottom: var(--fiori-dynamic-page-title-padding-bottom);
+  border-bottom: var(--fiori-dynamic-page-title-border);
+  background-color: var(--fiori-dynamic-page-header-background-color);
+  overflow-wrap: break-word;
+}
+.fiori-dynamic-page-title:not([data-interactive]) {
+  box-shadow: var(--fiori-dynamic-page-header-box-shadow);
+}
+.fiori-dynamic-page-title[data-interactive]:hover,
+.fiori-dynamic-page-title[data-interactive][data-hovered] {
+  background-color: var(--fiori-dynamic-page-title-hover-background);
+  border-bottom: var(--fiori-dynamic-page-title-hover-border);
+  cursor: pointer;
+}
+.fiori-dynamic-page-title[data-snapped] {
+  box-shadow: var(--sapContent_HeaderShadow);
+}
+.fiori-dynamic-page-title__focus-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+.fiori-dynamic-page-title__focus-area:focus-visible {
+  outline: var(--fiori-dynamic-page-title-focus-outline);
+  outline-offset: var(--fiori-dynamic-page-title-focus-outline-offset);
+}
+/* Controls inside the title sit above the full-size focus area. */
+.fiori-dynamic-page-title__top,
+.fiori-dynamic-page-title__wrapper {
+  position: relative;
+}
+.fiori-dynamic-page-title__top > *,
+.fiori-dynamic-page-title__content,
+.fiori-dynamic-page-title__actions {
+  position: relative;
+  z-index: 1;
+}
+.fiori-dynamic-page-title__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fiori-dynamic-page-title__top > .fiori-dynamic-page-title__navigation {
+  flex: 0 1.6 auto;
+}
+.fiori-dynamic-page-title__wrapper {
+  display: flex;
+}
+.fiori-dynamic-page-title__heading {
+  flex-shrink: 1;
+  min-width: 1px;
+}
+.fiori-dynamic-page-title__heading > [data-slot="title"] {
+  margin: 0;
+}
+.fiori-dynamic-page-title[data-snapped] .fiori-dynamic-page-title__heading > [data-slot="title"] {
+  text-overflow: ellipsis;
+}
+.fiori-dynamic-page-title__content {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 1.6;
+  min-width: 3rem;
+  padding: 0.6rem 0 0 1rem;
+}
+.fiori-dynamic-page-title__actions {
+  display: flex;
+  flex-grow: 1;
+  flex-shrink: 1.6;
+  min-width: 3rem;
+}
+.fiori-dynamic-page-title__actions-bar {
+  display: flex;
+  flex: 1;
+}
+.fiori-dynamic-page-title__actions-separator {
+  flex: 0 1;
+}
+.fiori-dynamic-page-title__actions-separator::before {
+  content: "";
+  display: inline-block;
+  width: 0.0625rem;
+  height: var(--fiori-dynamic-page-title-actions-separator-height);
+  margin: 0.5rem 0.5rem 0 0.25rem;
+  vertical-align: middle;
+  background: var(--sapToolbar_SeparatorColor);
+}
+.fiori-dynamic-page-title__actions > .fiori-dynamic-page-title__navigation {
+  flex: 0 1;
+  margin-left: auto;
+}
+.fiori-dynamic-page-title__subheading {
+  position: relative;
+  z-index: 1;
+  max-width: fit-content;
+}
+
+/* Header */
+.fiori-dynamic-page-header {
+  display: block;
+  background-color: var(--fiori-dynamic-page-header-background-color);
+  box-shadow: var(--fiori-dynamic-page-header-box-shadow);
+}
+.fiori-dynamic-page-header__root {
+  background: inherit;
+}
+
+/* Header actions (expand / pin) on the header's bottom edge, with fading lines either side. */
+.fiori-dynamic-page-header-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.fiori-dynamic-page-header-actions__wrapper {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  gap: 0.5rem;
+}
+.fiori-dynamic-page-header-actions__wrapper::before,
+.fiori-dynamic-page-header-actions__wrapper::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  z-index: 0;
+  width: 6.125rem;
+  height: 0.0625rem;
+  transform: translateY(-100%);
+}
+.fiori-dynamic-page-header-actions__wrapper::before {
+  right: 50%;
+  background: linear-gradient(to right, transparent, var(--fiori-dynamic-page-actions-lines-color));
+}
+.fiori-dynamic-page-header-actions__wrapper::after {
+  left: 50%;
+  background: linear-gradient(to left, transparent, var(--fiori-dynamic-page-actions-lines-color));
+}

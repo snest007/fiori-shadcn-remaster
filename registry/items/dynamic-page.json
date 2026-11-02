@@ -1,0 +1,5 @@
+{
+  "title": "DynamicPage",
+  "description": "Fiori dynamic page: sticky title (heading, breadcrumbs, KPIs, actions), header that snaps on scroll, expand/collapse and pin buttons, floating footer.",
+  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/toggle-button"]
+}
