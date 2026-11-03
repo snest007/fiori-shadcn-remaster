@@ -33,7 +33,9 @@ export default defineFixtures<Props>({
     <Toolbar aria-label="Actions" alignContent={alignContent} design={design} style={{ width: width ?? TOOLBAR_WIDTH }}
       // UI5 paints its closed overflow surface in place and never computes a viewport side.
       // Disable collision flipping for this static fixture to retain the same source order.
-      defaultOverflowOpen={open} overflowContentProps={open ? { portal: false, avoidCollisions: false, className: "w-48", style: overflowHeight ? { maxHeight: overflowHeight } : undefined, onOpenAutoFocus: (event) => event.preventDefault(), onCloseAutoFocus: (event) => event.preventDefault() } : undefined}>
+      // Integration cause 3: another fixture can take focus; keep this static surface
+      // painted, matching toolbar.ui5.ts's in-place rendering of UI5's closed popup.
+      defaultOverflowOpen={open} overflowContentProps={open ? { portal: false, avoidCollisions: false, className: "w-48", style: overflowHeight ? { maxHeight: overflowHeight } : undefined, onFocusOutside: (event) => event.preventDefault(), onOpenAutoFocus: (event) => event.preventDefault(), onCloseAutoFocus: (event) => event.preventDefault() } : undefined}>
       {items.map((t, i) =>
         t === "|" ? (
           <ToolbarSeparator key={i} />
