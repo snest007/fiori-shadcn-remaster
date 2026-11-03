@@ -63,6 +63,10 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
 - `PORT=4310 pnpm exec playwright test` passes with **0 failed and 0 flaky**; run it twice.
 - The card's own acceptance checks all hold.
 - Git: work on a branch `codex/<card-id>`, small commits, messages in English, imperative mood. Don't push; don't merge.
+  If you work in a separate worktree, leave the main checkout untouched (no edits, no branch switch) — an earlier run
+  left an uncommitted draft and a stray branch there.
+- SAPUI5 fixtures share one reference page: a popup you open must not stay painted outside its own cell (hide parents
+  you replace, re-pin after `_applyPosition`), and it must not close because another fixture took focus.
 - Final message: what changed (files), test summary lines (copy them), anything skipped or deferred and why,
   any shared file you touched.
 
