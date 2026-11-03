@@ -213,6 +213,143 @@ test.describe("Toolbar overflow", () => {
 
 
 test.describe("Toolbar review regressions", () => {
+  test("the second Select closes on the first control's committed change event type", async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const toolbar = page.locator("#toolbar-select-wrappers-demo")
+    const trigger = toolbar.getByRole("button", { name: "Additional Options" })
+    const popover = page.getByRole("dialog", { name: "Select wrappers", exact: true })
+    await trigger.click()
+    const select = popover.getByRole("combobox", { name: "Second wrapped select", exact: true })
+    await select.click()
+    await expect(page.locator("[data-slot=popover-content][aria-label='Select wrappers']")).toBeVisible()
+    await page.getByRole("option", { name: "My products", exact: true }).click()
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Second select: mine")
+    await expect(popover).toBeHidden()
+    await expect(trigger).toBeFocused()
+  })
+
+  test("a function-wrapped Select closes only on commit and respects the first control mapping", async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const toolbar = page.locator("#toolbar-select-wrappers-demo")
+    const trigger = toolbar.getByRole("button", { name: "Additional Options" })
+    const popover = page.getByRole("dialog", { name: "Select wrappers", exact: true })
+    await trigger.click()
+    const select = popover.getByRole("combobox", { name: "Function wrapped select", exact: true })
+    await select.click()
+    await expect(page.locator("[data-slot=popover-content][aria-label='Select wrappers']")).toBeVisible()
+    await page.getByRole("option", { name: "My products", exact: true }).click()
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Function select: mine")
+    await expect(popover).toBeHidden()
+    await expect(trigger).toBeFocused()
+    await trigger.click()
+    await expect(popover.getByRole("combobox", { name: "Function wrapped select", exact: true })).toHaveText("My products")
+    await popover.getByRole("combobox", { name: "Pinned function select", exact: true }).click()
+    await page.getByRole("option", { name: "My products", exact: true }).click()
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Pinned select: mine")
+    await expect(popover).toBeVisible()
+    await popover.getByRole("combobox", { name: "Select after input", exact: true }).click()
+    await page.getByRole("option", { name: "My products", exact: true }).click()
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Input first: mine")
+    await expect(popover).toBeVisible()
+  })
+
+  test("opaque controlled controls close only on their committed event and preserve callback counts", async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const toolbar = page.locator("#toolbar-function-controls-demo")
+    const trigger = toolbar.getByRole("button", { name: "Additional Options" })
+    const popover = page.getByRole("dialog", { name: "Function controls", exact: true })
+    const open = async () => { await trigger.click(); await expect(popover).toBeVisible() }
+    const commit = async (prefix: "Function" | "Pinned", kind: "combo" | "multi" | "date" | "switch") => {
+      const label = `${prefix} ${kind}`
+      const count = popover.getByTestId(`${label}-commits`)
+      await expect(count).toHaveText("0")
+      if (kind === "switch") {
+        await popover.getByRole("switch", { name: label, exact: true }).click()
+      } else if (kind === "combo") {
+        const combo = popover.getByRole("combobox", { name: label, exact: true })
+        await combo.fill("S")
+        await expect(combo).toHaveValue("S")
+        await expect(popover).toBeVisible()
+        await expect(count).toHaveText("0")
+        await page.getByRole("option", { name: "Software", exact: true }).click()
+      } else if (kind === "multi") {
+        const combo = popover.getByRole("combobox", { name: label, exact: true })
+        await combo.focus()
+        await expect(combo).toBeFocused()
+        await page.keyboard.press("F4")
+        await expect(combo).toHaveAttribute("aria-expanded", "true")
+        await expect(popover).toBeVisible()
+        await expect(count).toHaveText("0")
+        await page.locator("[data-slot=multi-combobox-list]").getByRole("option", { name: /^Hardware/ }).click()
+      } else {
+        const date = popover.getByRole("textbox", { name: label, exact: true })
+        await date.fill("2026-11-03")
+        await expect(date).toHaveValue("2026-11-03")
+        await expect(date).toBeFocused()
+        await expect(popover).toBeVisible()
+        await expect(count).toHaveText("0")
+        await page.keyboard.press("Enter")
+      }
+      const result = kind === "switch" ? "true" : kind === "combo" ? "Software" : kind === "multi" ? "Hardware" : "2026-11-03"
+      await expect(page.locator("#demo-toolbar-last")).toHaveText(`${label}: ${result}`)
+      if (prefix === "Function") {
+        await expect(popover).toBeHidden()
+        await expect(trigger).toBeFocused()
+        await open()
+      } else {
+        await expect(popover).toBeVisible()
+      }
+      await expect(popover.getByTestId(`${label}-commits`)).toHaveText("1")
+    }
+    await open()
+    for (const kind of ["switch", "combo", "multi", "date"] as const) await commit("Function", kind)
+    await expect(popover.getByRole("switch", { name: "Function switch", exact: true })).toBeChecked()
+    await expect(popover.getByRole("combobox", { name: "Function combo", exact: true })).toHaveValue("Software")
+    await expect(popover.getByRole("textbox", { name: "Function date", exact: true })).toHaveValue("2026-11-03")
+    for (const kind of ["switch", "combo", "multi", "date"] as const) await commit("Pinned", kind)
+  })
+
+  test("mixed controls use the first control's event type across opaque siblings", async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const toolbar = page.locator("#toolbar-mixed-controls-demo")
+    const trigger = toolbar.getByRole("button", { name: "Additional Options" })
+    const popover = page.getByRole("dialog", { name: "Mixed controls", exact: true })
+    await trigger.click()
+    const combo = popover.getByRole("combobox", { name: "Combo after multi", exact: true })
+    // UI5 ComboBox's selected-item change, including clearing that selection while
+    // typing, matches the first MultiComboBox's selection-change closing type.
+    await combo.fill("draft")
+    await expect(popover).toBeHidden()
+    await expect(trigger).toBeFocused()
+    await trigger.click()
+    const multi = popover.getByRole("combobox", { name: "Multi after select", exact: true })
+    await multi.focus()
+    await expect(multi).toBeFocused()
+    await page.keyboard.press("F4")
+    await expect(multi).toHaveAttribute("aria-expanded", "true")
+    await page.locator("[data-slot=multi-combobox-list]").getByRole("option", { name: /^Hardware/ }).click()
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Mixed multi: Hardware")
+    await expect(popover).toBeVisible() // First Select closes on change, not selection-change.
+    await multi.fill("draft")
+    await expect(multi).toHaveValue("draft")
+    await expect(popover).toBeVisible()
+    await page.keyboard.press("Enter")
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Mixed multi: draft")
+    await expect(popover).toBeHidden()
+    await expect(trigger).toBeFocused()
+    await trigger.click()
+    const nonclosing = popover.getByRole("combobox", { name: "Multi after input", exact: true })
+    await nonclosing.fill("draft")
+    await expect(nonclosing).toHaveValue("draft")
+    await page.keyboard.press("Enter")
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Nonclosing multi: draft")
+    await expect(popover).toBeVisible()
+  })
+
   test("a 12-item overflow scrolls within a 10rem viewport and reaches the last action", async ({ page }) => {
     await page.goto("/index.html")
     await page.waitForSelector("html[data-ready=true]")

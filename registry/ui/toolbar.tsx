@@ -121,11 +121,26 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
   if (reverseOverflow) overflowItems.reverse()
   const hasOverflow = overflowItems.some((item) => item.kind !== "separator" && !item.node.hidden)
   const isOpen = React.useRef(false)
+  const nestedPointerDowns = React.useRef(new WeakSet<Event>())
   const opening = React.useRef(0)
   const restoredOpening = React.useRef<number | null>(null)
   const renderedOpening = opening.current
   isOpen.current = open && hasOverflow
   const close = React.useCallback(() => setOpen(false), [])
+  const isPickerTarget = React.useCallback((target: Node) => {
+    const controls = overflowHost.current?.querySelectorAll<HTMLElement>("[aria-controls]") ?? []
+    return [...controls].some((control) => control.getAttribute("aria-controls")?.split(/\s+/).some((id) => document.getElementById(id)?.contains(target)))
+  }, [])
+  React.useEffect(() => {
+    if (!open) return
+    // Radix defers an outside pointer event until click. A child picker may have
+    // removed that target by then; retain the original association while mounted.
+    const capture = (event: PointerEvent) => {
+      if (event.target instanceof Node && isPickerTarget(event.target)) nestedPointerDowns.current.add(event)
+    }
+    document.addEventListener("pointerdown", capture, true)
+    return () => document.removeEventListener("pointerdown", capture, true)
+  }, [open, isPickerTarget])
   const changeOpen = React.useCallback((next: boolean) => {
     // Toolbar.js/openOverflow reads the actual placement retained after closing.
     if (next) {
@@ -305,10 +320,7 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
         // therefore a sibling Radix layer; keep the toolbar open while its controlled popup
         // receives focus/interaction, as UI5 ToolbarSelect.onOpen does.
         const target = event.target as Node
-        const controls = overflowHost.current?.querySelectorAll<HTMLElement>("[aria-controls]") ?? []
-        for (const control of controls) {
-          if (control.getAttribute("aria-controls")?.split(/\s+/).some((id) => document.getElementById(id)?.contains(target))) event.preventDefault()
-        }
+        if (overflowHost.current?.contains(target) || isPickerTarget(target) || nestedPointerDowns.current.has(event.detail.originalEvent)) event.preventDefault()
       }}
       onOpenAutoFocus={(event) => { event.preventDefault(); if (overflowContentProps?.onOpenAutoFocus) overflowContentProps.onOpenAutoFocus(event); else overflowHost.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus() }}
       onCloseAutoFocus={(event) => {
@@ -342,63 +354,85 @@ function ToolbarButton({ overflowPriority: _priority, preventOverflowClosing = f
 }
 
 type ToolbarItemProps = React.ComponentProps<"div"> & ToolbarItemOptions
-function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = false, className, children, ...props }: ToolbarItemProps) {
+function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = false, className, children, ref, ...props }: ToolbarItemProps) {
   const { overflowed, close } = React.useContext(OverflowContext)
+  const wrapper = React.useRef<HTMLDivElement>(null)
+  React.useImperativeHandle(ref, () => wrapper.current!, [])
   const currentKey = React.useRef<React.KeyboardEvent<HTMLDivElement> | null>(null)
-  const closeOnEvent = () => {
+  const closeOnEvent = (type: "click" | "change" | "selection-change") => {
     if (!overflowed || preventOverflowClosing) return
+    // ToolbarItem.js/getClosingEvents derives event types from the first rendered
+    // control; attachCloseOverflowHandlers then accepts that type from any child.
+    const first = wrapper.current?.firstElementChild as HTMLElement | null
+    // A function component may add its own data-slot to a DOM wrapper. Resolve
+    // component roots through it, including nonclosing Input/CheckBox/Link roots.
+    const controlRoots = '[data-slot="button"], [data-slot="select-trigger-wrapper"], [data-slot="combobox"], [data-slot="multi-combobox"], [data-slot="picker-field"], [data-slot="switch"], [data-slot="input"], [data-slot="checkbox"], [data-slot="link"]'
+    const control = first?.matches(controlRoots) ? first : first?.querySelector<HTMLElement>(controlRoots)
+    // PickerField owns the field frame; DatePicker marks its native input.
+    const slot = control?.dataset.slot === "picker-field" ? control.querySelector<HTMLInputElement>("input")?.dataset.slot : control?.dataset.slot
+    const closingType = slot === "button" ? "click" : slot === "multi-combobox" ? "selection-change"
+      : slot && ["select-trigger-wrapper", "combobox", "date-picker", "switch"].includes(slot) ? "change" : undefined
+    if (type !== closingType) return
     // UI5 ToolbarItem/getClosingEvents closes on the committed change, and
     // Popup.closePopup/resetFocus restores the opener. With React's native opener,
     // suppress the committing Enter's default activation after that focus transfer.
     if (currentKey.current?.key === "Enter") currentKey.current.preventDefault()
     close()
   }
-  // ToolbarItem.js/getClosingEvents + closeOverflowSet: only the first child defines
-  // closing events. Input/CheckBox/Link have none. Bridge each React counterpart's
-  // public committed event; Button clicks are handled on the wrapper below.
-  let first = true
-  const bridgeFirstChild = (nodes: React.ReactNode): React.ReactNode => React.Children.map(nodes, (child) => {
-    if (!React.isValidElement(child) || !first) return child
+  React.useLayoutEffect(() => {
+    const node = wrapper.current
+    const onChange = () => closeOnEvent("change")
+    const onSelectionChange = () => closeOnEvent("selection-change")
+    // Semantic committed events bubble through opaque function components. Raw
+    // native/React input events must not substitute for UI5's committed change.
+    node?.addEventListener("fiori-control-change", onChange)
+    node?.addEventListener("fiori-control-selection-change", onSelectionChange)
+    return () => {
+      node?.removeEventListener("fiori-control-change", onChange)
+      node?.removeEventListener("fiori-control-selection-change", onSelectionChange)
+    }
+  })
+  // Retain committed callback bridges for known controls, including later siblings
+  // of the same event type. Input/CheckBox/Link do not define a closing event type.
+  const bridgeCommittedEvents = (nodes: React.ReactNode): React.ReactNode => React.Children.map(nodes, (child) => {
+    if (!React.isValidElement(child)) return child
     if (child.type === React.Fragment) {
       const fragment = child as React.ReactElement<{ children?: React.ReactNode }>
-      return React.cloneElement(fragment, {}, bridgeFirstChild(fragment.props.children))
+      return React.cloneElement(fragment, {}, bridgeCommittedEvents(fragment.props.children))
     }
-    first = false
     if (child.type === Select) {
       const element = child as React.ReactElement<React.ComponentProps<typeof Select>>
-      return React.cloneElement(element, { onValueChange: (value) => { element.props.onValueChange?.(value); closeOnEvent() } })
+      return React.cloneElement(element, { onValueChange: (value) => { element.props.onValueChange?.(value); closeOnEvent("change") } })
     }
     if (child.type === ComboBox) {
       const element = child as React.ReactElement<React.ComponentProps<typeof ComboBox>>
-      return React.cloneElement(element, { onCommit: (value) => { element.props.onCommit?.(value); closeOnEvent() } })
+      return React.cloneElement(element, { onCommit: (value) => { element.props.onCommit?.(value); closeOnEvent("change") } })
     }
     if (child.type === MultiComboBox) {
       const element = child as React.ReactElement<React.ComponentProps<typeof MultiComboBox>>
-      return React.cloneElement(element, { onSelectionChange: (values) => { element.props.onSelectionChange?.(values); closeOnEvent() } })
+      return React.cloneElement(element, { onSelectionChange: (values) => { element.props.onSelectionChange?.(values); closeOnEvent("selection-change") } })
     }
     if (child.type === DatePicker) {
       const element = child as React.ReactElement<React.ComponentProps<typeof DatePicker>>
-      return React.cloneElement(element, { onValueChange: (value, date) => { element.props.onValueChange?.(value, date); closeOnEvent() } })
+      return React.cloneElement(element, { onValueChange: (value, date) => { element.props.onValueChange?.(value, date); closeOnEvent("change") } })
     }
     if (child.type === Switch) {
       const element = child as React.ReactElement<React.ComponentProps<typeof Switch>>
-      return React.cloneElement(element, { onCheckedChange: (checked) => { element.props.onCheckedChange?.(checked); closeOnEvent() } })
+      return React.cloneElement(element, { onCheckedChange: (checked) => { element.props.onCheckedChange?.(checked); closeOnEvent("change") } })
     }
     return child
   })
-  return <div data-slot="toolbar-item" className={cn("fiori-toolbar-item", overflowed && "w-full", className)} {...props}
+  return <div ref={wrapper} data-slot="toolbar-item" className={cn("fiori-toolbar-item", overflowed && "w-full", className)} {...props}
     onClick={(event) => {
       props.onClick?.(event)
       // ToolbarItem.js/attachCloseOverflowHandlers listens on the item itself, so
       // every descendant click closes when its first control maps to Button.
       // Resolve the rendered component root, including function/DOM wrappers,
       // instead of inspecting the React owner or attaching to one child Button.
-      const first = event.currentTarget.firstElementChild as HTMLElement | null
-      const control = first?.hasAttribute("data-slot") ? first : first?.querySelector<HTMLElement>("[data-slot]")
-      if (control?.dataset.slot === "button") closeOnEvent()
+      closeOnEvent("click")
     }}
     onKeyDownCapture={(event) => { currentKey.current = event; props.onKeyDownCapture?.(event) }}
-    onKeyDown={(event) => { props.onKeyDown?.(event); currentKey.current = null }}>{bridgeFirstChild(children)}</div>
+    onKeyDown={(event) => { props.onKeyDown?.(event); currentKey.current = null }}>{bridgeCommittedEvents(children)}</div>
 }
 
 type ToolbarSpacerProps = React.ComponentProps<"div"> & { width?: string }

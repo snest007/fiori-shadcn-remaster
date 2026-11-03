@@ -224,6 +224,8 @@ function MultiComboBox({
     const ordered = items.map((i) => i.key).filter((k) => next.includes(k))
     if (selectedProp === undefined) setUncontrolledSelected(ordered)
     onSelectionChange?.(ordered)
+    // UI5 MultiComboBox.js/fireSelectionChange emits when selected items change.
+    fieldRef.current?.dispatchEvent(new Event("fiori-control-selection-change", { bubbles: true }))
   }
   const setOpen = (o: boolean) => {
     if (o === open) return
@@ -238,6 +240,9 @@ function MultiComboBox({
     if (v !== lastCommitted.current) {
       lastCommitted.current = v
       onCommit?.(v)
+      // UI5 MultiComboBox.js/_inputChange emits change for committed input text;
+      // another first control can give ToolbarItem that closing event type.
+      fieldRef.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
     }
   }
 

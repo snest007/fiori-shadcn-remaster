@@ -129,8 +129,11 @@ function DatePicker({
   openIconLabel,
   closeIconLabel,
   pickerLabel,
+  ref,
   ...props
 }: DatePickerProps) {
+  const changeTarget = React.useRef<HTMLInputElement>(null)
+  React.useImperativeHandle(ref, () => changeTarget.current!, [])
   const pattern = resolvePattern(formatPattern, locale, "date")
   const parse = (text: string) => parseDate(text, pattern, locale, "date")
   const inRange = (d: Date) => !(minDate && dayKey(d) < dayKey(minDate)) && !(maxDate && dayKey(d) > dayKey(maxDate))
@@ -151,7 +154,11 @@ function DatePicker({
     s.updateState(d !== null)
     s.setEditing(false)
     s.setValue(next)
-    if (next !== s.value) onValueChange?.(next, d ?? null)
+    if (next !== s.value) {
+      onValueChange?.(next, d ?? null)
+      // UI5 DatePicker.js/_updateValueAndFireEvents emits the committed change.
+      changeTarget.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
+    }
   }
 
   const yearEnd = new Date(new Date().getFullYear(), 11, 31)
@@ -159,6 +166,7 @@ function DatePicker({
   return (
     <PickerField
       data-slot="date-picker"
+      inputRef={changeTarget}
       value={s.text}
       onTextChange={(t) => {
         s.setEditing(true)
