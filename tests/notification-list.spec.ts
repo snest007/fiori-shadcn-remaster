@@ -679,7 +679,7 @@ test("notification-list: one committed phase change hands group loading to a pre
   await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
 })
 
-test("notification-list: false child resets during group loading allow a fresh handoff and clear renewed busy-group requests", async ({ page }) => {
+test("notification-list: false child resets renew local loading until an owner restart and allow a fresh handoff", async ({ page }) => {
   await growingDemo(page).getByLabel("Growing mode").selectOption("none")
   await growingDemo(page).getByLabel("Loading delay").selectOption("0")
   const toggleChild = growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true })
@@ -693,10 +693,11 @@ test("notification-list: false child resets during group loading allow a fresh h
   await toggleChild.click()
   await expect(growingItem(page, 1)).not.toHaveAttribute("data-loading", "")
   await toggleChild.click()
-  await expect(childBusy).toHaveCount(0)
+  // Resetting then renewing a child's property does not invalidate the native group.
+  await expect(childBusy).toHaveCount(2)
   await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
   await expect(groupBusy).not.toHaveAttribute("data-active", "")
-  await expect(childBusy).toHaveCount(0)
+  await expect(childBusy).toHaveCount(2)
   await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).click()
   await expect(groupBusy).toHaveAttribute("data-busy", "")
   await toggleChild.click()
@@ -772,6 +773,96 @@ test("notification-list: a local child request survives busy group state until t
   await oracle.host().evaluate((group: any) => { group.items[0].loading = false; group.items[0].loading = true })
   await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
   expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(1)
+})
+
+test("notification-list: More requests preserve local child busy state unless native owner inputs change", async ({ page }, testInfo) => {
+  test.setTimeout(120_000)
+  const matrix: Record<string, unknown>[] = []
+  for (const loading of [false, true]) {
+    for (const callback of ["absent", "noop", "counter", "title", "loading", "append", "remove", "replace", "content"]) {
+      for (const reference of [true, false]) {
+        let owner
+        let child
+        let more
+        if (reference) {
+          const oracle = await growingKeyboardOracle(page, true)
+          if (loading) await oracle.setLoading(true)
+          owner = oracle.host()
+          child = owner.locator('ui5-li-notification[data-probe-key="orders-1"]')
+          more = oracle.more()
+          await owner.evaluate((group: any, callback) => {
+            ;(window as any).__notificationOwnedRenders = 0
+            ;(window as any).__notificationLocalRequests = 0
+            const before = group.onBeforeRendering.bind(group)
+            group.onBeforeRendering = () => { (window as any).__notificationOwnedRenders++; before() }
+            if (callback !== "absent") group.addEventListener("load-more", () => {
+              if (callback === "counter") (window as any).__notificationLocalRequests++
+              if (callback === "title") group.titleText = "Changed group title"
+              if (callback === "loading") group.loading = !group.loading
+              if (callback === "append") {
+                const item = document.createElement("ui5-li-notification") as any
+                item.titleText = "Appended notification"
+                group.append(item)
+              }
+              if (callback === "remove") group.items[1].remove()
+              if (callback === "replace") {
+                const previous = group.items[1]
+                previous.replaceWith(previous.cloneNode(true))
+              }
+              if (callback === "content") group.items[0].textContent = "Changed child content"
+            })
+            group.items[0].loading = true
+          }, callback)
+        } else {
+          await page.goto("/index.html")
+          await page.waitForSelector("html[data-ready=true]")
+          const demo = page.locator("#notification-list-local-loading-demo")
+          await demo.getByLabel("Local loading callback").selectOption(callback)
+          owner = demo.locator('[data-nli-group]')
+          child = owner.locator('[data-nav-key="local-loading-child"]')
+          more = owner.getByRole("button", { name: "More", exact: true })
+          if (loading) {
+            await demo.getByRole("button", { name: "Start busy group", exact: true }).click()
+            await expect(owner.locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+          }
+          await child.getByRole("button", { name: "Start local child loading", exact: true }).click()
+        }
+        const busy = child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")
+        await expect(busy).toHaveAttribute("inert", "")
+        await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+        await more.click()
+        if (reference && ["title", "loading", "append", "remove", "replace"].includes(callback)) {
+          await expect.poll(() => page.evaluate(() => (window as any).__notificationOwnedRenders)).toBeGreaterThan(0)
+        }
+        if (!reference && callback === "counter") await expect(page.locator("#notification-list-local-requests")).toHaveText("Local requests: 1")
+        if (!reference && callback === "title") await expect(owner.getByRole("heading")).toHaveText("Busy group 1")
+        if (!reference && callback === "append") await expect(owner.locator('[data-nav-key="local-loading-appended"]')).toBeVisible()
+        if (!reference && callback === "remove") await expect(owner.locator('[data-nav-key="local-loading-member"]')).toHaveCount(0)
+        if (!reference && callback === "replace") await expect(owner.locator('[data-nav-key="local-loading-member"]')).toHaveText(/Member revision: 1/)
+        if (!reference && callback === "content") await expect(child).toContainText("Local content version: 1")
+        if (!reference && callback === "loading") {
+          if (loading) await expect(owner).not.toHaveAttribute("data-loading")
+          else await expect(owner).toHaveAttribute("data-loading", "")
+        }
+        // Finish the input's paint boundary before recording a no-op's unchanged native owner.
+        await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+        matrix.push({
+          implementation: reference ? "UI5" : "React", loading, callback,
+          childLoading: await child.evaluate((node, reference) => node.hasAttribute(reference ? "loading" : "data-loading"), reference),
+          active: await busy.evaluate((node, reference) => node.hasAttribute(reference ? "active" : "data-active"), reference),
+          inert: await busy.evaluate((node) => node.hasAttribute("inert")),
+          ownerRenders: reference ? await page.evaluate(() => (window as any).__notificationOwnedRenders) : null,
+        })
+      }
+    }
+  }
+  await testInfo.attach("more-child-loading-matrix.json", { body: JSON.stringify(matrix, null, 2), contentType: "application/json" })
+  console.log(`B5_MORE_CHILD_LOADING_MATRIX ${JSON.stringify(matrix)}`)
+  for (let index = 0; index < matrix.length; index += 2) {
+    const native = matrix[index]
+    const react = matrix[index + 1]
+    expect({ childLoading: react.childLoading, active: react.active, inert: react.inert }, `${react.callback}, group loading=${react.loading}`).toEqual({ childLoading: native.childLoading, active: native.active, inert: native.inert })
+  }
 })
 
 test("notification-list: the local-child-loading fixture exposes both inline and child busy areas", async ({ page }) => {

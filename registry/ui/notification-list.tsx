@@ -82,7 +82,7 @@ type ListContextValue = {
   toggle: (value: string, collapsed: boolean) => void
 }
 const NotificationContext = React.createContext<ListContextValue | null>(null)
-// Object identity is one owning group-render generation. A local child render keeps it.
+// Object identity is one native owner-render generation, independent of React bookkeeping.
 type GroupRender = { loading: boolean }
 const GroupRenderContext = React.createContext<GroupRender | null>(null)
 
@@ -572,10 +572,33 @@ function NotificationListGroupItem({
   const startRef = React.useRef<HTMLSpanElement>(null)
   const endRef = React.useRef<HTMLSpanElement>(null)
   const afterRef = React.useRef<HTMLDivElement>(null)
+  const itemsRef = React.useRef<HTMLUListElement>(null)
   const [, markRequest] = React.useReducer((n: number) => n + 1, 0)
   const pendingAppend = React.useRef<{ keys: Set<string> } | null>(null)
   const ownItems = () => [...(rootRef.current?.querySelectorAll<HTMLElement>('[data-slot="notification-list-item"]') ?? [])]
     .filter((item) => item.closest("[data-nli-group]") === rootRef.current)
+  const [slotGeneration, markSlotChange] = React.useReducer((n: number) => n + 1, 0)
+  React.useLayoutEffect(() => {
+    const items = itemsRef.current
+    if (!items) return
+    const observer = new MutationObserver(() => {
+      if (items.isConnected) markSlotChange()
+    })
+    // UI5Element.js/_startObservingDOMChildren observes the group's HTMLElement slot
+    // with childList only; _updateSlots also invalidates on a direct text mutation.
+    // Real slot edits invalidate the owner, including replacement by a same-key item,
+    // while the existing child's loading attributes and busy/content descendants do not.
+    observer.observe(items, { childList: true })
+    return () => observer.disconnect()
+  }, [])
+  // List.js/loadMore and NotificationListGroupItem.js/_onLoadMore only emit an event.
+  // Internal request commits and callbacks that only update an external counter must
+  // not clear local child loading. Match the owner's template inputs and real slot
+  // membership rather than treating every React render as native onBeforeRendering.
+  const groupRender = React.useMemo(() => ({ loading }), [
+    titleText ?? "", !!read, collapsed, growing, loading, loadingDelay, slotGeneration,
+    texts.group, texts.expanded, texts.collapsed, texts.toggle, texts.loading, texts.busyTitle, texts.growingButton,
+  ])
   const requestRef = React.useRef(() => {})
   requestRef.current = () => {
     if (collapsed || growing === "none") return
@@ -729,8 +752,8 @@ function NotificationListGroupItem({
       <BusyIndicator active={loading && growing !== "button"} delay={loadingDelay} title={texts.busyTitle} className="fiori-nli-group__busy" onKeyDownCapture={stopBusyKeyboardEvent} onKeyUpCapture={stopBusyKeyboardEvent}>
         <div className="fiori-nli-group__list">
           <span ref={startRef} aria-hidden className="fiori-nli-group__start-marker" />
-          <ul id={`${id}-items`} role="list" aria-labelledby={`${id}-title`} className="fiori-nli-group__items">
-            <GroupRenderContext.Provider value={{ loading }}>{children}</GroupRenderContext.Provider>
+          <ul ref={itemsRef} id={`${id}-items`} role="list" aria-labelledby={`${id}-title`} className="fiori-nli-group__items">
+            <GroupRenderContext.Provider value={groupRender}>{children}</GroupRenderContext.Provider>
           </ul>
           {growing === "button" && (
             <div className="fiori-list__growing fiori-nli-group__growing">

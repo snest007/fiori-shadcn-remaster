@@ -83,12 +83,13 @@ function NotificationLoadingHandoffDemo() {
   )
 }
 
-function LocallyLoadingNotification() {
+function LocallyLoadingNotification({ contentVersion }: { contentVersion: number }) {
   const [loading, setLoading] = React.useState(false)
   return (
     <NotificationListItem value="local-loading-child" titleText="Locally loading notification" loading={loading} loadingDelay={0} wrappingType="normal">
       <Button onClick={() => setLoading((current) => !current)}>{loading ? "Reset" : "Start"} local child loading</Button>
       <output id="notification-list-local-child-state">{loading ? "Child request: loading" : "Child request: idle"}</output>
+      <span>{`Local content version: ${contentVersion}`}</span>
     </NotificationListItem>
   )
 }
@@ -96,13 +97,33 @@ function LocallyLoadingNotification() {
 function NotificationLocalLoadingDemo() {
   const [renders, setRenders] = React.useState(0)
   const [loading, setLoading] = React.useState(false)
+  const [callback, setCallback] = React.useState("absent")
+  const [requests, setRequests] = React.useState(0)
+  const [appended, setAppended] = React.useState(false)
+  const [member, setMember] = React.useState({ shown: true, revision: 0 })
+  const [contentVersion, setContentVersion] = React.useState(0)
+  const load = () => {
+    if (callback === "counter") setRequests((current) => current + 1)
+    if (callback === "title") setRenders((current) => current + 1)
+    if (callback === "loading") setLoading((current) => !current)
+    if (callback === "append") setAppended(true)
+    if (callback === "remove") setMember((current) => ({ ...current, shown: false }))
+    if (callback === "replace") setMember((current) => ({ ...current, revision: current.revision + 1 }))
+    if (callback === "content") setContentVersion((current) => current + 1)
+  }
   return (
     <div id="notification-list-local-loading-demo" className="grid gap-3">
+      <label>More callback <select aria-label="Local loading callback" value={callback} onChange={(e) => setCallback(e.target.value)}>
+        <option value="absent">No callback</option><option value="noop">No-op callback</option><option value="counter">Count requests</option><option value="title">Change group title</option><option value="loading">Toggle group loading</option><option value="append">Append a notification</option><option value="remove">Remove a notification</option><option value="replace">Replace a notification</option><option value="content">Change child content</option>
+      </select></label>
       <Button onClick={() => setLoading(true)} disabled={loading}>Start busy group</Button>
       <Button onClick={() => setRenders((current) => current + 1)}>Render owning group</Button>
+      <output id="notification-list-local-requests">{`Local requests: ${requests}`}</output>
       <NotificationList>
-        <NotificationListGroupItem value="local-loading-group" titleText={`Busy group ${renders}`} loading={loading} growing="button" loadingDelay={0}>
-          <LocallyLoadingNotification />
+        <NotificationListGroupItem value="local-loading-group" titleText={`Busy group ${renders}`} loading={loading} growing="button" loadingDelay={0} onLoadMore={callback === "absent" ? undefined : load}>
+          <LocallyLoadingNotification contentVersion={contentVersion} />
+          {member.shown && <NotificationListItem key={member.revision} value="local-loading-member" titleText="Slot membership notification">{`Member revision: ${member.revision}`}</NotificationListItem>}
+          {appended && <NotificationListItem value="local-loading-appended" titleText="Appended notification">A new group member.</NotificationListItem>}
         </NotificationListGroupItem>
       </NotificationList>
     </div>
