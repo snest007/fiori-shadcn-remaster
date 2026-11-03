@@ -289,6 +289,8 @@ test("resizing a focused avatar or overflow releases focus to body, matching UI5
   await expect(oracleLast).toBeHidden()
   await expect(page.locator("body")).toBeFocused()
   const oracleOverflow = oracle.locator(".ui5-avatar-group-overflow-btn").locator("button")
+  // AvatarGroupTemplate unhides overflow asynchronously after _setHiddenItems hides avatars.
+  await expect(oracleOverflow).toBeVisible()
   await oracleOverflow.focus()
   await expect(oracleOverflow).toBeFocused()
   await oracle.evaluate((element) => { element.style.width = "24rem" })
