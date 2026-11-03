@@ -3,6 +3,7 @@ import * as React from "react"
 import { employee, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
+import { Button } from "@/components/ui/button"
 
 type AvatarSize = "XS" | "S" | "M" | "L" | "XL"
 type AvatarColorScheme =
@@ -149,16 +150,36 @@ function Avatar({
   )
 }
 
+type AvatarGroupClickDetail = {
+  targetRef: HTMLElement
+  overflowButtonClicked: boolean
+}
+
+type AvatarGroupTexts = {
+  groupLabel?: string
+  individualLabel?: string
+  displayedHiddenLabel?: (displayed: number, hidden: number) => string
+  showCompleteListLabel?: string
+  moveLabel?: string
+  overflowButtonText?: (hidden: number) => string
+}
+
 type AvatarGroupProps = React.ComponentProps<"div"> & {
-  /**
-   * "group": avatars overlap and the whole group is one button (onClick).
-   * "individual": avatars sit side by side, each interactive on its own.
-   */
+  /** "group" is one button; "individual" roves avatars, followed by an overflow Tab stop. */
   type?: "group" | "individual"
   /** Size applied to every child Avatar that doesn't set its own. */
   size?: AvatarSize
+  /** Custom overflow control. Like UI5's slot, it stays visible even when every avatar fits. */
+  overflowButton?: React.ReactNode
+  /** Original child elements, in their supplied order, currently hidden by lack of space. */
+  onOverflowClick?: (hiddenItems: React.ReactElement<AvatarProps>[]) => void
+  /** Matches AvatarGroup.js _fireGroupEvent/onAvatarClick/onOverflowButtonClick. */
+  onGroupClick?: (detail: AvatarGroupClickDetail) => void
+  accessibleName?: string
+  texts?: AvatarGroupTexts
 }
 
+// UI5 AvatarGroup.js offsets: these geometry values have no theme parameters.
 const groupOffsets: Record<AvatarSize, { group: string; individual: string }> = {
   XS: { individual: "0.0625rem", group: "-0.5rem" },
   S: { individual: "0.125rem", group: "-1.25rem" },
@@ -167,76 +188,213 @@ const groupOffsets: Record<AvatarSize, { group: string; individual: string }> = 
   XL: { individual: "0.25rem", group: "-2.75rem" },
 }
 
-// Mirrors ui5-avatar-group without overflow handling: assigns Accent1..10 to "auto" avatars and
-// the UI5 offsets between them. Overflow (+N button) is left to the caller.
-// Default aria-label is UI5's; pass aria-label to override (`{...props}` comes after it).
-function AvatarGroup({ type = "group", size = "S", className, children, onClick, onKeyDown, onKeyUp, ...props }: AvatarGroupProps) {
+function AvatarGroup({
+  type = "group", size = "S", className, children, overflowButton, onOverflowClick, onGroupClick,
+  accessibleName, texts, onClick, onKeyDown, onKeyUp, onFocus, style, ...props
+}: AvatarGroupProps) {
   const isGroup = type === "group"
-  // Individual mode: roving tabindex with arrow / Home / End navigation (UI5 ItemNavigation).
-  const [current, setCurrent] = React.useState(0)
+  const collectItems = (nodes: React.ReactNode): React.ReactElement<AvatarProps>[] => React.Children.toArray(nodes).flatMap((child) => {
+    if (!React.isValidElement<AvatarProps & { children?: React.ReactNode }>(child)) return []
+    return child.type === React.Fragment ? collectItems(child.props.children) : [child]
+  })
+  const items = collectItems(children)
+  const hasCustomOverflow = overflowButton !== undefined && overflowButton !== null && overflowButton !== false
+  const firstSize = items[0]?.props.size ?? size
+  const hostRef = React.useRef<HTMLDivElement>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
-  const moveFocus = (e: React.KeyboardEvent) => {
-    const buttons = [...(containerRef.current?.querySelectorAll<HTMLElement>(":scope > button:not(:disabled)") ?? [])]
-    const i = buttons.indexOf(e.target as HTMLElement)
-    if (i < 0) return
-    const rtl = getComputedStyle(e.currentTarget).direction === "rtl"
-    const next = { ArrowRight: rtl ? i - 1 : i + 1, ArrowDown: i + 1, ArrowLeft: rtl ? i + 1 : i - 1, ArrowUp: i - 1, Home: 0, End: buttons.length - 1 }[e.key]
-    if (next === undefined) return
-    e.preventDefault()
-    const target = buttons[Math.max(0, Math.min(buttons.length - 1, next))]
-    target.focus()
+  const overflowRef = React.useRef<HTMLSpanElement>(null)
+  const [visibleCount, setVisibleCount] = React.useState(items.length)
+  const [current, setCurrent] = React.useState(0)
+  const hiddenItems = items.slice(visibleCount)
+  const showOverflow = hasCustomOverflow || hiddenItems.length > 0
+
+  const overflowControl = () => {
+    const wrapper = overflowRef.current
+    return wrapper?.querySelector<HTMLElement>("button, [role=button], a[href]") ?? wrapper
   }
-  const items = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<AvatarProps>[]
+  const controls = () => {
+    // AvatarGroup.js ItemNavigation manages only visible avatars; overflow has its own Tab stop.
+    return [...(containerRef.current?.querySelectorAll<HTMLElement>(":scope > button:not(:disabled):not([hidden])") ?? [])]
+  }
+
+  React.useLayoutEffect(() => {
+    const host = hostRef.current
+    const container = containerRef.current
+    if (!host || !container) return
+    // Port AvatarGroup.js _overflowItems/_getWidthToItem: reveal to measure, reserve the
+    // effective overflow width for every non-final item, then hide only a trailing suffix.
+    const measure = () => {
+      const avatars = [...container.querySelectorAll<HTMLElement>(":scope > [data-slot=avatar]")]
+      const overflow = overflowRef.current
+      if (!overflow) return
+      avatars.forEach((avatar) => { avatar.hidden = false })
+      overflow.hidden = false
+      const rtl = getComputedStyle(host).direction === "rtl"
+      const hostBox = host.getBoundingClientRect()
+      const widthToItem = (item: HTMLElement) => {
+        const box = item.getBoundingClientRect()
+        // Slotted UI5 hosts share offset coordinates; our light-DOM avatars have the inner
+        // flex container as offsetParent. Use the same integer distance from the host edge.
+        return Math.round(rtl ? hostBox.right - box.right : box.left - hostBox.left)
+      }
+      const effectiveOverflowWidth = isGroup && avatars[1] ? widthToItem(avatars[1]) : overflow.offsetWidth
+      const firstHidden = avatars.length < 2 ? -1 : avatars.findIndex((avatar, index) => {
+        const reserve = index !== avatars.length - 1 || hasCustomOverflow ? effectiveOverflowWidth : 0
+        return widthToItem(avatar) + avatar.offsetWidth + reserve > host.offsetWidth
+      })
+      const next = firstHidden < 0 ? avatars.length : firstHidden
+      const focused = document.activeElement
+      const focusWasHidden = avatars.slice(next).some((avatar) => avatar === focused)
+      const overflowWasRemoved = !hasCustomOverflow && next === avatars.length && overflow.contains(focused)
+      avatars.forEach((avatar, index) => { avatar.hidden = index >= next })
+      overflow.hidden = !hasCustomOverflow && next === avatars.length
+      setVisibleCount(next)
+      if (!isGroup && (focusWasHidden || overflowWasRemoved)) {
+        const target = focusWasHidden ? overflowControl() : avatars.slice(0, next).filter((avatar) => !avatar.matches(":disabled")).at(-1)
+        target?.focus()
+      }
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(host)
+    container.querySelectorAll<HTMLElement>(":scope > [data-slot=avatar]").forEach((avatar) => observer.observe(avatar))
+    if (overflowRef.current) observer.observe(overflowRef.current)
+    return () => observer.disconnect()
+  }, [children, firstSize, isGroup, hasCustomOverflow, overflowButton])
+
+  React.useLayoutEffect(() => {
+    if (isGroup) return
+    containerRef.current?.querySelectorAll<HTMLElement>(":scope > button[hidden]").forEach((button) => { button.tabIndex = -1 })
+    const buttons = controls()
+    const selected = Math.min(current, Math.max(0, buttons.length - 1))
+    buttons.forEach((button, index) => { button.tabIndex = index === selected ? 0 : -1 })
+    const wrapper = overflowRef.current
+    const overflow = overflowControl()
+    if (wrapper && overflow === wrapper) wrapper.setAttribute("role", "button")
+    else wrapper?.removeAttribute("role")
+    if (overflow) overflow.tabIndex = showOverflow && !overflow.matches(":disabled, [aria-disabled=true]") ? 0 : -1
+    if (selected !== current) setCurrent(selected)
+  })
+
+  const activate = (targetRef: HTMLElement, overflowButtonClicked: boolean) => {
+    onGroupClick?.({ targetRef, overflowButtonClicked })
+    if (overflowButtonClicked) onOverflowClick?.(hiddenItems)
+  }
+  const moveFocus = (event: React.KeyboardEvent) => {
+    const buttons = controls()
+    const index = buttons.indexOf(event.target as HTMLElement)
+    if (index < 0) return
+    const rtl = getComputedStyle(event.currentTarget).direction === "rtl"
+    const next = {
+      ArrowRight: rtl ? index - 1 : index + 1, ArrowDown: index + 1,
+      ArrowLeft: rtl ? index + 1 : index - 1, ArrowUp: index - 1,
+      Home: 0, End: buttons.length - 1, PageUp: 0, PageDown: buttons.length - 1,
+    }[event.key]
+    if (next === undefined) return
+    event.preventDefault()
+    buttons[Math.max(0, Math.min(buttons.length - 1, next))]?.focus()
+  }
+  const label = accessibleName ?? [
+    isGroup ? texts?.groupLabel ?? "Conjoined avatars." : texts?.individualLabel ?? "Individual avatars.",
+    texts?.displayedHiddenLabel?.(visibleCount, hiddenItems.length) ?? `${visibleCount} displayed, ${hiddenItems.length} hidden.`,
+    isGroup ? texts?.showCompleteListLabel ?? "Activate for complete list." : texts?.moveLabel ?? "Press ARROW keys to move.",
+  ].join(" ")
+  const completeListLabel = texts?.showCompleteListLabel ?? "Activate for complete list."
+  const overflowText = texts?.overflowButtonText?.(hiddenItems.length) ?? `+${Math.min(99, hiddenItems.length)}`
+
   return (
-    <div data-slot="avatar-group" data-type={type} className={cn("flex p-(--fiori-avatar-group-padding)", className)}>
+    <div ref={hostRef} data-slot="avatar-group" data-type={type} className={cn("fiori-avatar-group-host", className)} style={style}>
       <div
         ref={containerRef}
         role={isGroup ? "button" : "group"}
         tabIndex={isGroup ? 0 : undefined}
-        className={cn(
-          "fiori-avatar-group relative inline-flex whitespace-nowrap outline-none",
-          isGroup && "cursor-pointer"
-        )}
-        data-size={size}
-        aria-label={
-          isGroup
-            ? `Conjoined avatars. ${items.length} displayed, 0 hidden. Activate for complete list.`
-            : `Individual avatars. ${items.length} displayed, 0 hidden. Press ARROW keys to move.`
-        }
-        onClick={isGroup ? onClick : undefined}
-        onKeyDown={(e) => {
-          onKeyDown?.(e)
-          if (e.defaultPrevented) return
-          if (!isGroup) return moveFocus(e)
-          if (e.key === "Enter") e.currentTarget.click()
-          if (e.key === " ") e.preventDefault()
+        className="fiori-avatar-group"
+        data-size={firstSize}
+        aria-label={label}
+        onFocus={(event) => {
+          onFocus?.(event)
+          if (!isGroup) {
+            const index = controls().indexOf(event.target as HTMLElement)
+            if (index >= 0) setCurrent(index)
+          }
         }}
-        onKeyUp={(e) => {
-          onKeyUp?.(e)
-          if (isGroup && !e.defaultPrevented && e.key === " ") e.currentTarget.click()
+        onClick={(event) => {
+          if (!isGroup) return
+          onClick?.(event)
+          if (!event.defaultPrevented) activate(event.currentTarget, false)
+        }}
+        onKeyDown={(event) => {
+          onKeyDown?.(event)
+          if (event.defaultPrevented) return
+          if (!isGroup) return moveFocus(event)
+          if (event.key === "Enter") event.currentTarget.click()
+          if (event.key === " ") event.preventDefault()
+        }}
+        onKeyUp={(event) => {
+          onKeyUp?.(event)
+          // AvatarGroup.js _onkeyup: Shift cancels Space activation.
+          if (isGroup && !event.defaultPrevented && !event.shiftKey && event.key === " ") {
+            event.preventDefault()
+            event.currentTarget.click()
+          }
         }}
         {...props}
       >
-        {items.map((child, i) => {
-          const s = child.props.size ?? size
-          const last = i === items.length - 1
+        {items.map((child, index) => {
+          const avatarSize = child.props.size ?? size
           return React.cloneElement(child, {
-            key: child.key ?? i,
-            size: s,
+            key: child.key ?? index,
+            size: avatarSize,
+            hidden: index >= visibleCount,
             interactive: isGroup ? false : (child.props.interactive ?? true),
-            // In a group the container is the one button; its avatars are decoration.
             mode: isGroup ? "decorative" : child.props.mode,
-            colorScheme:
-              !child.props.colorScheme || child.props.colorScheme === "auto"
-                ? (`accent${(i % 10) + 1}` as AvatarColorScheme)
-                : child.props.colorScheme,
-            style: { marginInlineEnd: last ? undefined : groupOffsets[s][type], ...child.props.style },
-            ...(isGroup ? {} : { tabIndex: i === current ? 0 : -1, onFocus: () => setCurrent(i) }),
+            colorScheme: !child.props.colorScheme || child.props.colorScheme === "auto"
+              ? `accent${(index % 10) + 1}` as AvatarColorScheme : child.props.colorScheme,
+            style: { marginInlineEnd: index === items.length - 1 && !hasCustomOverflow ? undefined : groupOffsets[avatarSize][type], ...child.props.style },
+            ...(!isGroup ? {
+              tabIndex: -1,
+              onClick: (event: React.MouseEvent<HTMLButtonElement>) => {
+                child.props.onClick?.(event)
+                event.stopPropagation()
+                if (!event.defaultPrevented) activate(event.currentTarget, false)
+              },
+            } : {}),
           })
         })}
+        <span
+          ref={overflowRef}
+          data-avatar-group-overflow=""
+          hidden={!showOverflow}
+          inert={isGroup || undefined}
+          aria-hidden={isGroup || undefined}
+          className="fiori-avatar-group__overflow"
+          onClick={(event) => {
+            if (isGroup) return
+            event.stopPropagation()
+            if (!event.defaultPrevented) activate(overflowControl() ?? event.currentTarget, true)
+          }}
+          onKeyDown={(event) => {
+            // Non-button custom content gets the same Enter/Space semantics as the default button.
+            if (isGroup || event.target !== event.currentTarget || event.defaultPrevented) return
+            if (event.key === "Enter") event.currentTarget.click()
+            if (event.key === " ") event.preventDefault()
+          }}
+          onKeyUp={(event) => {
+            if (!isGroup && event.target === event.currentTarget && !event.defaultPrevented && !event.shiftKey && event.key === " ") event.currentTarget.click()
+          }}
+        >
+          {hasCustomOverflow ? overflowButton : (
+            // UI5 2.28 AvatarGroupTemplate uses a neutral Button, not the next avatar accent.
+            <Button asChild={isGroup} className="fiori-avatar-group__overflow-button" data-size={firstSize} aria-label={isGroup ? undefined : completeListLabel}>
+              {/* +N is a decorative count badge, as for Avatar initials. Keep UI5's action label;
+                  the group accessible name still announces the full displayed/hidden counts. */}
+              {isGroup ? <span><span className="fiori-avatar-group__overflow-text" data-text={overflowText} aria-hidden /></span> : <span className="fiori-avatar-group__overflow-text" data-text={overflowText} aria-hidden />}
+            </Button>
+          )}
+        </span>
       </div>
     </div>
   )
 }
 
-export { Avatar, AvatarGroup, type AvatarProps, type AvatarGroupProps, type AvatarSize, type AvatarColorScheme }
+export { Avatar, AvatarGroup, type AvatarProps, type AvatarGroupProps, type AvatarGroupClickDetail, type AvatarGroupTexts, type AvatarSize, type AvatarColorScheme }

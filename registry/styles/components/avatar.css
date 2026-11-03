@@ -189,3 +189,71 @@
   border-color: var(--sapButton_Active_BorderColor);
   color: var(--sapButton_Active_TextColor);
 }
+
+/* AvatarGroup.js measures its 100%-wide host including the group padding. */
+.fiori-avatar-group-host {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  padding: var(--fiori-avatar-group-padding);
+  box-sizing: border-box;
+}
+.fiori-avatar-group {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  white-space: nowrap;
+  outline: none;
+}
+.fiori-avatar-group[role="button"] { cursor: pointer; }
+.fiori-avatar[hidden], .fiori-avatar-group__overflow[hidden] { display: none; }
+.fiori-avatar-group__overflow { display: inline-flex; flex-shrink: 0; }
+/* AvatarGroup.css.js overrides its child Button's geometry. Supply Button parameters locally
+   so the Button utilities resolve to the UI5 overflow dimensions without cascade overrides.
+   AvatarGroupTemplate uses a neutral Button; geometry without a matching parameter comes from CSS. */
+.fiori-avatar-group__overflow-button {
+  --fiori-button-base-height: var(--fiori-avatar-group-overflow-size);
+  --fiori-button-base-min-width: var(--fiori-avatar-group-overflow-size);
+  --fiori-button-base-padding: 0;
+  --fiori-button-border-radius: 50%;
+  --fiori-button-focused-border-radius: 50%;
+  --fiori-button-focused-border: var(--fiori-avatar-group-button-focus-border);
+  --sapFontSize: var(--fiori-avatar-group-overflow-font-size);
+  width: var(--fiori-avatar-group-overflow-size);
+}
+.fiori-avatar-group__overflow-button[data-size="XS"] { --fiori-avatar-group-overflow-size: 2rem; --fiori-avatar-group-overflow-font-size: var(--sapFontSmallSize); }
+.fiori-avatar-group__overflow-button[data-size="S"] { --fiori-avatar-group-overflow-size: 3rem; --fiori-avatar-group-overflow-font-size: var(--fiori-avatar-fontsize-s); }
+.fiori-avatar-group__overflow-button[data-size="M"] { --fiori-avatar-group-overflow-size: 4rem; --fiori-avatar-group-overflow-font-size: 1.625rem; }
+.fiori-avatar-group__overflow-button[data-size="L"] { --fiori-avatar-group-overflow-size: 5rem; --fiori-avatar-group-overflow-font-size: var(--sapFontHeader2Size); }
+.fiori-avatar-group__overflow-button[data-size="XL"] { --fiori-avatar-group-overflow-size: 7rem; --fiori-avatar-group-overflow-font-size: 2.75rem; }
+.fiori-avatar-group__overflow:has(> [data-slot="button"]:focus-visible) {
+  outline: var(--fiori-avatar-outline);
+  outline-offset: var(--fiori-avatar-overflow-button-focus-offset);
+  border-radius: 50%;
+}
+.fiori-avatar-group__overflow-button:focus-visible::after {
+  outline: var(--fiori-avatar-outline);
+  outline-offset: var(--fiori-avatar-focus-offset);
+}
+.fiori-avatar-group[role="button"]:not(:active):hover .fiori-avatar-group__overflow-button {
+  box-shadow: var(--fiori-x-avatar-hover-box-shadow-offset);
+  --sapButton_Background: var(--sapButton_Lite_Hover_Background);
+}
+.fiori-avatar-group[role="button"]:active .fiori-avatar-group__overflow-button {
+  --sapButton_Background: var(--sapButton_Active_Background);
+  --sapButton_BorderColor: var(--sapButton_Active_BorderColor);
+  --sapButton_TextColor: var(--sapButton_Active_TextColor);
+}
+/* AvatarGroup.css.js ::slotted([ui5-button]): custom Buttons always use S geometry. */
+.fiori-avatar-group__overflow > [data-slot="button"]:not(.fiori-avatar-group__overflow-button) {
+  --fiori-button-base-height: 3rem;
+  --fiori-button-base-min-width: 3rem;
+  --fiori-button-base-padding: 0;
+  --fiori-button-border-radius: 50%;
+  --fiori-button-focused-border-radius: 50%;
+  --fiori-button-focused-border: var(--fiori-avatar-group-button-focus-border);
+  --sapFontSize: var(--fiori-avatar-fontsize-s);
+  width: 3rem;
+}
+
+.fiori-avatar-group__overflow-text::before { content: attr(data-text); }
