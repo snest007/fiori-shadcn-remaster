@@ -1,4 +1,5 @@
 import { Avatar, AvatarGroup, type AvatarColorScheme, type AvatarSize } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import { favorite } from "@/lib/fiori-icons"
 
 import { defineFixtures } from "../fixture-types"
@@ -20,6 +21,9 @@ type Props = {
   interactive?: boolean
   disabled?: boolean
   group?: "group" | "individual"
+  width?: string
+  customOverflow?: boolean
+  count?: number
 }
 const sizes = ["XS", "S", "M", "L", "XL"] as const
 
@@ -43,14 +47,26 @@ export default defineFixtures<Props>({
     { id: "avatar-disabled", props: { initials: "JD", interactive: true, disabled: true } },
     { id: "avatar-group", props: { group: "group" } },
     { id: "avatar-group-individual", props: { group: "individual", size: "XS" } },
+    ...(["group", "individual"] as const).flatMap((group) => (["S", "L"] as const).map((size) => ({
+      id: `avatar-group-overflow-${group}-${size.toLowerCase()}`,
+      props: { group, size, width: group === "group" ? size === "S" ? "7.5rem" : "12rem" : size === "S" ? "9rem" : "15rem" },
+    }))),
+    { id: "avatar-group-overflow-ultra-narrow-56", props: { group: "group", size: "S", width: "3.5rem", count: 4 } },
+    { id: "avatar-group-overflow-ultra-narrow-80", props: { group: "group", size: "S", width: "5rem", count: 4 } },
+    { id: "avatar-group-overflow-custom-group", props: { group: "group", width: "12rem", customOverflow: true, count: 2 } },
+    { id: "avatar-group-overflow-custom", props: { group: "individual", width: "9rem", customOverflow: true } },
+    { id: "avatar-group-overflow-custom-fitting", props: { group: "individual", width: "15rem", customOverflow: true, count: 2 } },
+    { id: "avatar-group-overflow-cap", props: { group: "individual", width: "6rem", count: 105 } },
   ],
-  react: ({ size, shape, scheme, initials, icon, image, interactive, disabled, group }) =>
+  react: ({ size, shape, scheme, initials, icon, image, interactive, disabled, group, width, customOverflow, count }) =>
     group ? (
-      <AvatarGroup type={group} size={size} aria-label={`Team ${group}`}>
-        <Avatar initials="JD" />
-        <Avatar initials="AB" />
-        <Avatar icon={favorite} />
-        <Avatar initials="XY" colorScheme="accent9" />
+      <AvatarGroup type={group} size={size} style={width ? { width } : undefined} aria-label={`Team ${group}`} overflowButton={customOverflow ? <Button>All</Button> : undefined}>
+        {count ? Array.from({ length: count }, (_, index) => <Avatar key={index} initials="JD" />) : <>
+          <Avatar initials="JD" />
+          <Avatar initials="AB" />
+          <Avatar icon={favorite} />
+          <Avatar initials="XY" colorScheme="accent9" />
+        </>}
       </AvatarGroup>
     ) : (
       <Avatar

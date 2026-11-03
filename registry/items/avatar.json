@@ -1,5 +1,5 @@
 {
   "title": "Avatar",
-  "registryDependencies": ["@fiori/icons"],
+  "registryDependencies": ["@fiori/icons", "@fiori/button"],
   "description": "Fiori avatar (XS–XL, circle/square, initials/icon/image, accent colours, interactive) and AvatarGroup."
 }
