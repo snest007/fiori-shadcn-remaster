@@ -1,0 +1,244 @@
+#!/usr/bin/env node
+// Integration of finished task-card branches (codex/<card-id>…) into main.
+// Used by an agent following docs/plan/INTEGRATION.md. Every command prints a short summary and
+// writes details to test-results/integration/; `verify` also writes REPORT.md (paste that back).
+//
+//   node scripts/integrate.mjs status                 list codex/* branches, worktrees, merge state
+//   node scripts/integrate.mjs scope [branch…]        files each branch changes vs. what its card allows
+//   node scripts/integrate.mjs merge [branch…]        scope check, then merge --no-ff in the given order
+//   node scripts/integrate.mjs verify [--runs=3]      install, generate, typecheck, registry, N full runs, smoke install
+//   node scripts/integrate.mjs cleanup [branch…]      remove merged branches and their (clean) worktrees
+//
+// Branches default to every local codex/* branch not yet merged into main (cleanup: merged ones).
+// Ports: PORT (docs, 4310), SAPUI5_PORT (4311); the smoke install uses 4312/4313.
+import { spawnSync } from "node:child_process"
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, appendFileSync } from "node:fs"
+import { join } from "node:path"
+
+const OUT = "test-results/integration"
+mkdirSync(OUT, { recursive: true })
+const PORT = process.env.PORT ?? "4310"
+const SAPUI5_PORT = process.env.SAPUI5_PORT ?? "4311"
+
+function sh(cmd, { allowFail = false, quiet = true, env = {}, log } = {}) {
+  const r = spawnSync(cmd, { shell: true, encoding: "utf8", maxBuffer: 1 << 28, env: { ...process.env, ...env } })
+  const out = (r.stdout ?? "") + (r.stderr ?? "")
+  if (log) writeFileSync(join(OUT, log), out)
+  if (!quiet) process.stdout.write(out)
+  if (r.status !== 0 && !allowFail) {
+    console.error(`\n✖ ${cmd}\n${out.split("\n").slice(-40).join("\n")}`)
+    process.exit(1)
+  }
+  return { ok: r.status === 0, out: out.trim() }
+}
+const git = (args, opts) => sh(`git ${args}`, opts).out
+
+function requireCleanMain() {
+  if (git("rev-parse --abbrev-ref HEAD") !== "main") fail("Check out main in this checkout first (git switch main).")
+  if (git("status --porcelain")) fail("main has uncommitted changes. Commit or remove them first; don't integrate on a dirty tree.")
+}
+function fail(msg) {
+  console.error(`✖ ${msg}`)
+  process.exit(1)
+}
+
+function codexBranches() {
+  return git("for-each-ref --format=%(refname:short) refs/heads/codex/").split("\n").filter(Boolean)
+}
+const isMerged = (b) => sh(`git merge-base --is-ancestor ${b} main`, { allowFail: true }).ok
+function worktrees() {
+  const map = new Map()
+  let path
+  for (const line of git("worktree list --porcelain").split("\n")) {
+    if (line.startsWith("worktree ")) path = line.slice(9)
+    if (line.startsWith("branch refs/heads/")) map.set(line.slice(18), path)
+  }
+  return map
+}
+
+function cardFor(branch) {
+  const id = branch.match(/^codex\/([A-Z]\d+[a-z]?)/)?.[1]
+  if (!id) return null
+  const file = readdirSync("docs/plan/tasks").find((f) => f.startsWith(`${id}-`))
+  return file ? { id, path: `docs/plan/tasks/${file}`, text: readFileSync(`docs/plan/tasks/${file}`, "utf8") } : { id, path: null, text: "" }
+}
+
+// Files a component owns (AGENTS.md rule 3); a file here is fine when its component is named in the card.
+const OWNED = [
+  /^registry\/ui\/([^/]+)\.tsx$/, /^registry\/items\/([^/]+)\.json$/, /^registry\/styles\/components\/([^/]+)\.css$/,
+  /^registry\/blocks\/([^/]+)\.tsx$/, /^registry\/block-items\/([^/]+)\.json$/,
+  /^docs\/src\/fixtures(?:-sapui5)?\/([^/.]+)(?:\.ui5)?\.tsx?$/, /^docs\/src\/demos\/([^/]+)\.tsx$/,
+  /^tests\/((?!visual|a11y)[^/]+)\.spec\.ts$/, /^sapui5\/(?:webapp\/)?fixtures\/([^/]+)\.js$/, /^sapui5\/webapp\/([^/]+)\.js$/,
+]
+const ALWAYS_OK = new Set(["docs/plan/README.md"])
+
+function scopeOf(branch) {
+  const card = cardFor(branch)
+  const files = git(`diff --name-only main...${branch}`).split("\n").filter(Boolean)
+  const messages = git(`log main..${branch} --format=%B`)
+  const rows = files.map((file) => {
+    if (ALWAYS_OK.has(file)) return { file, verdict: "ok", why: "backlog checkbox" }
+    if (card?.text.includes(file)) return { file, verdict: "ok", why: "listed in card" }
+    const owner = OWNED.map((re) => file.match(re)?.[1]).find(Boolean)
+    if (owner && card?.text.includes(owner)) return { file, verdict: "ok", why: `owned by ${owner}` }
+    const base = file.split("/").pop()
+    if (messages.includes(file) || messages.includes(base)) return { file, verdict: "called-out", why: "named in a commit message" }
+    return { file, verdict: "UNLISTED", why: owner ? `component "${owner}" not in card` : "shared file not in card" }
+  })
+  return { branch, card, files, rows, commits: git(`log --oneline main..${branch}`).split("\n").filter(Boolean) }
+}
+
+function printScope(s) {
+  const bad = s.rows.filter((r) => r.verdict === "UNLISTED")
+  const called = s.rows.filter((r) => r.verdict === "called-out")
+  console.log(`\n${s.branch}  card: ${s.card?.path ?? "NOT FOUND"}  commits: ${s.commits.length}  files: ${s.files.length}`)
+  for (const r of [...bad, ...called]) console.log(`  ${r.verdict.padEnd(10)} ${r.file}  (${r.why})`)
+  if (!bad.length && !called.length) console.log("  all files within the card's scope")
+  return { bad: bad.length, called: called.length }
+}
+
+function pending(args) {
+  const named = args.filter((a) => !a.startsWith("--"))
+  return named.length ? named : codexBranches().filter((b) => !isMerged(b))
+}
+
+const [cmd = "status", ...args] = process.argv.slice(2)
+
+if (cmd === "status") {
+  const wt = worktrees()
+  console.log(`main ${git("rev-parse --short main")}  checkout: ${git("rev-parse --abbrev-ref HEAD")}  dirty: ${git("status --porcelain") ? "YES" : "no"}`)
+  for (const b of codexBranches()) {
+    const path = wt.get(b)
+    const dirty = path && existsSync(path) ? (git(`-C "${path}" status --porcelain`) ? "dirty" : "clean") : "-"
+    console.log(`  ${b.padEnd(40)} ${isMerged(b) ? "merged  " : "PENDING "} worktree: ${path ?? "-"} (${dirty})`)
+  }
+  const others = git("for-each-ref --format=%(refname:short) refs/heads/").split("\n").filter((b) => b && b !== "main" && !b.startsWith("codex/"))
+  if (others.length) console.log(`  other branches (not handled by this script): ${others.join(", ")}`)
+} else if (cmd === "scope") {
+  let bad = 0
+  for (const b of pending(args)) bad += printScope(scopeOf(b)).bad
+  process.exit(bad ? 3 : 0)
+} else if (cmd === "merge") {
+  requireCleanMain()
+  const branches = pending(args)
+  if (!branches.length) fail("No unmerged codex/* branches.")
+  const before = git("rev-parse --short main")
+  if (!existsSync(join(OUT, "main-before.txt"))) writeFileSync(join(OUT, "main-before.txt"), before + "\n")
+  console.log(`main before merging: ${before} (rollback: git reset --hard ${before})`)
+  const scopes = branches.map(scopeOf)
+  const bad = scopes.reduce((n, s) => n + printScope(s).bad, 0)
+  if (bad && !args.includes("--accept-scope")) {
+    console.error(`\n✖ ${bad} file(s) outside their card's scope. Review them; if they are justified, re-run with --accept-scope and explain each in REPORT.md.`)
+    process.exit(3)
+  }
+  for (const s of scopes) {
+    if (isMerged(s.branch)) continue
+    const title = s.card?.text.match(/^#\s+(.+)$/m)?.[1] ?? s.branch
+    const r = sh(`git merge --no-ff ${s.branch} -m "Merge ${s.branch}: ${title.replace(/"/g, "'")}"`, { allowFail: true })
+    if (!r.ok) {
+      const conflicts = git("diff --name-only --diff-filter=U", { allowFail: true })
+      console.error(`\n✖ Conflict merging ${s.branch}:\n${conflicts.split("\n").map((f) => "  " + f).join("\n")}`)
+      console.error("Resolve (INTEGRATION.md §Conflicts), `git add` them, `git commit --no-edit`, then re-run `merge` for the rest.")
+      process.exit(2)
+    }
+    console.log(`✔ merged ${s.branch}`)
+  }
+  appendFileSync(join(OUT, "merged.txt"), branches.join("\n") + "\n")
+} else if (cmd === "verify") {
+  requireCleanMain()
+  const runs = Number(args.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 3)
+  const killPorts = () => sh(`for p in ${PORT} ${SAPUI5_PORT} 4312 4313; do lsof -ti tcp:$p | xargs kill 2>/dev/null; done; true`, { allowFail: true })
+  killPorts()
+  const steps = []
+  for (const [name, c] of [["install", "pnpm install --frozen-lockfile"], ["generate", "pnpm generate"], ["typecheck", "pnpm typecheck"], ["registry", "pnpm registry:build"]]) {
+    const r = sh(c, { allowFail: true, log: `${name}.log` })
+    steps.push({ name, ok: r.ok, detail: r.ok ? "" : r.out.split("\n").slice(-15).join("\n") })
+    if (!r.ok) break
+  }
+  const results = []
+  if (steps.every((s) => s.ok)) {
+    for (let i = 1; i <= runs; i++) {
+      killPorts()
+      const r = sh("pnpm exec playwright test --retries=0", { allowFail: true, env: { PORT, SAPUI5_PORT }, log: `run-${i}.log` })
+      const summary = r.out.split("\n").filter((l) => /^\s+\d+ (passed|failed|flaky|skipped|did not run)/.test(l)).map((l) => l.trim()).join(", ")
+      const failing = [...new Set(r.out.split("\n").filter((l) => l.includes("✘")).map((l) => l.replace(/^\s*✘\s+\d+\s+/, "").replace(/\s+\(retry #\d+\).*|\s+\([\d.]+m?s\)$/, "").trim()))]
+      results.push({ run: i, ok: r.ok, summary: summary || "(no summary line — see log)", failing })
+      if (!r.ok) break
+    }
+  }
+  // Worst visual cell across both oracles.
+  const cells = []
+  for (const dir of ["test-results/visual", "test-results/visual-sapui5"]) {
+    if (!existsSync(dir)) continue
+    for (const sub of readdirSync(dir)) {
+      const f = join(dir, sub, "report.json")
+      if (existsSync(f)) for (const [k, v] of Object.entries(JSON.parse(readFileSync(f, "utf8")))) cells.push({ k: `${dir.split("/").pop()}/${k}`, r: v.ratio })
+    }
+  }
+  cells.sort((a, b) => b.r - a.r)
+  const testsOk = results.length === runs && results.every((r) => r.ok)
+  let smoke = { ok: false, out: "skipped (earlier step failed)" }
+  if (testsOk) {
+    killPorts()
+    smoke = sh("node scripts/smoke-install.mjs", { allowFail: true, log: "smoke.log" })
+  }
+  killPorts()
+  const ok = steps.every((s) => s.ok) && testsOk && smoke.ok
+  const report = [
+    `# Integration report — ${new Date().toISOString().slice(0, 16).replace("T", " ")}`,
+    "",
+    `main: ${git("rev-parse --short main")} — ${git("log -1 --format=%s main")}`,
+    `Result: **${ok ? "PASS" : "FAIL"}**`,
+    "",
+    `main before merging: ${existsSync(join(OUT, "main-before.txt")) ? readFileSync(join(OUT, "main-before.txt"), "utf8").trim() : "(unknown)"}`,
+    "",
+    "## Branches merged in this integration",
+    existsSync(join(OUT, "merged.txt")) ? readFileSync(join(OUT, "merged.txt"), "utf8").trim().split("\n").map((b) => `- ${b}`).join("\n") : "- (none recorded)",
+    "",
+    "## Steps",
+    ...steps.map((s) => `- ${s.ok ? "✔" : "✖"} ${s.name}${s.detail ? "\n```\n" + s.detail + "\n```" : ""}`),
+    "",
+    `## Full test runs (retries off, ${runs} required)`,
+    ...results.map((r) => `- run ${r.run}: ${r.ok ? "✔" : "✖"} ${r.summary}${r.failing.length ? "\n" + r.failing.map((f) => `  - ✘ ${f}`).join("\n") : ""}`),
+    "",
+    "## Visual diff (worst cells)",
+    ...(cells.length ? cells.slice(0, 5).map((c) => `- ${(c.r * 100).toFixed(2)}% ${c.k}`) : ["- (no reports)"]),
+    "",
+    "## Smoke install",
+    "```",
+    smoke.out.split("\n").slice(-25).join("\n"),
+    "```",
+    "",
+    "## Notes from the integrating agent",
+    "(fill in: conflicts resolved, fixes made with file list and reason, anything needing the owner's decision)",
+  ].join("\n")
+  writeFileSync(join(OUT, "REPORT.md"), report + "\n")
+  console.log(report)
+  process.exit(ok ? 0 : 1)
+} else if (cmd === "cleanup") {
+  requireCleanMain()
+  const named = args.filter((a) => !a.startsWith("--"))
+  const branches = named.length ? named : codexBranches().filter(isMerged)
+  const wt = worktrees()
+  for (const b of branches) {
+    if (!isMerged(b)) {
+      console.log(`- skip ${b}: not merged into main`)
+      continue
+    }
+    const path = wt.get(b)
+    if (path && path !== process.cwd()) {
+      if (existsSync(path) && git(`-C "${path}" status --porcelain`)) {
+        console.log(`- skip ${b}: worktree ${path} has uncommitted changes (report them, don't delete)`)
+        continue
+      }
+      sh(`git worktree remove "${path}"`)
+    }
+    sh(`git branch -d ${b}`)
+    console.log(`✔ removed ${b}${path ? ` and worktree ${path}` : ""}`)
+  }
+  sh("git worktree prune")
+  // The integration is finished: next one starts with a fresh record.
+  for (const f of ["merged.txt", "main-before.txt"]) if (existsSync(join(OUT, f))) rmSync(join(OUT, f))
+} else {
+  fail(`Unknown command "${cmd}". See the header of scripts/integrate.mjs.`)
+}
