@@ -21,8 +21,11 @@ export type FixtureSet<P = any> = {
 
 export const defineFixtures = <P,>(set: FixtureSet<P>) => set
 
+/** Optional asynchronous preparation completed after the fixture root is mounted. */
+export type Ui5FixtureElement = HTMLElement & { fixtureReady?: Promise<void> }
+
 /** Builds the UI5 element for one case. Import the UI5 component modules (and icons) at the top of the file. */
-export type Ui5Renderer<P = any> = (props: P) => HTMLElement
+export type Ui5Renderer<P = any> = (props: P) => Ui5FixtureElement
 
 export const defineUi5 = <S extends FixtureSet>(_set: S, render: Ui5Renderer<S extends FixtureSet<infer P> ? P : never>) => render
 
