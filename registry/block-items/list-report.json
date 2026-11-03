@@ -1,6 +1,6 @@
 {
   "title": "List Report",
-  "description": "SAP Fiori List Report floorplan: dynamic page with variant title, filter bar in the snapping header, products table with toolbar (title with count, actions) and a footer for mass actions. Sample data inline.",
+  "description": "SAP Fiori List Report with saved views, localStorage persistence, a personalized filter bar, a snapping header, products table and mass-action footer. Sample data inline.",
   "registryDependencies": [
     "@fiori/dynamic-page",
     "@fiori/filter-bar",
@@ -15,6 +15,8 @@
     "@fiori/object-status",
     "@fiori/object-number",
     "@fiori/object-identifier",
-    "@fiori/icons"
+    "@fiori/icons",
+    "@fiori/variant-management",
+    "@fiori/variants"
   ]
 }

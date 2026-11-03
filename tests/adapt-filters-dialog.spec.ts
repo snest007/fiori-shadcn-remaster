@@ -346,6 +346,8 @@ test("adapt-filters-dialog: a newly added filter remains visible and focused und
   const options = page.locator(`${dialogId}-group-options`)
   await options.getByRole("combobox", { name: "Filter Mode", exact: true }).click()
   await page.locator("[data-slot=select-content]").getByRole("option", { name: "Mandatory", exact: true }).click()
+  // Select restores focus after closing; settle that handoff before Add Filter can commit on blur.
+  await expect(options.getByRole("combobox", { name: "Filter Mode", exact: true })).toBeFocused()
   await expect(dialog.locator(rowSelector)).toHaveCount(1)
   const add = dialog.getByRole("combobox", { name: "Add Filter", exact: true })
   await add.fill("Country")

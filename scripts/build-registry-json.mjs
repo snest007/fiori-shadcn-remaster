@@ -12,12 +12,12 @@ const shadcnVars = JSON.parse(readFileSync("registry/styles/shadcn-vars.json", "
 // registryDependencies?, files? }); the component source is registry/ui/<name>.tsx.
 const ui = (name, extra = {}) => ({
   name,
-  type: "registry:ui",
+  type: extra.type ?? "registry:ui",
   title: extra.title,
   description: extra.description,
   registryDependencies: ["@fiori/fiori-theme", ...(extra.registryDependencies ?? [])],
   dependencies: extra.dependencies ?? [],
-  files: [{ path: `registry/ui/${name}.tsx`, type: "registry:ui" }, ...(extra.files ?? [])],
+  files: [...(extra.type === "registry:lib" ? [] : [{ path: `registry/ui/${name}.tsx`, type: "registry:ui" }]), ...(extra.files ?? [])],
 })
 const components = readdirSync("registry/items")
   .filter((f) => f.endsWith(".json"))
