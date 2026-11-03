@@ -29,3 +29,17 @@ test("launchpad: the shell bar's menu button collapses and expands the side navi
   await page.getByRole("button", { name: "Expand navigation" }).click()
   await expect.poll(async () => (await nav.boundingBox())!.width).toBe(expandedWidth)
 })
+
+test("launchpad: overflow navigation updates the page at a short viewport height", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 280 })
+  await page.getByRole("button", { name: "Collapse navigation" }).click()
+  const nav = page.locator("[data-slot=launchpad-navigation]")
+  const more = nav.getByRole("menuitem", { name: "More Items", exact: true })
+  await expect(more).toBeVisible()
+  await more.click()
+  const menu = page.getByRole("menu", { name: "Navigation", exact: true })
+  await menu.getByRole("menuitem", { name: "Sales orders", exact: true }).click()
+  await expect(menu).toHaveCount(0)
+  await expect(page.locator("[data-slot=launchpad-page] h2")).toHaveText("Sales orders")
+  await expect(nav.getByRole("menuitemradio", { name: "Sales orders", exact: true })).toHaveAttribute("aria-checked", "true")
+})

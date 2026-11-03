@@ -8,6 +8,7 @@ import { defineDemo } from "./types"
 
 function SideNavigationDemo() {
   const [collapsed, setCollapsed] = React.useState(false)
+  const [short, setShort] = React.useState(false)
   const [value, setValue] = React.useState("home")
   const [clicks, setClicks] = React.useState(0)
   return (
@@ -16,12 +17,15 @@ function SideNavigationDemo() {
         <Button id="side-navigation-demo-toggle" aria-pressed={collapsed} onClick={() => setCollapsed((c) => !c)}>
           Collapsed
         </Button>
+        <Button id="side-navigation-demo-resize" aria-pressed={short} onClick={() => setShort((s) => !s)}>
+          Short height
+        </Button>
         <span className="text-(--sapContent_LabelColor)">
           Selected: <span data-testid="side-navigation-demo-value">{value}</span> · clicks:{" "}
           <span data-testid="side-navigation-demo-clicks">{clicks}</span>
         </span>
       </div>
-      <div id="side-navigation-demo" className="h-[30rem]">
+      <div id="side-navigation-demo" style={{ height: short ? "18rem" : "30rem" }}>
         <SideNavigation
           accessibleName="Main navigation"
           collapsed={collapsed}

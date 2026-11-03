@@ -1,8 +1,9 @@
 import * as React from "react"
 
-import { arrowRight, navigationDownArrow, navigationRightArrow, type FioriIconData } from "@/lib/fiori-icons"
+import { arrowRight, navigationDownArrow, navigationRightArrow, overflow, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
+import { Menu, MenuContent, MenuGroup, MenuItem, MenuSub, MenuSubContent, MenuSubTrigger, MenuTrigger } from "@/components/ui/menu"
 
 // Mirrors ui5-side-navigation / -group / -item / -sub-item (Horizon, UI5 2.28).
 // Expanded: a tree (role="tree") of items, sub-items and groups; ↑/↓ (Home/End, PageUp/PageDown) move the
@@ -26,6 +27,9 @@ type SideNavigationTexts = {
   collapseText: string
   /** Accessible name of the popover that shows sub-items in collapsed mode. */
   popoverLabel: string
+  /** Text and accessible description of the collapsed overflow item. */
+  overflowText: string
+  overflowDescription: string
   /** Description of a selectable parent item (it navigates; the arrow expands). */
   parentItemDescription: (text: string) => string
 }
@@ -38,6 +42,8 @@ const defaultTexts: SideNavigationTexts = {
   expandText: "Expand",
   collapseText: "Collapse",
   popoverLabel: "Navigation",
+  overflowText: "More Items",
+  overflowDescription: "Displays additional navigation items that are hidden due to limited screen space.",
   parentItemDescription: (text) => `To navigate to navigation item ${text}, press Spacebar or Enter.`,
 }
 
@@ -54,6 +60,7 @@ type RootContextValue = {
   popoverKey: string | null
   setPopoverKey: (key: string | null) => void
   toggle: (value: string | undefined, expanded: boolean) => void
+  collapsedItems: React.RefObject<WeakMap<HTMLElement, SideNavigationItemProps>>
 }
 
 const RootContext = React.createContext<RootContextValue | null>(null)
@@ -115,7 +122,7 @@ const PAGE_SIZE = 10
 
 function listItems(list: HTMLElement) {
   // Only this list's own items (a popover is portalled, so it never sits inside).
-  return [...list.querySelectorAll<HTMLElement>(NAV_SELECTOR)].filter((el) => el.closest("[data-sn-list]") === list)
+  return [...list.querySelectorAll<HTMLElement>(NAV_SELECTOR)].filter((el) => el.closest("[data-sn-list]") === list && !el.closest("[data-sn-hidden]"))
 }
 
 function useRovingList() {
@@ -140,7 +147,7 @@ function useRovingList() {
     const list = ref.current
     if (!list) return
     const mo = new MutationObserver(sync)
-    mo.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-selected"] })
+    mo.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-selected", "data-sn-hidden"] })
     return () => mo.disconnect()
   }, [sync])
 
@@ -188,6 +195,80 @@ function NavList({
 }) {
   const root = useRoot()
   const { ref, onFocus, onKeyDown } = useRovingList()
+  const overflowRef = React.useRef<HTMLDivElement>(null)
+  const [hiddenItems, setHiddenItems] = React.useState<HTMLElement[]>([])
+  const hiddenHosts = React.useRef<HTMLElement[]>([])
+  const measure = React.useCallback(() => {
+    const list = ref.current
+    const more = overflowRef.current
+    if (!collapsed || fixed || !list || !more) return
+    // SideNavigation.js _updateOverflowItems / _updateItemsVisibility (UI5 2.28): reserve More,
+    // the selected parent (including a selected sub-item), and group-ending separators first.
+    // Separators travel with their preceding item; the selected parent always remains visible.
+    const nodes = [...list.querySelectorAll<HTMLElement>('.fiori-sn-host[data-kind="item"], .fiori-sn-sep')]
+      .filter((el) => el !== more && el.closest("[data-sn-list]") === list)
+    for (const node of nodes) node.removeAttribute("data-sn-hidden")
+    more.setAttribute("data-sn-hidden", "")
+    const itemNode = (node: HTMLElement) => node.matches('.fiori-sn-host[data-kind="item"]') ? node.querySelector<HTMLElement>(NAV_SELECTOR) : null
+    const height = (node: HTMLElement) => {
+      const dom = itemNode(node) ?? node
+      const style = getComputedStyle(dom)
+      return dom.offsetHeight + parseFloat(style.marginTop) + parseFloat(style.marginBottom)
+    }
+    const style = getComputedStyle(list)
+    const available = list.offsetHeight - parseInt(style.paddingTop) - parseInt(style.paddingBottom)
+    const selected = nodes.find((node) => itemNode(node)?.getAttribute("aria-current") === "page")
+    const navItems = nodes.filter((node) => itemNode(node))
+    const nextSeparator = (node?: HTMLElement) => {
+      const next = node && nodes[nodes.indexOf(node) + 1]
+      return next && !itemNode(next) ? next : undefined
+    }
+    const hidden: HTMLElement[] = []
+    if (window.innerWidth > 600 && nodes.reduce((sum, node) => sum + height(node), 0) > available) {
+      more.removeAttribute("data-sn-hidden")
+      let used = height(more) + 1 // UI5 adds one pixel for sub-pixel rounding.
+      if (selected) used += height(selected) + (nextSeparator(selected)?.offsetHeight ?? 0)
+      used += nextSeparator([...navItems].reverse().find((node) => node !== selected))?.offsetHeight ?? 0
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i]
+        if (node === selected || !itemNode(node)) continue
+        used += height(node)
+        const separator = nextSeparator(node)
+        if (separator) {
+          used += separator.offsetHeight
+          i++
+        }
+        if (used > available) {
+          node.setAttribute("data-sn-hidden", "")
+          separator?.setAttribute("data-sn-hidden", "")
+          hidden.push(node)
+        }
+      }
+    }
+    if (document.activeElement && hidden.some((node) => node.contains(document.activeElement))) {
+      more.querySelector<HTMLElement>(NAV_SELECTOR)?.focus({ preventScroll: true })
+    } else if (more.hasAttribute("data-sn-hidden") && more.contains(document.activeElement)) {
+      (selected ?? navItems[0])?.querySelector<HTMLElement>(NAV_SELECTOR)?.focus({ preventScroll: true })
+    }
+    if (hidden.length !== hiddenHosts.current.length || hidden.some((node, i) => node !== hiddenHosts.current[i])) {
+      hiddenHosts.current = hidden
+      setHiddenItems(hidden)
+    }
+  }, [collapsed, fixed, ref, root.collapsedItems])
+  React.useLayoutEffect(() => { measure() })
+  React.useLayoutEffect(() => {
+    if (!collapsed || fixed || !ref.current) return
+    const resize = new ResizeObserver(measure)
+    resize.observe(ref.current)
+    const mutations = new MutationObserver(measure)
+    mutations.observe(ref.current, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-selected", "aria-current"] })
+    window.addEventListener("resize", measure)
+    return () => {
+      resize.disconnect()
+      mutations.disconnect()
+      window.removeEventListener("resize", measure)
+    }
+  }, [collapsed, fixed, measure, ref])
   const items = React.Children.toArray(children).filter(React.isValidElement)
   const content = items.map((child, i) => {
     const prev = items[i - 1]
@@ -221,6 +302,7 @@ function NavList({
           {...common}
         >
           {content}
+          {!fixed && <OverflowItem ref={overflowRef} items={hiddenItems} listRef={ref} />}
         </div>
       ) : (
         <ul ref={ref as React.Ref<HTMLUListElement>} role="tree" className={cn("fiori-sn__list", className)} {...common}>
@@ -233,6 +315,122 @@ function NavList({
 
 function isGroupElement(el: React.ReactElement) {
   return el.type === SideNavigationGroup
+}
+
+function OverflowItem({ ref, items, listRef }: {
+  ref: React.Ref<HTMLDivElement>
+  items: HTMLElement[]
+  listRef: React.RefObject<HTMLElement | null>
+}) {
+  const root = useRoot()
+  const [open, setOpen] = React.useState(false)
+  const [menuItems, setMenuItems] = React.useState<SideNavigationItemProps[]>([])
+  const selectedFromMenu = React.useRef(false)
+  const id = React.useId()
+  React.useEffect(() => {
+    if (!items.length) setOpen(false)
+  }, [items.length])
+  return (
+    <div ref={ref} role="none" data-kind="item" data-sn-overflow="" className="fiori-sn-host fiori-sn-overflow">
+      <Menu open={open} onOpenChange={(next) => {
+        if (next) {
+          root.setPopoverKey(null)
+          selectedFromMenu.current = false
+          setMenuItems(items.map((host) => root.collapsedItems.current.get(host)).filter((item): item is SideNavigationItemProps => !!item))
+        }
+        setOpen(next)
+      }} modal={false}>
+        <MenuTrigger asChild>
+          <div
+            data-slot="side-navigation-overflow"
+            data-sn-nav=""
+            data-level="1"
+            data-has-icon=""
+            data-active={open ? "" : undefined}
+            role="menuitem"
+            tabIndex={-1}
+            aria-label={root.texts.overflowDescription}
+            aria-labelledby={`${id}-text`}
+            aria-haspopup="menu"
+            aria-expanded={open}
+            title={root.texts.overflowText}
+            className="fiori-sn-item"
+          >
+            <SnIcon icon={overflow} className="fiori-sn-item__icon" />
+            <div id={`${id}-text`} className="fiori-sn-item__text">{root.texts.overflowText}</div>
+          </div>
+        </MenuTrigger>
+        <MenuContent side="right" align="start" aria-label={root.texts.popoverLabel} aria-labelledby={undefined} className="fiori-sn-menu"
+          onCloseAutoFocus={(e) => {
+            // SideNavigation.js _onMenuClose: after selection focus the newly visible selected
+            // parent, rather than restoring focus to More. Escape restores the trigger normally.
+            if (!selectedFromMenu.current) return
+            e.preventDefault()
+            if (listRef.current) listItems(listRef.current).find((item) => item.getAttribute("aria-current") === "page")?.focus({ preventScroll: true })
+          }}>
+          <MenuGroup>
+            {menuItems.map((item, i) => <OverflowMenuItem key={i} item={item} onSelected={() => { selectedFromMenu.current = true }} close={() => setOpen(false)} />)}
+          </MenuGroup>
+        </MenuContent>
+      </Menu>
+    </div>
+  )
+}
+
+function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
+  item: SideNavigationItemProps
+  onSelected: () => void
+  close: () => void
+  parentRow?: boolean
+}) {
+  const root = useRoot()
+  const subs = subItemProps(item.children)
+  const activate = (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
+    item.onClick?.(e)
+    root.itemClick(item.value, e)
+    if (e.defaultPrevented && (!subs.length || parentRow)) close()
+  }
+  const common = {
+    disabled: item.disabled,
+    "aria-label": item.accessibleName,
+    title: item.tooltip,
+    icon: parentRow ? undefined : item.icon,
+    className: cn("fiori-sn-menu-item", parentRow && "fiori-sn-menu-parent", item.design === "action" && "fiori-sn-menu-action"),
+  }
+  // SideNavigationPopoverTemplate.js renderMenuItem duplicates a selectable parent's own
+  // navigation action at the beginning of its submenu, before its sub-items.
+  if (subs.length && !parentRow) return (
+    <MenuSub>
+      <MenuSubTrigger {...common} onClick={activate}>
+        {item.text}{item.tag && <span className="fiori-sn-menu-tag">{item.tag}</span>}
+      </MenuSubTrigger>
+      <MenuSubContent aria-label={item.accessibleName || item.text} aria-labelledby={undefined} className="fiori-sn-menu">
+        <MenuGroup>
+          {!item.unselectable && <OverflowMenuItem item={item} parentRow onSelected={onSelected} close={close} />}
+          {subs.map((sub, i) => <OverflowMenuItem key={i} item={{ ...sub, disabled: item.disabled || sub.disabled }} onSelected={onSelected} close={close} />)}
+        </MenuGroup>
+      </MenuSubContent>
+    </MenuSub>
+  )
+  return (
+    <MenuItem {...common}
+      onClick={activate}
+      onSelect={() => {
+        if (!item.unselectable && item.value !== undefined) {
+          onSelected()
+          root.select(item.value)
+        }
+        if (item.href) {
+          const link = document.createElement("a")
+          link.href = item.href
+          if (item.target) link.target = item.target
+          link.click()
+        }
+        close()
+      }}>
+      {item.text}{item.tag && <span className="fiori-sn-menu-tag">{item.tag}</span>}
+    </MenuItem>
+  )
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -278,6 +476,7 @@ function SideNavigation({
   const [inner, setInner] = React.useState(defaultValue)
   const selected = valueProp !== undefined ? valueProp : inner
   const [popoverKey, setPopoverKey] = React.useState<string | null>(null)
+  const collapsedItems = React.useRef(new WeakMap<HTMLElement, SideNavigationItemProps>())
   const texts = React.useMemo(() => ({ ...defaultTexts, ...textsProp }), [textsProp])
 
   // Collapsing / expanding animates the width (UI5 .ui5-sn-animating keeps the lists at full width meanwhile).
@@ -310,6 +509,7 @@ function SideNavigation({
       },
       popoverKey,
       setPopoverKey,
+      collapsedItems,
       toggle: (v, expanded) => onItemToggle?.(v, expanded),
     }),
     [collapsed, selected, texts, valueProp, onValueChange, onItemClick, onItemToggle, layout, popoverKey]
@@ -770,6 +970,10 @@ function CollapsedItem(props: SideNavigationItemProps) {
   const hasSubs = subs.length > 0
   const key = React.useId()
   const anchorRef = React.useRef<HTMLElement | null>(null)
+  const hostRef = React.useRef<HTMLDivElement>(null)
+  React.useLayoutEffect(() => {
+    if (hostRef.current) root.collapsedItems.current.set(hostRef.current, { ...props, disabled })
+  })
   const popoverTreeRef = React.useRef<HTMLDivElement>(null)
   const isSelected = value !== undefined && value === root.selected
   const shownSelected = isSelected || subs.some((s) => s.value !== undefined && s.value === root.selected)
@@ -796,6 +1000,7 @@ function CollapsedItem(props: SideNavigationItemProps) {
   const Tag = effectiveHref ? "a" : "div"
   return (
     <div
+      ref={hostRef}
       role="none"
       className={cn("fiori-sn-host", className)}
       data-kind="item"
