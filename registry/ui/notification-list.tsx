@@ -572,9 +572,35 @@ function NotificationListGroupItem({
       return
     }
     if (loading) return
-    const firstNew = ownItems().find((item) => !pending.keys.has(item.dataset.navKey!))
-    pendingAppend.current = null
-    if (firstNew) firstNew.focus()
+    const root = rootRef.current
+    if (!root) return
+    // B5 requires first-new-item focus after loading. BusyIndicator.tsx clears delayed
+    // busy state in a passive effect, so loading=false may still leave an inert ancestor.
+    // Wait for its actual DOM release; consume the request only when focus succeeds.
+    let observer: MutationObserver | undefined
+    const focusWhenReady = () => {
+      if (pendingAppend.current !== pending || !root.isConnected) return
+      const firstNew = ownItems().find((item) => !pending.keys.has(item.dataset.navKey!))
+      if (!firstNew) {
+        pendingAppend.current = null
+        observer?.disconnect()
+        return
+      }
+      const blocked = firstNew.closest("[inert]")
+      if (blocked) {
+        observer?.observe(blocked, { attributes: true, attributeFilter: ["inert"] })
+        return
+      }
+      firstNew.focus()
+      if (document.activeElement === firstNew) {
+        pendingAppend.current = null
+        observer?.disconnect()
+      }
+    }
+    observer = new MutationObserver(focusWhenReady)
+    observer.observe(root, { attributes: true, attributeFilter: ["inert"], subtree: true })
+    focusWhenReady()
+    return () => observer?.disconnect()
   })
   React.useEffect(() => {
     if (growing !== "scroll" || collapsed || !startRef.current || !endRef.current) return

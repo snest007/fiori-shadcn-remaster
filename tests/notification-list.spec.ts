@@ -49,6 +49,23 @@ async function intersect(page: Page, name: string, marker: string, visible: bool
   await page.evaluate(({ name, marker, visible }) => (window as any).__notificationIntersect(name, marker, visible), { name, marker, visible })
 }
 
+async function requestDelayedScroll(page: Page) {
+  await mockGrowingObservers(page)
+  await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+  await intersect(page, "orders", "start", false)
+  await intersect(page, "orders", "end", true)
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+  await expect(growingGroup(page)).toHaveAttribute("data-loading", "")
+  await page.clock.runFor(1000)
+  const busy = growingGroup(page).locator(".fiori-nli-group__busy")
+  const content = busy.locator(":scope > .fiori-busy-indicator__root > .fiori-busy-indicator__content")
+  await expect(busy).toHaveAttribute("data-busy", "")
+  await expect(busy.locator(':scope > .fiori-busy-indicator__root > [role="progressbar"]')).toBeVisible()
+  await expect(content).toHaveAttribute("inert", "")
+  return { busy, content }
+}
+
 test.beforeEach(async ({ page }) => {
   await page.goto(`/index.html`)
   await page.waitForSelector("html[data-ready=true]")
@@ -481,6 +498,54 @@ test("notification-list: only the requesting group's first appended item focuses
   await expect(growingItem(page, 3)).toBeFocused()
   await expect(growingItem(page, 4)).not.toBeFocused()
 })
+
+test("notification-list: scroll append focuses its first new item after the delayed overlay releases inert content", async ({ page }) => {
+  const { busy, content } = await requestDelayedScroll(page)
+  await growingDemo(page).getByRole("button", { name: "Append approvals", exact: true }).click()
+  await expect(growingItem(page, 2, "approvals")).not.toBeFocused()
+  await growingDemo(page).getByRole("button", { name: "Append orders", exact: true }).click()
+  await expect(growingItem(page, 3)).toHaveCount(1)
+  await expect(growingItem(page, 3)).not.toBeFocused()
+  await growingDemo(page).getByRole("button", { name: "Append orders", exact: true }).click()
+  await expect(growingItem(page, 4)).toHaveCount(1)
+  await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
+  await expect(busy).not.toHaveAttribute("data-busy", "")
+  await expect(content).not.toHaveAttribute("inert", "")
+  await expect(growingItem(page, 3)).toBeFocused()
+  await expect(growingItem(page, 4)).not.toBeFocused()
+  await expect(growingItem(page, 2, "approvals")).not.toBeFocused()
+})
+
+for (const cancellation of ["collapse", "none", "unmount"] as const) {
+  test(`notification-list: ${cancellation} cancels delayed scroll append focus before loading completion`, async ({ page }) => {
+    await requestDelayedScroll(page)
+    await growingDemo(page).getByRole("button", { name: "Append orders", exact: true }).click()
+    await expect(growingItem(page, 3)).toHaveCount(1)
+    if (cancellation === "collapse") {
+      await growingGroup(page).getByRole("button", { name: "More orders", exact: true }).click()
+      await expect(growingGroup(page)).toHaveAttribute("data-collapsed", "")
+    } else if (cancellation === "none") {
+      await growingDemo(page).getByLabel("Growing mode").selectOption("none")
+      await expect(growingGroup(page)).toHaveAttribute("data-growing", "none")
+    } else {
+      await growingDemo(page).getByRole("button", { name: "Hide growing list", exact: true }).click()
+      await expect(growingGroup(page)).toHaveCount(0)
+    }
+    await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
+    if (cancellation === "collapse") {
+      await growingGroup(page).getByRole("button", { name: "More orders", exact: true }).click()
+      await expect(growingGroup(page)).not.toHaveAttribute("data-collapsed", "")
+    } else if (cancellation === "none") {
+      await growingDemo(page).getByLabel("Growing mode").selectOption("scroll")
+      await expect(growingGroup(page)).toHaveAttribute("data-growing", "scroll")
+    } else {
+      await growingDemo(page).getByRole("button", { name: "Show growing list", exact: true }).click()
+      await expect(growingGroup(page)).toHaveCount(1)
+    }
+    await expect(growingItem(page, 3)).toBeVisible()
+    await expect(growingItem(page, 3)).not.toBeFocused()
+  })
+}
 
 test("notification-list: no-op requests expire and unrelated future appends keep their existing focus", async ({ page }) => {
   await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
