@@ -1,5 +1,5 @@
 {
   "title": "Breadcrumbs",
   "description": "Fiori breadcrumbs with responsive leading overflow, UI5 separator styles and arrow-key navigation.",
-  "registryDependencies": ["@fiori/icons", "@fiori/icon", "@fiori/list", "@fiori/popover"]
+  "registryDependencies": ["@fiori/icons", "@fiori/list", "@fiori/popover"]
 }
