@@ -68,9 +68,18 @@ function filterExpandedSummary(activeCount: number, hiddenCount: number, texts: 
 
 const FilterBarContext = React.createContext<{ onGo?: () => void }>({})
 
+type FilterBarState = { values: FilterValues; visibleKeys: string[]; search: string }
+
 type FilterBarProps = Omit<React.ComponentProps<"div">, "title"> & {
   /** Variant management / page title shown in the header row (slot). */
   variant?: React.ReactNode
+  /** Variant management slot; takes precedence over the legacy variant slot. */
+  variantManagement?: React.ReactNode
+  /** Complete controlled state, like FilterBarBase.getCurrentState / StateUtil.applyExternalState. */
+  state?: FilterBarState
+  onStateChange?: (state: FilterBarState) => void
+  /** Saved state of the selected view, used by Adapt Filters Reset. */
+  initialState?: FilterBarState
   /** Basic search. Pass `false` to hide it. */
   search?: boolean
   searchValue?: string
@@ -114,6 +123,10 @@ type FilterBarProps = Omit<React.ComponentProps<"div">, "title"> & {
 
 function FilterBar({
   variant,
+  variantManagement,
+  state,
+  onStateChange,
+  initialState,
   search = true,
   searchValue,
   defaultSearchValue = "",
@@ -155,30 +168,45 @@ function FilterBar({
     onExpandedChange?.(e)
   }
   const [innerSearch, setInnerSearch] = React.useState(defaultSearchValue)
-  const searchText = searchValue ?? innerSearch
+  const searchText = state?.search ?? searchValue ?? innerSearch
   const filtersId = React.useId()
   const [innerValues, setInnerValues] = React.useState(defaultValues)
-  const values = valuesProp ?? innerValues
+  const values = state?.values ?? valuesProp ?? innerValues
   const [innerKeys, setInnerKeys] = React.useState(() => defaultVisibleKeys ?? filters?.filter((f) => f.visibleInFilterBar !== false || f.required).map((f) => f.key) ?? [])
-  const requestedKeys = visibleKeysProp ?? innerKeys
+  const requestedKeys = state?.visibleKeys ?? visibleKeysProp ?? innerKeys
   const requiredKeys = filters?.filter((filter) => filter.required).map((filter) => filter.key) ?? []
   const keys = [...new Set([...requestedKeys.filter((key) => filters?.some((filter) => filter.key === key)), ...requiredKeys])]
   const [baseline] = React.useState(() => ({
-    values: structuredClone(initialValues ?? values),
-    keys: [...(initialVisibleKeys ?? keys)],
+    values: structuredClone(initialState?.values ?? initialValues ?? values),
+    keys: [...(initialState?.visibleKeys ?? initialVisibleKeys ?? keys)],
+    search: initialState?.search ?? searchText,
   }))
   const [adaptOpen, setAdaptOpen] = React.useState(false)
+  const resetSearch = React.useRef(false)
+  const savedSearch = initialState?.search ?? baseline.search
+  const titleSlot = variantManagement ?? variant
   const [invalidKeys, setInvalidKeys] = React.useState<string[]>([])
-  const updateValues = (next: FilterValues) => {
-    if (valuesProp === undefined) setInnerValues(next)
-    onValuesChange?.(next)
-    // Keep errors only for fields still missing a condition; valid edits clear them immediately.
-    setInvalidKeys((invalid) => invalid.filter((key) => !next[key]?.length))
+  const updateState = (change: Partial<FilterBarState>) => {
+    const next = { values, visibleKeys: keys, search: searchText, ...change }
+    if (change.values !== undefined) {
+      if (state === undefined && valuesProp === undefined) setInnerValues(change.values)
+      onValuesChange?.(change.values)
+      // Keep errors only for fields still missing a condition; valid edits clear them immediately.
+      setInvalidKeys((invalid) => invalid.filter((key) => !change.values![key]?.length))
+    }
+    if (change.visibleKeys !== undefined) {
+      if (state === undefined && visibleKeysProp === undefined) setInnerKeys(change.visibleKeys)
+      onVisibleKeysChange?.(change.visibleKeys)
+    }
+    if (change.search !== undefined) {
+      if (state === undefined && searchValue === undefined) setInnerSearch(change.search)
+      onSearchChange?.(change.search)
+    }
+    // FilterBarBase._handleAssignedFilterNames suppresses dirty reporting on variant application.
+    // Only user edits emit state; applying a controlled state does not echo a change back to its owner.
+    onStateChange?.(next)
   }
-  const updateKeys = (next: string[]) => {
-    if (visibleKeysProp === undefined) setInnerKeys(next)
-    onVisibleKeysChange?.(next)
-  }
+  const updateValues = (next: FilterValues) => updateState({ values: next })
   const fieldId = (key: string) => `${props.id ?? `filter-bar-${filtersId}`}-${key}`
   const go = () => {
     // OpenUI5 FilterBarBase._getRequiredFilterFieldValueText / triggerSearch validate required filters.
@@ -218,10 +246,10 @@ function FilterBar({
         style={{ "--fiori-x-filter-min-width": fieldWidth, ...style } as React.CSSProperties}
         {...props}
       >
-        {(variant || showToggle || !expanded || filters) && (
+        {(titleSlot || showToggle || !expanded || filters) && (
           <div className="fiori-filter-bar__header">
             <div className="fiori-filter-bar__title">
-              {variant}
+              {titleSlot}
               {(!expanded || filters) && (
                 <div className="fiori-filter-bar__summary" data-slot="filter-bar-summary" aria-live="polite">
                   {expanded ? filterExpandedSummary(count, hiddenCount, t) : filterSummary(assigned, t)}
@@ -247,10 +275,7 @@ function FilterBar({
                 aria-label={searchPlaceholder ?? t.search}
                 placeholder={searchPlaceholder ?? t.search}
                 value={searchText}
-                onChange={(e) => {
-                  if (searchValue === undefined) setInnerSearch(e.target.value)
-                  onSearchChange?.(e.target.value)
-                }}
+                onChange={(e) => updateState({ search: e.target.value })}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") go()
                 }}
@@ -289,7 +314,7 @@ function FilterBar({
               {showAdaptFilters && (
                 <Button variant="transparent" onClick={() => {
                   if (onAdaptFilters) onAdaptFilters()
-                  else if (filters) setAdaptOpen(true)
+                  else if (filters) { resetSearch.current = false; setAdaptOpen(true) }
                 }} className="fiori-filter-bar__adapt" aria-haspopup={filters && !onAdaptFilters ? "dialog" : undefined} aria-expanded={filters && !onAdaptFilters ? adaptOpen : undefined}>
                   {count ? `${t.adaptFilters} (${count})` : t.adaptFilters}
                 </Button>
@@ -301,9 +326,10 @@ function FilterBar({
           <AdaptFiltersDialog
             id={`${props.id ?? `filter-bar-${filtersId}`}-adapt-dialog`}
             open={adaptOpen} onOpenChange={setAdaptOpen} filters={filters} values={values} visibleKeys={keys}
-            p13nMode={p13nMode} initialValues={initialValues ?? baseline.values}
-            initialVisibleKeys={initialVisibleKeys ?? baseline.keys} texts={adaptFiltersTexts}
-            onApply={(next) => { updateValues(next.values); updateKeys(next.visibleKeys) }}
+            p13nMode={p13nMode} initialValues={initialState?.values ?? initialValues ?? baseline.values}
+            initialVisibleKeys={initialState?.visibleKeys ?? initialVisibleKeys ?? baseline.keys} texts={adaptFiltersTexts}
+            resetEnabled={searchText !== savedSearch} onReset={() => { resetSearch.current = true }}
+            onApply={(next) => updateState({ ...next, ...(resetSearch.current ? { search: savedSearch } : {}) })}
           />
         )}
       </div>
@@ -368,4 +394,4 @@ function FilterBarToggle({ expanded, onExpandedChange, showText = defaultTexts.s
   )
 }
 
-export { FilterBar, FilterBarItem, FilterBarToggle, filterSummary, filterExpandedSummary, type FilterDefinition, type FilterValues, type FilterBarProps, type FilterBarItemProps, type FilterBarTexts }
+export { FilterBar, FilterBarItem, FilterBarToggle, filterSummary, filterExpandedSummary, type FilterDefinition, type FilterValues, type FilterBarState, type FilterBarProps, type FilterBarItemProps, type FilterBarTexts }

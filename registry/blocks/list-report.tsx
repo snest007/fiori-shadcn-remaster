@@ -4,7 +4,7 @@ import { Bar } from "@/components/ui/bar"
 import { Button } from "@/components/ui/button"
 import { DataTable, createDataTableColumnHelper } from "@/components/ui/data-table"
 import { DynamicPage, DynamicPageHeader, DynamicPageTitle } from "@/components/ui/dynamic-page"
-import { FilterBar, filterSummary, type FilterDefinition, type FilterValues } from "@/components/ui/filter-bar"
+import { FilterBar, filterSummary, type FilterDefinition, type FilterBarState } from "@/components/ui/filter-bar"
 import { Icon } from "@/components/ui/icon"
 import { Input } from "@/components/ui/input"
 import { ObjectIdentifier } from "@/components/ui/object-identifier"
@@ -13,8 +13,10 @@ import { ObjectStatus, type ObjectStatusState } from "@/components/ui/object-sta
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TableRowActionNavigation } from "@/components/ui/table"
 import { Title } from "@/components/ui/title"
+import { VariantManagement } from "@/components/ui/variant-management"
+import { localStorageAdapter, useVariantState, type Variant } from "@/lib/fiori-variants"
 import { Toolbar, ToolbarButton, ToolbarSpacer } from "@/components/ui/toolbar"
-import { action, settings, slimArrowDown, sort } from "@/lib/fiori-icons"
+import { action, settings, sort } from "@/lib/fiori-icons"
 
 // SAP Fiori "List Report" floorplan (guideline: list-report-floorplan-sap-fiori-element):
 // DynamicPage whose title is the variant ("Standard"), whose header holds the filter bar, and whose content is the
@@ -85,6 +87,11 @@ const filters: FilterDefinition[] = [
   },
 ]
 
+const initialVariants: Variant[] = [
+  { key: "standard", title: "Standard", state: { values: {}, visibleKeys: ["category", "supplier"], search: "" } },
+]
+const variantStorage = localStorageAdapter("fiori-list-report-variants")
+
 const col = createDataTableColumnHelper<Product>()
 const columns = col.columns([
   col.accessor("name", {
@@ -108,12 +115,15 @@ const columns = col.columns([
 ])
 
 export default function ListReport() {
-  const [search, setSearch] = React.useState("")
-  const [values, setValues] = React.useState<FilterValues>({})
-  const [visibleKeys, setVisibleKeys] = React.useState(["category", "supplier"])
+  const [applied, setApplied] = React.useState({ search: "", category: "all", supplier: "" })
+  const applyState = (state: FilterBarState) => {
+    setApplied({ search: state.search, category: String(state.values.category?.[0]?.values[0] ?? "all"), supplier: String(state.values.supplier?.[0]?.values[0] ?? "") })
+    setSelected([])
+  }
+  const views = useVariantState({ initialVariants, storage: variantStorage, onExecute: applyState })
+  const { search, values } = views.state
   const category = String(values.category?.[0]?.values[0] ?? "all")
   const supplier = String(values.supplier?.[0]?.values[0] ?? "")
-  const [applied, setApplied] = React.useState({ search: "", category: "all", supplier: "" })
   const [selected, setSelected] = React.useState<string[]>([])
   const [opened, setOpened] = React.useState<string | null>(null)
 
@@ -125,12 +135,11 @@ export default function ListReport() {
       (!applied.supplier || p.supplier.toLowerCase().includes(applied.supplier.toLowerCase()))
   )
   const go = () => {
-    setApplied({ search, category, supplier })
-    setSelected([])
+    applyState(views.state)
   }
 
   return (
-    <div className="h-screen">
+    <div className="h-screen" inert={!views.ready ? true : undefined} data-variants-ready={views.ready ? "" : undefined} data-variants-saving={views.saving ? "" : undefined} aria-busy={!views.ready || views.saving}>
       <DynamicPage
         id="list-report"
         accessibilityAttributes={{ root: { role: "main", name: "Manage Products" } }}
@@ -138,21 +147,16 @@ export default function ListReport() {
         title={
           <DynamicPageTitle
             heading={
-              // Variant management trigger (wire it to your variant menu): regular-weight title in the link color.
-              <button
-                type="button"
-                className="list-report-variant flex cursor-pointer items-center gap-2 rounded-(--sapButton_BorderCornerRadius) text-(--sapLinkColor) outline-none focus-visible:outline-(length:--sapContent_FocusWidth) focus-visible:outline-(--sapContent_FocusColor)"
-                aria-haspopup="menu"
-              >
-                <Title level="H1" size="H3" className="cursor-pointer font-(family-name:--sapFontFamily) text-(--sapLinkColor)">
-                  Standard
-                </Title>
-                <Icon icon={slimArrowDown} className="size-5" />
-              </button>
+              <VariantManagement
+                id="list-report-variants" items={views.variants} selectedKey={views.selectedKey}
+                defaultKey={views.defaultKey} modified={views.modified} level="H1" titleStyle="H3"
+                popoverTitle="My Views" creationAllowed={views.ready} onClick={(event) => event.stopPropagation()}
+                onSelect={({ key }) => views.selectVariant(key)} onSave={views.saveVariant} onManage={views.manageVariants}
+              />
             }
             snappedHeading={
               <Title level="H1" size="H4">
-                Standard
+                {views.selectedVariant.title}{views.modified ? "*" : ""}
               </Title>
             }
             snappedSubheading={<span data-slot="list-report-summary">{filterSummary(active)}</span>}
@@ -170,11 +174,8 @@ export default function ListReport() {
             <FilterBar
               className="!p-0 !bg-transparent"
               showToggle={false}
-              searchValue={search}
-              onSearchChange={setSearch}
               id="list-report-filter-bar"
-              filters={filters} values={values} onValuesChange={setValues}
-              visibleKeys={visibleKeys} onVisibleKeysChange={setVisibleKeys}
+              filters={filters} state={views.state} onStateChange={views.setState} initialState={views.savedState}
               onGo={go}
             />
           </DynamicPageHeader>

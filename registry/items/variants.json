@@ -1,0 +1,15 @@
+{
+  "type": "registry:lib",
+  "title": "Fiori variant state",
+  "description": "Controlled FilterBar view state, Save/Save As and Manage operations, default views and an optional localStorage persistence adapter.",
+  "registryDependencies": [
+    "@fiori/filter-bar",
+    "@fiori/variant-management"
+  ],
+  "files": [
+    {
+      "path": "registry/lib/fiori-variants.ts",
+      "type": "registry:lib"
+    }
+  ]
+}

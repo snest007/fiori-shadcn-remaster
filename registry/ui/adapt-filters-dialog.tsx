@@ -90,6 +90,10 @@ type AdaptFiltersDialogProps = {
   values: FilterValues
   visibleKeys: string[]
   onApply: (state: AdaptFiltersState) => void
+  /** Enables Reset for additional host-owned state, such as the FilterBar basic search. */
+  resetEnabled?: boolean
+  /** Confirms a staged Reset. The host commits its additional state only when onApply runs. */
+  onReset?: () => void
   /** Reset baseline: the initial state or the currently selected variant, not the opening snapshot. */
   initialValues?: FilterValues
   initialVisibleKeys?: string[]
@@ -122,7 +126,7 @@ function AdaptFiltersDialog(props: AdaptFiltersDialogProps) {
 }
 
 function AdaptFiltersSession({
-  open, onOpenChange, filters, values, visibleKeys, onApply, initialValues = values, initialVisibleKeys = visibleKeys,
+  open, onOpenChange, filters, values, visibleKeys, onApply, resetEnabled = false, onReset, initialValues = values, initialVisibleKeys = visibleKeys,
   p13nMode = ["item", "value"], texts, id, className, style, contentWidth = "40rem", contentHeight = "55rem",
   defaultView = "list", defaultMode = "edit", defaultSearch = "", defaultResetConfirmation = false, portal = true, modal = true,
 }: AdaptFiltersDialogProps) {
@@ -143,6 +147,7 @@ function AdaptFiltersSession({
   const [showValues, setShowValues] = React.useState(true)
   const [collapsed, setCollapsed] = React.useState<string[]>([])
   const [resetOpen, setResetOpen] = React.useState(defaultResetConfirmation)
+  const [hostReset, setHostReset] = React.useState(false)
   const [addText, setAddText] = React.useState("")
   const [addError, setAddError] = React.useState(false)
   const [invalid, setInvalid] = React.useState<string[]>([])
@@ -270,6 +275,8 @@ function AdaptFiltersSession({
     setView("list"); setMode("edit"); setQuery(""); setQuickMode("all"); setQuickChanged(false)
     setAddText(""); setAddError(false); setInvalid([]); setAddedKeys([]); setResetOpen(false)
     pendingFocus.current = { ok: true }
+    setHostReset(true)
+    onReset?.()
     announce(t.resetAnnouncement)
   }
   const dragStart = (event: React.PointerEvent<HTMLElement>, resize = false) => {
@@ -347,7 +354,7 @@ function AdaptFiltersSession({
     onKeyDown={(event) => { if (!resetOpen && (event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); apply() } }}>
     <header className="fiori-adapt-filters__header" onPointerDown={(event) => dragStart(event)}>
       <DialogPrimitive.Title className="fiori-adapt-filters__title">{t.title}</DialogPrimitive.Title>
-      <Button variant="transparent" disabled={!dirty} onClick={() => setResetOpen(true)}>{t.reset}</Button>
+      <Button variant="transparent" disabled={!dirty && (!resetEnabled || hostReset)} onClick={() => setResetOpen(true)}>{t.reset}</Button>
     </header>
     <div className="fiori-adapt-filters__content">
       <div role="tablist" aria-label={t.title} className="fiori-adapt-filters__tabs" onKeyDown={(event) => {
