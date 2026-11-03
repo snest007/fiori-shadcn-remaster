@@ -48,7 +48,12 @@ function fail(msg) {
 function codexBranches() {
   return git("for-each-ref --format='%(refname:short)' refs/heads/codex/").split("\n").filter(Boolean)
 }
-const isMerged = (b) => sh(`git merge-base --is-ancestor ${b} main`, { allowFail: true }).ok
+// "Merged" = main contains a merge commit whose second parent is the branch tip (we always merge --no-ff).
+// A freshly prepared branch with no commits of its own is therefore never "merged", even after main moves on.
+const isMerged = (b) => {
+  const tip = git(`rev-parse ${b}`)
+  return git("log main --merges --format=%P").split("\n").some((line) => line.split(" ").slice(1).includes(tip))
+}
 function worktrees() {
   const map = new Map()
   let path
