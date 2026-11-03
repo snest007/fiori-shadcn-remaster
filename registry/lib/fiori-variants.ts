@@ -34,7 +34,8 @@ function normalizeVariants(items: Variant[], standard: Variant): Variant[] {
   // VariantModel.js#ensureStandardVariantExists: Standard always exists and is authored by SAP.
   // Its application baseline/title are immutable; only default/execute options can be personalized.
   const variants = [
-    { ...clone(standard), key: STANDARD_VARIANT_KEY, author: "SAP", rename: false, remove: false, changeable: false,
+    // VariantModel.js maps layer → sharing (USER = Private, otherwise Public); Standard is BASE layer → Public.
+    { ...clone(standard), key: STANDARD_VARIANT_KEY, author: "SAP", sharing: "Public" as const, rename: false, remove: false, changeable: false,
       favorite: true, visible: true, default: storedStandard?.default ?? standard.default,
       executeOnSelect: storedStandard?.executeOnSelect ?? standard.executeOnSelect },
     ...clone(unique.filter((item) => item.key !== STANDARD_VARIANT_KEY)),
