@@ -16,6 +16,7 @@ function GrowingNotificationsDemo() {
   const [loading, setLoading] = React.useState({ orders: false, approvals: false })
   const [delay, setDelay] = React.useState(1000)
   const [childLoading, setChildLoading] = React.useState(false)
+  const [loadingLastOnly, setLoadingLastOnly] = React.useState(false)
   const [mounted, setMounted] = React.useState(true)
   const [requests, setRequests] = React.useState({ orders: 0, approvals: 0 })
   const [action, setAction] = React.useState("none")
@@ -43,17 +44,18 @@ function GrowingNotificationsDemo() {
           <Button onClick={() => append(group)}>Append {group}</Button>
           <Button onClick={() => setLoading((current) => ({ ...current, [group]: !current[group] }))}>{loading[group] ? "Finish" : "Start"} loading {group}</Button>
         </React.Fragment>)}
-        <Button onClick={() => setChildLoading((current) => !current)}>Toggle child loading</Button>
+        <Button onClick={() => { setLoadingLastOnly(false); setChildLoading((current) => !current) }}>Toggle child loading</Button>
+        <Button onClick={() => { setLoadingLastOnly(true); setChildLoading(true) }}>Load last order only</Button>
         <Button onClick={() => setMounted((current) => !current)}>{mounted ? "Hide" : "Show"} growing list</Button>
       </div>
       {mounted && <NotificationList
-        texts={{ growingButton: "Load more notifications", more: "Details", moreLabel: "Details button. Show the full texts", loading: "Fetching notifications" }}
+        texts={{ growingButton: "Load more notifications", more: "Details", moreLabel: "Details button. Show the full texts", loading: "Fetching notifications", busyTitle: "Fetching notifications" }}
         onItemClick={(value) => setAction(`click:${value}`)}
         onItemToggle={(value, collapsed) => setAction(`${collapsed ? "collapse" : "expand"}:${value}`)}
       >
         {(["orders", "approvals"] as const).map((group) => (
           <NotificationListGroupItem key={group} id={`notification-list-growing-${group}`} value={`growing-${group}`} titleText={`More ${group}`} growing={growing} loading={loading[group]} loadingDelay={delay} onLoadMore={() => load(group)}>
-            {items[group].map((number) => <NotificationListItem key={number} value={`${group}-${number}`} titleText={`${group} notification ${number}`} loading={childLoading} loadingDelay={delay} showClose>{LONG}</NotificationListItem>)}
+            {items[group].map((number) => <NotificationListItem key={number} value={`${group}-${number}`} titleText={`${group} notification ${number}`} loading={childLoading && (!loadingLastOnly || (group === "orders" && number === items.orders.at(-1)))} loadingDelay={delay} showClose>{LONG}</NotificationListItem>)}
           </NotificationListGroupItem>
         ))}
       </NotificationList>}

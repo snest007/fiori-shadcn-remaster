@@ -195,6 +195,13 @@ for (const activation of ["click", "Enter", "Space"] as const) {
 }
 
 test("notification-list: More participates in arrows and two-step End within a group", async ({ page }) => {
+  await growingGroup(page).focus()
+  await growingButton(page).focus()
+  await page.keyboard.press("Home")
+  await expect(growingGroup(page)).toBeFocused()
+  await growingButton(page).focus()
+  await page.keyboard.press("End")
+  await expect(growingItem(page, 2)).toBeFocused()
   await growingItem(page, 1).focus()
   await page.keyboard.press("End")
   await expect(growingItem(page, 2)).toBeFocused()
@@ -211,6 +218,19 @@ test("notification-list: More participates in arrows and two-step End within a g
   await expect(growingButton(page)).toBeFocused()
   await page.keyboard.press("ArrowDown")
   await expect(growingGroup(page, "approvals")).toBeFocused()
+})
+
+test("notification-list: modified More activation and navigation keys keep native defaults without loading or toggling", async ({ page }) => {
+  await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
+  for (const modifier of ["Shift", "Control", "Alt", "Meta"]) {
+    for (const key of ["Enter", "Space", "ArrowUp", "Home", "End"]) {
+      await growingButton(page).focus()
+      await page.keyboard.press(`${modifier}+${key}`)
+      await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+      await expect(growingButton(page)).toBeFocused()
+    }
+  }
+  await expect(growingDemo(page).locator("#notification-list-growing-action")).toHaveText("Last action: none")
 })
 
 test("notification-list: collapsed and loading groups omit children and More from arrows", async ({ page }) => {
@@ -260,13 +280,55 @@ test("notification-list: loading delays an inline spinner and leaves More enable
   await expect(growingItem(page, 1).getByRole("button", { name: "Details button. Show the full texts" })).toHaveText("Details")
 })
 
+test("notification-list: UI5 defaults keep the busy title separate from the group's hidden loading name", async ({ page }) => {
+  for (const reference of [false, true]) {
+    await page.goto(reference ? "/ui5.html?only=notification-list-growing-button-loading" : "/index.html?fixtures&only=notification-list-growing-button-loading")
+    await page.waitForSelector("html[data-ready=true]")
+    const fixture = page.locator('[data-fixture="notification-list-growing-button-loading"]')
+    const root = fixture.locator(reference ? "ui5-li-notification-group .ui5-nli-group-root" : "[data-nli-group]")
+    await expect(root).toHaveAccessibleName("Loading")
+    await expect(fixture.getByRole("progressbar")).toHaveAccessibleName("Please wait")
+  }
+})
+
+test("notification-list: keyboard More feedback matches UI5's actual compiled active-class behavior", async ({ page }) => {
+  const colors: string[] = []
+  for (const reference of [false, true]) {
+    await page.goto(reference ? "/ui5.html?only=notification-list-growing-button" : "/index.html?fixtures&only=notification-list-growing-button")
+    await page.waitForSelector("html[data-ready=true]")
+    await page.mouse.move(0, 0)
+    const more = page.locator('[data-fixture="notification-list-growing-button"]').getByRole("button", { name: "More", exact: true })
+    await more.focus()
+    await page.keyboard.down("Space")
+    if (reference) await expect(more).toHaveClass(/ui5-growing-button-inner-active/)
+    colors.push(await more.evaluate((button) => getComputedStyle(button).backgroundColor))
+    await page.keyboard.up("Space")
+  }
+  expect(colors[0]).toBe(colors[1])
+})
+
+test("notification-list: keyboard events inside an inline busy indicator do not activate More", async ({ page }) => {
+  await freezeClock(page)
+  await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+  await growingDemo(page).getByLabel("Loading delay").selectOption("0")
+  await growingButton(page).click()
+  await page.clock.runFor(1)
+  const busy = growingButton(page).getByRole("progressbar")
+  await busy.focus()
+  for (const key of ["Enter", "Space", "ArrowUp"]) {
+    await page.keyboard.press(key)
+    await expect(busy).toBeFocused()
+    await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+  }
+})
+
 test("notification-list: group overlay clears child busy requests until their loading prop resets", async ({ page }) => {
   await freezeClock(page)
   await growingDemo(page).getByLabel("Growing mode").selectOption("none")
   await growingDemo(page).getByLabel("Loading delay").selectOption("0")
   await growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true }).click()
   await page.clock.runFor(1)
-  await expect(growingGroup(page).getByRole("progressbar")).toHaveCount(2)
+  await expect(growingGroup(page).locator('[role="progressbar"]')).toHaveCount(2)
   await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).click()
   await page.clock.runFor(1)
   await expect(growingGroup(page).getByRole("progressbar")).toHaveCount(1)
@@ -277,7 +339,26 @@ test("notification-list: group overlay clears child busy requests until their lo
   await growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true }).click()
   await growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true }).click()
   await page.clock.runFor(1)
-  await expect(growingGroup(page).getByRole("progressbar")).toHaveCount(2)
+  await expect(growingGroup(page).locator('[role="progressbar"]')).toHaveCount(2)
+})
+
+test("notification-list: loading items make their controls inert before delay and action arrows focus the item row", async ({ page }) => {
+  await freezeClock(page)
+  await growingDemo(page).getByRole("button", { name: "Load last order only", exact: true }).click()
+  const loadingItem = growingItem(page, 2)
+  await expect(loadingItem).toHaveAttribute("data-loading", "")
+  await expect(loadingItem).toHaveAccessibleName("Fetching notifications")
+  await expect(loadingItem.locator(".fiori-nli__busy")).toHaveAttribute("inert", "")
+  await expect(loadingItem.locator('[role="progressbar"]')).toHaveCount(0)
+  await growingItem(page, 1).getByRole("button", { name: "Close", exact: true }).focus()
+  await page.keyboard.press("ArrowDown")
+  await expect(loadingItem).toBeFocused()
+  await loadingItem.locator('[data-nli-action="close"]').evaluate((button: HTMLElement) => button.focus())
+  await expect(loadingItem).toBeFocused()
+  await page.clock.runFor(1000)
+  await expect(loadingItem.locator('[role="progressbar"]')).toHaveCount(1)
+  await loadingItem.locator('[role="progressbar"]').evaluate((busy: HTMLElement) => busy.focus())
+  await expect(loadingItem).toBeFocused()
 })
 
 test("notification-list: only the requesting group's first appended item focuses after loading completes", async ({ page }) => {

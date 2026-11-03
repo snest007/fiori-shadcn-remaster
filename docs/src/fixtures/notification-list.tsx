@@ -29,6 +29,10 @@ export default defineFixtures<Props>({
   name: "notification-list",
   cases: [
     {
+      id: "notification-list-item-loading",
+      props: { items: [{ title: "Working", description: "Updating the notification.", loading: true, showClose: true }] },
+    },
+    {
       id: "notification-list-growing-button",
       props: { groups: [{ title: "Orders", growing: "button", items: [{ title: "New order", description: "An order is awaiting approval." }] }] },
     },

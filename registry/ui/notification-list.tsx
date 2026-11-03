@@ -43,6 +43,8 @@ type NotificationTexts = {
   important: string
   /** Hidden name while loading (default "Loading"). */
   loading: string
+  /** Busy indicator tooltip and accessible title, independent of the hidden loading name. */
+  busyTitle: string
   /** Hidden group description and toggle tooltip. */
   group: string
   expanded: string
@@ -64,6 +66,8 @@ const defaultTexts: NotificationTexts = {
   states: { negative: "Status Negative", critical: "Status Critical", positive: "Status Positive", information: "Status Information" },
   important: "Important",
   loading: "Loading",
+  // BusyIndicator.js/ariaTitle uses BUSY_INDICATOR_TITLE ("Please wait"), not the item's loading text.
+  busyTitle: "Please wait",
   group: "Notification Group",
   expanded: "Expanded",
   collapsed: "Collapsed",
@@ -97,6 +101,12 @@ function notificationNavigationItems(root: HTMLElement | null) {
 // List.js/onEndIntersection uses the module-global debounce.js timer (250ms). Keep that
 // cross-group debounce, but cancel a removed group's pending callback on cleanup.
 let pendingScrollLoad: { owner: symbol; timer: ReturnType<typeof setTimeout> } | undefined
+
+// BusyIndicator.js/_preventEvent swallows keyboard propagation once the indicator is busy.
+// Keep inline spinner keys from activating its surrounding More button.
+function stopBusyKeyboardEvent(event: React.KeyboardEvent<HTMLDivElement>) {
+  if (event.currentTarget.hasAttribute("data-busy")) event.stopPropagation()
+}
 
 type NotificationListProps = Omit<React.ComponentProps<"div">, "onClick"> & {
   /** An item was activated (click, Enter, Space). */
@@ -169,7 +179,9 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
       const next = items[i + (up ? -1 : 1)]
       if (!next) return
       const action = target.dataset.nliAction
-      const same = e.key === "ArrowUp" || e.key === "ArrowDown" ? next.querySelector<HTMLElement>(`[data-nli-action="${action}"]`) : null
+      // NotificationListInternal.js/_focusSameItemOnNextRow focuses a loading item's row,
+      // whose actions are inert, instead of attempting the same action on that next row.
+      const same = !next.hasAttribute("data-loading") && (e.key === "ArrowUp" || e.key === "ArrowDown") ? next.querySelector<HTMLElement>(`[data-nli-action="${action}"]`) : null
       ;(same && same.closest("[data-nav-key]") === next ? same : next).focus()
       return
     }
@@ -181,20 +193,22 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
     else if (e.key === "Home") {
       e.preventDefault()
       if (isGroup(item)) return
+      // NotificationListInternal.js/_handleHomeKey uses the previously focused real item:
+      // growing buttons are in _allNavigationItems but not ItemNavigation's enabled items.
+      const from = item.hasAttribute("data-nli-growing") ? items.findIndex((el) => el.dataset.navKey === core.currentKey) : i
+      if (from === -1) return
       to = 0
-      for (let n = i - 1; n >= 0; n--) {
+      for (let n = from - 1; n >= 0; n--) {
         if (isGroup(items[n])) {
           to = n + 1
           break
         }
       }
     } else if (e.key === "End") {
-      if (item.hasAttribute("data-nli-growing")) {
-        e.preventDefault()
-        return
-      }
+      const from = item.hasAttribute("data-nli-growing") ? items.findIndex((el) => el.dataset.navKey === core.currentKey) : i
+      if (from === -1) return
       to = items.length - 1
-      for (let n = i + 1; n < items.length; n++) {
+      for (let n = from + 1; n < items.length; n++) {
         if (isGroup(items[n])) {
           to = n - 1
           break
@@ -202,7 +216,7 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
         // NotificationListInternal.js/_handleEndKey: End first goes to the last item,
         // then reaches its immediately adjacent growing button on the next End.
         if (items[n].hasAttribute("data-nli-growing")) {
-          to = n === i + 1 ? n : n - 1
+          to = n === from + 1 ? n : n - 1
           break
         }
       }
@@ -367,6 +381,7 @@ function NotificationListItem({
     <li
       ref={rootRef}
       data-slot="notification-list-item"
+      data-loading={loading ? "" : undefined}
       data-nav-key={value}
       data-read={read ? "" : undefined}
       data-wrapping={wrappingType}
@@ -385,7 +400,9 @@ function NotificationListItem({
             {texts.loading}
           </span>
         )}
-        <BusyIndicator active={loading} delay={loadingDelay} className="fiori-nli__busy">
+        {/* NotificationListItemTemplate.js makes the whole busy host inert immediately,
+            independently of the delayed visual indicator. Group List loading differs. */}
+        <BusyIndicator active={loading} delay={loadingDelay} title={texts.busyTitle} inert={loading || undefined} className="fiori-nli__busy">
           <div className="fiori-nli__wrapper">
             <div className="fiori-nli__content" data-importance={hasImportance ? "" : undefined}>
               {hasImportance && (
@@ -522,7 +539,6 @@ function NotificationListGroupItem({
   const startRef = React.useRef<HTMLSpanElement>(null)
   const endRef = React.useRef<HTMLSpanElement>(null)
   const afterRef = React.useRef<HTMLDivElement>(null)
-  const [moreActive, setMoreActive] = React.useState(false)
   const [, markRequest] = React.useReducer((n: number) => n + 1, 0)
   const pendingAppend = React.useRef<{ keys: Set<string> } | null>(null)
   const ownItems = () => [...(rootRef.current?.querySelectorAll<HTMLElement>('[data-slot="notification-list-item"]') ?? [])]
@@ -642,7 +658,7 @@ function NotificationListGroupItem({
           <div className="fiori-nli-group__divider" />
         </div>
       </div>
-      <BusyIndicator active={loading && growing !== "button"} delay={loadingDelay} title={texts.loading} className="fiori-nli-group__busy">
+      <BusyIndicator active={loading && growing !== "button"} delay={loadingDelay} title={texts.busyTitle} className="fiori-nli-group__busy" onKeyDownCapture={stopBusyKeyboardEvent} onKeyUpCapture={stopBusyKeyboardEvent}>
         <div className="fiori-nli-group__list">
           <span ref={startRef} aria-hidden className="fiori-nli-group__start-marker" />
           <ul id={`${id}-items`} role="list" aria-labelledby={`${id}-title`} className="fiori-nli-group__items">
@@ -654,20 +670,22 @@ function NotificationListGroupItem({
                 role="button"
                 tabIndex={0}
                 data-nli-growing=""
-                data-active={moreActive ? "" : undefined}
                 aria-labelledby={`${id}-growing-text`}
                 className="fiori-list__growing-inner fiori-nli-group__growing-inner"
                 onFocus={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); requestRef.current() }}
-                onPointerDown={() => setMoreActive(true)}
-                onPointerUp={() => setMoreActive(false)}
-                onPointerLeave={() => setMoreActive(false)}
                 onKeyDown={(e) => {
+                  // Keys.js/isEnter, isSpace and isUp require no modifiers; only Shift+Tab is special.
+                  if (e.altKey || e.ctrlKey || e.metaKey || (e.shiftKey && e.key !== "Tab")) {
+                    e.stopPropagation()
+                    return
+                  }
                   // NotificationListGroupList.js/_onLoadMoreKeydown stops Space reaching the group.
                   if (e.key === " " || e.key === "Enter") {
                     e.preventDefault()
                     e.stopPropagation()
-                    setMoreActive(true)
+                    // ListTemplate.js emits ...inner-active, but List.css.js matches ...inner--active.
+                    // UI5 2.28 therefore paints only native :active feedback, not a keyboard state class.
                     if (e.key === "Enter") requestRef.current()
                   } else if (e.key === "ArrowUp") {
                     // List.js/_handleLodeMoreUp remains available on a directly focused More
@@ -684,14 +702,17 @@ function NotificationListGroupItem({
                   }
                 }}
                 onKeyUp={(e) => {
+                  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
+                    e.stopPropagation()
+                    return
+                  }
                   if (e.key === " " || e.key === "Enter") {
                     e.stopPropagation()
                     if (e.key === " ") requestRef.current()
                   }
-                  setMoreActive(false)
                 }}
               >
-                {loading && <BusyIndicator active delay={loadingDelay} title={texts.loading} className="fiori-nli-group__growing-busy" />}
+                {loading && <BusyIndicator active delay={loadingDelay} title={texts.busyTitle} className="fiori-nli-group__growing-busy" onKeyDownCapture={stopBusyKeyboardEvent} onKeyUpCapture={stopBusyKeyboardEvent} />}
                 <span id={`${id}-growing-text`} className="fiori-list__growing-text">{texts.growingButton}</span>
               </div>
             </div>

@@ -287,8 +287,7 @@
   outline-offset: var(--fiori-x-notification-item-outline-offset);
   border: var(--fiori-x-notification-item-border-top-left-right);
 }
-.fiori-nli-group__growing-inner:focus-visible:active,
-.fiori-nli-group__growing-inner:focus-visible[data-active] {
+.fiori-nli-group__growing-inner:focus:active {
   background-color: var(--fiori-x-notification-item-growing-btn-background-color-active);
   border: var(--fiori-x-notification-item-border-active);
 }
