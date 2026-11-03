@@ -10,6 +10,92 @@ const growingButton = (page: Page, name = "orders") => growingGroup(page, name).
 const growingItem = (page: Page, number: number, name = "orders") => growingGroup(page, name).locator(`[data-nav-key="${name}-${number}"]`)
 const requests = (page: Page) => growingDemo(page).locator("#notification-list-growing-requests")
 
+// Construct the same two-group data on the installed UI5 oracle and the growing demo.
+// Remove prefix-matched sibling fixtures so Tab has an explicit, shared destination.
+async function growingKeyboardOracle(page: Page, reference: boolean) {
+  await page.goto(reference ? "/ui5.html?only=notification-list-growing-button" : "/index.html")
+  await page.waitForSelector("html[data-ready=true]")
+  if (reference) {
+    await page.evaluate(() => {
+      const fixture = document.querySelector('[data-fixture="notification-list-growing-button"]')!
+      const list = fixture.querySelector("ui5-notification-list")!
+      const template = list.querySelector("ui5-li-notification-group")!
+      list.replaceChildren()
+      ;(window as any).__notificationKeyboardLoads = 0
+      for (const [name, count] of [["orders", 2], ["approvals", 1]] as const) {
+        const group = template.cloneNode(false) as any
+        group.titleText = `More ${name}`
+        group.dataset.probeKey = name
+        group.loadingDelay = 0
+        group.addEventListener("load-more", () => { (window as any).__notificationKeyboardLoads++ })
+        for (let number = 1; number <= count; number++) {
+          const item = document.createElement("ui5-li-notification") as any
+          item.titleText = `${name} notification ${number}`
+          item.showClose = true
+          item.dataset.probeKey = `${name}-${number}`
+          item.textContent = "And with very long description and long labels of the action buttons - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          group.append(item)
+        }
+        list.append(group)
+      }
+      for (const sibling of document.querySelectorAll("[data-fixture]")) if (sibling !== fixture) sibling.remove()
+    })
+    await page.waitForFunction(() => {
+      const groups = [...document.querySelectorAll('[data-fixture="notification-list-growing-button"] ui5-li-notification-group')] as any[]
+      return groups.length === 2 && groups.every((group) => group.getGrowingButton?.()) && groups[0].items.length === 2
+    })
+  } else {
+    await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+    await growingDemo(page).getByLabel("Loading delay").selectOption("0")
+  }
+  await page.evaluate((reference) => {
+    const root = document.querySelector(reference ? '[data-fixture="notification-list-growing-button"]' : '#notification-list-growing-demo [data-slot="notification-list"]')!
+    const after = document.createElement("button")
+    after.id = "notification-list-keyboard-after"
+    after.textContent = "After notifications"
+    root.after(after)
+    ;(window as any).__notificationKeyboardEvents = []
+    ;(window as any).__notificationKeyboardBubbles = []
+    for (const type of ["keydown", "keyup", "click"]) {
+      window.addEventListener(type, (event) => { (window as any).__notificationKeyboardEvents.push(event) }, { capture: true })
+      window.addEventListener(type, (event) => { (window as any).__notificationKeyboardBubbles.push(event) })
+    }
+  }, reference)
+  const host = (name = "orders") => reference
+    ? page.locator(`[data-fixture="notification-list-growing-button"] ui5-li-notification-group[data-probe-key="${name}"]`)
+    : growingGroup(page, name)
+  const group = (name = "orders") => reference ? host(name).locator(".ui5-nli-group-root") : host(name)
+  const child = (number: number, name = "orders") => reference
+    ? host(name).locator(`ui5-li-notification[data-probe-key="${name}-${number}"] .ui5-nli-root`)
+    : growingItem(page, number, name)
+  const more = (name = "orders") => host(name).getByRole("button", { name: reference ? "More" : "Load more notifications", exact: true })
+  const setLoading = async (loading: boolean, name = "orders") => {
+    if (reference) {
+      await host(name).evaluate((group, loading) => { (group as any).loading = loading }, loading)
+      await page.waitForFunction(({ loading, name }) => {
+        const group = document.querySelector(`ui5-li-notification-group[data-probe-key="${name}"]`) as any
+        const inner = group.shadowRoot.querySelector("[ui5-notification-group-list]")
+        return inner.loading === loading && (!loading || inner.shadowRoot.querySelector(".ui5-list-growing-button-busy-indicator")?._isBusy)
+      }, { loading, name })
+    } else if (await host(name).evaluate((group) => group.hasAttribute("data-loading")) !== loading) {
+      await growingDemo(page).getByRole("button", { name: `${loading ? "Start" : "Finish"} loading ${name}`, exact: true }).click()
+      if (loading) await expect(host(name).locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+      else await expect(host(name)).not.toHaveAttribute("data-loading")
+    }
+  }
+  const loads = () => page.evaluate((reference) => reference
+    ? (window as any).__notificationKeyboardLoads as number
+    : Number(document.querySelector("#notification-list-growing-requests")!.textContent!.match(/orders=(\d+)/)![1]), reference)
+  const clearEvents = () => page.evaluate(() => {
+    ;(window as any).__notificationKeyboardEvents = []
+    ;(window as any).__notificationKeyboardBubbles = []
+  })
+  const events = () => page.evaluate(() => (window as any).__notificationKeyboardEvents
+    .filter((event: KeyboardEvent) => !["Shift", "Control", "Alt", "Meta"].includes(event.key))
+    .map((event: KeyboardEvent) => ({ type: event.type, key: event.key, prevented: event.defaultPrevented, bubbled: (window as any).__notificationKeyboardBubbles.includes(event) })))
+  return { host, group, child, more, setLoading, loads, clearEvents, events, after: page.locator("#notification-list-keyboard-after") }
+}
+
 async function freezeClock(page: Page) {
   await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") })
   await page.clock.pauseAt(new Date("2026-01-01T00:00:01Z"))
@@ -271,13 +357,149 @@ test("notification-list: collapsed and loading groups omit children and More fro
   await expect(growingItem(page, 1)).toBeFocused()
 })
 
-test("notification-list: Tab from group More continues to the next group's content and Shift+Tab returns to its first item", async ({ page }) => {
-  await growingButton(page).focus()
-  await page.keyboard.press("Tab")
-  await expect(growingItem(page, 1, "approvals").getByRole("button", { name: "Details button. Show the full texts" })).toBeFocused()
-  await growingButton(page, "approvals").focus()
-  await page.keyboard.press("Shift+Tab")
-  await expect(growingItem(page, 1, "approvals")).toBeFocused()
+test("notification-list: busy More retains UI5's numeric enabled-item index and root-first arrow routing", async ({ page }) => {
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    for (const prior of ["header", "child"] as const) {
+      for (const key of ["Home", "End", "ArrowDown", "ArrowRight", "ArrowLeft", "ArrowUp", "PageUp", "PageDown"]) {
+        await oracle.setLoading(false)
+        const previous = prior === "header" ? oracle.group() : oracle.child(1)
+        await previous.focus()
+        await expect(previous).toBeFocused()
+        await oracle.setLoading(true)
+        await oracle.more().focus()
+        await expect(oracle.more()).toBeFocused()
+        await oracle.clearEvents()
+        await page.keyboard.press(key)
+        const destination = key === "ArrowUp" ? oracle.child(2)
+          : key === "Home" ? (prior === "header" ? oracle.group() : oracle.group("approvals"))
+          : key === "End" ? (prior === "header" ? oracle.group() : oracle.child(1, "approvals"))
+          : key === "ArrowDown" || key === "ArrowRight" ? oracle.group()
+          : oracle.more()
+        await expect(destination).toBeFocused()
+        expect((await oracle.events())[0].prevented).toBe(!key.startsWith("Page"))
+      }
+    }
+    await oracle.setLoading(false)
+    for (const key of ["ArrowDown", "ArrowRight"]) {
+      await oracle.setLoading(false, "approvals")
+      await oracle.child(1, "approvals").focus()
+      await expect(oracle.child(1, "approvals")).toBeFocused()
+      await oracle.setLoading(true, "approvals")
+      await oracle.more("approvals").focus()
+      await page.keyboard.press(key)
+      await expect(oracle.group()).toBeFocused()
+    }
+  }
+})
+
+test("notification-list: More Tab exits the list with native cancellation and bubbling, even while busy", async ({ page }) => {
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    for (const loading of [false, true]) {
+      await oracle.setLoading(loading)
+      await oracle.more().focus()
+      await oracle.clearEvents()
+      await page.keyboard.press("Tab")
+      await expect(oracle.after).toBeFocused()
+      expect(await oracle.events()).toEqual([
+        { type: "keydown", key: "Tab", prevented: false, bubbled: true },
+        { type: "keyup", key: "Tab", prevented: false, bubbled: true },
+      ])
+      await oracle.more().focus()
+      await oracle.clearEvents()
+      await page.keyboard.press("Shift+Tab")
+      await expect(oracle.child(1)).toBeFocused()
+      expect(await oracle.events()).toEqual([
+        { type: "keydown", key: "Tab", prevented: true, bubbled: true },
+        { type: "keyup", key: "Tab", prevented: false, bubbled: true },
+      ])
+    }
+  }
+})
+
+test("notification-list: More activation phases, Escape, F2 and modifiers preserve native event routing", async ({ page }) => {
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    for (const loading of [false, true]) {
+      for (const key of ["Click", "Enter", "Space", "SpaceEscape", "Escape", "F2"]) {
+        await oracle.setLoading(loading)
+        await oracle.more().focus()
+        await expect(oracle.more()).toBeFocused()
+        const before = await oracle.loads()
+        await oracle.clearEvents()
+        if (key === "Click") {
+          await oracle.more().click()
+          expect(await oracle.loads()).toBe(before + 1)
+          expect(await oracle.events()).toEqual([{ type: "click", key: undefined, prevented: false, bubbled: true }])
+        } else if (key === "Enter" || key.startsWith("Space")) {
+          const activation = key === "Enter" ? "Enter" : "Space"
+          await page.keyboard.down(activation)
+          expect(await oracle.loads()).toBe(before + (activation === "Enter" ? 1 : 0))
+          expect((await oracle.events())[0]).toEqual({ type: "keydown", key: activation === "Enter" ? "Enter" : " ", prevented: activation === "Space", bubbled: activation === "Enter" })
+          if (key === "SpaceEscape") await page.keyboard.press("Escape")
+          await page.keyboard.up(activation)
+          expect(await oracle.loads()).toBe(before + 1)
+          expect((await oracle.events()).at(-1)).toEqual({ type: "keyup", key: activation === "Enter" ? "Enter" : " ", prevented: false, bubbled: true })
+        } else {
+          await page.keyboard.press(key)
+          expect(await oracle.loads()).toBe(before)
+          expect(await oracle.events()).toEqual([
+            { type: "keydown", key, prevented: false, bubbled: true },
+            { type: "keyup", key, prevented: false, bubbled: true },
+          ])
+        }
+        await expect(oracle.more()).toBeFocused()
+      }
+      for (const modifier of ["Shift", "Control", "Alt", "Meta"]) {
+        for (const key of ["Enter", "Space", "ArrowUp", "Home", "End", "F2"]) {
+          await oracle.setLoading(loading)
+          await oracle.more().focus()
+          const before = await oracle.loads()
+          await oracle.clearEvents()
+          await page.keyboard.press(`${modifier}+${key}`)
+          await expect(oracle.more()).toBeFocused()
+          expect(await oracle.loads()).toBe(before)
+          expect(await oracle.events()).toEqual([
+            { type: "keydown", key: key === "Space" ? " " : key, prevented: false, bubbled: true },
+            { type: "keyup", key: key === "Space" ? " " : key, prevented: false, bubbled: true },
+          ])
+        }
+      }
+    }
+  }
+})
+
+test("notification-list: inline spinner Tab and blocked keys retain native focus and event routing", async ({ page }) => {
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    await oracle.setLoading(true)
+    const spinner = oracle.more().getByRole("progressbar")
+    for (const key of ["Enter", "Space", "Escape", "F2"]) {
+      await spinner.focus()
+      await expect(spinner).toBeFocused()
+      await oracle.clearEvents()
+      await page.keyboard.press(key)
+      await expect(spinner).toBeFocused()
+      expect(await oracle.loads()).toBe(0)
+      expect(await oracle.events()).toEqual([
+        { type: "keydown", key: key === "Space" ? " " : key, prevented: false, bubbled: false },
+        { type: "keyup", key: key === "Space" ? " " : key, prevented: false, bubbled: false },
+      ])
+    }
+    await spinner.focus()
+    await page.keyboard.press("Tab")
+    const after = oracle.host().locator(reference ? ".ui5-list-focusarea" : ".fiori-nli-group__list > .fiori-list__focusarea").last()
+    await expect(after).toBeFocused()
+    await spinner.focus()
+    await oracle.clearEvents()
+    await page.keyboard.press("Shift+Tab")
+    await expect(oracle.more()).toBeFocused()
+    expect(await oracle.events()).toEqual([
+      { type: "keydown", key: "Tab", prevented: false, bubbled: false },
+      { type: "keyup", key: "Tab", prevented: false, bubbled: true },
+    ])
+  }
 })
 
 test("notification-list: loading delays an inline spinner and leaves More enabled with custom texts", async ({ page }) => {

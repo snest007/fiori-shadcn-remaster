@@ -160,15 +160,20 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
     [JSON.stringify(textsProp)]
   )
   const hasData = React.Children.toArray(children).length > 0
+  // ItemNavigation.js/setCurrentItem retains the numeric enabled-item index when More
+  // receives focus. Loading can change which real item occupies that index; _init does
+  // not remap or clamp it, and NotificationListInternal's Home/End read it directly.
+  const enabledItemIndex = React.useRef(0)
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
     const target = e.target as HTMLElement
     const item = target.closest<HTMLElement>("[data-nav-key], [data-nli-growing]")
     if (!item || !e.currentTarget.contains(item)) return
     const items = notificationNavigationItems(core.rootRef.current)
     const i = items.indexOf(item)
-    if (i === -1) return
+    const isGrowing = item.hasAttribute("data-nli-growing")
+    if (i === -1 && !isGrowing) return
     if (e.key === "PageUp" || e.key === "PageDown") {
       if (e.shiftKey || target !== item) return
       // List.js passes getEnabledItems to ItemNavigation.js/_handlePageUpFlat and
@@ -203,10 +208,11 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
     else if (down) to = i + 1
     else if (e.key === "Home") {
       e.preventDefault()
+      if (isGrowing) e.stopPropagation()
       if (isGroup(item)) return
       // NotificationListInternal.js/_handleHomeKey uses the previously focused real item:
       // growing buttons are in _allNavigationItems but not ItemNavigation's enabled items.
-      const from = item.hasAttribute("data-nli-growing") ? items.findIndex((el) => el.dataset.navKey === core.currentKey) : i
+      const from = isGrowing ? items.indexOf(items.filter((el) => el.hasAttribute("data-nav-key"))[enabledItemIndex.current]) : i
       if (from === -1) return
       to = 0
       for (let n = from - 1; n >= 0; n--) {
@@ -216,7 +222,9 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
         }
       }
     } else if (e.key === "End") {
-      const from = item.hasAttribute("data-nli-growing") ? items.findIndex((el) => el.dataset.navKey === core.currentKey) : i
+      e.preventDefault()
+      if (isGrowing) e.stopPropagation()
+      const from = isGrowing ? items.indexOf(items.filter((el) => el.hasAttribute("data-nav-key"))[enabledItemIndex.current]) : i
       if (from === -1) return
       to = items.length - 1
       for (let n = from + 1; n < items.length; n++) {
@@ -233,6 +241,9 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
       }
     } else return
     e.preventDefault()
+    // NotificationListInternal.js/_focusSameItemOnNextRow still routes directly focused
+    // busy More: its omitted index is -1, so Down/Right select the first root group.
+    if (isGrowing) e.stopPropagation()
     items[to]?.focus()
   }
 
@@ -243,7 +254,13 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
           {/* navItems() looks for its root by this data-slot. */}
           <div ref={core.rootRef} data-slot="list" className="fiori-list__scroll">
             {hasData && focusArea("before")}
-            <ul role="list" aria-label={ariaLabel ?? texts.list} className="fiori-list__ul" onKeyDown={onKeyDown}>
+            <ul role="list" aria-label={ariaLabel ?? texts.list} className="fiori-list__ul" onKeyDown={onKeyDown} onFocusCapture={(e) => {
+              const target = e.target as HTMLElement
+              if (target.closest("[data-nli-growing]")) return
+              const item = target.closest<HTMLElement>("[data-nav-key]")
+              const index = notificationNavigationItems(core.rootRef.current).filter((el) => el.hasAttribute("data-nav-key")).indexOf(item!)
+              if (index !== -1) enabledItemIndex.current = index
+            }}>
               {children}
               {!hasData && noDataText && (
                 <li tabIndex={0} role="listitem" className="fiori-list__nodata">
@@ -680,6 +697,15 @@ function NotificationListGroupItem({
       aria-level={1}
       className={cn("fiori-nli-group", className)}
       {...handlers}
+      onKeyDown={(e) => {
+        // NotificationListGroupItem.js/_onkeydown returns for focused More before
+        // the inherited F2/Tab handlers. Keep caller callbacks and outer navigation.
+        if ((e.target as HTMLElement).closest("[data-nli-growing]")) {
+          onKeyDown?.(e)
+          return
+        }
+        handlers.onKeyDown(e)
+      }}
       {...props}
     >
       {loading && (
@@ -711,20 +737,21 @@ function NotificationListGroupItem({
                 aria-labelledby={`${id}-growing-text`}
                 className="fiori-list__growing-inner fiori-nli-group__growing-inner"
                 onFocus={(e) => e.stopPropagation()}
-                onClick={(e) => { e.stopPropagation(); requestRef.current() }}
+                // List.js/_onLoadMoreClick requests once without stopping the DOM click.
+                // The inherited group click handler already ignores this role=button target.
+                onClick={() => requestRef.current()}
                 onKeyDown={(e) => {
                   // Keys.js/isEnter, isSpace and isUp require no modifiers; only Shift+Tab is special.
-                  if (e.altKey || e.ctrlKey || e.metaKey || (e.shiftKey && e.key !== "Tab")) {
-                    e.stopPropagation()
-                    return
-                  }
+                  if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || (e.shiftKey && e.key !== "Tab")) return
                   // NotificationListGroupList.js/_onLoadMoreKeydown stops Space reaching the group.
-                  if (e.key === " " || e.key === "Enter") {
+                  if (e.key === " ") {
                     e.preventDefault()
                     e.stopPropagation()
                     // ListTemplate.js emits ...inner-active, but List.css.js matches ...inner--active.
                     // UI5 2.28 therefore paints only native :active feedback, not a keyboard state class.
-                    if (e.key === "Enter") requestRef.current()
+                  } else if (e.key === "Enter") {
+                    // List.js/_onLoadMoreKeydown loads on Enter without cancelling or stopping it.
+                    requestRef.current()
                   } else if (e.key === "ArrowUp") {
                     // List.js/_handleLodeMoreUp remains available on a directly focused More
                     // even during inline loading, when the outer navigation omits the group children.
@@ -732,22 +759,19 @@ function NotificationListGroupItem({
                     e.stopPropagation()
                     ownItems().at(-1)?.focus()
                   } else if (e.key === "Tab") {
-                    e.stopPropagation()
                     if (e.shiftKey) {
                       e.preventDefault()
                       ownItems()[0]?.focus()
-                    } else afterRef.current?.focus()
+                    // List.js/focusAfterElement forwards plain More Tab beyond the notification
+                    // list. The inline spinner's native Tab path still uses its own after marker.
+                    } else core?.forwardAfter(e)
                   }
                 }}
                 onKeyUp={(e) => {
-                  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) {
-                    e.stopPropagation()
-                    return
-                  }
-                  if (e.key === " " || e.key === "Enter") {
-                    e.stopPropagation()
-                    if (e.key === " ") requestRef.current()
-                  }
+                  if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+                  // List.js/_onLoadMoreKeyup loads Space without stopping its event, even if
+                  // Escape intervened after keydown; Enter has no keyup activation.
+                  if (e.key === " ") requestRef.current()
                 }}
               >
                 {loading && <BusyIndicator active delay={loadingDelay} title={texts.busyTitle} className="fiori-nli-group__growing-busy" onKeyDownCapture={stopBusyKeyboardEvent} onKeyUpCapture={stopBusyKeyboardEvent} />}
