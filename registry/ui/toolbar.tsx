@@ -42,7 +42,7 @@ function fieldKeepsKey(el: HTMLElement, key: string, forward: boolean) {
 }
 
 const OverflowContext = React.createContext({ overflowed: false, close: () => {} })
-type ItemRecord = { key: string; node: HTMLElement; child: React.ReactNode; priority: ToolbarItemOptions["overflowPriority"]; kind: "item" | "separator" | "spacer"; flexible: boolean; width?: string }
+type ItemRecord = { key: string; node: HTMLElement; child: React.ReactNode; priority: ToolbarItemOptions["overflowPriority"]; kind: "item" | "separator" | "spacer"; flexible: boolean; unmanaged: boolean; width?: string }
 
 /** UI5 Toolbar.js/distributeItems: ungrouped distribution units move right-to-left; separators cost zero. */
 function distributeItems(items: ItemRecord[], widths: Map<string, number>, overflowSpace: number) {
@@ -66,7 +66,9 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
   const overflowButton = React.useRef<HTMLButtonElement>(null)
   const records = React.useRef(new Map<string, ItemRecord>())
   const widths = React.useRef(new Map<string, number>())
-  const [mounted, setMounted] = React.useState(false)
+  // Parent effects and refs must see the original children on the first browser commit.
+  // SSR remains portal-free; the client containers do not add markup to the server's bar.
+  const [mounted, setMounted] = React.useState(() => typeof document !== "undefined")
   const [overflowKeys, setOverflowKeys] = React.useState<string[]>([])
   const [open, setOpen] = React.useState(defaultOverflowOpen)
   React.useLayoutEffect(() => setMounted(true), [])
@@ -74,15 +76,19 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
     const element = React.isValidElement<ToolbarItemOptions & { width?: string; hidden?: boolean }>(child) ? child : undefined
     const key = element?.key?.toString() ?? String(index)
     const kind = element?.type === ToolbarSpacer ? "spacer" : element?.type === ToolbarSeparator ? "separator" : "item"
+    const unmanaged = !element || ![ToolbarButton, ToolbarItem, ToolbarSpacer, ToolbarSeparator].includes(element.type as typeof ToolbarItem)
     let record = records.current.get(key)
     if (!record) {
-      record = { key, node: document.createElement("div"), child, kind, flexible: false, priority: "default" }
+      record = { key, node: document.createElement("div"), child, kind, flexible: false, unmanaged, priority: "default" }
       records.current.set(key, record)
     }
-    Object.assign(record, { child, kind, priority: element?.props.overflowPriority ?? "default", flexible: kind === "spacer" && (!element?.props.width || element.props.width === "auto"), width: element?.props.width })
+    // Bare children predate overflow and keep their original flex/percentage-width semantics.
+    // Use ToolbarItem to opt arbitrary controls into the UI5 overflow lifecycle.
+    Object.assign(record, { child, kind, unmanaged, priority: unmanaged ? "neverOverflow" : element?.props.overflowPriority ?? "default", flexible: kind === "spacer" && (!element?.props.width || element.props.width === "auto"), width: element?.props.width })
     record.node.className = "fiori-toolbar-container"
     record.node.dataset.kind = kind
     record.node.toggleAttribute("data-flexible", record.flexible)
+    record.node.toggleAttribute("data-unmanaged", unmanaged)
     record.node.hidden = !!element?.props.hidden
     return record
   }) : []
@@ -125,8 +131,10 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
       for (const item of items) {
         if (item.flexible || item.kind === "separator" || item.node.hidden) widths.current.set(item.key, 0)
         else if (item.node.parentElement === host && !overflowKeys.includes(item.key) && item.priority !== "alwaysOverflow") {
-          const itemStyle = getComputedStyle(item.node)
-          widths.current.set(item.key, Math.ceil(item.node.offsetWidth + parseFloat(itemStyle.marginInlineStart) + parseFloat(itemStyle.marginInlineEnd)))
+          const measured = item.unmanaged ? item.node.firstElementChild as HTMLElement | null : item.node
+          if (!measured) continue
+          const itemStyle = getComputedStyle(measured)
+          widths.current.set(item.key, Math.ceil(measured.offsetWidth + parseFloat(itemStyle.marginInlineStart) + parseFloat(itemStyle.marginInlineEnd)))
         }
       }
       const contentWidth = items.reduce((sum, item) => sum + (widths.current.get(item.key) ?? 0), 0)
