@@ -400,11 +400,12 @@ function OverflowItem({ ref, items, listRef }: {
   )
 }
 
-function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
+function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmenu = false }: {
   item: SideNavigationItemProps
   onSelected: () => void
   close: () => void
   parentRow?: boolean
+  inSubmenu?: boolean
 }) {
   const root = useRoot()
   const subs = subItemProps(item.children)
@@ -412,7 +413,7 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
   const [submenuOpen, setSubmenuOpen] = React.useState(false)
   const focusSubmenuOnMount = React.useRef(false)
   const submenuRef = React.useCallback((node: HTMLDivElement | null) => {
-    // MenuItem.js _afterPopoverOpen focuses the first row for explicit activation, while hover keeps trigger focus.
+    // MenuItem.js _afterPopoverOpen focuses the first row for explicit activation.
     if (node && focusSubmenuOnMount.current) {
       focusSubmenuOnMount.current = false
       node.querySelector<HTMLElement>('[role^="menuitem"]')?.focus({ preventScroll: true })
@@ -446,6 +447,16 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
     // NavigationMenuItem.css.js uses 1rem real icons and .75rem submenu arrows. Normal
     // descendant utilities take precedence over Menu/Icon's generic size utilities.
     className: cn("fiori-sn-menu-item [&>div>svg]:size-4 [&>div>div>svg]:size-3", parentRow && "fiori-sn-menu-parent", item.design === "action" && "fiori-sn-menu-action"),
+    // NavigationMenuTemplate.js does not wire mouseover on the root list: neither focus nor
+    // submenus change on hover. Nested lists do wire MenuItem.js _itemMouseOver, which focuses
+    // their rows. Neither list wires mouseout: leaving a row keeps focus until another action.
+    // Block Radix's root hover opening/focus and its pointerleave focus transfer at both levels.
+    onPointerMove: (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!inSubmenu) e.preventDefault()
+    },
+    onPointerLeave: (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault()
+    },
     onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
       // NavigationMenuItem.js activates Space on keyup, while Enter activates on keydown.
       if (e.key === " ") e.preventDefault()
@@ -477,8 +488,8 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
       {!item.unselectable && <span id={descriptionId} className="fiori-sn-hidden-text">{root.texts.overflowParentDescription}</span>}
       <MenuSubContent ref={submenuRef} aria-label={item.accessibleName || item.text} aria-labelledby={undefined} className="fiori-sn-menu">
         <MenuGroup>
-          {!item.unselectable && <OverflowMenuItem item={item} parentRow onSelected={onSelected} close={close} />}
-          {subs.map((sub, i) => <OverflowMenuItem key={i} item={{ ...sub, disabled: item.disabled || sub.disabled }} onSelected={onSelected} close={close} />)}
+          {!item.unselectable && <OverflowMenuItem item={item} parentRow inSubmenu onSelected={onSelected} close={close} />}
+          {subs.map((sub, i) => <OverflowMenuItem key={i} item={{ ...sub, disabled: item.disabled || sub.disabled }} inSubmenu onSelected={onSelected} close={close} />)}
         </MenuGroup>
       </MenuSubContent>
     </MenuSub>
