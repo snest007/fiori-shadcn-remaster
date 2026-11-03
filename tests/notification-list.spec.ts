@@ -4,6 +4,154 @@ const list = (page: Page) => page.locator("#notification-list-demo")
 const last = (page: Page) => page.locator("#notification-list-demo-last")
 const item = (page: Page, text: string) => list(page).locator("[data-slot=notification-list-item]").filter({ hasText: text })
 const group = (page: Page, text: string) => list(page).locator("[data-slot=notification-list-group-item]").filter({ hasText: text })
+const growingDemo = (page: Page) => page.locator("#notification-list-growing-demo")
+const growingGroup = (page: Page, name = "orders") => growingDemo(page).locator(`#notification-list-growing-${name}`)
+const growingButton = (page: Page, name = "orders") => growingGroup(page, name).getByRole("button", { name: "Load more notifications", exact: true })
+const growingItem = (page: Page, number: number, name = "orders") => growingGroup(page, name).locator(`[data-nav-key="${name}-${number}"]`)
+const requests = (page: Page) => growingDemo(page).locator("#notification-list-growing-requests")
+
+// Construct the same two-group data on the installed UI5 oracle and the growing demo.
+// Remove prefix-matched sibling fixtures so Tab has an explicit, shared destination.
+async function growingKeyboardOracle(page: Page, reference: boolean) {
+  await page.goto(reference ? "/ui5.html?only=notification-list-growing-button" : "/index.html")
+  await page.waitForSelector("html[data-ready=true]")
+  if (reference) {
+    await page.evaluate(() => {
+      const fixture = document.querySelector('[data-fixture="notification-list-growing-button"]')!
+      const list = fixture.querySelector("ui5-notification-list")!
+      const template = list.querySelector("ui5-li-notification-group")!
+      list.replaceChildren()
+      ;(window as any).__notificationKeyboardLoads = 0
+      for (const [name, count] of [["orders", 2], ["approvals", 1]] as const) {
+        const group = template.cloneNode(false) as any
+        group.titleText = `More ${name}`
+        group.dataset.probeKey = name
+        group.loadingDelay = 0
+        group.addEventListener("load-more", () => { (window as any).__notificationKeyboardLoads++ })
+        for (let number = 1; number <= count; number++) {
+          const item = document.createElement("ui5-li-notification") as any
+          item.titleText = `${name} notification ${number}`
+          item.showClose = true
+          item.loadingDelay = 0
+          item.dataset.probeKey = `${name}-${number}`
+          item.textContent = "And with very long description and long labels of the action buttons - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+          group.append(item)
+        }
+        list.append(group)
+      }
+      for (const sibling of document.querySelectorAll("[data-fixture]")) if (sibling !== fixture) sibling.remove()
+    })
+    await page.waitForFunction(() => {
+      const groups = [...document.querySelectorAll('[data-fixture="notification-list-growing-button"] ui5-li-notification-group')] as any[]
+      return groups.length === 2 && groups.every((group) => group.getGrowingButton?.()) && groups[0].items.length === 2
+    })
+  } else {
+    await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+    await growingDemo(page).getByLabel("Loading delay").selectOption("0")
+  }
+  await page.evaluate((reference) => {
+    const root = document.querySelector(reference ? '[data-fixture="notification-list-growing-button"]' : '#notification-list-growing-demo [data-slot="notification-list"]')!
+    const after = document.createElement("button")
+    after.id = "notification-list-keyboard-after"
+    after.textContent = "After notifications"
+    root.after(after)
+    ;(window as any).__notificationKeyboardEvents = []
+    ;(window as any).__notificationKeyboardBubbles = []
+    for (const type of ["keydown", "keyup", "click"]) {
+      window.addEventListener(type, (event) => { (window as any).__notificationKeyboardEvents.push(event) }, { capture: true })
+      window.addEventListener(type, (event) => { (window as any).__notificationKeyboardBubbles.push(event) })
+    }
+  }, reference)
+  const host = (name = "orders") => reference
+    ? page.locator(`[data-fixture="notification-list-growing-button"] ui5-li-notification-group[data-probe-key="${name}"]`)
+    : growingGroup(page, name)
+  const group = (name = "orders") => reference ? host(name).locator(".ui5-nli-group-root") : host(name)
+  const child = (number: number, name = "orders") => reference
+    ? host(name).locator(`ui5-li-notification[data-probe-key="${name}-${number}"] .ui5-nli-root`)
+    : growingItem(page, number, name)
+  const more = (name = "orders") => host(name).getByRole("button", { name: reference ? "More" : "Load more notifications", exact: true })
+  const setLoading = async (loading: boolean, name = "orders") => {
+    if (reference) {
+      await host(name).evaluate((group, loading) => { (group as any).loading = loading }, loading)
+      await page.waitForFunction(({ loading, name }) => {
+        const group = document.querySelector(`ui5-li-notification-group[data-probe-key="${name}"]`) as any
+        const inner = group.shadowRoot.querySelector("[ui5-notification-group-list]")
+        return inner.loading === loading && (!loading || inner.shadowRoot.querySelector(".ui5-list-growing-button-busy-indicator")?._isBusy)
+      }, { loading, name })
+    } else if (await host(name).evaluate((group) => group.hasAttribute("data-loading")) !== loading) {
+      await growingDemo(page).getByRole("button", { name: `${loading ? "Start" : "Finish"} loading ${name}`, exact: true }).click()
+      if (loading) await expect(host(name).locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+      else await expect(host(name)).not.toHaveAttribute("data-loading")
+    }
+  }
+  const loads = () => page.evaluate((reference) => reference
+    ? (window as any).__notificationKeyboardLoads as number
+    : Number(document.querySelector("#notification-list-growing-requests")!.textContent!.match(/orders=(\d+)/)![1]), reference)
+  const clearEvents = () => page.evaluate(() => {
+    ;(window as any).__notificationKeyboardEvents = []
+    ;(window as any).__notificationKeyboardBubbles = []
+  })
+  const events = () => page.evaluate(() => (window as any).__notificationKeyboardEvents
+    .filter((event: KeyboardEvent) => !["Shift", "Control", "Alt", "Meta"].includes(event.key))
+    .map((event: KeyboardEvent) => ({ type: event.type, key: event.key, prevented: event.defaultPrevented, bubbled: (window as any).__notificationKeyboardBubbles.includes(event) })))
+  return { host, group, child, more, setLoading, loads, clearEvents, events, after: page.locator("#notification-list-keyboard-after") }
+}
+
+async function freezeClock(page: Page) {
+  await page.clock.install({ time: new Date("2026-01-01T00:00:00Z") })
+  await page.clock.pauseAt(new Date("2026-01-01T00:00:01Z"))
+}
+
+async function mockGrowingObservers(page: Page) {
+  await page.addInitScript(() => {
+    const observers: { callback: IntersectionObserverCallback; options?: IntersectionObserverInit; targets: Set<Element> }[] = []
+    class Observer {
+      record: typeof observers[number]
+      constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) {
+        this.record = { callback, options, targets: new Set() }
+        observers.push(this.record)
+      }
+      observe(target: Element) { this.record.targets.add(target) }
+      unobserve(target: Element) { this.record.targets.delete(target) }
+      disconnect() { this.record.targets.clear() }
+      takeRecords() { return [] }
+    }
+    window.IntersectionObserver = Observer as unknown as typeof IntersectionObserver
+    ;(window as any).__notificationObservers = observers
+    ;(window as any).__notificationIntersect = (group: string, marker: string, isIntersecting: boolean) => {
+      const target = document.querySelector(`#notification-list-growing-${group} .fiori-nli-group__${marker}-marker`)
+      for (const observer of observers) {
+        if (target && observer.targets.has(target)) observer.callback([{ target, isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver)
+      }
+    }
+  })
+  await page.reload()
+  await page.waitForSelector("html[data-ready=true]")
+  await freezeClock(page)
+  await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
+  await growingDemo(page).getByLabel("Growing mode").selectOption("scroll")
+}
+
+async function intersect(page: Page, name: string, marker: string, visible: boolean) {
+  await page.evaluate(({ name, marker, visible }) => (window as any).__notificationIntersect(name, marker, visible), { name, marker, visible })
+}
+
+async function requestDelayedScroll(page: Page) {
+  await mockGrowingObservers(page)
+  await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+  await intersect(page, "orders", "start", false)
+  await intersect(page, "orders", "end", true)
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+  await expect(growingGroup(page)).toHaveAttribute("data-loading", "")
+  await page.clock.runFor(1000)
+  const busy = growingGroup(page).locator(".fiori-nli-group__busy")
+  const content = busy.locator(":scope > .fiori-busy-indicator__root > .fiori-busy-indicator__content")
+  await expect(busy).toHaveAttribute("data-busy", "")
+  await expect(busy.locator(':scope > .fiori-busy-indicator__root > [role="progressbar"]')).toBeVisible()
+  await expect(content).toHaveAttribute("inert", "")
+  return { busy, content }
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto(`/index.html`)
@@ -131,4 +279,1089 @@ test("notification-list: Tab leaves the list from an item without content and re
   await expect(list(page).locator(":focus")).toHaveCount(0)
   await page.keyboard.press("Shift+Tab")
   await expect(item(page, "Cannot be closed")).toBeFocused()
+})
+
+for (const activation of ["click", "Enter", "Space"] as const) {
+  test(`notification-list: growing ${activation} requests once, focuses the append and does not toggle or click an item`, async ({ page }) => {
+    const more = growingButton(page)
+    if (activation === "click") await more.click()
+    else {
+      await more.focus()
+      await page.keyboard.down(activation)
+      await expect(requests(page)).toHaveText(`Requests: orders=${activation === "Enter" ? 1 : 0}, approvals=0`)
+      await page.keyboard.up(activation)
+    }
+    await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+    await expect(growingItem(page, 3)).toBeFocused()
+    await expect(growingGroup(page).getByRole("button", { name: "More orders", exact: true })).toHaveAttribute("aria-expanded", "true")
+    await expect(growingDemo(page).locator("#notification-list-growing-action")).toHaveText("Last action: none")
+  })
+}
+
+test("notification-list: More participates in arrows and two-step End within a group", async ({ page }) => {
+  await growingGroup(page).focus()
+  await growingButton(page).focus()
+  await page.keyboard.press("Home")
+  await expect(growingGroup(page)).toBeFocused()
+  await growingButton(page).focus()
+  await page.keyboard.press("End")
+  await expect(growingItem(page, 2)).toBeFocused()
+  await growingItem(page, 1).focus()
+  await page.keyboard.press("End")
+  await expect(growingItem(page, 2)).toBeFocused()
+  await page.keyboard.press("End")
+  await expect(growingButton(page)).toBeFocused()
+  await page.keyboard.press("Home")
+  await expect(growingItem(page, 1)).toBeFocused()
+  await growingItem(page, 2).getByRole("button", { name: "Close", exact: true }).focus()
+  await page.keyboard.press("ArrowDown")
+  await expect(growingButton(page)).toBeFocused()
+  await page.keyboard.press("ArrowUp")
+  await expect(growingItem(page, 2)).toBeFocused()
+  await page.keyboard.press("ArrowDown")
+  await expect(growingButton(page)).toBeFocused()
+  await page.keyboard.press("ArrowDown")
+  await expect(growingGroup(page, "approvals")).toBeFocused()
+})
+
+test("notification-list: modified More activation and navigation keys keep native defaults without loading or toggling", async ({ page }) => {
+  await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
+  for (const modifier of ["Shift", "Control", "Alt", "Meta"]) {
+    for (const key of ["Enter", "Space", "ArrowUp", "Home", "End"]) {
+      await growingButton(page).focus()
+      await page.keyboard.press(`${modifier}+${key}`)
+      await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+      await expect(growingButton(page)).toBeFocused()
+    }
+  }
+  await expect(growingDemo(page).locator("#notification-list-growing-action")).toHaveText("Last action: none")
+})
+
+test("notification-list: collapsed and loading groups omit children and More from arrows", async ({ page }) => {
+  const orders = growingGroup(page)
+  await orders.getByRole("button", { name: "More orders", exact: true }).click()
+  await expect(growingButton(page)).toBeHidden()
+  await orders.focus()
+  await page.keyboard.press("ArrowDown")
+  await expect(growingGroup(page, "approvals")).toBeFocused()
+  await orders.getByRole("button", { name: "More orders", exact: true }).click()
+  await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).click()
+  await growingButton(page).focus()
+  await page.keyboard.press("ArrowUp")
+  await expect(growingItem(page, 2)).toBeFocused()
+  await orders.focus()
+  await page.keyboard.press("ArrowDown")
+  await expect(growingGroup(page, "approvals")).toBeFocused()
+  await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
+  await orders.focus()
+  await page.keyboard.press("ArrowDown")
+  await expect(growingItem(page, 1)).toBeFocused()
+})
+
+test("notification-list: busy More retains UI5's numeric enabled-item index and root-first arrow routing", async ({ page }) => {
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    for (const prior of ["header", "child"] as const) {
+      for (const key of ["Home", "End", "ArrowDown", "ArrowRight", "ArrowLeft", "ArrowUp", "PageUp", "PageDown"]) {
+        await oracle.setLoading(false)
+        const previous = prior === "header" ? oracle.group() : oracle.child(1)
+        await previous.focus()
+        await expect(previous).toBeFocused()
+        await oracle.setLoading(true)
+        await oracle.more().focus()
+        await expect(oracle.more()).toBeFocused()
+        await oracle.clearEvents()
+        await page.keyboard.press(key)
+        const destination = key === "ArrowUp" ? oracle.child(2)
+          : key === "Home" ? (prior === "header" ? oracle.group() : oracle.group("approvals"))
+          : key === "End" ? (prior === "header" ? oracle.group() : oracle.child(1, "approvals"))
+          : key === "ArrowDown" || key === "ArrowRight" ? oracle.group()
+          : oracle.more()
+        await expect(destination).toBeFocused()
+        expect((await oracle.events())[0].prevented).toBe(!key.startsWith("Page"))
+      }
+    }
+    await oracle.setLoading(false)
+    for (const key of ["ArrowDown", "ArrowRight"]) {
+      await oracle.setLoading(false, "approvals")
+      await oracle.child(1, "approvals").focus()
+      await expect(oracle.child(1, "approvals")).toBeFocused()
+      await oracle.setLoading(true, "approvals")
+      await oracle.more("approvals").focus()
+      await page.keyboard.press(key)
+      await expect(oracle.group()).toBeFocused()
+    }
+  }
+})
+
+test("notification-list: More Tab exits the list with native cancellation and bubbling, even while busy", async ({ page }) => {
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    for (const loading of [false, true]) {
+      await oracle.setLoading(loading)
+      await oracle.more().focus()
+      await oracle.clearEvents()
+      await page.keyboard.press("Tab")
+      await expect(oracle.after).toBeFocused()
+      expect(await oracle.events()).toEqual([
+        { type: "keydown", key: "Tab", prevented: false, bubbled: true },
+        { type: "keyup", key: "Tab", prevented: false, bubbled: true },
+      ])
+      await oracle.more().focus()
+      await oracle.clearEvents()
+      await page.keyboard.press("Shift+Tab")
+      await expect(oracle.child(1)).toBeFocused()
+      expect(await oracle.events()).toEqual([
+        { type: "keydown", key: "Tab", prevented: true, bubbled: true },
+        { type: "keyup", key: "Tab", prevented: false, bubbled: true },
+      ])
+    }
+  }
+})
+
+test("notification-list: More activation phases, Escape, F2 and modifiers preserve native event routing", async ({ page }) => {
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    for (const loading of [false, true]) {
+      for (const key of ["Click", "Enter", "Space", "SpaceEscape", "Escape", "F2"]) {
+        await oracle.setLoading(loading)
+        await oracle.more().focus()
+        await expect(oracle.more()).toBeFocused()
+        const before = await oracle.loads()
+        await oracle.clearEvents()
+        if (key === "Click") {
+          await oracle.more().click()
+          expect(await oracle.loads()).toBe(before + 1)
+          expect(await oracle.events()).toEqual([{ type: "click", key: undefined, prevented: false, bubbled: true }])
+        } else if (key === "Enter" || key.startsWith("Space")) {
+          const activation = key === "Enter" ? "Enter" : "Space"
+          await page.keyboard.down(activation)
+          expect(await oracle.loads()).toBe(before + (activation === "Enter" ? 1 : 0))
+          expect((await oracle.events())[0]).toEqual({ type: "keydown", key: activation === "Enter" ? "Enter" : " ", prevented: activation === "Space", bubbled: activation === "Enter" })
+          if (key === "SpaceEscape") await page.keyboard.press("Escape")
+          await page.keyboard.up(activation)
+          expect(await oracle.loads()).toBe(before + 1)
+          expect((await oracle.events()).at(-1)).toEqual({ type: "keyup", key: activation === "Enter" ? "Enter" : " ", prevented: false, bubbled: true })
+        } else {
+          await page.keyboard.press(key)
+          expect(await oracle.loads()).toBe(before)
+          expect(await oracle.events()).toEqual([
+            { type: "keydown", key, prevented: false, bubbled: true },
+            { type: "keyup", key, prevented: false, bubbled: true },
+          ])
+        }
+        await expect(oracle.more()).toBeFocused()
+      }
+      for (const modifier of ["Shift", "Control", "Alt", "Meta"]) {
+        for (const key of ["Enter", "Space", "ArrowUp", "Home", "End", "F2"]) {
+          await oracle.setLoading(loading)
+          await oracle.more().focus()
+          const before = await oracle.loads()
+          await oracle.clearEvents()
+          await page.keyboard.press(`${modifier}+${key}`)
+          await expect(oracle.more()).toBeFocused()
+          expect(await oracle.loads()).toBe(before)
+          expect(await oracle.events()).toEqual([
+            { type: "keydown", key: key === "Space" ? " " : key, prevented: false, bubbled: true },
+            { type: "keyup", key: key === "Space" ? " " : key, prevented: false, bubbled: true },
+          ])
+        }
+      }
+    }
+  }
+})
+
+test("notification-list: inline spinner Tab and blocked keys retain native focus and event routing", async ({ page }) => {
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    await oracle.setLoading(true)
+    const spinner = oracle.more().getByRole("progressbar")
+    for (const key of ["Enter", "Space", "Escape", "F2"]) {
+      await spinner.focus()
+      await expect(spinner).toBeFocused()
+      await oracle.clearEvents()
+      await page.keyboard.press(key)
+      await expect(spinner).toBeFocused()
+      expect(await oracle.loads()).toBe(0)
+      expect(await oracle.events()).toEqual([
+        { type: "keydown", key: key === "Space" ? " " : key, prevented: false, bubbled: false },
+        { type: "keyup", key: key === "Space" ? " " : key, prevented: false, bubbled: false },
+      ])
+    }
+    await spinner.focus()
+    await page.keyboard.press("Tab")
+    const after = oracle.host().locator(reference ? ".ui5-list-focusarea" : ".fiori-nli-group__list > .fiori-list__focusarea").last()
+    await expect(after).toBeFocused()
+    await spinner.focus()
+    await oracle.clearEvents()
+    await page.keyboard.press("Shift+Tab")
+    await expect(oracle.more()).toBeFocused()
+    expect(await oracle.events()).toEqual([
+      { type: "keydown", key: "Tab", prevented: false, bubbled: false },
+      { type: "keyup", key: "Tab", prevented: false, bubbled: true },
+    ])
+  }
+})
+
+test("notification-list: loading delays an inline spinner and leaves More enabled with custom texts", async ({ page }) => {
+  await freezeClock(page)
+  await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+  await growingButton(page).click()
+  await expect(growingGroup(page)).toHaveAttribute("aria-labelledby", /loading$/)
+  await expect(growingGroup(page).getByRole("progressbar")).toHaveCount(0)
+  await page.clock.runFor(999)
+  await expect(growingGroup(page).getByRole("progressbar")).toHaveCount(0)
+  await page.clock.runFor(1)
+  const busy = growingButton(page).getByRole("progressbar", { name: "Fetching notifications" })
+  await expect(busy).toBeVisible()
+  await expect(growingGroup(page).locator(".fiori-nli-group__busy")).not.toHaveAttribute("data-busy")
+  await growingButton(page).click()
+  await expect(requests(page)).toHaveText("Requests: orders=2, approvals=0")
+  await expect(growingItem(page, 1).getByRole("button", { name: "Details button. Show the full texts" })).toHaveText("Details")
+})
+
+test("notification-list: page keys clamp to real items and leave More uncancelled, matching UI5", async ({ page }) => {
+  for (const reference of [false, true]) {
+    await page.goto(reference ? "/ui5.html?only=notification-list-growing-button" : "/index.html?fixtures&only=notification-list-growing-button")
+    await page.waitForSelector("html[data-ready=true]")
+    const fixture = page.locator('[data-fixture="notification-list-growing-button"]')
+    const child = fixture.locator(reference ? "ui5-li-notification .ui5-nli-root" : '[data-slot="notification-list-item"]')
+    const more = fixture.getByRole("button", { name: "More", exact: true })
+    await page.evaluate(() => {
+      ;(window as any).__notificationPageKeyEvents = []
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "PageUp" || event.key === "PageDown") (window as any).__notificationPageKeyEvents.push({ key: event.key, defaultPrevented: event.defaultPrevented })
+      })
+    })
+    await child.focus()
+    await expect(child).toBeFocused()
+    await page.keyboard.press("PageDown")
+    await expect(child).toBeFocused()
+    await more.focus()
+    await expect(more).toBeFocused()
+    for (const key of ["PageUp", "PageDown", "Shift+PageUp", "Shift+PageDown"]) {
+      await page.keyboard.press(key)
+      await expect(more).toBeFocused()
+      expect(await page.evaluate(() => (window as any).__notificationPageKeyEvents.at(-1).defaultPrevented)).toBe(false)
+    }
+  }
+})
+
+test("notification-list: page jumps count ten real items across group growing controls", async ({ page }) => {
+  for (let number = 2; number <= 10; number++) {
+    await growingDemo(page).getByRole("button", { name: "Append approvals", exact: true }).click()
+    await expect(growingItem(page, number, "approvals")).toHaveCount(1)
+  }
+  await growingItem(page, 1).focus()
+  await expect(growingItem(page, 1)).toBeFocused()
+  await page.keyboard.press("PageDown")
+  await expect(growingItem(page, 8, "approvals")).toBeFocused()
+  await page.keyboard.press("PageUp")
+  await expect(growingItem(page, 1)).toBeFocused()
+  for (const key of ["Shift+PageUp", "Shift+PageDown", "Alt+PageUp", "Alt+PageDown", "Control+PageUp", "Control+PageDown", "Meta+PageUp", "Meta+PageDown"]) {
+    await page.keyboard.press(key)
+    await expect(growingItem(page, 1)).toBeFocused()
+  }
+})
+
+test("notification-list: UI5 defaults keep the busy title separate from the group's hidden loading name", async ({ page }) => {
+  for (const reference of [false, true]) {
+    await page.goto(reference ? "/ui5.html?only=notification-list-growing-button-loading" : "/index.html?fixtures&only=notification-list-growing-button-loading")
+    await page.waitForSelector("html[data-ready=true]")
+    const fixture = page.locator('[data-fixture="notification-list-growing-button-loading"]')
+    const root = fixture.locator(reference ? "ui5-li-notification-group .ui5-nli-group-root" : "[data-nli-group]")
+    await expect(root).toHaveAccessibleName("Loading")
+    await expect(fixture.getByRole("progressbar")).toHaveAccessibleName("Please wait")
+  }
+})
+
+test("notification-list: keyboard More feedback matches UI5's actual compiled active-class behavior", async ({ page }) => {
+  const colors: string[] = []
+  for (const reference of [false, true]) {
+    await page.goto(reference ? "/ui5.html?only=notification-list-growing-button" : "/index.html?fixtures&only=notification-list-growing-button")
+    await page.waitForSelector("html[data-ready=true]")
+    await page.mouse.move(0, 0)
+    const more = page.locator('[data-fixture="notification-list-growing-button"]').getByRole("button", { name: "More", exact: true })
+    await more.focus()
+    await page.keyboard.down("Space")
+    if (reference) await expect(more).toHaveClass(/ui5-growing-button-inner-active/)
+    colors.push(await more.evaluate((button) => getComputedStyle(button).backgroundColor))
+    await page.keyboard.up("Space")
+  }
+  expect(colors[0]).toBe(colors[1])
+})
+
+test("notification-list: keyboard events inside an inline busy indicator do not activate More", async ({ page }) => {
+  await freezeClock(page)
+  await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+  await growingDemo(page).getByLabel("Loading delay").selectOption("0")
+  await growingButton(page).click()
+  await page.clock.runFor(1)
+  const busy = growingButton(page).getByRole("progressbar")
+  await busy.focus()
+  for (const key of ["Enter", "Space", "ArrowUp"]) {
+    await page.keyboard.press(key)
+    await expect(busy).toBeFocused()
+    await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+  }
+})
+
+test("notification-list: group overlay clears child busy requests until their loading prop resets", async ({ page }) => {
+  await freezeClock(page)
+  await growingDemo(page).getByLabel("Growing mode").selectOption("none")
+  await growingDemo(page).getByLabel("Loading delay").selectOption("0")
+  await growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true }).click()
+  await page.clock.runFor(1)
+  await expect(growingGroup(page).locator('[role="progressbar"]')).toHaveCount(2)
+  await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).click()
+  await page.clock.runFor(1)
+  await expect(growingGroup(page).getByRole("progressbar")).toHaveCount(1)
+  await expect(growingGroup(page).locator(".fiori-nli-group__busy")).toHaveAttribute("data-busy", "")
+  await expect(growingGroup(page).locator(".fiori-nli__busy[data-active]")).toHaveCount(0)
+  await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
+  await expect(growingGroup(page).getByRole("progressbar")).toHaveCount(0)
+  await growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true }).click()
+  await growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true }).click()
+  await page.clock.runFor(1)
+  await expect(growingGroup(page).locator('[role="progressbar"]')).toHaveCount(2)
+})
+
+test("notification-list: loading items make their controls inert before delay and action arrows focus the item row", async ({ page }) => {
+  await freezeClock(page)
+  await growingDemo(page).getByRole("button", { name: "Load last order only", exact: true }).click()
+  const loadingItem = growingItem(page, 2)
+  await expect(loadingItem).toHaveAttribute("data-loading", "")
+  await expect(loadingItem).toHaveAccessibleName("Fetching notifications")
+  await expect(loadingItem.locator(".fiori-nli__busy")).toHaveAttribute("inert", "")
+  await expect(loadingItem.locator('[role="progressbar"]')).toHaveCount(0)
+  await growingItem(page, 1).getByRole("button", { name: "Close", exact: true }).focus()
+  await page.keyboard.press("ArrowDown")
+  await expect(loadingItem).toBeFocused()
+  await loadingItem.locator('[data-nli-action="close"]').evaluate((button: HTMLElement) => button.focus())
+  await expect(loadingItem).toBeFocused()
+  await page.clock.runFor(1000)
+  await expect(loadingItem.locator('[role="progressbar"]')).toHaveCount(1)
+  await loadingItem.locator('[role="progressbar"]').evaluate((busy: HTMLElement) => busy.focus())
+  await expect(loadingItem).toBeFocused()
+})
+
+test("notification-list: one committed phase change hands group loading to a previously idle child, matching UI5", async ({ page }) => {
+  const demo = page.locator("#notification-list-loading-handoff-demo")
+  const group = demo.locator('[data-nli-group]')
+  const child = demo.locator('[data-nav-key="handoff-child"]')
+  await expect(group.locator(".fiori-nli-group__busy")).toHaveAttribute("data-busy", "")
+  await expect(child).not.toHaveAttribute("data-loading", "")
+  await demo.getByRole("button", { name: "Switch loading phase", exact: true }).click()
+  await expect(demo.locator("output")).toHaveText("Loading phase: child")
+  await expect(group).not.toHaveAttribute("data-loading", "")
+  await expect(child).toHaveAttribute("data-loading", "")
+  await expect(child).toHaveAccessibleName("Loading")
+  await expect(child.locator(".fiori-nli__busy")).toHaveAttribute("data-active", "")
+  await expect(child.locator(".fiori-nli__busy")).toHaveAttribute("inert", "")
+  await expect(child.locator('[role="progressbar"]')).toBeVisible()
+  await page.goto("/ui5.html?only=notification-list-growing-scroll-loading")
+  await page.waitForSelector("html[data-ready=true]")
+  const reference = page.locator('[data-fixture="notification-list-growing-scroll-loading"]')
+  const referenceGroup = reference.locator("ui5-li-notification-group")
+  const referenceChild = referenceGroup.locator("ui5-li-notification").first()
+  await expect(reference.getByRole("progressbar")).toHaveCount(1)
+  await referenceGroup.evaluate((group: any) => {
+    // NotificationListGroupItem.js/onBeforeRendering clears children only while CURRENT
+    // group.loading is true; NotificationListItemTemplate.js forwards CURRENT child.loading.
+    group.loading = false
+    group.items[0].loading = true
+  })
+  await expect(referenceGroup).not.toHaveAttribute("loading", "")
+  await expect(referenceChild).toHaveAttribute("loading", "")
+  const referenceBusy = referenceChild.locator("ui5-busy-indicator")
+  await expect(referenceBusy).toHaveAttribute("active", "")
+  await expect(referenceBusy).toHaveAttribute("inert", "")
+  await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
+})
+
+test("notification-list: false child resets renew local loading until an owner restart and allow a fresh handoff", async ({ page }) => {
+  await growingDemo(page).getByLabel("Growing mode").selectOption("none")
+  await growingDemo(page).getByLabel("Loading delay").selectOption("0")
+  const toggleChild = growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true })
+  const groupBusy = growingGroup(page).locator(".fiori-nli-group__busy")
+  const childBusy = growingGroup(page).locator(".fiori-nli__busy[data-active]")
+  await toggleChild.click()
+  await expect(childBusy).toHaveCount(2)
+  await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).click()
+  await expect(groupBusy).toHaveAttribute("data-busy", "")
+  await expect(childBusy).toHaveCount(0)
+  await toggleChild.click()
+  await expect(growingItem(page, 1)).not.toHaveAttribute("data-loading", "")
+  await toggleChild.click()
+  // Resetting then renewing a child's property does not invalidate the native group.
+  await expect(childBusy).toHaveCount(2)
+  await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
+  await expect(groupBusy).not.toHaveAttribute("data-active", "")
+  await expect(childBusy).toHaveCount(2)
+  await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).click()
+  await expect(groupBusy).toHaveAttribute("data-busy", "")
+  await toggleChild.click()
+  await expect(childBusy).toHaveCount(0)
+  await growingDemo(page).getByRole("button", { name: "Finish orders and load children", exact: true }).click()
+  await expect(groupBusy).not.toHaveAttribute("data-active", "")
+  await expect(childBusy).toHaveCount(2)
+  await expect(growingItem(page, 1)).toHaveAccessibleName("Fetching notifications")
+  await expect(growingItem(page, 1).locator(".fiori-nli__busy")).toHaveAttribute("inert", "")
+  await expect(growingItem(page, 1).locator('[role="progressbar"]')).toBeVisible()
+})
+
+test("notification-list: a local child request survives busy group state until the owning group renders, matching UI5", async ({ page }) => {
+  const demo = page.locator("#notification-list-local-loading-demo")
+  const owner = demo.locator('[data-nli-group]')
+  const child = demo.locator('[data-nav-key="local-loading-child"]')
+  const busy = child.locator(".fiori-nli__busy")
+  await demo.getByRole("button", { name: "Start busy group", exact: true }).click()
+  await expect(owner.locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+  const start = child.getByRole("button", { name: "Start local child loading", exact: true })
+  await start.focus()
+  await expect(start).toBeFocused()
+  // A busy group's child is programmatically focusable but absent from outer navigation.
+  await expect(child).toHaveAttribute("tabindex", "-1")
+  await start.click()
+  await expect(owner).toHaveAttribute("data-loading", "")
+  await expect(child).toHaveAttribute("data-loading", "")
+  await expect(busy).toHaveAttribute("inert", "")
+  await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+  await expect(demo.locator('[role="progressbar"]')).toHaveCount(2)
+  const more = owner.getByRole("button", { name: "More", exact: true })
+  await more.focus()
+  await expect(more).toBeFocused()
+  await expect(busy).toHaveAttribute("data-active", "")
+  await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+  await demo.getByRole("button", { name: "Render owning group", exact: true }).click()
+  await expect(owner).toHaveAccessibleName("Loading")
+  await expect(owner).toHaveAttribute("data-loading", "")
+  await expect(child).not.toHaveAttribute("data-loading")
+  await expect(busy).not.toHaveAttribute("data-active")
+  await expect(busy).not.toHaveAttribute("inert")
+  await expect(demo.locator("#notification-list-local-child-state")).toHaveText("Child request: loading")
+  await child.getByRole("button", { name: "Reset local child loading", exact: true }).click()
+  await expect(demo.locator("#notification-list-local-child-state")).toHaveText("Child request: idle")
+  await child.getByRole("button", { name: "Start local child loading", exact: true }).click()
+  await expect(busy).toHaveAttribute("inert", "")
+  await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+
+  const oracle = await growingKeyboardOracle(page, true)
+  await oracle.setLoading(true)
+  await oracle.host().evaluate((group: any) => {
+    ;(window as any).__notificationOwnedRenders = 0
+    const before = group.onBeforeRendering.bind(group)
+    group.onBeforeRendering = () => { (window as any).__notificationOwnedRenders++; before() }
+    group.items[0].loading = true
+  })
+  const referenceChild = oracle.host().locator('ui5-li-notification[data-probe-key="orders-1"]')
+  const referenceBusy = referenceChild.locator(".ui5-nli-loading")
+  await expect(referenceChild).toHaveAttribute("loading", "")
+  await expect(referenceBusy).toHaveAttribute("active", "")
+  await expect(referenceBusy).toHaveAttribute("inert", "")
+  await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
+  expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(0)
+  await oracle.more().focus()
+  await expect(oracle.more()).toBeFocused()
+  await expect(referenceBusy).toHaveAttribute("active", "")
+  await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
+  expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(0)
+  await oracle.host().evaluate((group: any) => { group.titleText = "Rerendered busy group" })
+  await expect(referenceChild).not.toHaveAttribute("loading")
+  await expect(referenceBusy).not.toHaveAttribute("active")
+  await expect(referenceBusy).not.toHaveAttribute("inert")
+  expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(1)
+  await oracle.host().evaluate((group: any) => { group.items[0].loading = false; group.items[0].loading = true })
+  await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
+  expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(1)
+})
+
+test("notification-list: More requests preserve local child busy state unless native owner inputs change", async ({ page }, testInfo) => {
+  test.setTimeout(120_000)
+  const matrix: Record<string, unknown>[] = []
+  for (const loading of [false, true]) {
+    for (const callback of ["absent", "noop", "counter", "title", "loading", "append", "remove", "replace", "content"]) {
+      for (const reference of [true, false]) {
+        let owner
+        let child
+        let more
+        if (reference) {
+          const oracle = await growingKeyboardOracle(page, true)
+          if (loading) await oracle.setLoading(true)
+          owner = oracle.host()
+          child = owner.locator('ui5-li-notification[data-probe-key="orders-1"]')
+          more = oracle.more()
+          await owner.evaluate((group: any, callback) => {
+            ;(window as any).__notificationOwnedRenders = 0
+            ;(window as any).__notificationLocalRequests = 0
+            const before = group.onBeforeRendering.bind(group)
+            group.onBeforeRendering = () => { (window as any).__notificationOwnedRenders++; before() }
+            if (callback !== "absent") group.addEventListener("load-more", () => {
+              if (callback === "counter") (window as any).__notificationLocalRequests++
+              if (callback === "title") group.titleText = "Changed group title"
+              if (callback === "loading") group.loading = !group.loading
+              if (callback === "append") {
+                const item = document.createElement("ui5-li-notification") as any
+                item.titleText = "Appended notification"
+                group.append(item)
+              }
+              if (callback === "remove") group.items[1].remove()
+              if (callback === "replace") {
+                const previous = group.items[1]
+                previous.replaceWith(previous.cloneNode(true))
+              }
+              if (callback === "content") group.items[0].textContent = "Changed child content"
+            })
+            group.items[0].loading = true
+          }, callback)
+        } else {
+          await page.goto("/index.html")
+          await page.waitForSelector("html[data-ready=true]")
+          const demo = page.locator("#notification-list-local-loading-demo")
+          await demo.getByLabel("Local loading callback").selectOption(callback)
+          owner = demo.locator('[data-nli-group]')
+          child = owner.locator('[data-nav-key="local-loading-child"]')
+          more = owner.getByRole("button", { name: "More", exact: true })
+          if (loading) {
+            await demo.getByRole("button", { name: "Start busy group", exact: true }).click()
+            await expect(owner.locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+          }
+          await child.getByRole("button", { name: "Start local child loading", exact: true }).click()
+        }
+        const busy = child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")
+        await expect(busy).toHaveAttribute("inert", "")
+        await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+        await more.click()
+        if (reference && ["title", "loading", "append", "remove", "replace"].includes(callback)) {
+          await expect.poll(() => page.evaluate(() => (window as any).__notificationOwnedRenders)).toBeGreaterThan(0)
+        }
+        if (!reference && callback === "counter") await expect(page.locator("#notification-list-local-requests")).toHaveText("Local requests: 1")
+        if (!reference && callback === "title") await expect(owner.getByRole("heading")).toHaveText("Busy group 1")
+        if (!reference && callback === "append") await expect(owner.locator('[data-nav-key="local-loading-appended"]')).toBeVisible()
+        if (!reference && callback === "remove") await expect(owner.locator('[data-nav-key="local-loading-member"]')).toHaveCount(0)
+        if (!reference && callback === "replace") await expect(owner.locator('[data-nav-key="local-loading-member"]')).toHaveText(/Member revision: 1/)
+        if (!reference && callback === "content") await expect(child).toContainText("Local content version: 1")
+        if (!reference && callback === "loading") {
+          if (loading) await expect(owner).not.toHaveAttribute("data-loading")
+          else await expect(owner).toHaveAttribute("data-loading", "")
+        }
+        // Finish the input's paint boundary before recording a no-op's unchanged native owner.
+        await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+        matrix.push({
+          implementation: reference ? "UI5" : "React", loading, callback,
+          childLoading: await child.evaluate((node, reference) => node.hasAttribute(reference ? "loading" : "data-loading"), reference),
+          active: await busy.evaluate((node, reference) => node.hasAttribute(reference ? "active" : "data-active"), reference),
+          inert: await busy.evaluate((node) => node.hasAttribute("inert")),
+          ownerRenders: reference ? await page.evaluate(() => (window as any).__notificationOwnedRenders) : null,
+        })
+      }
+    }
+  }
+  await testInfo.attach("more-child-loading-matrix.json", { body: JSON.stringify(matrix, null, 2), contentType: "application/json" })
+  console.log(`B5_MORE_CHILD_LOADING_MATRIX ${JSON.stringify(matrix)}`)
+  for (let index = 0; index < matrix.length; index += 2) {
+    const native = matrix[index]
+    const react = matrix[index + 1]
+    expect({ childLoading: react.childLoading, active: react.active, inert: react.inert }, `${react.callback}, group loading=${react.loading}`).toEqual({ childLoading: native.childLoading, active: native.active, inert: native.inert })
+  }
+})
+
+test("notification-list: group tabindex transitions clear local child busy state while More focus preserves it, matching UI5", async ({ page }, testInfo) => {
+  const matrix: Record<string, unknown>[] = []
+  for (const prior of ["orders", "approvals"] as const) {
+    for (const reference of [true, false]) {
+      const oracle = await growingKeyboardOracle(page, reference)
+      await oracle.group(prior).focus()
+      await expect(oracle.group(prior)).toBeFocused()
+      await oracle.setLoading(true)
+      const beforeTabIndex = prior === "orders" ? "0" : "-1"
+      await expect(oracle.group()).toHaveAttribute("tabindex", beforeTabIndex)
+      if (reference) {
+        await oracle.host().evaluate((group: any) => {
+          ;(window as any).__notificationOwnedRenders = 0
+          const before = group.onBeforeRendering.bind(group)
+          group.onBeforeRendering = () => { (window as any).__notificationOwnedRenders++; before() }
+          group.items[0].loading = true
+        })
+      } else {
+        // This external control changes only child props and preserves the outer tab stop.
+        await growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true }).click()
+      }
+      const child = reference ? oracle.host().locator('ui5-li-notification[data-probe-key="orders-1"]') : oracle.child(1)
+      const busy = child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")
+      await expect(busy).toHaveAttribute("inert", "")
+      await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+      await oracle.more().focus()
+      await expect(oracle.more()).toBeFocused()
+      await expect(oracle.group()).toHaveAttribute("tabindex", beforeTabIndex)
+      await expect(busy).toHaveAttribute(reference ? "active" : "data-active", "")
+      if (reference) expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(0)
+      const destination = prior === "orders" ? "approvals" : "orders"
+      await oracle.group(destination).focus()
+      await expect(oracle.group(destination)).toBeFocused()
+      await expect(oracle.group()).toHaveAttribute("tabindex", prior === "orders" ? "-1" : "0")
+      if (reference) {
+        await expect(child).not.toHaveAttribute("loading")
+        await expect(busy).not.toHaveAttribute("active")
+        await expect(busy).not.toHaveAttribute("inert")
+        expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(1)
+      }
+      matrix.push({
+        implementation: reference ? "UI5" : "React", prior,
+        childLoading: await child.evaluate((node, reference) => node.hasAttribute(reference ? "loading" : "data-loading"), reference),
+        active: await busy.evaluate((node, reference) => node.hasAttribute(reference ? "active" : "data-active"), reference),
+        inert: await busy.evaluate((node) => node.hasAttribute("inert")),
+      })
+    }
+  }
+  await testInfo.attach("group-tabindex-child-loading-matrix.json", { body: JSON.stringify(matrix, null, 2), contentType: "application/json" })
+  console.log(`B5_GROUP_TABINDEX_MATRIX ${JSON.stringify(matrix)}`)
+  for (let index = 0; index < matrix.length; index += 2) {
+    const native = matrix[index]
+    const react = matrix[index + 1]
+    expect({ childLoading: react.childLoading, active: react.active, inert: react.inert }, `${react.prior} tab stop`).toEqual({ childLoading: native.childLoading, active: native.active, inert: native.inert })
+  }
+})
+
+test("notification-list: More ArrowUp preserves the outer tab stop for busy unmanaged children and keeps focus callbacks", async ({ page }, testInfo) => {
+  const matrix: Record<string, unknown>[] = []
+  for (const loading of [false, true]) {
+    for (const reference of [true, false]) {
+      const oracle = await growingKeyboardOracle(page, reference)
+      await oracle.group().focus()
+      await expect(oracle.group()).toBeFocused()
+      if (loading) await oracle.setLoading(true)
+      await expect(oracle.group()).toHaveAttribute("tabindex", "0")
+      if (reference) {
+        await oracle.host().evaluate((group: any) => {
+          ;(window as any).__notificationOwnedRenders = 0
+          ;(window as any).__notificationChildFocusCallbacks = 0
+          const before = group.onBeforeRendering.bind(group)
+          group.onBeforeRendering = () => { (window as any).__notificationOwnedRenders++; before() }
+          group.items[1].addEventListener("focusin", () => { (window as any).__notificationChildFocusCallbacks++ })
+          group.items[1].loading = true
+        })
+      } else await growingDemo(page).getByRole("button", { name: "Load last order only", exact: true }).click()
+      const child = reference ? oracle.host().locator('ui5-li-notification[data-probe-key="orders-2"]') : oracle.child(2)
+      const busy = child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")
+      await expect(busy).toHaveAttribute("inert", "")
+      await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+      await oracle.more().focus()
+      await expect(oracle.more()).toBeFocused()
+      await expect(oracle.group()).toHaveAttribute("tabindex", "0")
+      await page.keyboard.press("ArrowUp")
+      await expect(oracle.child(2)).toBeFocused()
+      if (reference) {
+        await expect(oracle.group()).toHaveAttribute("tabindex", loading ? "0" : "-1")
+        await expect(busy).toHaveAttribute("active", "")
+        await expect(busy).toHaveAttribute("inert", "")
+        expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(loading ? 0 : 1)
+        expect(await page.evaluate(() => (window as any).__notificationChildFocusCallbacks)).toBe(1)
+      } else await expect(growingDemo(page).locator("#notification-list-growing-focused")).toHaveText("Last focused notification: orders-2")
+      await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+      matrix.push({
+        implementation: reference ? "UI5" : "React", loading,
+        groupTabIndex: await oracle.group().getAttribute("tabindex"),
+        childLoading: await child.evaluate((node, reference) => node.hasAttribute(reference ? "loading" : "data-loading"), reference),
+        active: await busy.evaluate((node, reference) => node.hasAttribute(reference ? "active" : "data-active"), reference),
+        inert: await busy.evaluate((node) => node.hasAttribute("inert")),
+      })
+    }
+  }
+  await testInfo.attach("more-arrow-up-child-loading-matrix.json", { body: JSON.stringify(matrix, null, 2), contentType: "application/json" })
+  console.log(`B5_MORE_ARROW_UP_CHILD_MATRIX ${JSON.stringify(matrix)}`)
+  for (let index = 0; index < matrix.length; index += 2) {
+    const native = matrix[index]
+    const react = matrix[index + 1]
+    expect({ groupTabIndex: react.groupTabIndex, childLoading: react.childLoading, active: react.active, inert: react.inert }, `group loading=${react.loading}`).toEqual({ groupTabIndex: native.groupTabIndex, childLoading: native.childLoading, active: native.active, inert: native.inert })
+  }
+})
+
+test("notification-list: loading remaps retained tab stops and continues arrows from an unmanaged child, matching UI5", async ({ page }, testInfo) => {
+  const runs: Record<string, unknown>[] = []
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    const snapshots: Record<string, unknown>[] = []
+    const nodes = [
+      ["orders", oracle.group()], ["orders-1", oracle.child(1)], ["orders-2", oracle.child(2)], ["more:orders", oracle.more()],
+      ["approvals", oracle.group("approvals")], ["approvals-1", oracle.child(1, "approvals")], ["more:approvals", oracle.more("approvals")],
+    ] as const
+    const record = async (stage: string) => {
+      const tabStops = Object.fromEntries(await Promise.all(nodes.map(async ([key, node]) => [key, await node.getAttribute("tabindex")])))
+      const focus = (await Promise.all(nodes.map(async ([key, node]) => await node.evaluate((element) => element.matches(":focus")) ? key : null))).find(Boolean) ?? null
+      const children = Object.fromEntries(await Promise.all(([1, 2] as const).map(async (number) => {
+        const child = reference ? oracle.host().locator(`ui5-li-notification[data-probe-key="orders-${number}"]`) : oracle.child(number)
+        const busy = child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")
+        return [number, {
+          loading: await child.evaluate((node, reference) => node.hasAttribute(reference ? "loading" : "data-loading"), reference),
+          active: await busy.evaluate((node, reference) => node.hasAttribute(reference ? "active" : "data-active"), reference),
+          inert: await busy.evaluate((node) => node.hasAttribute("inert")),
+        }]
+      })))
+      snapshots.push({ stage, tabStops, focus, children })
+    }
+    await oracle.child(1).focus()
+    await expect(oracle.child(1)).toBeFocused()
+    await expect(oracle.child(1)).toHaveAttribute("tabindex", "0")
+    await record("beforeLoading")
+    if (reference) await oracle.setLoading(true)
+    else {
+      // Match the native property update without moving the currently focused child.
+      await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).dispatchEvent("click")
+      await expect(oracle.host().locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+    }
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+    await record("afterLoading")
+    await oracle.more().focus()
+    await expect(oracle.more()).toBeFocused()
+    await record("afterMore")
+    await page.keyboard.press("ArrowUp")
+    await expect(oracle.child(2)).toBeFocused()
+    await record("afterArrowUp")
+    await oracle.clearEvents()
+    await page.keyboard.press("ArrowDown")
+    if (reference) await expect(oracle.child(1, "approvals")).toBeFocused()
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+    await record("afterArrowDown")
+    const events = await oracle.events()
+    if (reference) expect(events).toEqual([
+      { type: "keydown", key: "ArrowDown", prevented: true, bubbled: false },
+      { type: "keyup", key: "ArrowDown", prevented: false, bubbled: true },
+    ])
+    runs.push({ implementation: reference ? "UI5" : "React", snapshots, events })
+  }
+  await testInfo.attach("retained-tabstop-continuation.json", { body: JSON.stringify(runs, null, 2), contentType: "application/json" })
+  console.log(`B5_RETAINED_TABSTOP_CONTINUATION ${JSON.stringify(runs)}`)
+  expect(runs[1].snapshots).toEqual(runs[0].snapshots)
+  expect(runs[1].events).toEqual(runs[0].events)
+})
+
+test("notification-list: ignored delegated keys normalize a retained index without applying tab stops before the next arrow", async ({ page }, testInfo) => {
+  const runs: Record<string, unknown>[] = []
+  for (const cancelled of [false, true]) for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    const snapshots: Record<string, unknown>[] = []
+    const nodes = [
+      ["orders", oracle.group()], ["orders-1", oracle.child(1)], ["orders-2", oracle.child(2)], ["more:orders", oracle.more()],
+      ["approvals", oracle.group("approvals")], ["approvals-1", oracle.child(1, "approvals")], ["more:approvals", oracle.more("approvals")],
+    ] as const
+    const record = async (stage: string) => {
+      const tabStops = Object.fromEntries(await Promise.all(nodes.map(async ([key, node]) => [key, await node.getAttribute("tabindex")])))
+      const focus = (await Promise.all(nodes.map(async ([key, node]) => await node.evaluate((element) => element.matches(":focus")) ? key : null))).find(Boolean) ?? null
+      snapshots.push({ stage, tabStops, focus })
+    }
+    await oracle.group("approvals").focus()
+    await expect(oracle.group("approvals")).toBeFocused()
+    await expect(oracle.group("approvals")).toHaveAttribute("tabindex", "0")
+    await record("beforeLoading")
+    if (reference) await oracle.setLoading(true)
+    else {
+      await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).dispatchEvent("click")
+      await expect(oracle.host().locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+    }
+    await expect(oracle.group("approvals")).toHaveAttribute("tabindex", "-1")
+    await record("afterLoading")
+    await oracle.more().focus()
+    await expect(oracle.more()).toBeFocused()
+    await record("afterMore")
+    await page.keyboard.press("ArrowUp")
+    await expect(oracle.child(2)).toBeFocused()
+    await record("afterArrowUp")
+    await oracle.clearEvents()
+    if (cancelled) await page.evaluate(() => {
+      // ItemNavigation._onkeydown still runs for cancelled events that reach the host.
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Control" || (event.key === "ArrowDown" && event.ctrlKey)) event.preventDefault()
+      }, { capture: true })
+    })
+    for (const [stage, direction, key] of [
+      ["afterControlKeydown", "down", "Control"],
+      ["afterModifiedArrowDownKeydown", "down", "ArrowDown"],
+      ["afterModifiedArrowDownKeyup", "up", "ArrowDown"],
+      ["afterControlKeyup", "up", "Control"],
+    ] as const) {
+      await page.keyboard[direction](key)
+      await expect(oracle.child(2)).toBeFocused()
+      for (const [name, node] of nodes) await expect(node).toHaveAttribute("tabindex", name.startsWith("more:") ? "0" : "-1")
+      await record(stage)
+    }
+    await page.keyboard.down("ArrowDown")
+    if (reference) await expect(oracle.more("approvals")).toBeFocused()
+    await record("afterPlainArrowDownKeydown")
+    await page.keyboard.up("ArrowDown")
+    await record("afterPlainArrowDownKeyup")
+    const events = await page.evaluate(() => (window as any).__notificationKeyboardEvents.map((event: KeyboardEvent) => ({
+      type: event.type, key: event.key, ctrlKey: event.ctrlKey, prevented: event.defaultPrevented,
+      bubbled: (window as any).__notificationKeyboardBubbles.includes(event),
+    })))
+    if (reference) {
+      expect(events).toEqual([
+        { type: "keydown", key: "Control", ctrlKey: true, prevented: cancelled, bubbled: true },
+        { type: "keydown", key: "ArrowDown", ctrlKey: true, prevented: cancelled, bubbled: true },
+        { type: "keyup", key: "ArrowDown", ctrlKey: true, prevented: false, bubbled: true },
+        { type: "keyup", key: "Control", ctrlKey: false, prevented: false, bubbled: true },
+        { type: "keydown", key: "ArrowDown", ctrlKey: false, prevented: true, bubbled: false },
+        { type: "keyup", key: "ArrowDown", ctrlKey: false, prevented: false, bubbled: true },
+      ])
+      expect(snapshots.at(-1)).toEqual({
+        stage: "afterPlainArrowDownKeyup", focus: "more:approvals",
+        tabStops: { orders: "-1", "orders-1": "-1", "orders-2": "-1", "more:orders": "0", approvals: "-1", "approvals-1": "-1", "more:approvals": "0" },
+      })
+    }
+    runs.push({ implementation: reference ? "UI5" : "React", cancelled, snapshots, events })
+  }
+  await testInfo.attach("ignored-key-retained-index-continuation.json", { body: JSON.stringify(runs, null, 2), contentType: "application/json" })
+  console.log(`B5_IGNORED_KEY_RETAINED_INDEX_CONTINUATION ${JSON.stringify(runs)}`)
+  for (let index = 0; index < runs.length; index += 2) {
+    expect(runs[index + 1].snapshots).toEqual(runs[index].snapshots)
+    expect(runs[index + 1].events).toEqual(runs[index].events)
+  }
+})
+
+test("notification-list: unmanaged boundaries and paging preserve applied assignments until genuine group init", async ({ page }, testInfo) => {
+  test.setTimeout(120_000)
+  const runs: Record<string, unknown>[] = []
+  const snapshot = async (oracle: Awaited<ReturnType<typeof growingKeyboardOracle>>) => {
+    const nodes = [
+      ["orders", oracle.group()], ["orders-1", oracle.child(1)], ["orders-2", oracle.child(2)], ["more:orders", oracle.more()],
+      ["approvals", oracle.group("approvals")], ["approvals-1", oracle.child(1, "approvals")], ["more:approvals", oracle.more("approvals")],
+    ] as const
+    const tabStops = Object.fromEntries(await Promise.all(nodes.map(async ([key, node]) => [key, await node.getAttribute("tabindex")])))
+    const focus = (await Promise.all(nodes.map(async ([key, node]) => await node.evaluate((element) => element.matches(":focus")) ? key : null))).find(Boolean) ?? null
+    return { tabStops, focus }
+  }
+  const startLoading = async (oracle: Awaited<ReturnType<typeof growingKeyboardOracle>>, reference: boolean) => {
+    if (reference) await oracle.setLoading(true)
+    else {
+      await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).dispatchEvent("click")
+      await expect(oracle.host().locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+    }
+  }
+  for (const key of ["Home", "End", "PageUp", "PageDown"]) {
+    for (const reference of [true, false]) {
+      const oracle = await growingKeyboardOracle(page, reference)
+      await oracle.child(1).focus()
+      await expect(oracle.child(1)).toBeFocused()
+      await startLoading(oracle, reference)
+      await oracle.more().focus()
+      await expect(oracle.more()).toBeFocused()
+      await page.keyboard.press("ArrowUp")
+      await expect(oracle.child(2)).toBeFocused()
+      await oracle.clearEvents()
+      await page.keyboard.press(key)
+      if (reference) {
+        const destination = key === "Home" ? oracle.group("approvals") : key === "End" ? oracle.child(1, "approvals") : oracle.child(2)
+        await expect(destination).toBeFocused()
+      }
+      await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+      runs.push({ key, implementation: reference ? "UI5" : "React", snapshot: await snapshot(oracle), events: await oracle.events() })
+    }
+  }
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    if (!reference) await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
+    await oracle.group("approvals").focus()
+    await expect(oracle.group("approvals")).toBeFocused()
+    await startLoading(oracle, reference)
+    await oracle.more().focus()
+    await expect(oracle.more()).toBeFocused()
+    await page.keyboard.press("ArrowUp")
+    await expect(oracle.child(2)).toBeFocused()
+    await oracle.clearEvents()
+    await page.keyboard.press("PageDown")
+    await expect(oracle.child(2)).toBeFocused()
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+    const afterPage = await snapshot(oracle)
+    const events = await oracle.events()
+    await oracle.more().click()
+    await expect.poll(() => oracle.loads()).toBe(1)
+    const afterCounter = await snapshot(oracle)
+    expect(afterCounter.tabStops).toEqual(afterPage.tabStops)
+    if (reference) {
+      await oracle.host().evaluate((group: any) => { group.loadingDelay = 1000 })
+      await oracle.host("approvals").evaluate((group: any) => { group.loadingDelay = 1000 })
+    } else await growingDemo(page).getByLabel("Loading delay").selectOption("1000")
+    await expect(oracle.child(1, "approvals")).toHaveAttribute("tabindex", "0")
+    runs.push({ key: "deferred-page-assignment", implementation: reference ? "UI5" : "React", afterPage, afterCounter, afterGroupInit: await snapshot(oracle), events })
+  }
+  await testInfo.attach("unmanaged-boundaries-paging.json", { body: JSON.stringify(runs, null, 2), contentType: "application/json" })
+  console.log(`B5_UNMANAGED_BOUNDARIES_PAGING ${JSON.stringify(runs)}`)
+  for (let index = 0; index < runs.length; index += 2) {
+    const { implementation: _native, ...native } = runs[index]
+    const { implementation: _react, ...react } = runs[index + 1]
+    expect(react).toEqual(native)
+  }
+})
+
+test("notification-list: the local-child-loading fixture exposes both inline and child busy areas", async ({ page }) => {
+  for (const reference of [false, true]) {
+    await page.goto(reference ? "/ui5.html?only=notification-list-growing-button-local-child-loading" : "/index.html?fixtures&only=notification-list-growing-button-local-child-loading")
+    await page.waitForSelector("html[data-ready=true]")
+    const fixture = page.locator('[data-fixture="notification-list-growing-button-local-child-loading"]')
+    await expect(fixture.locator('[role="progressbar"]')).toHaveCount(2)
+    const child = fixture.locator(reference ? "ui5-li-notification" : '[data-slot="notification-list-item"]')
+    await expect(child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")).toHaveAttribute("inert", "")
+  }
+})
+
+test("notification-list: only the requesting group's first appended item focuses after loading completes", async ({ page }) => {
+  await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+  await growingButton(page).click()
+  await growingDemo(page).getByRole("button", { name: "Append approvals", exact: true }).click()
+  await expect(growingItem(page, 2, "approvals")).not.toBeFocused()
+  await growingDemo(page).getByRole("button", { name: "Append orders", exact: true }).click()
+  await expect(growingItem(page, 3)).not.toBeFocused()
+  await growingDemo(page).getByRole("button", { name: "Append orders", exact: true }).click()
+  await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
+  await expect(growingItem(page, 3)).toBeFocused()
+  await expect(growingItem(page, 4)).not.toBeFocused()
+})
+
+test("notification-list: scroll append focuses its first new item after the delayed overlay releases inert content", async ({ page }) => {
+  const { busy, content } = await requestDelayedScroll(page)
+  await growingDemo(page).getByRole("button", { name: "Append approvals", exact: true }).click()
+  await expect(growingItem(page, 2, "approvals")).not.toBeFocused()
+  await growingDemo(page).getByRole("button", { name: "Append orders", exact: true }).click()
+  await expect(growingItem(page, 3)).toHaveCount(1)
+  await expect(growingItem(page, 3)).not.toBeFocused()
+  await growingDemo(page).getByRole("button", { name: "Append orders", exact: true }).click()
+  await expect(growingItem(page, 4)).toHaveCount(1)
+  await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
+  await expect(busy).not.toHaveAttribute("data-busy", "")
+  await expect(content).not.toHaveAttribute("inert", "")
+  await expect(growingItem(page, 3)).toBeFocused()
+  await expect(growingItem(page, 4)).not.toBeFocused()
+  await expect(growingItem(page, 2, "approvals")).not.toBeFocused()
+})
+
+for (const cancellation of ["collapse", "none", "unmount"] as const) {
+  test(`notification-list: ${cancellation} cancels delayed scroll append focus before loading completion`, async ({ page }) => {
+    await requestDelayedScroll(page)
+    await growingDemo(page).getByRole("button", { name: "Append orders", exact: true }).click()
+    await expect(growingItem(page, 3)).toHaveCount(1)
+    if (cancellation === "collapse") {
+      await growingGroup(page).getByRole("button", { name: "More orders", exact: true }).click()
+      await expect(growingGroup(page)).toHaveAttribute("data-collapsed", "")
+    } else if (cancellation === "none") {
+      await growingDemo(page).getByLabel("Growing mode").selectOption("none")
+      await expect(growingGroup(page)).toHaveAttribute("data-growing", "none")
+    } else {
+      await growingDemo(page).getByRole("button", { name: "Hide growing list", exact: true }).click()
+      await expect(growingGroup(page)).toHaveCount(0)
+    }
+    await growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true }).click()
+    if (cancellation === "collapse") {
+      await growingGroup(page).getByRole("button", { name: "More orders", exact: true }).click()
+      await expect(growingGroup(page)).not.toHaveAttribute("data-collapsed", "")
+    } else if (cancellation === "none") {
+      await growingDemo(page).getByLabel("Growing mode").selectOption("scroll")
+      await expect(growingGroup(page)).toHaveAttribute("data-growing", "scroll")
+    } else {
+      await growingDemo(page).getByRole("button", { name: "Show growing list", exact: true }).click()
+      await expect(growingGroup(page)).toHaveCount(1)
+    }
+    await expect(growingItem(page, 3)).toBeVisible()
+    await expect(growingItem(page, 3)).not.toBeFocused()
+  })
+}
+
+test("notification-list: no-op requests expire and unrelated future appends keep their existing focus", async ({ page }) => {
+  await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
+  await growingButton(page).click()
+  await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+  const append = growingDemo(page).getByRole("button", { name: "Append orders", exact: true })
+  await append.click()
+  await expect(append).toBeFocused()
+  await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
+  await growingButton(page).click()
+  const finish = growingDemo(page).getByRole("button", { name: "Finish loading orders", exact: true })
+  await finish.click()
+  await expect(growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true })).toBeFocused()
+  await append.click()
+  await expect(append).toBeFocused()
+})
+
+test("notification-list: scroll uses viewport threshold 1, start visibility at completion and 250ms debounce", async ({ page }) => {
+  await mockGrowingObservers(page)
+  const options = await page.evaluate(() => (window as any).__notificationObservers.filter((observer: any) => [...observer.targets].some((target: any) => target.closest("#notification-list-growing-orders"))).map((observer: any) => observer.options))
+  expect(options).toEqual([{ root: null, rootMargin: "0px", threshold: 1 }, { root: null, rootMargin: "0px", threshold: 1 }])
+  await intersect(page, "orders", "start", true)
+  await intersect(page, "orders", "end", true)
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+  await intersect(page, "orders", "start", false)
+  await intersect(page, "orders", "end", false)
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+  await intersect(page, "orders", "end", true)
+  await page.clock.runFor(249)
+  await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+  await page.clock.runFor(1)
+  await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+  await intersect(page, "orders", "end", true)
+  await intersect(page, "orders", "start", true)
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+})
+
+test("notification-list: concurrent scroll groups share UI5's debounce and retain independent requests", async ({ page }) => {
+  await mockGrowingObservers(page)
+  await intersect(page, "orders", "start", false)
+  await intersect(page, "approvals", "start", false)
+  await intersect(page, "orders", "end", true)
+  await page.clock.runFor(100)
+  await intersect(page, "approvals", "end", true)
+  await page.clock.runFor(249)
+  await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+  await page.clock.runFor(1)
+  await expect(requests(page)).toHaveText("Requests: orders=0, approvals=1")
+  await growingDemo(page).getByLabel("Load behavior").selectOption("append")
+  await intersect(page, "orders", "end", true)
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=1, approvals=1")
+  await expect(growingItem(page, 3)).toBeFocused()
+})
+
+test("notification-list: scroll cleans up observers and pending callbacks on collapse, mode change and unmount", async ({ page }) => {
+  await mockGrowingObservers(page)
+  const schedule = async () => {
+    await intersect(page, "orders", "start", false)
+    await intersect(page, "orders", "end", true)
+  }
+  const orders = growingGroup(page)
+  await schedule()
+  await orders.getByRole("button", { name: "More orders", exact: true }).click()
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+  await orders.getByRole("button", { name: "More orders", exact: true }).click()
+  await schedule()
+  await growingDemo(page).getByLabel("Growing mode").selectOption("button")
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+  await growingDemo(page).getByLabel("Growing mode").selectOption("scroll")
+  await schedule()
+  await growingDemo(page).getByRole("button", { name: "Hide growing list", exact: true }).click()
+  await page.clock.runFor(250)
+  await expect(requests(page)).toHaveText("Requests: orders=0, approvals=0")
+  const remaining = await page.evaluate(() => (window as any).__notificationObservers.flatMap((observer: any) => [...observer.targets]).filter((target: any) => target.className?.startsWith("fiori-nli-group__")))
+  expect(remaining).toEqual([])
+})
+
+test("notification-list: native viewport scroll requests more only after the group start leaves view", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 240 })
+  await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
+  await growingDemo(page).getByLabel("Growing mode").selectOption("scroll")
+  await growingGroup(page).locator(".fiori-nli-group__end-marker").evaluate((marker) => marker.scrollIntoView({ block: "end" }))
+  await expect(requests(page)).toHaveText("Requests: orders=1, approvals=0")
+})
+
+test("notification-list: More draws focus only for keyboard navigation", async ({ page }) => {
+  await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
+  await growingButton(page).click()
+  await expect(growingButton(page)).toBeFocused()
+  expect(await growingButton(page).evaluate((button) => getComputedStyle(button).outlineStyle)).toBe("none")
+  await growingItem(page, 2).focus()
+  await page.keyboard.press("ArrowDown")
+  await expect(growingButton(page)).toBeFocused()
+  expect(await growingButton(page).evaluate((button) => getComputedStyle(button).outlineStyle)).not.toBe("none")
 })

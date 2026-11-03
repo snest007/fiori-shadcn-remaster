@@ -37,8 +37,8 @@
   background-color: var(--fiori-x-notification-item-background-color-active);
   border: var(--fiori-x-notification-item-border-active);
 }
-/* UI5 also rings a mouse-focused item on desktop (:host([desktop]) …:focus). */
-.fiori-nli:focus > .fiori-nli__root::after {
+/* Keep the repository's keyboard-only focus ring, even where UI5 rings mouse focus on desktop. */
+.fiori-nli:focus-visible > .fiori-nli__root::after {
   content: "";
   position: absolute;
   inset: var(--fiori-x-notification-item-focus-offset);
@@ -178,6 +178,10 @@
 
 /* Group (ui5-li-notification-group). */
 .fiori-nli-group {
+  /* NotificationListGroupItem.css.js keeps header 90 and BusyIndicator.css.js overlay 99
+     as local layers. Popup.js/handleOpenOnEnterDOM uses showPopover's top layer;
+     isolate this group's layers so portaled pickers remain above its content. */
+  isolation: isolate;
   position: relative;
   display: block;
   max-width: 100%;
@@ -208,7 +212,7 @@
 .fiori-nli-group[data-collapsed] .fiori-nli-group__header {
   margin-bottom: var(--fiori-x-notification-group-header-margin);
 }
-.fiori-nli-group:focus > .fiori-nli-group__wrapper > .fiori-nli-group__header::before {
+.fiori-nli-group:focus-visible > .fiori-nli-group__wrapper > .fiori-nli-group__header::before {
   content: "";
   position: absolute;
   inset: var(--fiori-x-notification-group-header-margin) 0;
@@ -256,4 +260,60 @@
 }
 .fiori-nli-group[data-collapsed] .fiori-nli-group__items {
   display: none;
+}
+
+/* NotificationListGroupItem.css.js overrides the inner List growing parts. */
+.fiori-nli-group__list {
+  width: 100%;
+}
+/* UI5's reference list inherits 1rem, so the scroll marker's empty line box uses that
+   SAP font size rather than the docs fixture's smaller inherited sapFontSize. */
+.fiori-nli-group[data-growing="scroll"] .fiori-nli-group__list {
+  font-size: var(--sapFontLargeSize);
+}
+/* BusyIndicator's global descendant rule otherwise dims an inactive child a second time;
+   UI5's ::slotted(*) applies opacity only to its own active indicator's content. */
+.fiori-nli-group__busy[data-active] .fiori-nli__busy:not([data-active]) .fiori-busy-indicator__content > * {
+  opacity: 1;
+}
+.fiori-nli-group__growing {
+  border: none;
+}
+.fiori-nli-group__growing-inner {
+  margin: var(--fiori-x-notification-item-margin);
+  border: var(--fiori-x-notification-item-border-top-left-right);
+  border-radius: var(--fiori-x-notification-item-border-radius);
+  /* UI5 defines this group-specific height directly; no theme parameter exists. */
+  height: 3.125rem;
+}
+.fiori-nli-group__growing-inner:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: var(--fiori-x-notification-item-outline-offset);
+  border: var(--fiori-x-notification-item-border-top-left-right);
+}
+.fiori-nli-group__growing-inner:focus:active {
+  background-color: var(--fiori-x-notification-item-growing-btn-background-color-active);
+  border: var(--fiori-x-notification-item-border-active);
+}
+.fiori-nli-group__growing-busy {
+  /* UI5's group busy part uses this literal padding, with no theme parameter. */
+  padding: 0.875rem 0 1rem;
+}
+.fiori-nli-group__growing-busy:not([data-busy]) {
+  display: none;
+}
+.fiori-nli-group__growing-busy[data-busy] + .fiori-list__growing-text {
+  padding-left: 0.5rem;
+}
+.fiori-nli-group__start-marker,
+.fiori-nli-group__end-marker {
+  display: none;
+}
+/* List.css.js makes only the end marker inline-block for scroll growing. The start
+   marker remains an empty inline span so IntersectionObserver can track its viewport position. */
+.fiori-nli-group[data-growing="scroll"] .fiori-nli-group__start-marker {
+  display: inline;
+}
+.fiori-nli-group[data-growing="scroll"] .fiori-nli-group__end-marker {
+  display: inline-block;
 }
