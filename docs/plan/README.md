@@ -17,7 +17,12 @@ git add -A && git commit -m "<card-id>: <summary>"
 Suggested prompt: `Read AGENTS.md, then implement docs/plan/tasks/<card-id>.md. Follow its acceptance checks exactly.`
 
 One card per branch. Cards in the same wave touch disjoint files and can run in parallel (separate worktrees/branches);
-later waves depend on earlier ones. The reviewer (human or Claude) merges branches into `main` in card order.
+later waves depend on earlier ones.
+
+**Merging is also done by Codex**, in a separate session, with [INTEGRATION.md](INTEGRATION.md):
+`Read AGENTS.md and docs/plan/INTEGRATION.md, then integrate the pending codex/* branches.`
+It reviews scope and fidelity, merges, runs `node scripts/integrate.mjs verify` (3 full runs + smoke install),
+cleans up and prints `.integration/REPORT.md` — paste that report to the owner/Claude for sign-off.
 
 Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 

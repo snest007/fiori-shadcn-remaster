@@ -30,6 +30,8 @@ PORT=4310 pnpm exec playwright test tests/<name>.spec.ts # one spec
 PORT=4310 pnpm exec playwright test tests/visual.spec.ts # pixel diff vs UI5, 4 themes × 2 densities
 pnpm check                         # everything above, in order
 pnpm dev                           # http://localhost:5173 (docs), /?fixtures, /ui5.html, /block.html?name=<block>
+node scripts/smoke-install.mjs     # fresh consumer app: shadcn init + add every block, build, render
+node scripts/integrate.mjs …       # merging card branches — see docs/plan/INTEGRATION.md
 ```
 
 Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves its own copy.
