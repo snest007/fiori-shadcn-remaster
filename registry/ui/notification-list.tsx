@@ -16,7 +16,7 @@ import { Tag } from "@/components/ui/tag"
 // F2 toggles between the item and its content. Enter/Space activate. Delete closes the item (UI5 fires this even
 // without a close button; here only when `showClose`, so an item that can't be closed by mouse can't be by key).
 // Shift+Enter toggles More/Less, Shift+F10 opens the actions menu. On a group: Space toggles, +/→ expand, -/← collapse.
-// Not ported: `growing` (load-more button) on the list and on groups.
+// Growing belongs to groups: the public UI5 NotificationList has no growing/loading properties.
 
 type NotificationState = "negative" | "critical" | "positive" | "information"
 
@@ -26,6 +26,8 @@ type NotificationTexts = {
   /** Show-more link (default "More" / "Less"). */
   more: string
   less: string
+  /** Group growing button, independent of the description's More/Less link (default "More"). */
+  growingButton: string
   /** Accessible names of the show-more link. */
   moreLabel: string
   lessLabel: string
@@ -52,6 +54,7 @@ const defaultTexts: NotificationTexts = {
   list: "Notifications",
   more: "More",
   less: "Less",
+  growingButton: "More",
   moreLabel: "More button. Show the full texts",
   lessLabel: "Less button. Show the texts with truncation",
   actions: "Actions",
@@ -75,9 +78,25 @@ type ListContextValue = {
   toggle: (value: string, collapsed: boolean) => void
 }
 const NotificationContext = React.createContext<ListContextValue | null>(null)
+const GroupLoadingContext = React.createContext(false)
 
 const isVisible = (el: HTMLElement) => el.offsetParent !== null
 const PAGE_SIZE = 10
+
+// NotificationListInternal.js/getEnabledItems keeps More in the navigation order separately,
+// and omits both children and More when a group is collapsed or loading.
+function notificationNavigationItems(root: HTMLElement | null) {
+  if (!root) return []
+  return [...root.querySelectorAll<HTMLElement>("[data-nav-key], [data-nli-growing]")].filter((el) => {
+    if (el.closest('[data-slot="list"]') !== root || !isVisible(el)) return false
+    const group = el.parentElement?.closest<HTMLElement>("[data-nli-group]")
+    return !group?.hasAttribute("data-loading") && !group?.hasAttribute("data-collapsed")
+  })
+}
+
+// List.js/onEndIntersection uses the module-global debounce.js timer (250ms). Keep that
+// cross-group debounce, but cancel a removed group's pending callback on cleanup.
+let pendingScrollLoad: { owner: symbol; timer: ReturnType<typeof setTimeout> } | undefined
 
 type NotificationListProps = Omit<React.ComponentProps<"div">, "onClick"> & {
   /** An item was activated (click, Enter, Space). */
@@ -135,9 +154,9 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
   const onKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return
     const target = e.target as HTMLElement
-    const item = target.closest<HTMLElement>("[data-nav-key]")
+    const item = target.closest<HTMLElement>("[data-nav-key], [data-nli-growing]")
     if (!item || !e.currentTarget.contains(item)) return
-    const items = navItems(core.rootRef.current).filter(isVisible)
+    const items = notificationNavigationItems(core.rootRef.current)
     const i = items.indexOf(item)
     if (i === -1) return
     const isGroup = (el?: HTMLElement) => el?.hasAttribute("data-nli-group")
@@ -170,10 +189,20 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
         }
       }
     } else if (e.key === "End") {
+      if (item.hasAttribute("data-nli-growing")) {
+        e.preventDefault()
+        return
+      }
       to = items.length - 1
       for (let n = i + 1; n < items.length; n++) {
         if (isGroup(items[n])) {
           to = n - 1
+          break
+        }
+        // NotificationListInternal.js/_handleEndKey: End first goes to the last item,
+        // then reaches its immediately adjacent growing button on the next End.
+        if (items[n].hasAttribute("data-nli-growing")) {
+          to = n === i + 1 ? n : n - 1
           break
         }
       }
@@ -261,6 +290,13 @@ function NotificationListItem({
   ...props
 }: NotificationListItemProps) {
   const ctx = useNotificationContext()
+  const groupLoading = React.useContext(GroupLoadingContext)
+  // NotificationListGroupItem.js/clearChildBusyIndicator resets each child's loading to false.
+  // Preserve the caller's immutable props and suppress that request until they reset loading.
+  const [childLoadingCleared, setChildLoadingCleared] = React.useState(false)
+  if (groupLoading && !childLoadingCleared) setChildLoadingCleared(true)
+  if (!groupLoading && !loading && childLoadingCleared) setChildLoadingCleared(false)
+  loading = !!loading && !groupLoading && !childLoadingCleared
   const id = React.useId()
   const { texts } = ctx
   const core = React.useContext(ListCoreContext)
@@ -440,7 +476,11 @@ type NotificationListGroupItemProps = Omit<React.ComponentProps<"li">, "value"> 
   collapsed?: boolean
   defaultCollapsed?: boolean
   onCollapsedChange?: (collapsed: boolean) => void
-  /** Busy indicator over the group's items. */
+  /** UI5 supports none/button; scroll is an additive B5 option using List's viewport semantics. */
+  growing?: "none" | "button" | "scroll"
+  /** Request more items. Append stable-keyed items and finish loading to focus the first new item. */
+  onLoadMore?: () => void
+  /** Button growing shows an inline indicator; other modes show an overlay over the group's items. */
   loading?: boolean
   loadingDelay?: number
 }
@@ -453,7 +493,9 @@ function NotificationListGroupItem({
   collapsed: collapsedProp,
   defaultCollapsed = false,
   onCollapsedChange,
-  loading,
+  growing = "none",
+  onLoadMore,
+  loading = false,
   loadingDelay = 1000,
   className,
   children,
@@ -462,6 +504,7 @@ function NotificationListGroupItem({
   onClick,
   onFocus,
   onPointerDown,
+  ref: forwardedRef,
   ...props
 }: NotificationListGroupItemProps) {
   const ctx = useNotificationContext()
@@ -470,6 +513,72 @@ function NotificationListGroupItem({
   const collapsed = collapsedProp ?? state
   const { texts } = ctx
   const core = React.useContext(ListCoreContext)
+  const rootRef = React.useRef<HTMLLIElement>(null)
+  const setRootRef = React.useCallback((node: HTMLLIElement | null) => {
+    rootRef.current = node
+    if (typeof forwardedRef === "function") return forwardedRef(node)
+    if (forwardedRef) forwardedRef.current = node
+  }, [forwardedRef])
+  const startRef = React.useRef<HTMLSpanElement>(null)
+  const endRef = React.useRef<HTMLSpanElement>(null)
+  const afterRef = React.useRef<HTMLDivElement>(null)
+  const [moreActive, setMoreActive] = React.useState(false)
+  const [, markRequest] = React.useReducer((n: number) => n + 1, 0)
+  const pendingAppend = React.useRef<{ keys: Set<string> } | null>(null)
+  const ownItems = () => [...(rootRef.current?.querySelectorAll<HTMLElement>('[data-slot="notification-list-item"]') ?? [])]
+    .filter((item) => item.closest("[data-nli-group]") === rootRef.current)
+  const requestRef = React.useRef(() => {})
+  requestRef.current = () => {
+    if (collapsed || growing === "none") return
+    // B5 addition (not implemented by UI5 List): snapshot only this requesting group.
+    // The forced commit also expires a synchronous no-op request without stealing later focus.
+    pendingAppend.current ??= { keys: new Set(ownItems().map((item) => item.dataset.navKey!)) }
+    markRequest()
+    onLoadMore?.()
+  }
+  React.useLayoutEffect(() => {
+    const pending = pendingAppend.current
+    if (!pending) return
+    if (collapsed || growing === "none") {
+      pendingAppend.current = null
+      return
+    }
+    if (loading) return
+    const firstNew = ownItems().find((item) => !pending.keys.has(item.dataset.navKey!))
+    pendingAppend.current = null
+    if (firstNew) firstNew.focus()
+  })
+  React.useEffect(() => {
+    if (growing !== "scroll" || collapsed || !startRef.current || !endRef.current) return
+    const owner = Symbol("notification-growing")
+    let startOut = false
+    const options = { root: null, rootMargin: "0px", threshold: 1 }
+    // List.js/getStartIntersectionObserver and getEndIntersectionObserver use viewport threshold 1.
+    const start = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { startOut = !entry.isIntersecting })
+    }, options)
+    const end = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
+        if (pendingScrollLoad) clearTimeout(pendingScrollLoad.timer)
+        pendingScrollLoad = { owner, timer: setTimeout(() => {
+          pendingScrollLoad = undefined
+          // List.js/hasGrowingComponent checks the start marker at debounce completion.
+          if (startOut) requestRef.current()
+        }, 250) }
+      })
+    }, options)
+    start.observe(startRef.current)
+    end.observe(endRef.current)
+    return () => {
+      start.disconnect()
+      end.disconnect()
+      if (pendingScrollLoad?.owner === owner) {
+        clearTimeout(pendingScrollLoad.timer)
+        pendingScrollLoad = undefined
+      }
+    }
+  }, [growing, collapsed])
   const { value, handlers } = useListItemBehaviour({
     value: valueProp,
     type: "inactive",
@@ -502,11 +611,14 @@ function NotificationListGroupItem({
   }
   return (
     <li
+      ref={setRootRef}
       data-slot="notification-list-group-item"
       data-nav-key={value}
       data-nli-group=""
       data-read={read ? "" : undefined}
       data-collapsed={collapsed ? "" : undefined}
+      data-loading={loading ? "" : undefined}
+      data-growing={growing}
       role="listitem"
       tabIndex={core?.currentKey === value ? 0 : -1}
       aria-labelledby={loading ? `${id}-loading` : `${id}-title`}
@@ -530,10 +642,63 @@ function NotificationListGroupItem({
           <div className="fiori-nli-group__divider" />
         </div>
       </div>
-      <BusyIndicator active={loading} delay={loadingDelay} className="fiori-nli-group__busy">
-        <ul id={`${id}-items`} role="list" aria-labelledby={`${id}-title`} className="fiori-nli-group__items">
-          {children}
-        </ul>
+      <BusyIndicator active={loading && growing !== "button"} delay={loadingDelay} title={texts.loading} className="fiori-nli-group__busy">
+        <div className="fiori-nli-group__list">
+          <span ref={startRef} aria-hidden className="fiori-nli-group__start-marker" />
+          <ul id={`${id}-items`} role="list" aria-labelledby={`${id}-title`} className="fiori-nli-group__items">
+            <GroupLoadingContext.Provider value={loading}>{children}</GroupLoadingContext.Provider>
+          </ul>
+          {growing === "button" && (
+            <div className="fiori-list__growing fiori-nli-group__growing">
+              <div
+                role="button"
+                tabIndex={0}
+                data-nli-growing=""
+                data-active={moreActive ? "" : undefined}
+                aria-labelledby={`${id}-growing-text`}
+                className="fiori-list__growing-inner fiori-nli-group__growing-inner"
+                onFocus={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); requestRef.current() }}
+                onPointerDown={() => setMoreActive(true)}
+                onPointerUp={() => setMoreActive(false)}
+                onPointerLeave={() => setMoreActive(false)}
+                onKeyDown={(e) => {
+                  // NotificationListGroupList.js/_onLoadMoreKeydown stops Space reaching the group.
+                  if (e.key === " " || e.key === "Enter") {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setMoreActive(true)
+                    if (e.key === "Enter") requestRef.current()
+                  } else if (e.key === "ArrowUp") {
+                    // List.js/_handleLodeMoreUp remains available on a directly focused More
+                    // even during inline loading, when the outer navigation omits the group children.
+                    e.preventDefault()
+                    e.stopPropagation()
+                    ownItems().at(-1)?.focus()
+                  } else if (e.key === "Tab") {
+                    e.stopPropagation()
+                    if (e.shiftKey) {
+                      e.preventDefault()
+                      ownItems()[0]?.focus()
+                    } else afterRef.current?.focus()
+                  }
+                }}
+                onKeyUp={(e) => {
+                  if (e.key === " " || e.key === "Enter") {
+                    e.stopPropagation()
+                    if (e.key === " ") requestRef.current()
+                  }
+                  setMoreActive(false)
+                }}
+              >
+                {loading && <BusyIndicator active delay={loadingDelay} title={texts.loading} className="fiori-nli-group__growing-busy" />}
+                <span id={`${id}-growing-text`} className="fiori-list__growing-text">{texts.growingButton}</span>
+              </div>
+            </div>
+          )}
+          {growing === "button" && <div ref={afterRef} tabIndex={0} role="none" className="fiori-list__focusarea" onFocus={(e) => e.stopPropagation()} />}
+          <span ref={endRef} aria-hidden className="fiori-nli-group__end-marker" />
+        </div>
       </BusyIndicator>
     </li>
   )
