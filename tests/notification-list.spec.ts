@@ -1036,6 +1036,88 @@ test("notification-list: loading remaps retained tab stops and continues arrows 
   expect(runs[1].events).toEqual(runs[0].events)
 })
 
+test("notification-list: ignored delegated keys normalize a retained index without applying tab stops before the next arrow", async ({ page }, testInfo) => {
+  const runs: Record<string, unknown>[] = []
+  for (const cancelled of [false, true]) for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    const snapshots: Record<string, unknown>[] = []
+    const nodes = [
+      ["orders", oracle.group()], ["orders-1", oracle.child(1)], ["orders-2", oracle.child(2)], ["more:orders", oracle.more()],
+      ["approvals", oracle.group("approvals")], ["approvals-1", oracle.child(1, "approvals")], ["more:approvals", oracle.more("approvals")],
+    ] as const
+    const record = async (stage: string) => {
+      const tabStops = Object.fromEntries(await Promise.all(nodes.map(async ([key, node]) => [key, await node.getAttribute("tabindex")])))
+      const focus = (await Promise.all(nodes.map(async ([key, node]) => await node.evaluate((element) => element.matches(":focus")) ? key : null))).find(Boolean) ?? null
+      snapshots.push({ stage, tabStops, focus })
+    }
+    await oracle.group("approvals").focus()
+    await expect(oracle.group("approvals")).toBeFocused()
+    await expect(oracle.group("approvals")).toHaveAttribute("tabindex", "0")
+    await record("beforeLoading")
+    if (reference) await oracle.setLoading(true)
+    else {
+      await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).dispatchEvent("click")
+      await expect(oracle.host().locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+    }
+    await expect(oracle.group("approvals")).toHaveAttribute("tabindex", "-1")
+    await record("afterLoading")
+    await oracle.more().focus()
+    await expect(oracle.more()).toBeFocused()
+    await record("afterMore")
+    await page.keyboard.press("ArrowUp")
+    await expect(oracle.child(2)).toBeFocused()
+    await record("afterArrowUp")
+    await oracle.clearEvents()
+    if (cancelled) await page.evaluate(() => {
+      // ItemNavigation._onkeydown still runs for cancelled events that reach the host.
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "Control" || (event.key === "ArrowDown" && event.ctrlKey)) event.preventDefault()
+      }, { capture: true })
+    })
+    for (const [stage, direction, key] of [
+      ["afterControlKeydown", "down", "Control"],
+      ["afterModifiedArrowDownKeydown", "down", "ArrowDown"],
+      ["afterModifiedArrowDownKeyup", "up", "ArrowDown"],
+      ["afterControlKeyup", "up", "Control"],
+    ] as const) {
+      await page.keyboard[direction](key)
+      await expect(oracle.child(2)).toBeFocused()
+      for (const [name, node] of nodes) await expect(node).toHaveAttribute("tabindex", name.startsWith("more:") ? "0" : "-1")
+      await record(stage)
+    }
+    await page.keyboard.down("ArrowDown")
+    if (reference) await expect(oracle.more("approvals")).toBeFocused()
+    await record("afterPlainArrowDownKeydown")
+    await page.keyboard.up("ArrowDown")
+    await record("afterPlainArrowDownKeyup")
+    const events = await page.evaluate(() => (window as any).__notificationKeyboardEvents.map((event: KeyboardEvent) => ({
+      type: event.type, key: event.key, ctrlKey: event.ctrlKey, prevented: event.defaultPrevented,
+      bubbled: (window as any).__notificationKeyboardBubbles.includes(event),
+    })))
+    if (reference) {
+      expect(events).toEqual([
+        { type: "keydown", key: "Control", ctrlKey: true, prevented: cancelled, bubbled: true },
+        { type: "keydown", key: "ArrowDown", ctrlKey: true, prevented: cancelled, bubbled: true },
+        { type: "keyup", key: "ArrowDown", ctrlKey: true, prevented: false, bubbled: true },
+        { type: "keyup", key: "Control", ctrlKey: false, prevented: false, bubbled: true },
+        { type: "keydown", key: "ArrowDown", ctrlKey: false, prevented: true, bubbled: false },
+        { type: "keyup", key: "ArrowDown", ctrlKey: false, prevented: false, bubbled: true },
+      ])
+      expect(snapshots.at(-1)).toEqual({
+        stage: "afterPlainArrowDownKeyup", focus: "more:approvals",
+        tabStops: { orders: "-1", "orders-1": "-1", "orders-2": "-1", "more:orders": "0", approvals: "-1", "approvals-1": "-1", "more:approvals": "0" },
+      })
+    }
+    runs.push({ implementation: reference ? "UI5" : "React", cancelled, snapshots, events })
+  }
+  await testInfo.attach("ignored-key-retained-index-continuation.json", { body: JSON.stringify(runs, null, 2), contentType: "application/json" })
+  console.log(`B5_IGNORED_KEY_RETAINED_INDEX_CONTINUATION ${JSON.stringify(runs)}`)
+  for (let index = 0; index < runs.length; index += 2) {
+    expect(runs[index + 1].snapshots).toEqual(runs[index].snapshots)
+    expect(runs[index + 1].events).toEqual(runs[index].events)
+  }
+})
+
 test("notification-list: unmanaged boundaries and paging preserve applied assignments until genuine group init", async ({ page }, testInfo) => {
   test.setTimeout(120_000)
   const runs: Record<string, unknown>[] = []

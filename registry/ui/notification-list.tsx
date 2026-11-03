@@ -220,23 +220,37 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
   }
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
     const target = e.target as HTMLElement
     const item = target.closest<HTMLElement>("[data-nav-key], [data-nli-growing]")
     if (!item || !e.currentTarget.contains(item)) return
     const items = notificationNavigationItems(core.rootRef.current)
-    const actualIndex = items.indexOf(item)
+    const pageItems = items.filter((el) => el.hasAttribute("data-nav-key"))
     const isGrowing = item.hasAttribute("data-nli-growing")
+    const modified = e.altKey || e.ctrlKey || e.metaKey || e.shiftKey
+    const delegated = modified || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
+    if (delegated) {
+      // NotificationListInternal.js/_onkeydown consumes plain arrows/Home/End before
+      // the ItemNavigation delegate. Every other reachable key, even ignored modifiers,
+      // runs _canNavigate -> _getCurrentItem and normalizes only the numeric index.
+      // Neither an ignored key nor failed _canNavigate calls _applyTabIndex or _init.
+      // The delegate does not check defaultPrevented. NotificationListItemBase.js/_onkeydown
+      // stops plain F2 before it; NotificationListGroupItem.js bypasses this for focused More.
+      const inheritedF2 = e.key === "F2" && !modified && !isGrowing
+      if (!inheritedF2 && pageItems.length) {
+        while (enabledItemIndex.current >= pageItems.length) enabledItemIndex.current--
+        if (enabledItemIndex.current < 0) enabledItemIndex.current = 0
+      }
+      if (e.defaultPrevented || modified || (e.key !== "PageUp" && e.key !== "PageDown")) return
+    }
+    if (e.defaultPrevented) return
+    const actualIndex = items.indexOf(item)
     const unmanaged = actualIndex === -1 && !isGrowing
     if (e.key === "PageUp" || e.key === "PageDown") {
       // List.js passes getEnabledItems to ItemNavigation.js/_handlePageUpFlat and
       // _handlePageDownFlat. NotificationListInternal.js keeps More only in
       // _allNavigationItems. _getCurrentItem normalizes the numeric index, but a
       // failed _canNavigate on More/unmanaged focus does not apply tab assignments.
-      const pageItems = items.filter((el) => el.hasAttribute("data-nav-key"))
       if (!pageItems.length) return
-      while (enabledItemIndex.current >= pageItems.length) enabledItemIndex.current--
-      if (enabledItemIndex.current < 0) enabledItemIndex.current = 0
       if (target !== item || pageItems[enabledItemIndex.current] !== item) return
       const pageIndex = pageItems.indexOf(item)
       if (pageIndex === -1) return
@@ -245,7 +259,7 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
       pageItems[next]?.focus()
       return
     }
-    const retained = items.filter((el) => el.hasAttribute("data-nav-key"))[enabledItemIndex.current]
+    const retained = pageItems[enabledItemIndex.current]
     const i = unmanaged ? items.indexOf(retained) : actualIndex
     const boundary = e.key === "Home" || e.key === "End"
     if (unmanaged) {
