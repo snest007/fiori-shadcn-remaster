@@ -720,7 +720,8 @@ test("notification-list: a local child request survives busy group state until t
   const start = child.getByRole("button", { name: "Start local child loading", exact: true })
   await start.focus()
   await expect(start).toBeFocused()
-  await expect(child).toHaveAttribute("tabindex", "0")
+  // A busy group's child is programmatically focusable but absent from outer navigation.
+  await expect(child).toHaveAttribute("tabindex", "-1")
   await start.click()
   await expect(owner).toHaveAttribute("data-loading", "")
   await expect(child).toHaveAttribute("data-loading", "")
@@ -862,6 +863,117 @@ test("notification-list: More requests preserve local child busy state unless na
     const native = matrix[index]
     const react = matrix[index + 1]
     expect({ childLoading: react.childLoading, active: react.active, inert: react.inert }, `${react.callback}, group loading=${react.loading}`).toEqual({ childLoading: native.childLoading, active: native.active, inert: native.inert })
+  }
+})
+
+test("notification-list: group tabindex transitions clear local child busy state while More focus preserves it, matching UI5", async ({ page }, testInfo) => {
+  const matrix: Record<string, unknown>[] = []
+  for (const prior of ["orders", "approvals"] as const) {
+    for (const reference of [true, false]) {
+      const oracle = await growingKeyboardOracle(page, reference)
+      await oracle.group(prior).focus()
+      await expect(oracle.group(prior)).toBeFocused()
+      await oracle.setLoading(true)
+      const beforeTabIndex = prior === "orders" ? "0" : "-1"
+      await expect(oracle.group()).toHaveAttribute("tabindex", beforeTabIndex)
+      if (reference) {
+        await oracle.host().evaluate((group: any) => {
+          ;(window as any).__notificationOwnedRenders = 0
+          const before = group.onBeforeRendering.bind(group)
+          group.onBeforeRendering = () => { (window as any).__notificationOwnedRenders++; before() }
+          group.items[0].loading = true
+        })
+      } else {
+        // This external control changes only child props and preserves the outer tab stop.
+        await growingDemo(page).getByRole("button", { name: "Toggle child loading", exact: true }).click()
+      }
+      const child = reference ? oracle.host().locator('ui5-li-notification[data-probe-key="orders-1"]') : oracle.child(1)
+      const busy = child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")
+      await expect(busy).toHaveAttribute("inert", "")
+      await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+      await oracle.more().focus()
+      await expect(oracle.more()).toBeFocused()
+      await expect(oracle.group()).toHaveAttribute("tabindex", beforeTabIndex)
+      await expect(busy).toHaveAttribute(reference ? "active" : "data-active", "")
+      if (reference) expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(0)
+      const destination = prior === "orders" ? "approvals" : "orders"
+      await oracle.group(destination).focus()
+      await expect(oracle.group(destination)).toBeFocused()
+      await expect(oracle.group()).toHaveAttribute("tabindex", prior === "orders" ? "-1" : "0")
+      if (reference) {
+        await expect(child).not.toHaveAttribute("loading")
+        await expect(busy).not.toHaveAttribute("active")
+        await expect(busy).not.toHaveAttribute("inert")
+        expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(1)
+      }
+      matrix.push({
+        implementation: reference ? "UI5" : "React", prior,
+        childLoading: await child.evaluate((node, reference) => node.hasAttribute(reference ? "loading" : "data-loading"), reference),
+        active: await busy.evaluate((node, reference) => node.hasAttribute(reference ? "active" : "data-active"), reference),
+        inert: await busy.evaluate((node) => node.hasAttribute("inert")),
+      })
+    }
+  }
+  await testInfo.attach("group-tabindex-child-loading-matrix.json", { body: JSON.stringify(matrix, null, 2), contentType: "application/json" })
+  console.log(`B5_GROUP_TABINDEX_MATRIX ${JSON.stringify(matrix)}`)
+  for (let index = 0; index < matrix.length; index += 2) {
+    const native = matrix[index]
+    const react = matrix[index + 1]
+    expect({ childLoading: react.childLoading, active: react.active, inert: react.inert }, `${react.prior} tab stop`).toEqual({ childLoading: native.childLoading, active: native.active, inert: native.inert })
+  }
+})
+
+test("notification-list: More ArrowUp preserves the outer tab stop for busy unmanaged children and keeps focus callbacks", async ({ page }, testInfo) => {
+  const matrix: Record<string, unknown>[] = []
+  for (const loading of [false, true]) {
+    for (const reference of [true, false]) {
+      const oracle = await growingKeyboardOracle(page, reference)
+      await oracle.group().focus()
+      await expect(oracle.group()).toBeFocused()
+      if (loading) await oracle.setLoading(true)
+      await expect(oracle.group()).toHaveAttribute("tabindex", "0")
+      if (reference) {
+        await oracle.host().evaluate((group: any) => {
+          ;(window as any).__notificationOwnedRenders = 0
+          ;(window as any).__notificationChildFocusCallbacks = 0
+          const before = group.onBeforeRendering.bind(group)
+          group.onBeforeRendering = () => { (window as any).__notificationOwnedRenders++; before() }
+          group.items[1].addEventListener("focusin", () => { (window as any).__notificationChildFocusCallbacks++ })
+          group.items[1].loading = true
+        })
+      } else await growingDemo(page).getByRole("button", { name: "Load last order only", exact: true }).click()
+      const child = reference ? oracle.host().locator('ui5-li-notification[data-probe-key="orders-2"]') : oracle.child(2)
+      const busy = child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")
+      await expect(busy).toHaveAttribute("inert", "")
+      await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+      await oracle.more().focus()
+      await expect(oracle.more()).toBeFocused()
+      await expect(oracle.group()).toHaveAttribute("tabindex", "0")
+      await page.keyboard.press("ArrowUp")
+      await expect(oracle.child(2)).toBeFocused()
+      if (reference) {
+        await expect(oracle.group()).toHaveAttribute("tabindex", loading ? "0" : "-1")
+        await expect(busy).toHaveAttribute("active", "")
+        await expect(busy).toHaveAttribute("inert", "")
+        expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(loading ? 0 : 1)
+        expect(await page.evaluate(() => (window as any).__notificationChildFocusCallbacks)).toBe(1)
+      } else await expect(growingDemo(page).locator("#notification-list-growing-focused")).toHaveText("Last focused notification: orders-2")
+      await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+      matrix.push({
+        implementation: reference ? "UI5" : "React", loading,
+        groupTabIndex: await oracle.group().getAttribute("tabindex"),
+        childLoading: await child.evaluate((node, reference) => node.hasAttribute(reference ? "loading" : "data-loading"), reference),
+        active: await busy.evaluate((node, reference) => node.hasAttribute(reference ? "active" : "data-active"), reference),
+        inert: await busy.evaluate((node) => node.hasAttribute("inert")),
+      })
+    }
+  }
+  await testInfo.attach("more-arrow-up-child-loading-matrix.json", { body: JSON.stringify(matrix, null, 2), contentType: "application/json" })
+  console.log(`B5_MORE_ARROW_UP_CHILD_MATRIX ${JSON.stringify(matrix)}`)
+  for (let index = 0; index < matrix.length; index += 2) {
+    const native = matrix[index]
+    const react = matrix[index + 1]
+    expect({ groupTabIndex: react.groupTabIndex, childLoading: react.childLoading, active: react.active, inert: react.inert }, `group loading=${react.loading}`).toEqual({ groupTabIndex: native.groupTabIndex, childLoading: native.childLoading, active: native.active, inert: native.inert })
   }
 })
 

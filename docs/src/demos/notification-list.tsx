@@ -20,6 +20,7 @@ function GrowingNotificationsDemo() {
   const [mounted, setMounted] = React.useState(true)
   const [requests, setRequests] = React.useState({ orders: 0, approvals: 0 })
   const [action, setAction] = React.useState("none")
+  const [focused, setFocused] = React.useState("none")
   const append = (group: "orders" | "approvals") => setItems((current) => ({ ...current, [group]: [...current[group], current[group].at(-1)! + 1] }))
   const load = (group: "orders" | "approvals") => {
     setRequests((current) => ({ ...current, [group]: current[group] + 1 }))
@@ -56,12 +57,13 @@ function GrowingNotificationsDemo() {
       >
         {(["orders", "approvals"] as const).map((group) => (
           <NotificationListGroupItem key={group} id={`notification-list-growing-${group}`} value={`growing-${group}`} titleText={`More ${group}`} growing={growing} loading={loading[group]} loadingDelay={delay} onLoadMore={() => load(group)}>
-            {items[group].map((number) => <NotificationListItem key={number} value={`${group}-${number}`} titleText={`${group} notification ${number}`} loading={childLoading && (!loadingLastOnly || (group === "orders" && number === items.orders.at(-1)))} loadingDelay={delay} showClose>{LONG}</NotificationListItem>)}
+            {items[group].map((number) => <NotificationListItem key={number} value={`${group}-${number}`} titleText={`${group} notification ${number}`} loading={childLoading && (!loadingLastOnly || (group === "orders" && number === items.orders.at(-1)))} loadingDelay={delay} onFocus={() => setFocused(`${group}-${number}`)} showClose>{LONG}</NotificationListItem>)}
           </NotificationListGroupItem>
         ))}
       </NotificationList>}
       <output id="notification-list-growing-requests">{`Requests: orders=${requests.orders}, approvals=${requests.approvals}`}</output>
       <output id="notification-list-growing-action">{`Last action: ${action}`}</output>
+      <output id="notification-list-growing-focused">{`Last focused notification: ${focused}`}</output>
     </div>
   )
 }

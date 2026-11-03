@@ -425,6 +425,16 @@ function NotificationListItem({
       aria-labelledby={labelledBy}
       className={cn("fiori-nli", className)}
       {...handlers}
+      onFocus={(e) => {
+        // NotificationListInternal.js/getEnabledItems excludes a busy group's children;
+        // ItemNavigation.js/setCurrentItem ignores their focus without changing the owner
+        // tab stop. More ArrowUp can still focus a child row. Keep the caller callback.
+        if (groupRender?.loading) {
+          onFocus?.(e)
+          return
+        }
+        handlers.onFocus(e)
+      }}
       {...props}
     >
       <div data-li-row="" className="fiori-nli__root">
@@ -591,14 +601,6 @@ function NotificationListGroupItem({
     observer.observe(items, { childList: true })
     return () => observer.disconnect()
   }, [])
-  // List.js/loadMore and NotificationListGroupItem.js/_onLoadMore only emit an event.
-  // Internal request commits and callbacks that only update an external counter must
-  // not clear local child loading. Match the owner's template inputs and real slot
-  // membership rather than treating every React render as native onBeforeRendering.
-  const groupRender = React.useMemo(() => ({ loading }), [
-    titleText ?? "", !!read, collapsed, growing, loading, loadingDelay, slotGeneration,
-    texts.group, texts.expanded, texts.collapsed, texts.toggle, texts.loading, texts.busyTitle, texts.growingButton,
-  ])
   const requestRef = React.useRef(() => {})
   requestRef.current = () => {
     if (collapsed || growing === "none") return
@@ -699,6 +701,17 @@ function NotificationListGroupItem({
     onFocus,
     onPointerDown,
   })
+  const groupTabIndex = Object.hasOwn(props, "tabIndex") ? props.tabIndex : core?.currentKey === value ? 0 : -1
+  // List.js/loadMore and NotificationListGroupItem.js/_onLoadMore only emit an event.
+  // Internal request commits and callbacks that only update an external counter must
+  // not clear local child loading. Match the owner's template inputs and real slot
+  // membership rather than treating every React render as native onBeforeRendering.
+  // ItemNavigation.js/_applyTabIndex changes decorated ListItemBase.js/forcedTabIndex,
+  // invalidating the owner too. Include its effective DOM value, with caller overrides.
+  const groupRender = React.useMemo(() => ({ loading }), [
+    titleText ?? "", !!read, collapsed, growing, loading, loadingDelay, slotGeneration, groupTabIndex,
+    texts.group, texts.expanded, texts.collapsed, texts.toggle, texts.loading, texts.busyTitle, texts.growingButton,
+  ])
   const toggle = () => {
     const next = !collapsed
     if (collapsedProp === undefined) setState(next)
@@ -718,7 +731,7 @@ function NotificationListGroupItem({
       data-loading={loading ? "" : undefined}
       data-growing={growing}
       role="listitem"
-      tabIndex={core?.currentKey === value ? 0 : -1}
+      tabIndex={groupTabIndex}
       aria-labelledby={loading ? `${id}-loading` : `${id}-title`}
       aria-description={`${texts.group} ${collapsed ? texts.collapsed : texts.expanded}`}
       aria-level={1}
