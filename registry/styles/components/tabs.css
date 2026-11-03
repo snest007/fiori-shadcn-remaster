@@ -380,20 +380,34 @@
 .fiori-tabs__separator[hidden],
 .fiori-tabs__overflow[hidden] { display: none; }
 .fiori-tabs__strip { min-width: 0; }
-.fiori-tabs__overflow { flex: 0 0 0; }
+.fiori-tabs__overflow {
+  flex: 0 0 0;
+  /* Override the reused Button's parameters so its utility classes retain UI5's overflow geometry. */
+  --fiori-button-base-height: 1.5rem;
+  --fiori-button-border-radius: .75rem;
+  --fiori-button-focused-border-radius: .75rem;
+  --fiori-button-focused-border: none;
+  --sapButton_TextColor: var(--fiori-tc-overflow-text-color);
+  --sapButton_Hover_TextColor: var(--fiori-tc-overflow-text-color);
+}
 .fiori-tabs__overflow--end { padding-inline-start: .188rem; margin-inline-end: 1rem; }
 .fiori-tabs__overflow--start { margin-inline-start: 1rem; }
-.fiori-tabs__overflow-button {
+.fiori-tabs__overflow-button,
+.fiori-tabs__overflow > [data-slot="button"] {
   height: 1.5rem;
   border-radius: .75rem;
   color: var(--fiori-tc-overflow-text-color);
 }
-.fiori-tabs__overflow-button:not(:active):hover { color: var(--fiori-tc-overflow-text-color); }
-.fiori-tabs__overflow-button:focus-visible {
-  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
-  outline-offset: .125rem;
+.fiori-tabs__overflow-button:not(:active):hover,
+.fiori-tabs__overflow > [data-slot="button"]:not(:active):hover { color: var(--fiori-tc-overflow-text-color); }
+.fiori-tabs__overflow-button:focus-visible,
+.fiori-tabs__overflow > [data-slot="button"]:focus-visible {
+  /* Button's outline-none utility resets outline-style; the overflow uses UI5's outer ring. */
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor) !important;
+  outline-offset: .125rem !important;
 }
-.fiori-tabs__overflow-button:focus-visible::after { display: none; }
+.fiori-tabs__overflow-button:focus-visible::after,
+.fiori-tabs__overflow > [data-slot="button"]:focus-visible::after { display: none; }
 /* TabInOverflow.css.js atop the reused ListItemCustom and Popover surfaces. */
 .fiori-tabs__popover { width: max-content; }
 .fiori-tabs__overflow-item { color: var(--fiori-tc-overflowitem-default-color); }

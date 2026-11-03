@@ -127,16 +127,7 @@ const itemWidth = (item: HTMLElement) => {
   return item.offsetWidth + (Number.parseInt(style.marginLeft) || 0) + (Number.parseInt(style.marginRight) || 0)
 }
 
-function tabPropsIn(children: React.ReactNode, found = new Map<string, TabsTriggerProps>()) {
-  React.Children.forEach(children, (child) => {
-    if (!React.isValidElement<{ children?: React.ReactNode }>(child)) return
-    if (child.type === TabsTrigger) {
-      const props = child.props as TabsTriggerProps
-      found.set(props.value, props)
-    } else tabPropsIn(child.props.children, found)
-  })
-  return found
-}
+const TabsStripContext = React.createContext<((props: TabsTriggerProps) => () => void) | null>(null)
 
 function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }: React.ComponentProps<"div">) {
   const ctx = useTabs("TabsList")
@@ -151,7 +142,20 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
   if (open) lastOpenSide.current = open
   const focusAfterClose = React.useRef<string | undefined>(undefined)
   const updateRef = React.useRef<() => void>(() => {})
-  const tabProps = tabPropsIn(children)
+  const [tabProps, setTabProps] = React.useState(new Map<string, TabsTriggerProps>())
+  const registerTab = React.useCallback((tab: TabsTriggerProps) => {
+    setTabProps((old) => {
+      const previous = old.get(tab.value)
+      if (previous && Object.keys(tab).every((key) => previous[key as keyof TabsTriggerProps] === tab[key as keyof TabsTriggerProps])) return old
+      return new Map(old).set(tab.value, tab)
+    })
+    return () => setTabProps((old) => {
+      if (!old.has(tab.value)) return old
+      const next = new Map(old)
+      next.delete(tab.value)
+      return next
+    })
+  }, [])
 
   React.useLayoutEffect(() => {
     const list = listRef.current
@@ -364,7 +368,7 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
         }}
       >
         {control("start")}
-        <div ref={listRef} data-slot="tabs-list" role="tablist" className={cn("fiori-tabs__strip", className)} {...props}>{children}</div>
+        <div ref={listRef} data-slot="tabs-list" role="tablist" className={cn("fiori-tabs__strip", className)} {...props}><TabsStripContext.Provider value={registerTab}>{children}</TabsStripContext.Provider></div>
         {control("end")}
       </div>
       <PopoverContent
@@ -446,6 +450,9 @@ function TabsTrigger({
   ...props
 }: TabsTriggerProps) {
   const ctx = useTabs("TabsTrigger")
+  const registerTab = React.useContext(TabsStripContext)
+  const accessibleLabel = props["aria-label"] ?? (children == null && (additionalText == null || additionalText === "") ? icon?.name : undefined)
+  React.useLayoutEffect(() => registerTab?.({ value, icon, additionalText, design, disabled, designLabel, children, "aria-label": accessibleLabel }), [registerTab, value, icon, additionalText, design, disabled, designLabel, children, accessibleLabel])
   const selected = ctx.value === value
   const id = `${ctx.baseId}-tab-${slug(value)}`
   const hasAdditional = additionalText != null && additionalText !== ""
