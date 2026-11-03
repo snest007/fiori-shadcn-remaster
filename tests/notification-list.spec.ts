@@ -43,7 +43,14 @@ async function growingKeyboardOracle(page: Page, reference: boolean) {
     })
     await page.waitForFunction(() => {
       const groups = [...document.querySelectorAll('[data-fixture="notification-list-growing-button"] ui5-li-notification-group')] as any[]
-      return groups.length === 2 && groups.every((group) => group.getGrowingButton?.()) && groups[0].items.length === 2
+      // INTEGRATION cause 4: slots are replaced after ui5-main's renderFinished().
+      // UI5Element._render -> ItemNavigation._init publishes forcedTabIndex before
+      // child rendering; wait for those native assignments before focusing a raw <li>.
+      return groups.length === 2 && groups.every((group) => group.getGrowingButton?.())
+        && groups[0].items.length === 2 && groups[1].items.length === 1
+        && groups.flatMap((group) => [group, ...group.items]).every((item) =>
+          typeof item.forcedTabIndex === "string" && item.forcedTabIndex !== ""
+          && item.getFocusDomRef()?.getAttribute("tabindex") === item.forcedTabIndex)
     })
   } else {
     await growingDemo(page).getByLabel("Load behavior").selectOption("manual")
