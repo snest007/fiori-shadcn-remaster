@@ -14,7 +14,7 @@ export type SubSpec = { text: string; value?: string; icon?: IconName; disabled?
 export type ItemSpec = SubSpec & { expanded?: boolean; href?: string; target?: string; design?: "action"; items?: SubSpec[] }
 export type GroupSpec = { group: string; expanded?: boolean; disabled?: boolean; items: ItemSpec[] }
 export type Entry = ItemSpec | GroupSpec
-export type Props = { entries: Entry[]; fixed?: Entry[]; collapsed?: boolean; selected?: string; height?: string; overflowMenu?: boolean }
+export type Props = { entries: Entry[]; fixed?: Entry[]; collapsed?: boolean; selected?: string; height?: string; overflowMenu?: boolean; overflowAnchorFocus?: boolean }
 
 export const SN_HEIGHT = "28rem"
 export const ICON_IDS: Record<IconName, string> = {
@@ -75,6 +75,9 @@ const overflowEntries: Entry[] = Array.from({ length: 10 }, (_, i) => ({
 }))
 
 const overflowMenuItemClass = "fiori-sn-menu-item [&>div>svg]:size-4 [&>div>div>svg]:size-3"
+const fixtureLink = (it: ItemSpec, row: React.ReactElement) => it.href && !it.disabled
+  ? <a key={it.text} role="menuitem" data-sn-fixture-link="" href={it.href} target={it.target} className="[color-scheme:normal] text-inherit no-underline">{row}</a>
+  : row
 
 export default defineFixtures<Props>({
   name: "side-navigation",
@@ -93,15 +96,21 @@ export default defineFixtures<Props>({
       { text: "Disabled", icon: "product", disabled: true },
       { text: "External", icon: "chainLink", href: "#external", target: "_blank" },
     ], overflowMenu: true } },
+    { id: "side-navigation-overflow-menu-external-anchor-focus", props: { entries: [
+      { text: "Disabled", icon: "product", disabled: true },
+      { text: "External", icon: "chainLink", href: "#external", target: "_blank" },
+    ], overflowMenu: true, overflowAnchorFocus: true } },
   ],
-  react: ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu }) => {
+  react: ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu, overflowAnchorFocus }) => {
     // The overflow surface is shown in place like menu.tsx; actual measurement, opening,
     // selection and submenus are exercised through the real navigation in its behaviour spec.
     if (overflowMenu) return (
       <div className={inPlace}>
         <Menu open modal={false}>
-          <MenuContent portal={false} preventInitialFocus aria-label="Navigation" className="fiori-sn-menu w-56">
-            <MenuGroup>
+          <MenuContent portal={false} preventInitialFocus aria-label="Navigation" className="fiori-sn-menu w-56" ref={(node) => {
+            if (node && overflowAnchorFocus) requestAnimationFrame(() => node.querySelector<HTMLAnchorElement>("[data-sn-fixture-link]")?.focus({ preventScroll: true }))
+          }}>
+            <MenuGroup className="overflow-auto">
               {(entries as ItemSpec[]).map((it) => it.items?.length ? (
                 <MenuSub key={it.text}>
                   <MenuSubTrigger icon={iconData(it.icon)} className={overflowMenuItemClass}>{it.text}</MenuSubTrigger>
@@ -112,10 +121,10 @@ export default defineFixtures<Props>({
                     </MenuGroup>
                   </MenuSubContent>
                 </MenuSub>
-              ) : <MenuItem key={it.text} icon={iconData(it.icon)} disabled={it.disabled} className={overflowMenuItemClass}
+              ) : fixtureLink(it, <MenuItem key={it.text} icon={iconData(it.icon)} disabled={it.disabled} className={overflowMenuItemClass}
                 additionalText={it.href && it.target === "_blank" ? <Icon icon={icons.arrowRight} className="fiori-sn-menu-external" style={{ width: "1rem", height: "0.875rem" }} /> : undefined}>
                 {it.text}
-              </MenuItem>)}
+              </MenuItem>))}
             </MenuGroup>
           </MenuContent>
         </Menu>

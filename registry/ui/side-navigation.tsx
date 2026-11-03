@@ -163,17 +163,19 @@ function useRovingList() {
   }
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return
+    // ItemNavigation.js _onkeydown uses unmodified Keys.js navigation predicates.
+    if (e.defaultPrevented || hasNavigationModifiers(e)) return
     const items = listItems(e.currentTarget).filter((el) => !el.hasAttribute("data-sn-unfocusable"))
     const index = items.indexOf(document.activeElement as HTMLElement)
     if (index < 0) return
+    const key = navigationKey(e)
     let next = -1
-    if (e.key === "ArrowDown") next = Math.min(index + 1, items.length - 1)
-    else if (e.key === "ArrowUp") next = Math.max(index - 1, 0)
-    else if (e.key === "Home") next = 0
-    else if (e.key === "End") next = items.length - 1
-    else if (e.key === "PageDown") next = Math.min(index + PAGE_SIZE, items.length - 1)
-    else if (e.key === "PageUp") next = Math.max(index - PAGE_SIZE, 0)
+    if (key === "ArrowDown") next = Math.min(index + 1, items.length - 1)
+    else if (key === "ArrowUp") next = Math.max(index - 1, 0)
+    else if (key === "Home") next = 0
+    else if (key === "End") next = items.length - 1
+    else if (key === "PageDown") next = Math.min(index + PAGE_SIZE, items.length - 1)
+    else if (key === "PageUp") next = Math.max(index - PAGE_SIZE, 0)
     else return
     e.preventDefault()
     items[next].focus()
@@ -321,15 +323,161 @@ function isGroupElement(el: React.ReactElement) {
   return el.type === SideNavigationGroup
 }
 
+type NavigationKeyEvent = Pick<KeyboardEvent, "key" | "shiftKey" | "altKey" | "ctrlKey" | "metaKey">
+
+function navigationKey(e: NavigationKeyEvent) {
+  return ({ Left: "ArrowLeft", Right: "ArrowRight", Up: "ArrowUp", Down: "ArrowDown", Esc: "Escape", Spacebar: " " } as Record<string, string>)[e.key] ?? e.key
+}
+
+function hasNavigationModifiers(e: NavigationKeyEvent) {
+  return e.shiftKey || e.altKey || e.ctrlKey || e.metaKey
+}
+
 // Keys.js isSpace / isEnter{,Shift,Ctrl,Alt}, used by NavigationMenuItem.js and
 // SideNavigationSelectableItemBase.js: Space has no modifiers; Enter accepts at most one
 // modifier family. getCtrlKey combines Ctrl and Meta, so Ctrl+Meta is still one family.
-function isNavigationSpace(e: React.KeyboardEvent) {
-  return (e.key === " " || e.key === "Spacebar") && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey
+function isNavigationSpace(e: NavigationKeyEvent) {
+  return navigationKey(e) === " " && !hasNavigationModifiers(e)
 }
 
-function isNavigationEnter(e: React.KeyboardEvent) {
+function isNavigationEnter(e: NavigationKeyEvent) {
   return e.key === "Enter" && Number(e.shiftKey) + Number(e.altKey) + Number(e.ctrlKey || e.metaKey) <= 1
+}
+
+const navigationKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"]
+type OverflowKeyboard = {
+  menus: Map<HTMLElement, { close: () => void; inSubmenu: boolean }>
+  submenus: Map<HTMLElement, () => void>
+  restoringFocus: boolean
+  nativeTabFocus: boolean
+}
+
+function useOverflowKeyboard() {
+  const keyboard = React.useRef<OverflowKeyboard>({ menus: new Map(), submenus: new Map(), restoringFocus: false, nativeTabFocus: false })
+  React.useEffect(() => {
+    let tabFrame: number | undefined
+    // Install while More is closed, before Radix's document Escape listener. UI5's
+    // OpenedPopupsRegistry.js _keydownListener closes only plain Escape without preventing
+    // its browser default. Capture also blocks inherited typeahead/modified-key handlers
+    // without blanket preventDefault; only this overflow's registered surfaces are affected.
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target
+      if (!(target instanceof HTMLElement)) return
+      const menu = target.closest<HTMLElement>("[data-sn-overflow-menu]")
+      const entry = menu && keyboard.current.menus.get(menu)
+      if (!menu || !entry) return
+      const key = navigationKey(e)
+      if (key === "Escape") {
+        e.stopImmediatePropagation()
+        // OpenedPopupsRegistry.js closes the topmost popup even if its owning row has focus.
+        if (!hasNavigationModifiers(e)) [...keyboard.current.menus.values()].at(-1)?.close()
+        return
+      }
+      if (key === "Tab" && (e.ctrlKey || e.metaKey || e.altKey)) {
+        // Keys.js ignores these combinations. Their native Tab default can still move focus;
+        // keep the popups open during that transfer instead of inheriting Radix's dismissal.
+        e.stopImmediatePropagation()
+        keyboard.current.nativeTabFocus = true
+        if (tabFrame !== undefined) cancelAnimationFrame(tabFrame)
+        tabFrame = requestAnimationFrame(() => { keyboard.current.nativeTabFocus = false })
+        return
+      }
+      if ((navigationKeys.includes(key) && hasNavigationModifiers(e))
+        || (key === "Enter" && !isNavigationEnter(e))
+        || (key === " " && !isNavigationSpace(e))
+        || (key.length === 1 && key !== " ")) {
+        e.stopImmediatePropagation()
+        return
+      }
+      const items = [...menu.querySelectorAll<HTMLElement>("[data-sn-menu-row]")]
+        .filter((item) => item.closest("[data-sn-overflow-menu]") === menu)
+      const item = target.closest<HTMLElement>("[data-sn-menu-row]")
+        ?? target.closest("[data-sn-menu-link]")?.querySelector<HTMLElement>("[data-sn-menu-row]")
+      const index = item ? items.indexOf(item) : -1
+      if (index < 0) {
+        if (navigationKeys.includes(key) || key === "Tab" || key === "Enter" || key === " ") e.stopImmediatePropagation()
+        return
+      }
+      if (key === "Tab") {
+        // Menu.js _itemKeyDown prevents root Tab. MenuItem.js _itemKeyDown instead
+        // closes only its submenu and leaves Tab's browser default available.
+        if (!entry.inSubmenu) e.preventDefault()
+        e.stopImmediatePropagation()
+        entry.close()
+        return
+      }
+      if (target !== item && key === "Enter" && !hasNavigationModifiers(e)) {
+        // Menu.js prevents plain Enter on the item host. Its outer href anchor does not
+        // invoke NavigationMenuItem's inner-LI activation handler.
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        return
+      }
+      const rtl = getComputedStyle(menu).direction === "rtl"
+      if (key === (rtl ? "ArrowLeft" : "ArrowRight")) {
+        // Menu.js _itemKeyDown opens a parent with the plain opening arrow, without
+        // preventing the default. Leaves (and SideNavigation's depth-two rows) do nothing.
+        e.stopImmediatePropagation()
+        keyboard.current.submenus.get(item!)?.()
+        return
+      }
+      if (key === (rtl ? "ArrowRight" : "ArrowLeft")) {
+        e.stopImmediatePropagation()
+        if (entry.inSubmenu) entry.close()
+        return
+      }
+      let next = -1
+      // ItemNavigation.js _canNavigate requires the item's actual focus DOM. Native href
+      // anchors stay separate tab stops; they do not participate in row arrow navigation.
+      if (target !== item && navigationKeys.includes(key)) {
+        e.stopImmediatePropagation()
+        return
+      }
+      if (key === "ArrowUp") next = Math.max(index - 1, 0)
+      else if (key === "ArrowDown") next = Math.min(index + 1, items.length - 1)
+      else if (key === "Home") next = 0
+      else if (key === "End") next = items.length - 1
+      else if (key === "PageUp" || key === "PageDown") {
+        // Menu.js _updatePageSize uses visibleCount - 1; nested MenuItem lists retain
+        // List.js's ten-row page. ItemNavigation.js clamps and never cycles.
+        const visibleCount = Math.round(menu.getBoundingClientRect().height / items[0].offsetHeight)
+        const pageSize = entry.inSubmenu ? PAGE_SIZE : visibleCount > 1 ? visibleCount - 1 : null
+        next = pageSize === null ? (key === "PageUp" ? 0 : items.length - 1)
+          : Math.max(0, Math.min(index + (key === "PageUp" ? -pageSize : pageSize), items.length - 1))
+      }
+      if (next >= 0) {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        items[next].focus({ preventScroll: true })
+      }
+    }
+    document.addEventListener("keydown", onKeyDown, true)
+    return () => {
+      document.removeEventListener("keydown", onKeyDown, true)
+      if (tabFrame !== undefined) cancelAnimationFrame(tabFrame)
+      keyboard.current.nativeTabFocus = false
+    }
+  }, [])
+  return keyboard
+}
+
+function OverflowFocusBoundary() {
+  return <div role="none" tabIndex={0} data-sn-focus-boundary="" className="fixed" onFocus={(e) => {
+    // ListTemplate.js renders tabbable before/after dummies. List.js _onfocusin forwards
+    // either boundary to its first focusable row when no Tab-forwarded previous row exists.
+    e.stopPropagation()
+    e.currentTarget.closest("[data-sn-overflow-menu]")?.querySelector<HTMLElement>("[data-sn-menu-row]")?.focus({ preventScroll: true })
+  }} />
+}
+
+function OverflowLink({ item, children }: { item: SideNavigationItemProps; children: React.ReactElement }) {
+  // NavigationMenuItemTemplate.js keeps a naturally tabbable href anchor outside its
+  // roving LI. The LI still owns Enter/Space activation; native pointer navigation runs once.
+  // NavigationMenuItem.css.js leaves the anchor's UA focus outline in the normal browser
+  // scheme. Neutralize fiori.css's global dark scheme for that native outline only.
+  return item.href && !item.disabled
+    ? <a role="menuitem" data-sn-menu-link="" href={item.href} target={item.target} className="[color-scheme:normal] text-inherit no-underline">{children}</a>
+    : children
 }
 
 function OverflowItem({ ref, items, listRef }: {
@@ -339,12 +487,22 @@ function OverflowItem({ ref, items, listRef }: {
 }) {
   const root = useRoot()
   const [open, setOpen] = React.useState(false)
+  const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr")
+  const triggerRef = React.useRef<HTMLDivElement>(null)
   const [menuItems, setMenuItems] = React.useState<SideNavigationItemProps[]>([])
   const selectedFromMenu = React.useRef(false)
   const menuRef = React.useRef<HTMLDivElement>(null)
+  const keyboard = useOverflowKeyboard()
+  const setMenuRef = React.useCallback((node: HTMLDivElement | null) => {
+    if (menuRef.current) keyboard.current.menus.delete(menuRef.current)
+    menuRef.current = node
+    if (node) keyboard.current.menus.set(node, { close: () => setOpen(false), inSubmenu: false })
+  }, [keyboard])
   const id = React.useId()
   const changeOpen = (next: boolean) => {
     if (next) {
+      // NavigationMenu inherits its owning SideNavigation's effective direction.
+      setDirection(getComputedStyle(triggerRef.current!).direction === "rtl" ? "rtl" : "ltr")
       root.setPopoverKey(null)
       selectedFromMenu.current = false
       setMenuItems(items.map((host) => root.collapsedItems.current.get(host)).filter((item): item is SideNavigationItemProps => !!item))
@@ -355,16 +513,17 @@ function OverflowItem({ ref, items, listRef }: {
   // Override Menu's normal enabled-first focus without changing the shared Menu component.
   const initialFocus = { onOpenAutoFocus: (e: Event) => {
     e.preventDefault()
-    menuRef.current?.querySelector<HTMLElement>('[role^="menuitem"]')?.focus({ preventScroll: true })
+    menuRef.current?.querySelector<HTMLElement>("[data-sn-menu-row]")?.focus({ preventScroll: true })
   } }
   React.useEffect(() => {
     if (!items.length) setOpen(false)
   }, [items.length])
   return (
     <div ref={ref} role="none" data-kind="item" data-sn-overflow="" className="fiori-sn-host fiori-sn-overflow">
-      <Menu open={open} onOpenChange={changeOpen} modal={false}>
+      <Menu open={open} onOpenChange={changeOpen} modal={false} dir={direction}>
         <MenuTrigger asChild>
           <div
+            ref={triggerRef}
             data-slot="side-navigation-overflow"
             data-sn-nav=""
             data-level="1"
@@ -391,10 +550,19 @@ function OverflowItem({ ref, items, listRef }: {
               e.stopPropagation()
               changeOpen(true)
             }}
+            onKeyDownCapture={(e) => {
+              // Keys.js: modified navigation and unsupported activation keys are ignored.
+              // Stop before Radix Trigger's raw key handlers while retaining browser defaults.
+              const key = navigationKey(e)
+              if ((navigationKeys.includes(key) && hasNavigationModifiers(e))
+                || (key === " " && !isNavigationSpace(e))
+                || (key === "Enter" && !isNavigationEnter(e))) e.stopPropagation()
+            }}
             onKeyDown={(e) => {
               // SideNavigationSelectableItemBase.js _onkeydown does not open More on Down.
               // Own activation so Radix's raw key match cannot open for unsupported modifiers.
-              if (e.key === "ArrowDown" || e.key === " " || e.key === "Spacebar") e.preventDefault()
+              const key = navigationKey(e)
+              if (key === "ArrowDown" || key === " " || key === "ArrowLeft" || key === "ArrowRight") e.preventDefault()
               if (e.key === "Enter") {
                 if (isNavigationEnter(e)) changeOpen(true)
                 e.preventDefault()
@@ -411,7 +579,12 @@ function OverflowItem({ ref, items, listRef }: {
             <div id={`${id}-text`} className="fiori-sn-item__text">{root.texts.overflowText}</div>
           </div>
         </MenuTrigger>
-        <MenuContent ref={menuRef} side="right" align="center" aria-label={root.texts.overflowMenuLabel} aria-labelledby={undefined} className="fiori-sn-menu" {...initialFocus}
+        <MenuContent ref={setMenuRef} data-sn-overflow-menu="" side="right" align="center" aria-label={root.texts.overflowMenuLabel} aria-labelledby={undefined} className="fiori-sn-menu" {...initialFocus}
+          onFocusOutside={(e) => {
+            // Nested Tab keeps its browser default while MenuItem.js restores its parent
+            // after rendering. Do not dismiss the root during that transient focus transfer.
+            if (keyboard.current.restoringFocus || keyboard.current.nativeTabFocus) e.preventDefault()
+          }}
           onCloseAutoFocus={(e) => {
             // SideNavigation.js _onMenuClose: after selection focus the newly visible selected
             // parent, rather than restoring focus to More. Escape restores the trigger normally.
@@ -419,17 +592,22 @@ function OverflowItem({ ref, items, listRef }: {
             e.preventDefault()
             if (listRef.current) listItems(listRef.current).find((item) => item.getAttribute("aria-current") === "page")?.focus({ preventScroll: true })
           }}>
-          <MenuGroup>
-            {menuItems.map((item, i) => <OverflowMenuItem key={i} item={item} onSelected={() => { selectedFromMenu.current = true }} close={() => setOpen(false)} />)}
+          <OverflowFocusBoundary />
+          {/* ListTemplate.js/List.css.js wrap rows in an overflow:auto scroll container,
+              which also clips the outer href anchor's native focus outline. */}
+          <MenuGroup className="overflow-auto">
+            {menuItems.map((item, i) => <OverflowMenuItem key={i} item={item} keyboard={keyboard} onSelected={() => { selectedFromMenu.current = true }} close={() => setOpen(false)} />)}
           </MenuGroup>
+          <OverflowFocusBoundary />
         </MenuContent>
       </Menu>
     </div>
   )
 }
 
-function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmenu = false }: {
+function OverflowMenuItem({ item, keyboard, onSelected, close, parentRow = false, inSubmenu = false }: {
   item: SideNavigationItemProps
+  keyboard: React.RefObject<OverflowKeyboard>
   onSelected: () => void
   close: () => void
   parentRow?: boolean
@@ -440,13 +618,50 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmen
   const hasSubmenu = subs.length > 0 && !parentRow
   const [submenuOpen, setSubmenuOpen] = React.useState(false)
   const focusSubmenuOnMount = React.useRef(false)
+  const restoreSubmenuFocus = React.useRef(false)
+  const submenuTrigger = React.useRef<HTMLDivElement>(null)
+  const submenuElement = React.useRef<HTMLDivElement>(null)
+  React.useLayoutEffect(() => {
+    if (submenuOpen) {
+      restoreSubmenuFocus.current = false
+      keyboard.current.restoringFocus = false
+      return
+    }
+    if (!restoreSubmenuFocus.current) return
+    // MenuItem.js focus awaits renderFinished: use the frame after the closed render so
+    // nested Tab's native default finishes before final focus returns to the owning parent.
+    const frame = requestAnimationFrame(() => {
+      restoreSubmenuFocus.current = false
+      submenuTrigger.current?.focus({ preventScroll: true })
+      keyboard.current.restoringFocus = false
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      keyboard.current.restoringFocus = false
+    }
+  }, [keyboard, submenuOpen])
+  const triggerRef = React.useCallback((node: HTMLDivElement | null) => {
+    if (submenuTrigger.current) keyboard.current.submenus.delete(submenuTrigger.current)
+    submenuTrigger.current = node
+    if (node) keyboard.current.submenus.set(node, () => {
+      focusSubmenuOnMount.current = !submenuOpen
+      setSubmenuOpen(true)
+    })
+  }, [keyboard, submenuOpen])
   const submenuRef = React.useCallback((node: HTMLDivElement | null) => {
+    if (submenuElement.current) keyboard.current.menus.delete(submenuElement.current)
+    submenuElement.current = node
+    if (node) keyboard.current.menus.set(node, { close: () => {
+      restoreSubmenuFocus.current = true
+      keyboard.current.restoringFocus = true
+      setSubmenuOpen(false)
+    }, inSubmenu: true })
     // MenuItem.js _afterPopoverOpen focuses the first row for explicit activation.
     if (node && focusSubmenuOnMount.current) {
       focusSubmenuOnMount.current = false
-      node.querySelector<HTMLElement>('[role^="menuitem"]')?.focus({ preventScroll: true })
+      node.querySelector<HTMLElement>("[data-sn-menu-row]")?.focus({ preventScroll: true })
     }
-  }, [])
+  }, [keyboard])
   const descriptionId = React.useId()
   const activate = (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
     e.stopPropagation()
@@ -471,22 +686,17 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmen
       close()
     }
     // NavigationMenuItem.js _onkeyup explicitly clicks the enclosing anchor for plain Space.
-    // Enter activates the focused native-li without clicking its ancestor anchor; pointer clicks
-    // retain their native link action. Keep navigation after activation and preserve click modifiers.
-    if (item.href && !e.defaultPrevented && (e.type === "click" || ("key" in e && isNavigationSpace(e)))) {
-      const link = document.createElement("a")
-      link.href = item.href
-      if (item.target) link.target = item.target
-      link.dispatchEvent(new MouseEvent("click", {
-        bubbles: true, cancelable: true,
-        altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey,
-      }))
+    // Enter activates the focused native-li without clicking its ancestor anchor. Pointer
+    // clicks use the native wrapper's default action, including modifiers and cancellation.
+    if (item.href && !e.defaultPrevented && "key" in e && isNavigationSpace(e)) {
+      e.currentTarget.closest("[data-sn-menu-link]")?.dispatchEvent(new MouseEvent("click", { cancelable: true }))
     }
   }
   const common = {
     // Menu.js _navigatableMenuItems includes disabled rows. Keep the Radix collection enabled
     // for focus and navigation, expose the disabled state, and block only activation below.
     disabled: false,
+    "data-sn-menu-row": "",
     "data-disabled": item.disabled ? "" : undefined,
     "aria-disabled": item.disabled || undefined,
     "aria-label": item.accessibleName,
@@ -527,20 +737,25 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmen
   // navigation action at the beginning of its submenu, before its sub-items.
   if (hasSubmenu) return (
     <MenuSub open={submenuOpen} onOpenChange={setSubmenuOpen}>
-      <MenuSubTrigger {...common} onClick={activate} aria-describedby={!item.unselectable ? descriptionId : undefined}>
+      <OverflowLink item={item}><MenuSubTrigger ref={triggerRef} {...common} onClick={activate} aria-describedby={!item.unselectable ? descriptionId : undefined}>
         {item.text}{item.tag && <span className="fiori-sn-menu-tag">{item.tag}</span>}
-      </MenuSubTrigger>
+      </MenuSubTrigger></OverflowLink>
       {!item.unselectable && <span id={descriptionId} className="fiori-sn-hidden-text">{root.texts.overflowParentDescription}</span>}
-      <MenuSubContent ref={submenuRef} aria-label={item.accessibleName || item.text} aria-labelledby={undefined} className="fiori-sn-menu">
-        <MenuGroup>
-          {!item.unselectable && <OverflowMenuItem item={item} parentRow inSubmenu onSelected={onSelected} close={close} />}
-          {subs.map((sub, i) => <OverflowMenuItem key={i} item={{ ...sub, disabled: item.disabled || sub.disabled }} inSubmenu onSelected={onSelected} close={close} />)}
+      <MenuSubContent ref={submenuRef} data-sn-overflow-menu="" aria-label={item.accessibleName || item.text} aria-labelledby={undefined} className="fiori-sn-menu"
+        onFocusOutside={(e) => {
+          if (keyboard.current.nativeTabFocus) e.preventDefault()
+        }}>
+        <OverflowFocusBoundary />
+        <MenuGroup className="overflow-auto">
+          {!item.unselectable && <OverflowMenuItem item={item} keyboard={keyboard} parentRow inSubmenu onSelected={onSelected} close={close} />}
+          {subs.map((sub, i) => <OverflowMenuItem key={i} item={{ ...sub, disabled: item.disabled || sub.disabled }} keyboard={keyboard} inSubmenu onSelected={onSelected} close={close} />)}
         </MenuGroup>
+        <OverflowFocusBoundary />
       </MenuSubContent>
     </MenuSub>
   )
   return (
-    <MenuItem {...common}
+    <OverflowLink item={item}><MenuItem {...common}
       onClick={activate}
       additionalText={item.href && item.target === "_blank" ? <SnIcon icon={arrowRight} className="fiori-sn-menu-external" /> : undefined}
       onSelect={(e) => {
@@ -548,7 +763,7 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmen
         e.preventDefault()
       }}>
       {item.text}{item.tag && <span className="fiori-sn-menu-tag">{item.tag}</span>}
-    </MenuItem>
+    </MenuItem></OverflowLink>
   )
 }
 

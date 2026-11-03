@@ -19,12 +19,13 @@ import "@ui5/webcomponents-icons/dist/navigation-right-arrow.js"
 import "@ui5/webcomponents-icons/dist/navigation-down-arrow.js"
 import "@ui5/webcomponents-icons/dist/arrow-right.js"
 import "@ui5/webcomponents-icons/dist/overflow.js"
+import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 
 import { defineUi5, h } from "../fixture-types"
 import { showShadowPopupInPlace } from "./ui5-popup-in-place"
 import set, { ICON_IDS, SN_HEIGHT, isGroup, type Entry, type ItemSpec, type SubSpec } from "./side-navigation"
 
-export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu }) => {
+export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu, overflowAnchorFocus }) => {
   if (overflowMenu) {
     // SideNavigationPopoverTemplate.js renderMenuItem: NavigationMenu is the real overflow
     // surface, with a duplicated selectable parent row at the beginning of each submenu.
@@ -38,7 +39,21 @@ export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = S
       ...(!it.unselectable ? [h("ui5-navigation-menu-item", { text: it.text, class: "ui5-navigation-menu-item-root-parent" })] : []),
       ...it.items.map(menuItem),
     ] : []))
-    return showShadowPopupInPlace(h("ui5-navigation-menu", {}, ...(entries as ItemSpec[]).map(menuItem)), ".ui5-menu-rp", "14rem")
+    const host = h("ui5-navigation-menu", {}, ...(entries as ItemSpec[]).map(menuItem))
+    const frame = showShadowPopupInPlace(host, ".ui5-menu-rp", "14rem")
+    if (overflowAnchorFocus) {
+      const focusAnchor = async (tries = 0): Promise<void> => {
+        await renderFinished()
+        const link = host.querySelector("ui5-navigation-menu-item[href]")?.shadowRoot?.querySelector<HTMLAnchorElement>("a")
+        if (link) link.focus({ preventScroll: true })
+        else if (tries < 100) {
+          await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+          return focusAnchor(tries + 1)
+        } else throw new Error("SideNavigation overflow fixture anchor did not render")
+      }
+      void focusAnchor()
+    }
+    return frame
   }
   const sub = (s: SubSpec) =>
     h("ui5-side-navigation-sub-item", {

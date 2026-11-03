@@ -24,7 +24,7 @@ function SideNavigationDemo() {
           Collapsed
         </Button>
         <Button id="side-navigation-demo-prevent-events" aria-pressed={preventEventsSelection} onClick={() => setPreventEventsSelection((prevent) => !prevent)}>
-          Prevent Events selection
+          Prevent Events selection / links
         </Button>
         <Button id="side-navigation-demo-resize" aria-pressed={short} onClick={() => setShort((s) => !s)}>
           Short height
@@ -71,7 +71,10 @@ function SideNavigationDemo() {
           <SideNavigationGroup text="Archive">
             <SideNavigationItem text="History" value="history" icon={history} onClick={recordModifiers} />
           </SideNavigationGroup>
-          <SideNavigationItem text="SAP Community" icon={chainLink} href="https://community.sap.com" target="_blank" />
+          <SideNavigationItem text="SAP Community" icon={chainLink} href="https://community.sap.com" target="_blank" onClick={(e) => {
+            recordModifiers(e)
+            if (preventEventsSelection) e.preventDefault()
+          }} />
         </SideNavigation>
       </div>
     </div>
