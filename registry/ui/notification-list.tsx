@@ -169,6 +169,19 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
     const items = notificationNavigationItems(core.rootRef.current)
     const i = items.indexOf(item)
     if (i === -1) return
+    if (e.key === "PageUp" || e.key === "PageDown") {
+      if (e.shiftKey || target !== item) return
+      // List.js passes getEnabledItems to ItemNavigation.js/_handlePageUpFlat and
+      // _handlePageDownFlat. NotificationListInternal.js keeps More only in
+      // _allNavigationItems; _canNavigate leaves page keys on More uncancelled.
+      const pageItems = items.filter((el) => el.hasAttribute("data-nav-key"))
+      const pageIndex = pageItems.indexOf(item)
+      if (pageIndex === -1) return
+      const next = e.key === "PageUp" ? Math.max(pageIndex - PAGE_SIZE, 0) : Math.min(pageIndex + PAGE_SIZE, pageItems.length - 1)
+      e.preventDefault()
+      pageItems[next]?.focus()
+      return
+    }
     const isGroup = (el?: HTMLElement) => el?.hasAttribute("data-nli-group")
     const up = e.key === "ArrowUp" || e.key === "ArrowLeft"
     const down = e.key === "ArrowDown" || e.key === "ArrowRight"
@@ -188,8 +201,6 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
     let to: number
     if (up) to = i - 1
     else if (down) to = i + 1
-    else if (e.key === "PageUp") to = Math.max(i - PAGE_SIZE, 0)
-    else if (e.key === "PageDown") to = Math.min(i + PAGE_SIZE, items.length - 1)
     else if (e.key === "Home") {
       e.preventDefault()
       if (isGroup(item)) return

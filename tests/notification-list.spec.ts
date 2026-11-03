@@ -280,6 +280,50 @@ test("notification-list: loading delays an inline spinner and leaves More enable
   await expect(growingItem(page, 1).getByRole("button", { name: "Details button. Show the full texts" })).toHaveText("Details")
 })
 
+test("notification-list: page keys clamp to real items and leave More uncancelled, matching UI5", async ({ page }) => {
+  for (const reference of [false, true]) {
+    await page.goto(reference ? "/ui5.html?only=notification-list-growing-button" : "/index.html?fixtures&only=notification-list-growing-button")
+    await page.waitForSelector("html[data-ready=true]")
+    const fixture = page.locator('[data-fixture="notification-list-growing-button"]')
+    const child = fixture.locator(reference ? "ui5-li-notification .ui5-nli-root" : '[data-slot="notification-list-item"]')
+    const more = fixture.getByRole("button", { name: "More", exact: true })
+    await page.evaluate(() => {
+      ;(window as any).__notificationPageKeyEvents = []
+      window.addEventListener("keydown", (event) => {
+        if (event.key === "PageUp" || event.key === "PageDown") (window as any).__notificationPageKeyEvents.push({ key: event.key, defaultPrevented: event.defaultPrevented })
+      })
+    })
+    await child.focus()
+    await expect(child).toBeFocused()
+    await page.keyboard.press("PageDown")
+    await expect(child).toBeFocused()
+    await more.focus()
+    await expect(more).toBeFocused()
+    for (const key of ["PageUp", "PageDown", "Shift+PageUp", "Shift+PageDown"]) {
+      await page.keyboard.press(key)
+      await expect(more).toBeFocused()
+      expect(await page.evaluate(() => (window as any).__notificationPageKeyEvents.at(-1).defaultPrevented)).toBe(false)
+    }
+  }
+})
+
+test("notification-list: page jumps count ten real items across group growing controls", async ({ page }) => {
+  for (let number = 2; number <= 10; number++) {
+    await growingDemo(page).getByRole("button", { name: "Append approvals", exact: true }).click()
+    await expect(growingItem(page, number, "approvals")).toHaveCount(1)
+  }
+  await growingItem(page, 1).focus()
+  await expect(growingItem(page, 1)).toBeFocused()
+  await page.keyboard.press("PageDown")
+  await expect(growingItem(page, 8, "approvals")).toBeFocused()
+  await page.keyboard.press("PageUp")
+  await expect(growingItem(page, 1)).toBeFocused()
+  for (const key of ["Shift+PageUp", "Shift+PageDown", "Alt+PageUp", "Alt+PageDown", "Control+PageUp", "Control+PageDown", "Meta+PageUp", "Meta+PageDown"]) {
+    await page.keyboard.press(key)
+    await expect(growingItem(page, 1)).toBeFocused()
+  }
+})
+
 test("notification-list: UI5 defaults keep the busy title separate from the group's hidden loading name", async ({ page }) => {
   for (const reference of [false, true]) {
     await page.goto(reference ? "/ui5.html?only=notification-list-growing-button-loading" : "/index.html?fixtures&only=notification-list-growing-button-loading")
