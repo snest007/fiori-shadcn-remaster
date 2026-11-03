@@ -324,4 +324,42 @@ test.describe("collapsed", () => {
     const pop = page.getByRole("dialog", { name: "Navigation" })
     await expect(pop.getByRole("treeitem", { name: "Local", exact: true })).toBeFocused()
   })
+
+  for (const key of ["Enter", "Space", "click"]) {
+    for (const canceled of [false, true]) {
+      test(`overflow parent ${key} invokes click once, opens its submenu, and ${canceled ? "cancels" : "allows"} selection`, async ({ page }) => {
+        await page.locator("#side-navigation-demo-resize").click()
+        if (canceled) {
+          const preventSelection = page.locator("#side-navigation-demo-prevent-events")
+          await preventSelection.click()
+          await expect(preventSelection).toHaveAttribute("aria-pressed", "true")
+        }
+        const more = nav(page).getByRole("menuitem", { name: "More Items", exact: true })
+        await expect(more).toBeVisible()
+        await more.click()
+        const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+        const events = menu.getByRole("menuitem", { name: "Events", exact: true })
+        await events.focus()
+        await expect(events).toBeFocused()
+        const submenu = page.getByRole("menu", { name: "Events", exact: true })
+        await expect(submenu).toHaveCount(0)
+        if (key === "click") await events.click()
+        else await page.keyboard.press(key)
+        const parentAction = submenu.getByRole("menuitem", { name: "Events", exact: true })
+        await expect(parentAction).toBeFocused()
+        await expect(events).toHaveAttribute("aria-expanded", "true")
+        await expect(page.getByTestId("side-navigation-demo-events-clicks")).toHaveText("1")
+        await expect(page.getByTestId("side-navigation-demo-clicks")).toHaveText("1")
+        await expect(value(page)).toHaveText("home")
+        if (key === "click") await parentAction.click()
+        else await page.keyboard.press(key)
+        await expect(menu).toHaveCount(0)
+        await expect(submenu).toHaveCount(0)
+        await expect(page.getByTestId("side-navigation-demo-events-clicks")).toHaveText("2")
+        await expect(page.getByTestId("side-navigation-demo-clicks")).toHaveText("2")
+        await expect(value(page)).toHaveText(canceled ? "home" : "events")
+        await expect(canceled ? more : nav(page).getByRole("menuitemradio", { name: "Events", exact: true })).toBeFocused()
+      })
+    }
+  }
 })

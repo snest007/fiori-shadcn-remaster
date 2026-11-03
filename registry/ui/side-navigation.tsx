@@ -408,16 +408,31 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
 }) {
   const root = useRoot()
   const subs = subItemProps(item.children)
+  const hasSubmenu = subs.length > 0 && !parentRow
+  const [submenuOpen, setSubmenuOpen] = React.useState(false)
+  const focusSubmenuOnMount = React.useRef(false)
+  const submenuRef = React.useCallback((node: HTMLDivElement | null) => {
+    // MenuItem.js _afterPopoverOpen focuses the first row for explicit activation, while hover keeps trigger focus.
+    if (node && focusSubmenuOnMount.current) {
+      focusSubmenuOnMount.current = false
+      node.querySelector<HTMLElement>('[role^="menuitem"]')?.focus({ preventScroll: true })
+    }
+  }, [])
   const descriptionId = React.useId()
   const activate = (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
+    e.stopPropagation()
     if (item.disabled) {
       e.preventDefault()
-      e.stopPropagation()
       return
     }
     item.onClick?.(e)
     root.itemClick(item.value, e)
-    if (e.defaultPrevented && (!subs.length || parentRow)) close()
+    // NavigationMenuItem.js _activate fires click before opening a submenu, even when click is canceled.
+    if (hasSubmenu) {
+      focusSubmenuOnMount.current = !submenuOpen
+      setSubmenuOpen(true)
+    }
+    else if (e.defaultPrevented) close()
   }
   const common = {
     // Menu.js _navigatableMenuItems includes disabled rows. Keep the Radix collection enabled
@@ -434,6 +449,11 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
     onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
       // NavigationMenuItem.js activates Space on keyup, while Enter activates on keydown.
       if (e.key === " ") e.preventDefault()
+      if (e.key === "Enter" && hasSubmenu) {
+        activate(e)
+        // Radix SubTrigger opens on Enter without a click; activation above owns both actions.
+        e.preventDefault()
+      }
       if (item.disabled && (e.key === "Enter" || e.key === " ")) {
         e.preventDefault()
         e.stopPropagation()
@@ -441,20 +461,21 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
     },
     onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key === " " && !item.disabled) {
+        if (hasSubmenu) activate(e)
+        else e.currentTarget.click()
         e.preventDefault()
-        e.currentTarget.click()
       }
     },
   }
   // SideNavigationPopoverTemplate.js renderMenuItem duplicates a selectable parent's own
   // navigation action at the beginning of its submenu, before its sub-items.
-  if (subs.length && !parentRow) return (
-    <MenuSub>
+  if (hasSubmenu) return (
+    <MenuSub open={submenuOpen} onOpenChange={setSubmenuOpen}>
       <MenuSubTrigger {...common} onClick={activate} aria-describedby={!item.unselectable ? descriptionId : undefined}>
         {item.text}{item.tag && <span className="fiori-sn-menu-tag">{item.tag}</span>}
       </MenuSubTrigger>
       {!item.unselectable && <span id={descriptionId} className="fiori-sn-hidden-text">{root.texts.overflowParentDescription}</span>}
-      <MenuSubContent aria-label={item.accessibleName || item.text} aria-labelledby={undefined} className="fiori-sn-menu">
+      <MenuSubContent ref={submenuRef} aria-label={item.accessibleName || item.text} aria-labelledby={undefined} className="fiori-sn-menu">
         <MenuGroup>
           {!item.unselectable && <OverflowMenuItem item={item} parentRow onSelected={onSelected} close={close} />}
           {subs.map((sub, i) => <OverflowMenuItem key={i} item={{ ...sub, disabled: item.disabled || sub.disabled }} onSelected={onSelected} close={close} />)}

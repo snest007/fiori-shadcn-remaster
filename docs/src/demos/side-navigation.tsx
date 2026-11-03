@@ -11,11 +11,16 @@ function SideNavigationDemo() {
   const [short, setShort] = React.useState(false)
   const [value, setValue] = React.useState("home")
   const [clicks, setClicks] = React.useState(0)
+  const [preventEventsSelection, setPreventEventsSelection] = React.useState(false)
+  const [eventsClicks, setEventsClicks] = React.useState(0)
   return (
     <div className="grid gap-4">
       <div className="flex items-center gap-4">
         <Button id="side-navigation-demo-toggle" aria-pressed={collapsed} onClick={() => setCollapsed((c) => !c)}>
           Collapsed
+        </Button>
+        <Button id="side-navigation-demo-prevent-events" aria-pressed={preventEventsSelection} onClick={() => setPreventEventsSelection((prevent) => !prevent)}>
+          Prevent Events selection
         </Button>
         <Button id="side-navigation-demo-resize" aria-pressed={short} onClick={() => setShort((s) => !s)}>
           Short height
@@ -23,6 +28,7 @@ function SideNavigationDemo() {
         <span className="text-(--sapContent_LabelColor)">
           Selected: <span data-testid="side-navigation-demo-value">{value}</span> · clicks:{" "}
           <span data-testid="side-navigation-demo-clicks">{clicks}</span>
+          {" "}· Events callbacks: <span data-testid="side-navigation-demo-events-clicks">{eventsClicks}</span>
         </span>
       </div>
       <div id="side-navigation-demo" style={{ height: short ? "18rem" : "30rem" }}>
@@ -49,7 +55,10 @@ function SideNavigationDemo() {
               <SideNavigationSubItem text="From Other Teams" value="other" />
             </SideNavigationItem>
             <SideNavigationItem text="Locations" value="locations" icon={building} disabled />
-            <SideNavigationItem text="Events" value="events" icon={calendar}>
+            <SideNavigationItem text="Events" value="events" icon={calendar} onClick={(e) => {
+              setEventsClicks((count) => count + 1)
+              if (preventEventsSelection) e.preventDefault()
+            }}>
               <SideNavigationSubItem text="Local" value="local" />
               <SideNavigationSubItem text="Others" value="others" />
             </SideNavigationItem>
