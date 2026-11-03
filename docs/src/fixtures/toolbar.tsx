@@ -28,7 +28,9 @@ export default defineFixtures<Props>({
   react: ({ items, alignContent, design, width, always, never, open }) => (
     <div className={open ? inPlace : undefined}>
     <Toolbar aria-label="Actions" alignContent={alignContent} design={design} style={{ width: width ?? TOOLBAR_WIDTH }}
-      defaultOverflowOpen={open} overflowContentProps={open ? { portal: false, className: "w-48", onOpenAutoFocus: (event) => event.preventDefault(), onCloseAutoFocus: (event) => event.preventDefault() } : undefined}>
+      // UI5 paints its closed overflow surface in place and never computes a viewport side.
+      // Disable collision flipping for this static fixture to retain the same source order.
+      defaultOverflowOpen={open} overflowContentProps={open ? { portal: false, avoidCollisions: false, className: "w-48", onOpenAutoFocus: (event) => event.preventDefault(), onCloseAutoFocus: (event) => event.preventDefault() } : undefined}>
       {items.map((t, i) =>
         t === "|" ? (
           <ToolbarSeparator key={i} />

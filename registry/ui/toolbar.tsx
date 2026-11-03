@@ -7,6 +7,10 @@ import { Button, type ButtonProps } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Popover, PopoverContent, PopoverTrigger, type PopoverContentProps } from "@/components/ui/popover"
 import { Select } from "@/components/ui/select"
+import { ComboBox } from "@/components/ui/combobox"
+import { MultiComboBox } from "@/components/ui/multi-combobox"
+import { DatePicker } from "@/components/ui/date-picker"
+import { Switch } from "@/components/ui/switch"
 
 type ToolbarItemOptions = {
   overflowPriority?: "default" | "neverOverflow" | "alwaysOverflow"
@@ -59,19 +63,39 @@ function distributeItems(items: ItemRecord[], widths: Map<string, number>, overf
   return [...result, ...moved].map((item) => item.key)
 }
 
-function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel = "Additional Options", overflowPopoverLabel = "Available actions", defaultOverflowOpen = false, overflowContentProps, className, onKeyDown, children, ...props }: ToolbarProps) {
+function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel = "Additional Options", overflowPopoverLabel = "Available Values", defaultOverflowOpen = false, overflowContentProps, className, onKeyDown, children, ...props }: ToolbarProps) {
   const bar = React.useRef<HTMLDivElement>(null)
   const parking = React.useRef<HTMLDivElement>(null)
   const overflowHost = React.useRef<HTMLDivElement>(null)
   const overflowButton = React.useRef<HTMLButtonElement>(null)
   const records = React.useRef(new Map<string, ItemRecord>())
   const widths = React.useRef(new Map<string, number>())
-  // Parent effects and refs must see the original children on the first browser commit.
-  // SSR remains portal-free; the client containers do not add markup to the server's bar.
-  const [mounted, setMounted] = React.useState(() => typeof document !== "undefined")
+  // A server/hydration fallback renders the supplied children before creating portals.
+  // Client-only mounts still expose children on the first commit, as legacy consumers need.
+  // Portals cannot adopt hydrated fibers: child mount effects can run again at initialization.
+  // Preserve native edits during that one transition; later overflow moves never remount.
+  type NativeState = { value: string; checked?: boolean; selected?: boolean[]; selection?: [number | null, number | null, "forward" | "backward" | "none" | null]; focused: boolean }
+  const hydrationState = React.useRef(new Map<string, NativeState[]>())
+  const getMountedSnapshot = React.useCallback(() => {
+    for (const node of bar.current?.querySelectorAll<HTMLElement>("[data-toolbar-initial-key]") ?? []) {
+      const key = node.dataset.toolbarInitialKey!
+      if (hydrationState.current.has(key)) continue
+      hydrationState.current.set(key, [...node.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")].map((field) => ({
+        value: field.value,
+        checked: field instanceof HTMLInputElement ? field.checked : undefined,
+        selected: field instanceof HTMLSelectElement ? [...field.options].map((option) => option.selected) : undefined,
+        selection: field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement ? [field.selectionStart, field.selectionEnd, field.selectionDirection] : undefined,
+        focused: field === document.activeElement,
+      })))
+    }
+    return true
+  }, [])
+  const mounted = React.useSyncExternalStore(React.useCallback(() => () => {}, []), getMountedSnapshot, () => false)
   const [overflowKeys, setOverflowKeys] = React.useState<string[]>([])
   const [open, setOpen] = React.useState(defaultOverflowOpen)
-  React.useLayoutEffect(() => setMounted(true), [])
+  const [reverseOverflow, setReverseOverflow] = React.useState(false)
+  const actualPlacement = React.useRef("bottom")
+  const placementObserver = React.useRef<MutationObserver | null>(null)
   const items: ItemRecord[] = mounted ? React.Children.toArray(children).map((child, index) => {
     const element = React.isValidElement<ToolbarItemOptions & { width?: string; hidden?: boolean }>(child) ? child : undefined
     const key = element?.key?.toString() ?? String(index)
@@ -93,20 +117,42 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
     return record
   }) : []
   const overflowItems = overflowKeys.map((key) => records.current.get(key)).filter((item): item is ItemRecord => !!item && !item.flexible)
+  // Toolbar.js/overflowItems reverses the effective list when openOverflow sees Top.
+  if (reverseOverflow) overflowItems.reverse()
   const hasOverflow = overflowItems.some((item) => item.kind !== "separator" && !item.node.hidden)
   const isOpen = React.useRef(false)
   isOpen.current = open && hasOverflow
   const close = React.useCallback(() => setOpen(false), [])
+  const changeOpen = React.useCallback((next: boolean) => {
+    // Toolbar.js/openOverflow reads the actual placement retained after closing.
+    if (next) setReverseOverflow(actualPlacement.current === "top")
+    setOpen(next)
+  }, [])
   const layout = React.useRef<() => void>(() => {})
   // Radix Presence can mount after the toolbar's layout effect. Relocate the stable containers
   // at the content ref boundary as well, before its autofocus/focus-trap effects run.
   const mountOverflow = React.useCallback((node: HTMLDivElement | null) => {
     const previous = overflowHost.current
+    placementObserver.current?.disconnect()
     overflowHost.current = node
     if (node) {
       for (const key of overflowKeys) {
         const item = records.current.get(key)
         if (item && !item.flexible) node.append(item.node)
+      }
+      const surface = node.closest<HTMLElement>("[data-slot=popover-content]")
+      if (surface) {
+        const updatePlacement = () => {
+          const side = surface.dataset.side
+          if (!side) return
+          actualPlacement.current = side
+          // Popover._show can resolve Top synchronously on a first measurable open.
+          // Radix publishes the resolved side after mounting; reconcile that placement.
+          setReverseOverflow(side === "top")
+        }
+        placementObserver.current = new MutationObserver(updatePlacement)
+        placementObserver.current.observe(surface, { attributes: true, attributeFilter: ["data-side"] })
+        updatePlacement()
       }
     } else if (previous && parking.current) {
       for (const item of records.current.values()) if (item.node.parentElement === previous) parking.current.append(item.node)
@@ -172,8 +218,27 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
         next = item.node
       }
     }
+    for (const item of items) {
+      const saved = hydrationState.current.get(item.key)
+      if (!saved) continue
+      const fields = item.node.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input, textarea, select")
+      saved.forEach((state, index) => {
+        const field = fields[index]
+        if (!field) return
+        if (!(field instanceof HTMLInputElement && field.type === "file")) field.value = state.value
+        if (field instanceof HTMLInputElement && state.checked !== undefined) field.checked = state.checked
+        if (field instanceof HTMLSelectElement && state.selected) [...field.options].forEach((option, i) => { option.selected = !!state.selected![i] })
+        if (state.selection?.[0] !== null && state.selection?.[1] !== null && state.selection && (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement)) field.setSelectionRange(state.selection[0], state.selection[1], state.selection[2] ?? undefined)
+        if (state.focused) { if (item.node.parentElement === parking.current) button.focus(); else field.focus() }
+      })
+      hydrationState.current.delete(item.key)
+    }
     if (!hasOverflow && overflowKeys.length && open) setOpen(false)
   })
+
+  React.useLayoutEffect(() => {
+    if (open && hasOverflow && !overflowContentProps?.onOpenAutoFocus) overflowHost.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus()
+  }, [reverseOverflow])
 
   React.useLayoutEffect(() => {
     if (!mounted || !bar.current) return
@@ -188,7 +253,7 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
     return () => observer.disconnect()
   }, [mounted, close])
 
-  return <Popover open={open && hasOverflow} onOpenChange={setOpen}>
+  return <Popover open={open && hasOverflow} onOpenChange={changeOpen}>
     <div data-slot="toolbar" role="toolbar" data-design={design}
       className={cn("fiori-toolbar flex h-(--fiori-x-toolbar-height) w-full items-center", "border-b-(length:--sapGroup_TitleBorderWidth) border-solid border-b-(--sapGroup_TitleBorderColor)", "pe-(--fiori-x-toolbar-padding-right) ps-(--fiori-x-toolbar-padding-left)", design === "transparent" ? "bg-transparent" : "bg-(--sapToolbar_Background)", alignContent === "start" ? "justify-start" : "justify-end", className)}
       onKeyDown={(e) => {
@@ -207,6 +272,15 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
         if (next !== current) navigable[next].target.focus()
       }} {...props}>
       <div ref={bar} data-slot="toolbar-items" className="fiori-toolbar-items">
+        {!mounted && React.Children.toArray(children).map((child, index) => {
+          const element = React.isValidElement<{ width?: string; hidden?: boolean }>(child) ? child : undefined
+          const kind = element?.type === ToolbarSpacer ? "spacer" : element?.type === ToolbarSeparator ? "separator" : "item"
+          const unmanaged = !element || ![ToolbarButton, ToolbarItem, ToolbarSpacer, ToolbarSeparator].includes(element.type as typeof ToolbarItem)
+          const key = element?.key?.toString() ?? String(index)
+          return <div key={key} data-toolbar-initial-key={key} className="fiori-toolbar-container" data-kind={kind}
+            data-flexible={kind === "spacer" && (!element?.props.width || element.props.width === "auto") ? "" : undefined}
+            data-unmanaged={unmanaged ? "" : undefined} hidden={element?.props.hidden}>{child}</div>
+        })}
         <PopoverTrigger asChild><Button ref={overflowButton} variant="transparent" size="icon" className="data-hidden:absolute data-hidden:invisible" data-slot="toolbar-overflow-button" data-hidden={!hasOverflow ? "" : undefined} aria-hidden={!hasOverflow || undefined} tabIndex={hasOverflow ? undefined : -1} aria-label={overflowButtonLabel} aria-haspopup="menu" title={overflowButtonLabel}><Icon icon={overflow} /></Button></PopoverTrigger>
       </div>
       <div ref={parking} hidden />
@@ -255,26 +329,57 @@ function ToolbarButton({ overflowPriority: _priority, preventOverflowClosing = f
 }
 
 type ToolbarItemProps = React.ComponentProps<"div"> & ToolbarItemOptions
-function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = false, className, onClick, onChange, children, ...props }: ToolbarItemProps) {
+function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = false, className, children, ...props }: ToolbarItemProps) {
   const { overflowed, close } = React.useContext(OverflowContext)
-  // ToolbarItem.js/getClosingEvents closes Select on change, not when its picker opens.
-  // React Select reports a callback (rather than a bubbling DOM change event), so bridge it here.
-  const content = React.Children.map(children, (child) => {
-    if (!React.isValidElement<React.ComponentProps<typeof Select>>(child) || child.type !== Select) return child
-    return React.cloneElement(child, { onValueChange: (value) => {
-      child.props.onValueChange?.(value)
-      if (overflowed && !preventOverflowClosing) close()
-    } })
+  const currentKey = React.useRef<React.KeyboardEvent<HTMLDivElement> | null>(null)
+  const closeOnEvent = () => {
+    if (!overflowed || preventOverflowClosing) return
+    // UI5 ToolbarItem/getClosingEvents closes on the committed change, and
+    // Popup.closePopup/resetFocus restores the opener. With React's native opener,
+    // suppress the committing Enter's default activation after that focus transfer.
+    if (currentKey.current?.key === "Enter") currentKey.current.preventDefault()
+    close()
+  }
+  // ToolbarItem.js/getClosingEvents + closeOverflowSet: only the first child defines
+  // closing events. Input/CheckBox/Link have none. Bridge each React counterpart's
+  // public committed event, rather than closing on every bubbling input change/click.
+  let first = true
+  const bridgeFirstChild = (nodes: React.ReactNode): React.ReactNode => React.Children.map(nodes, (child) => {
+    if (!React.isValidElement(child) || !first) return child
+    if (child.type === React.Fragment) {
+      const fragment = child as React.ReactElement<{ children?: React.ReactNode }>
+      return React.cloneElement(fragment, {}, bridgeFirstChild(fragment.props.children))
+    }
+    first = false
+    if (child.type === Button) {
+      const element = child as React.ReactElement<React.ComponentProps<typeof Button>>
+      return React.cloneElement(element, { onClick: (event) => { element.props.onClick?.(event); closeOnEvent() } })
+    }
+    if (child.type === Select) {
+      const element = child as React.ReactElement<React.ComponentProps<typeof Select>>
+      return React.cloneElement(element, { onValueChange: (value) => { element.props.onValueChange?.(value); closeOnEvent() } })
+    }
+    if (child.type === ComboBox) {
+      const element = child as React.ReactElement<React.ComponentProps<typeof ComboBox>>
+      return React.cloneElement(element, { onCommit: (value) => { element.props.onCommit?.(value); closeOnEvent() } })
+    }
+    if (child.type === MultiComboBox) {
+      const element = child as React.ReactElement<React.ComponentProps<typeof MultiComboBox>>
+      return React.cloneElement(element, { onSelectionChange: (values) => { element.props.onSelectionChange?.(values); closeOnEvent() } })
+    }
+    if (child.type === DatePicker) {
+      const element = child as React.ReactElement<React.ComponentProps<typeof DatePicker>>
+      return React.cloneElement(element, { onValueChange: (value, date) => { element.props.onValueChange?.(value, date); closeOnEvent() } })
+    }
+    if (child.type === Switch) {
+      const element = child as React.ReactElement<React.ComponentProps<typeof Switch>>
+      return React.cloneElement(element, { onCheckedChange: (checked) => { element.props.onCheckedChange?.(checked); closeOnEvent() } })
+    }
+    return child
   })
-  return <div data-slot="toolbar-item" className={cn("fiori-toolbar-item", overflowed && "w-full [&>*]:w-full!", className)} {...props}
-    onClick={(event) => { onClick?.(event); if (overflowed && !preventOverflowClosing && !event.defaultPrevented && (event.target as HTMLElement).closest("button:not([role='combobox']), a[href]")) close() }}
-    onChange={(event) => {
-      onChange?.(event)
-      // Radix Select's aria-hidden native select synchronizes values with synthetic change
-      // events. Its public callback above owns closing.
-      const target = event.target as HTMLElement
-      if (overflowed && !preventOverflowClosing && !event.defaultPrevented && target.getAttribute("aria-hidden") !== "true") close()
-    }}>{content}</div>
+  return <div data-slot="toolbar-item" className={cn("fiori-toolbar-item", overflowed && "w-full", className)} {...props}
+    onKeyDownCapture={(event) => { currentKey.current = event; props.onKeyDownCapture?.(event) }}
+    onKeyDown={(event) => { props.onKeyDown?.(event); currentKey.current = null }}>{bridgeFirstChild(children)}</div>
 }
 
 type ToolbarSpacerProps = React.ComponentProps<"div"> & { width?: string }
