@@ -313,6 +313,8 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
     }
     const button = React.isValidElement<Record<string, unknown>>(custom) ? React.cloneElement(custom, {
       ...controlProps,
+      // A custom button keeps its own tooltip (ui5-tabcontainer leaves slotted overflow buttons untouched).
+      title: (custom.props.title as string | undefined) ?? controlProps.title,
       onFocus: (e: React.FocusEvent<HTMLElement>) => { (custom.props.onFocus as React.FocusEventHandler<HTMLElement> | undefined)?.(e); controlProps.onFocus() },
       onClick: (e: React.MouseEvent<HTMLElement>) => { (custom.props.onClick as React.MouseEventHandler<HTMLElement> | undefined)?.(e); if (!e.defaultPrevented) controlProps.onClick() },
     }) : <Button {...controlProps} className="fiori-tabs__overflow-button">{custom ?? (ctx.overflowMode === "end" ? ctx.moreText : `+${count}`)}<Icon icon={slimArrowDown} /></Button>

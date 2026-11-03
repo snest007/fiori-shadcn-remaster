@@ -62,6 +62,16 @@ Reviewers can run in parallel. RETURN when a behaviour mismatch changes behaviou
 or a forbidden shortcut was used. For a RETURN you may send the reviewer's findings to the original worker once
 (`resume_agent` + `send_input`: "fix these, keep the same rules") and re-review with a **new** reviewer.
 
+**Returned cards.** If `docs/plan/returns/<id>.md` exists, the card was returned earlier and its branch/worktree still exist:
+don't `prepare` it. Start the worker in the existing `.worktrees/<id>` with this message instead:
+"Read AGENTS.md, then fix exactly what docs/plan/returns/<id>.md lists, on the existing branch, with the tests it asks for."
+Review it with a new reviewer as usual (the reviewer also checks every item of the return note). When the card merges,
+delete `docs/plan/returns/<id>.md` in the integration commit.
+
+**Agent limit.** The host allows only a few open agent threads: close each worker/reviewer as soon as you have its final
+message, before spawning the next. Never reuse a reviewer across cards (it has seen another card's code); if you can't
+open a new thread, finish the current ones first.
+
 ## 4. Integrate (you)
 
 Follow `docs/plan/INTEGRATION.md` sections 2–4 for the cards whose verdict is MERGE / MERGE-WITH-NOTES:
