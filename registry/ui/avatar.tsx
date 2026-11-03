@@ -279,16 +279,11 @@ function AvatarGroup({
           }
         }
       }
-      const focused = document.activeElement
-      const focusWasHidden = avatars.slice(next).some((avatar) => avatar === focused)
-      const overflowWasRemoved = !hasCustomOverflow && next === avatars.length && overflow.contains(focused)
+      // AvatarGroup.js _setHiddenItems updates visibility without moving focus:
+      // the browser releases focus when the focused avatar or overflow becomes hidden.
       avatars.forEach((avatar, index) => { avatar.hidden = index >= next })
       overflow.hidden = !hasCustomOverflow && next === avatars.length
       setVisibleCount(next)
-      if (!isGroup && (focusWasHidden || overflowWasRemoved)) {
-        const target = focusWasHidden ? overflowControl() : avatars.slice(0, next).filter((avatar) => !avatar.matches(":disabled")).at(-1)
-        target?.focus()
-      }
     }
     measure()
     const observer = new ResizeObserver(measure)

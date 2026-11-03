@@ -257,8 +257,8 @@ test("individual avatars rove while overflow remains a separate Tab stop", async
   await expect(group.locator("[tabindex='0']")).toHaveCount(2)
 })
 
-test("resizing moves focus from a hidden avatar to overflow and restores one tab stop when widened", async ({ page }) => {
-  const group = page.locator("#avatar-overflow-individual")
+test("resizing a focused avatar or overflow releases focus to body, matching UI5", async ({ page }) => {
+  const group = page.locator("#avatar-demo #avatar-overflow-individual")
   // DOM width changes exercise ResizeObserver without a button stealing keyboard focus.
   await group.locator("..").evaluate((host) => { (host as HTMLElement).style.width = "24rem" })
   const last = group.getByRole("button", { name: "Fiona Gray" })
@@ -267,12 +267,33 @@ test("resizing moves focus from a hidden avatar to overflow and restores one tab
   await expect(last).toBeFocused()
   await group.locator("..").evaluate((host) => { (host as HTMLElement).style.width = "9rem" })
   const overflow = group.getByRole("button", { name: "Activate for complete list." })
-  await expect(overflow).toBeFocused()
+  await expect(last).toBeHidden()
+  await expect(page.locator("body")).toBeFocused()
   await expect(group.locator("[tabindex='0']")).toHaveCount(2)
+  await overflow.focus()
+  await expect(overflow).toBeFocused()
   await group.locator("..").evaluate((host) => { (host as HTMLElement).style.width = "24rem" })
   await expect(overflow).toBeHidden()
-  await expect(last).toBeFocused()
+  await expect(page.locator("body")).toBeFocused()
   await expect(group.locator("[tabindex='0']")).toHaveCount(1)
+
+  await page.goto("/ui5.html?only=avatar")
+  await page.waitForSelector("html[data-ready=true]")
+  const oracle = page.locator('[data-fixture="avatar-group-overflow-individual-s"] ui5-avatar-group')
+  await oracle.evaluate((element) => { element.style.width = "24rem" })
+  const oracleLast = oracle.locator("ui5-avatar").last().locator(".ui5-avatar-root")
+  await expect(oracleLast).toBeVisible()
+  await oracleLast.focus()
+  await expect(oracleLast).toBeFocused()
+  await oracle.evaluate((element) => { element.style.width = "9rem" })
+  await expect(oracleLast).toBeHidden()
+  await expect(page.locator("body")).toBeFocused()
+  const oracleOverflow = oracle.locator(".ui5-avatar-group-overflow-btn").locator("button")
+  await oracleOverflow.focus()
+  await expect(oracleOverflow).toBeFocused()
+  await oracle.evaluate((element) => { element.style.width = "24rem" })
+  await expect(oracleOverflow).toBeHidden()
+  await expect(page.locator("body")).toBeFocused()
 })
 
 test("group overflow is part of the single group button and reports group activation", async ({ page }) => {
