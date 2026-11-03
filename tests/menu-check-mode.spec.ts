@@ -174,6 +174,9 @@ test("menu checks: disabled checkable rows participate in focus navigation but c
   await expect(disabled).toHaveAttribute("aria-checked", "true")
   await page.keyboard.press("Space")
   await expect(disabled).toHaveAttribute("aria-checked", "true")
+  // UI5 disabled menu rows retain pointer events; bypass Playwright's aria-disabled action guard.
+  await disabled.click({ force: true })
+  await expect(disabled).toHaveAttribute("aria-checked", "true")
   await expect(result(page)).toHaveText("No checks")
 })
 

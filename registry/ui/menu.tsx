@@ -229,8 +229,10 @@ function MenuItem({ className, icon, additionalText, children, checked: checkedP
   const checked = group?.mode === "single" ? root?.checked.get(key) ?? local : checkedProp ?? root?.checked.get(key) ?? local
   const shift = React.useRef(false)
   const activate = (event: Event) => {
+    // ListItemBase.js fireItemPress suppresses every activation callback for disabled rows.
+    if (disabled) { event.preventDefault(); return }
     onSelect?.(event)
-    if (event.defaultPrevented || disabled) { event.preventDefault(); return }
+    if (event.defaultPrevented) return
     if (checkable) {
       const next = !checked
       if (group.mode === "single") group.keys.forEach((sibling) => root?.checked.set(sibling, false))

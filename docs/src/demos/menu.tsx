@@ -31,7 +31,7 @@ export default defineDemo({ title: "Checkable menu", order: 43, Demo: () => {
           <MenuGroup checkMode="multiple">
             <MenuItem defaultChecked icon={copy} additionalText="Ctrl+C" onCheckedChange={change("Copy preference")}>Copy preference</MenuItem>
             <MenuItem onCheckedChange={change("Grid")}>Grid</MenuItem>
-            <MenuItem disabled defaultChecked onCheckedChange={change("Disabled")}>Disabled preference</MenuItem>
+            <MenuItem disabled defaultChecked onSelect={() => change("Disabled selection")(true)} onCheckedChange={change("Disabled")}>Disabled preference</MenuItem>
             <MenuItem id="menu-check-mode-canceled" onSelect={(e) => { setSelectedTarget((e.target as HTMLElement)?.id ?? "Missing target"); e.preventDefault() }} onCheckedChange={change("Canceled")}>Canceled</MenuItem>
             <MenuItem checked={controlled} onCheckedChange={(checked) => { setControlled(checked); change("Controlled")(checked) }}>Controlled</MenuItem>
             <MenuSub>
