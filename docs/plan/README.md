@@ -33,7 +33,7 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 
 - [ ] [A1 Tabs overflow](tasks/A1-tabs-overflow.md) — M
 - [ ] [A2 Toolbar overflow](tasks/A2-toolbar-overflow.md) — M
-- [ ] [A3 Breadcrumbs overflow](tasks/A3-breadcrumbs-overflow.md) — S
+- [x] [A3 Breadcrumbs overflow](tasks/A3-breadcrumbs-overflow.md) — S
 - [ ] [A4 AvatarGroup overflow "+N"](tasks/A4-avatar-group-overflow.md) — S
 - [ ] [A5 SideNavigation overflow item](tasks/A5-side-navigation-overflow.md) — M
 

@@ -77,7 +77,6 @@
 /* Breadcrumbs.css.js: the arrow is a ui5-link containing an icon with a leading ellipsis. */
 .fiori-breadcrumbs__overflow-icon {
   display: inline-block;
-  position: relative;
   width: var(--sapFontSize);
   height: var(--sapFontSize);
   padding-left: 0.675rem;
