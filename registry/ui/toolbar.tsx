@@ -324,7 +324,7 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
           restoredOpening.current = renderedOpening
         }
       }}>
-      <div ref={mountOverflow} className="fiori-toolbar-overflow-list" />
+      <div className="fiori-toolbar-overflow-content"><div ref={mountOverflow} className="fiori-toolbar-overflow-list" /></div>
     </PopoverContent>
   </Popover>
 }
@@ -355,7 +355,7 @@ function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = fal
   }
   // ToolbarItem.js/getClosingEvents + closeOverflowSet: only the first child defines
   // closing events. Input/CheckBox/Link have none. Bridge each React counterpart's
-  // public committed event, rather than closing on every bubbling input change/click.
+  // public committed event; Button clicks are handled on the wrapper below.
   let first = true
   const bridgeFirstChild = (nodes: React.ReactNode): React.ReactNode => React.Children.map(nodes, (child) => {
     if (!React.isValidElement(child) || !first) return child
@@ -364,10 +364,6 @@ function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = fal
       return React.cloneElement(fragment, {}, bridgeFirstChild(fragment.props.children))
     }
     first = false
-    if (child.type === Button) {
-      const element = child as React.ReactElement<React.ComponentProps<typeof Button>>
-      return React.cloneElement(element, { onClick: (event) => { element.props.onClick?.(event); closeOnEvent() } })
-    }
     if (child.type === Select) {
       const element = child as React.ReactElement<React.ComponentProps<typeof Select>>
       return React.cloneElement(element, { onValueChange: (value) => { element.props.onValueChange?.(value); closeOnEvent() } })
@@ -391,6 +387,16 @@ function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = fal
     return child
   })
   return <div data-slot="toolbar-item" className={cn("fiori-toolbar-item", overflowed && "w-full", className)} {...props}
+    onClick={(event) => {
+      props.onClick?.(event)
+      // ToolbarItem.js/attachCloseOverflowHandlers listens on the item itself, so
+      // every descendant click closes when its first control maps to Button.
+      // Resolve the rendered component root, including function/DOM wrappers,
+      // instead of inspecting the React owner or attaching to one child Button.
+      const first = event.currentTarget.firstElementChild as HTMLElement | null
+      const control = first?.hasAttribute("data-slot") ? first : first?.querySelector<HTMLElement>("[data-slot]")
+      if (control?.dataset.slot === "button") closeOnEvent()
+    }}
     onKeyDownCapture={(event) => { currentKey.current = event; props.onKeyDownCapture?.(event) }}
     onKeyDown={(event) => { props.onKeyDown?.(event); currentKey.current = null }}>{bridgeFirstChild(children)}</div>
 }

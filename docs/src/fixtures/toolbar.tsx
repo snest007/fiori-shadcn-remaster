@@ -9,7 +9,9 @@ import { inPlace } from "./popover"
 export const TOOLBAR_WIDTH = "30rem"
 
 // Items: "|" separator, "<->" flexible spacer, "2rem" fixed spacer, "#Text" a label, anything else a button.
-type Props = { items: string[]; alignContent?: "start" | "end"; design?: "solid" | "transparent"; width?: string; always?: string[]; never?: string[]; open?: boolean }
+type Props = { items: string[]; alignContent?: "start" | "end"; design?: "solid" | "transparent"; width?: string; always?: string[]; never?: string[]; open?: boolean; overflowHeight?: string }
+
+const LONG_ACTIONS = Array.from({ length: 12 }, (_, index) => `Action ${index + 1}`)
 
 export default defineFixtures<Props>({
   name: "toolbar",
@@ -24,13 +26,14 @@ export default defineFixtures<Props>({
     { id: "toolbar-overflow-always", props: { items: ["Edit", "Share", "Delete"], always: ["Share"], width: "15rem" } },
     { id: "toolbar-overflow-never", props: { items: ["Edit", "Copy", "Paste", "Delete", "Share"], never: ["Share"], width: "15rem" } },
     { id: "toolbar-overflow-open", props: { items: ["Edit", "|", "Copy", "Paste", "|", "Delete", "Share"], width: "8rem", open: true } },
+    { id: "toolbar-overflow-scroll", props: { items: LONG_ACTIONS, always: LONG_ACTIONS, width: "8rem", open: true, overflowHeight: "10rem" } },
   ],
-  react: ({ items, alignContent, design, width, always, never, open }) => (
+  react: ({ items, alignContent, design, width, always, never, open, overflowHeight }) => (
     <div className={open ? inPlace : undefined}>
     <Toolbar aria-label="Actions" alignContent={alignContent} design={design} style={{ width: width ?? TOOLBAR_WIDTH }}
       // UI5 paints its closed overflow surface in place and never computes a viewport side.
       // Disable collision flipping for this static fixture to retain the same source order.
-      defaultOverflowOpen={open} overflowContentProps={open ? { portal: false, avoidCollisions: false, className: "w-48", onOpenAutoFocus: (event) => event.preventDefault(), onCloseAutoFocus: (event) => event.preventDefault() } : undefined}>
+      defaultOverflowOpen={open} overflowContentProps={open ? { portal: false, avoidCollisions: false, className: "w-48", style: overflowHeight ? { maxHeight: overflowHeight } : undefined, onOpenAutoFocus: (event) => event.preventDefault(), onCloseAutoFocus: (event) => event.preventDefault() } : undefined}>
       {items.map((t, i) =>
         t === "|" ? (
           <ToolbarSeparator key={i} />

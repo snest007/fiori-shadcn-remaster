@@ -13,6 +13,10 @@ import { Toolbar, ToolbarButton, ToolbarItem, ToolbarSeparator, ToolbarSpacer } 
 
 import { defineDemo } from "./types"
 
+function WrappedToolbarAction({ onClick, children = "Custom wrapped action" }: { onClick: () => void; children?: string }) {
+  return <span><Button onClick={onClick}>{children}</Button></span>
+}
+
 function ToolbarDemo() {
   const [last, setLast] = React.useState("none")
   return (
@@ -46,6 +50,14 @@ function ToolbarDemo() {
         <ToolbarItem overflowPriority="alwaysOverflow"><Switch aria-label="Overflow enabled" onCheckedChange={(value) => setLast(String(value))} /></ToolbarItem>
         <ToolbarItem overflowPriority="alwaysOverflow"><Checkbox aria-label="Overflow checked" /></ToolbarItem>
         <ToolbarItem overflowPriority="alwaysOverflow"><Button onClick={() => setLast("Wrapped action")}>Wrapped action</Button></ToolbarItem>
+      </Toolbar>
+      <Toolbar id="toolbar-wrappers-demo" aria-label="Button wrapper overflow" alignContent="start" style={{ width: "20rem" }} overflowPopoverLabel="Button wrappers">
+        <ToolbarItem overflowPriority="alwaysOverflow"><WrappedToolbarAction onClick={() => setLast("Custom wrapped action")} /></ToolbarItem>
+        <ToolbarItem overflowPriority="alwaysOverflow"><Button onClick={() => setLast("First wrapped action")}>First wrapped action</Button><Button onClick={() => setLast("Second wrapped action")}>Second wrapped action</Button></ToolbarItem>
+        <ToolbarItem overflowPriority="alwaysOverflow" preventOverflowClosing><WrappedToolbarAction onClick={() => setLast("Pinned wrapped action")}>Pinned wrapped action</WrappedToolbarAction></ToolbarItem>
+      </Toolbar>
+      <Toolbar id="toolbar-scroll-demo" aria-label="Long overflow actions" alignContent="start" style={{ width: "8rem" }} overflowPopoverLabel="Long actions">
+        {Array.from({ length: 12 }, (_, index) => <ToolbarButton key={index} overflowPriority="alwaysOverflow" onClick={() => setLast(`Long action ${index + 1}`)}>Long action {index + 1}</ToolbarButton>)}
       </Toolbar>
       <p className="text-(length:--sapFontSmallSize) text-(--sapContent_LabelColor)">
         ←/→ move between items (a text field keeps them until the caret is at its edge), Home/End jump. Last action:{" "}

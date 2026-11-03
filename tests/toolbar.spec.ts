@@ -213,6 +213,69 @@ test.describe("Toolbar overflow", () => {
 
 
 test.describe("Toolbar review regressions", () => {
+  test("a 12-item overflow scrolls within a 10rem viewport and reaches the last action", async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const viewportHeight = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize) * 10)
+    await page.setViewportSize({ width: 1280, height: viewportHeight })
+    const toolbar = page.locator("#toolbar-scroll-demo")
+    // Put this isolated toolbar above the docs page's sticky header in the short viewport.
+    await toolbar.evaluate((element) => { Object.assign(element.style, { position: "fixed", top: "0", left: "20px", zIndex: "100" }) })
+    const trigger = toolbar.getByRole("button", { name: "Additional Options" })
+    await trigger.click()
+    const popover = page.getByRole("dialog", { name: "Long actions", exact: true })
+    await expect(popover.getByRole("button")).toHaveCount(12)
+    const content = popover.locator(".fiori-toolbar-overflow-content")
+    await expect.poll(() => content.evaluate((element) => element.scrollHeight > element.clientHeight && getComputedStyle(element).overflowY === "auto")).toBe(true)
+    const surface = await popover.boundingBox()
+    expect(surface).not.toBeNull()
+    expect(surface!.y).toBeGreaterThanOrEqual(0)
+    expect(surface!.y + surface!.height).toBeLessThanOrEqual(viewportHeight)
+    const last = popover.getByRole("button", { name: "Long action 12", exact: true })
+    await expect(last).not.toBeInViewport()
+    await content.hover()
+    await page.mouse.wheel(0, 1000)
+    await expect.poll(() => content.evaluate((element) => element.scrollTop)).toBeGreaterThan(0)
+    await expect(last).toBeInViewport()
+    await last.click()
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Long action 12")
+    await expect(popover).toBeHidden()
+    await expect(trigger).toBeFocused()
+  })
+
+  test("Button clicks bubble through a function component and honor preventOverflowClosing", async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const toolbar = page.locator("#toolbar-wrappers-demo")
+    const trigger = toolbar.getByRole("button", { name: "Additional Options" })
+    const popover = page.getByRole("dialog", { name: "Button wrappers", exact: true })
+    await trigger.click()
+    await popover.getByRole("button", { name: "Custom wrapped action", exact: true }).click()
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Custom wrapped action")
+    await expect(popover).toBeHidden()
+    await expect(trigger).toBeFocused()
+    await trigger.click()
+    await popover.getByRole("button", { name: "Pinned wrapped action", exact: true }).click()
+    await expect(page.locator("#demo-toolbar-last")).toHaveText("Pinned wrapped action")
+    await expect(popover).toBeVisible()
+    await expect(popover.getByRole("button", { name: "Pinned wrapped action", exact: true })).toBeFocused()
+  })
+
+  test("either Button inside one ToolbarItem closes the overflow", async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const toolbar = page.locator("#toolbar-wrappers-demo")
+    const trigger = toolbar.getByRole("button", { name: "Additional Options" })
+    const popover = page.getByRole("dialog", { name: "Button wrappers", exact: true })
+    for (const name of ["First wrapped action", "Second wrapped action"]) {
+      await trigger.click()
+      await popover.getByRole("button", { name, exact: true }).click()
+      await expect(page.locator("#demo-toolbar-last")).toHaveText(name)
+      await expect(popover).toBeHidden()
+      await expect(trigger).toBeFocused()
+    }
+  })
+
   test("top placement follows the installed UI5 effective order and first focus on reopen", async ({ page, context }) => {
     await page.goto("/index.html?fixtures&only=toolbar")
     await page.waitForSelector("html[data-ready=true]")

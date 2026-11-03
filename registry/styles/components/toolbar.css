@@ -12,7 +12,9 @@
 .fiori-toolbar-separator { height: var(--fiori-x-toolbar-separator-height); width: .0625rem; background: var(--sapToolbar_SeparatorColor); }
 /* UI5 ToolbarPopover.css and ToolbarButton.css: overflow has its own padding, .25rem
    row spacing and horizontal separators; toolbar buttons are full-width and start-aligned. */
-.fiori-toolbar-overflow .fiori-popup__root { padding: var(--fiori-toolbar-overflow-padding); }
+/* UI5 PopupsCommon.css: the root clips its radius while the content scrolls.
+   ToolbarPopover.css applies toolbar padding to that scrolling content part. */
+.fiori-toolbar-overflow-content { flex: auto; min-height: 0; overflow: auto; padding: var(--fiori-toolbar-overflow-padding); }
 .fiori-toolbar-overflow-list { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
 .fiori-toolbar-overflow-list > .fiori-toolbar-container { width: 100%; margin-inline: 0; }
 .fiori-toolbar-overflow-list > .fiori-toolbar-container:not(:last-child) { margin-bottom: .25rem; }
