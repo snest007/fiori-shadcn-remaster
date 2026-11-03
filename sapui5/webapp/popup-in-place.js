@@ -35,14 +35,18 @@ sap.ui.define(["sap/ui/core/library"], (coreLibrary) => {
     // sap/m/Dialog.js and sap/m/Popover.js use sap/ui/core/Popup to position their DOM in
     // the static area. Override only viewport placement; preserve dimensions, padding,
     // radius, border, shadow, header/footer and content from the original theme CSS.
-    surface.style.setProperty("position", "static", "important")
+    // sap/m/PopoverRenderer.js:renderResizeHandle renders a direct child whose
+    // themes/base/Popover.less rule is position:absolute. Keep its containing block
+    // while placing the Popover in normal flow; Dialog fixtures retain static placement.
+    const position = popup.isA("sap.m.Popover") ? "relative" : "static"
+    surface.style.setProperty("position", position, "important")
     surface.style.setProperty("inset", "auto", "important")
     surface.style.setProperty("transform", "none", "important")
     surface.style.setProperty("max-width", "none", "important")
     surface.style.setProperty("max-height", "none", "important")
     // core/Popup.js keeps repositioning an open popup (resize/scroll/"followOf" handlers write
     // position/top/left inline). Pin the in-place placement against those later writes.
-    surface.style.setProperty("position", "static", "important")
+    surface.style.setProperty("position", position, "important")
     surface.style.setProperty("top", "auto", "important")
     surface.style.setProperty("left", "auto", "important")
     popup.oPopup?.setFollowOf?.(false)
@@ -52,7 +56,7 @@ sap.ui.define(["sap/ui/core/library"], (coreLibrary) => {
     // Let it run (it also sizes content and toggles the resize handle) and re-pin afterwards: it may
     // rewrite the whole style attribute, dropping our !important placement.
     const pin = () => {
-      for (const [k, v] of [["position", "static"], ["inset", "auto"], ["top", "auto"], ["left", "auto"], ["transform", "none"], ["max-width", "none"], ["max-height", "none"]])
+      for (const [k, v] of [["position", position], ["inset", "auto"], ["top", "auto"], ["left", "auto"], ["transform", "none"], ["max-width", "none"], ["max-height", "none"]])
         surface.style.setProperty(k, v, "important")
     }
     if (popup.oPopup && !popup.oPopup.__fixturePinned) {
