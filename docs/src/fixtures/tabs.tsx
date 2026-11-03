@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { Tabs, TabsContent, TabsList, TabsSeparator, TabsTrigger, type TabDesign } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { List, ListItemCustom } from "@/components/ui/list"
 import { Icon } from "@/components/ui/icon"
 import { attachment, employee, inbox, notes, sysEnter2, error, alert } from "@/lib/fiori-icons"
@@ -10,7 +11,7 @@ import { defineFixtures } from "../fixture-types"
 export const TABS_WIDTH = "40rem"
 
 export type TabSpec = { text?: string; icon?: "inbox" | "employee" | "attachment" | "notes"; count?: string; design?: TabDesign; disabled?: boolean } | "|"
-type Props = { tabs: TabSpec[]; selected: number; width?: string; overflowMode?: "end" | "startAndEnd"; list?: boolean }
+type Props = { tabs: TabSpec[]; selected: number; width?: string; overflowMode?: "end" | "startAndEnd"; list?: boolean; customStart?: boolean; customEnd?: boolean }
 const icons = { inbox, employee, attachment, notes }
 
 export const overflowTextTabs: TabSpec[] = Array.from({ length: 10 }, (_, i) => ({ text: `Section ${i + 1}` }))
@@ -47,6 +48,9 @@ const designs: TabDesign[] = ["positive", "negative", "critical", "neutral"]
 export default defineFixtures<Props>({
   name: "tabs",
   cases: [
+    { id: "tabs-overflow-custom-end", props: { selected: 9, width: "30rem", tabs: overflowTextTabs, customEnd: true } },
+    { id: "tabs-overflow-custom-start-end", props: { selected: 5, width: "30rem", tabs: overflowTextTabs, overflowMode: "startAndEnd", customStart: true, customEnd: true } },
+    { id: "tabs-overflow-custom-start-empty", props: { selected: 0, width: "30rem", tabs: overflowTextTabs, overflowMode: "startAndEnd", customStart: true, customEnd: true } },
     { id: "tabs-overflow-end", props: { selected: 2, width: "30rem", tabs: overflowTextTabs } },
     { id: "tabs-overflow-end-selected-last", props: { selected: 9, width: "30rem", tabs: overflowTextTabs } },
     { id: "tabs-overflow-start-end", props: { selected: 5, width: "30rem", tabs: overflowTextTabs, overflowMode: "startAndEnd" } },
@@ -71,11 +75,11 @@ export default defineFixtures<Props>({
       props: { selected: 2, tabs: [{ icon: "inbox", count: "20" }, "|", { text: "Approved", count: "10", design: "positive" }, { text: "Rejected", count: "4", design: "negative" }, { text: "Open", count: "6" }] },
     },
   ],
-  react: ({ tabs, selected, width = TABS_WIDTH, overflowMode, list }) => {
+  react: ({ tabs, selected, width = TABS_WIDTH, overflowMode, list, customStart, customEnd }) => {
     if (list) return <OverflowSurface tabs={tabs} />
     const value = (i: number) => `t${i}`
     return (
-      <Tabs defaultValue={value(selected)} style={{ width }} overflowMode={overflowMode}>
+      <Tabs defaultValue={value(selected)} style={{ width }} overflowMode={overflowMode} startOverflowButton={customStart ? <Button>Previous</Button> : undefined} overflowButton={customEnd ? <Button>Next</Button> : undefined}>
         <TabsList aria-label="Sections">
           {tabs.map((t, i) =>
             t === "|" ? (

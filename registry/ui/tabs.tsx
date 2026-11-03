@@ -121,7 +121,7 @@ const tabsIn = (list: HTMLElement) => [...list.querySelectorAll<HTMLElement>('[r
 
 const overflowFocus = { start: Symbol("tabs-overflow-start"), end: Symbol("tabs-overflow-end") }
 
-type OverflowState = { needed: boolean; start: number[]; end: number[] }
+type OverflowState = { needed: boolean; start: number[]; end: number[]; startVisible: boolean; endVisible: boolean }
 const sameIndexes = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i])
 const stripItems = (list: HTMLElement) => [...list.querySelectorAll<HTMLElement>('[data-slot="tabs-trigger"], [data-slot="tabs-separator"]')]
 const itemWidth = (item: HTMLElement) => {
@@ -138,7 +138,7 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
   const startRef = React.useRef<HTMLDivElement>(null)
   const endRef = React.useRef<HTMLDivElement>(null)
   const [layout, setLayout] = React.useState({ icons: false, additional: false })
-  const [overflow, setOverflow] = React.useState<OverflowState>({ needed: false, start: [], end: [] })
+  const [overflow, setOverflow] = React.useState<OverflowState>({ needed: false, start: [], end: [], startVisible: false, endVisible: false })
   const [open, setOpen] = React.useState<"start" | "end" | undefined>()
   const lastOpenSide = React.useRef<"start" | "end">("end")
   if (open) lastOpenSide.current = open
@@ -193,12 +193,12 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
       // TabContainer.js onAfterRendering restores the selected tab's navigation entry after an
       // overflow control disappears. Symbols keep control focus distinct from arbitrary tab values.
       if (ctx.focused === overflowFocus.start || ctx.focused === overflowFocus.end) ctx.setFocused(undefined)
-      setOverflow((old) => old.needed ? { needed: false, start: [], end: [] } : old)
+      setOverflow((old) => old.needed ? { needed: false, start: [], end: [], startVisible: false, endVisible: false } : old)
       setOpen(undefined)
       return
     }
     if (!overflow.needed) {
-      setOverflow({ needed: true, start: [], end: [] })
+      setOverflow({ needed: true, start: [], end: [], startVisible: false, endVisible: false })
       return
     }
     const items = [...all]
@@ -240,7 +240,9 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
     } else {
       let width = list.offsetWidth
       const leftWidth = items.slice(0, selectedIndex).reduce((sum, item) => sum + itemWidth(item), 0)
-      let hasStart = overflow.start.some((i) => all[i]?.dataset.slot === "tabs-trigger") || (selectedIndex !== 0 && width < leftWidth + selectedWidth)
+      // TabContainer.js _hasStartOverflow compares the shadow wrapper's textContent to "+0".
+      // A custom slot has no shadow text, so its start control remains present even with zero items.
+      let hasStart = ctx.startOverflowButton != null || overflow.start.some((i) => all[i]?.dataset.slot === "tabs-trigger") || (selectedIndex !== 0 && width < leftWidth + selectedWidth)
       if (!hasStart && selectedIndex !== 0) {
         endRef.current!.hidden = false
         hasStart = list.offsetWidth < leftWidth + selectedWidth
@@ -271,9 +273,9 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
     }
     hiddenStart.forEach((item) => { item.hidden = true; item.dataset.overflow = "start" })
     hiddenEnd.forEach((item) => { item.hidden = true; item.dataset.overflow = "end" })
-    if ([...hiddenStart, ...hiddenEnd].some((item) => item.dataset.value === ctx.focused) || (ctx.focused === overflowFocus.start && !hiddenStart.length) || (ctx.focused === overflowFocus.end && !hiddenEnd.length)) ctx.setFocused(undefined)
-    const next = { needed: true, start: hiddenStart.map((item) => all.indexOf(item)), end: hiddenEnd.map((item) => all.indexOf(item)) }
-    setOverflow((old) => sameIndexes(old.start, next.start) && sameIndexes(old.end, next.end) ? old : next)
+    if ([...hiddenStart, ...hiddenEnd].some((item) => item.dataset.value === ctx.focused) || (ctx.focused === overflowFocus.start && startRef.current!.hidden) || (ctx.focused === overflowFocus.end && endRef.current!.hidden)) ctx.setFocused(undefined)
+    const next = { needed: true, start: hiddenStart.map((item) => all.indexOf(item)), end: hiddenEnd.map((item) => all.indexOf(item)), startVisible: !startRef.current!.hidden, endVisible: !endRef.current!.hidden }
+    setOverflow((old) => sameIndexes(old.start, next.start) && sameIndexes(old.end, next.end) && old.startVisible === next.startVisible && old.endVisible === next.endVisible ? old : next)
     if (open && next[open].length === 0) setOpen(undefined)
   }
   React.useLayoutEffect(() => updateRef.current())
@@ -315,7 +317,7 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
       onClick: (e: React.MouseEvent<HTMLElement>) => { (custom.props.onClick as React.MouseEventHandler<HTMLElement> | undefined)?.(e); if (!e.defaultPrevented) controlProps.onClick() },
     }) : <Button {...controlProps} className="fiori-tabs__overflow-button">{custom ?? (ctx.overflowMode === "end" ? ctx.moreText : `+${count}`)}<Icon icon={slimArrowDown} /></Button>
     return (
-      <div ref={side === "start" ? startRef : endRef} data-slot={`tabs-overflow-${side}`} hidden={!overflow[side].length} className={cn("fiori-tabs__overflow", `fiori-tabs__overflow--${side}`)}>
+      <div ref={side === "start" ? startRef : endRef} data-slot={`tabs-overflow-${side}`} hidden={!(side === "start" ? overflow.startVisible : overflow.endVisible)} className={cn("fiori-tabs__overflow", `fiori-tabs__overflow--${side}`)}>
         {/* Only the active opener registers as an anchor; two simultaneous anchors would position
             the start menu at the end control (TabContainer.js _showPopoverAt uses the actual opener). */}
         {side === (open ?? lastOpenSide.current) ? <PopoverAnchor asChild>{button}</PopoverAnchor> : button}
@@ -387,12 +389,12 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
           // TabContainer.js _onOverflowListItemClick restores focus to the selected tab, not the opener.
           const value = focusAfterClose.current
           const header = headerRef.current
-          if (value) header?.querySelector<HTMLElement>(`[data-value="${CSS.escape(value)}"]`)?.focus()
+          if (value !== undefined) header?.querySelector<HTMLElement>(`[data-value="${CSS.escape(value)}"]`)?.focus()
           else header?.querySelector<HTMLElement>(`[data-tabs-overflow-button="${lastOpenSide.current}"]`)?.focus()
           focusAfterClose.current = undefined
         }}
       >
-        <div className="fiori-tabs__overflow-list"><List selectionMode="single" value={ctx.value ? [ctx.value] : []} separators="none" aria-label={ctx.overflowListAriaLabel}
+        <div className="fiori-tabs__overflow-list"><List selectionMode="single" value={ctx.value !== undefined ? [ctx.value] : []} separators="none" aria-label={ctx.overflowListAriaLabel}
           onItemClick={(value) => { ctx.select(value); focusAfterClose.current = value; setOpen(undefined) }}>
           {entries.map((item, index) => {
             const tab = tabProps.get(item.dataset.value!)

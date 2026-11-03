@@ -64,6 +64,20 @@ function TabsDemo() {
         </TabsList>
         {Array.from({ length: 10 }, (_, i) => <TabsContent key={i} value={`section-${i + 1}`}>Custom section {i + 1}.</TabsContent>)}
       </Tabs>
+      <Tabs id="tabs-long-overflow-demo" defaultValue="long-1" overflowListAriaLabel="Hidden long sections" style={{ width: "30rem" }}>
+        <TabsList aria-label="Long overflow sections">
+          {Array.from({ length: 30 }, (_, i) => <TabsTrigger key={i} value={`long-${i + 1}`}>Long section {i + 1}</TabsTrigger>)}
+        </TabsList>
+        {Array.from({ length: 30 }, (_, i) => <TabsContent key={i} value={`long-${i + 1}`}>Long content {i + 1}.</TabsContent>)}
+      </Tabs>
+      <Tabs id="tabs-empty-value-demo" defaultValue="empty-1" overflowListAriaLabel="Hidden empty-value sections" style={{ width: "30rem" }}>
+        <TabsList aria-label="Empty-value overflow sections">
+          {Array.from({ length: 9 }, (_, i) => <TabsTrigger key={i} value={`empty-${i + 1}`}>Empty section {i + 1}</TabsTrigger>)}
+          <TabsTrigger value="">Empty value section</TabsTrigger>
+        </TabsList>
+        {Array.from({ length: 9 }, (_, i) => <TabsContent key={i} value={`empty-${i + 1}`}>Empty content {i + 1}.</TabsContent>)}
+        <TabsContent value="">Content for the empty tab value.</TabsContent>
+      </Tabs>
       <p className="text-(length:--sapFontSmallSize) text-(--sapContent_LabelColor)">
         Tabs keyboard: ←/→ move focus without selecting, Home/End jump, Enter or Space selects. Selected: <b>{value}</b>
       </p>

@@ -1,3 +1,4 @@
+import "@ui5/webcomponents/dist/Button.js"
 import "@ui5/webcomponents/dist/Tab.js"
 import "@ui5/webcomponents/dist/TabContainer.js"
 import "@ui5/webcomponents/dist/TabSeparator.js"
@@ -18,7 +19,7 @@ import set, { TABS_WIDTH } from "./tabs"
 
 const pascal = (s?: string) => (s ? s[0].toUpperCase() + s.slice(1) : undefined)
 
-export default defineUi5(set, ({ tabs, selected, width = TABS_WIDTH, overflowMode, list }) => {
+export default defineUi5(set, ({ tabs, selected, width = TABS_WIDTH, overflowMode, list, customStart, customEnd }) => {
   const el = h(
     "ui5-tabcontainer",
     { "overflow-mode": overflowMode === "startAndEnd" ? "StartAndEnd" : "End" },
@@ -32,6 +33,8 @@ export default defineUi5(set, ({ tabs, selected, width = TABS_WIDTH, overflowMod
           )
     )
   )
+  if (customStart) el.append(h("ui5-button", { slot: "startOverflowButton" }, "Previous"))
+  if (customEnd) el.append(h("ui5-button", { slot: "overflowButton" }, "Next"))
   el.style.width = width
   if (!list) return el
   const frame = document.createElement("div")
