@@ -305,11 +305,12 @@ function NotificationListItem({
 }: NotificationListItemProps) {
   const ctx = useNotificationContext()
   const groupLoading = React.useContext(GroupLoadingContext)
-  // NotificationListGroupItem.js/clearChildBusyIndicator resets each child's loading to false.
-  // Preserve the caller's immutable props and suppress that request until they reset loading.
+  // NotificationListGroupItem.js/onBeforeRendering calls clearChildBusyIndicator only while
+  // CURRENT group.loading is true. Preserve immutable props by suppressing only an active
+  // child request; CURRENT false resets it even while the group stays busy.
   const [childLoadingCleared, setChildLoadingCleared] = React.useState(false)
-  if (groupLoading && !childLoadingCleared) setChildLoadingCleared(true)
-  if (!groupLoading && !loading && childLoadingCleared) setChildLoadingCleared(false)
+  if (groupLoading && loading && !childLoadingCleared) setChildLoadingCleared(true)
+  if (!loading && childLoadingCleared) setChildLoadingCleared(false)
   loading = !!loading && !groupLoading && !childLoadingCleared
   const id = React.useId()
   const { texts } = ctx

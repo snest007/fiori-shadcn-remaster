@@ -45,6 +45,7 @@ function GrowingNotificationsDemo() {
           <Button onClick={() => setLoading((current) => ({ ...current, [group]: !current[group] }))}>{loading[group] ? "Finish" : "Start"} loading {group}</Button>
         </React.Fragment>)}
         <Button onClick={() => { setLoadingLastOnly(false); setChildLoading((current) => !current) }}>Toggle child loading</Button>
+        <Button onClick={() => { setLoading((current) => ({ ...current, orders: false })); setChildLoading(true) }}>Finish orders and load children</Button>
         <Button onClick={() => { setLoadingLastOnly(true); setChildLoading(true) }}>Load last order only</Button>
         <Button onClick={() => setMounted((current) => !current)}>{mounted ? "Hide" : "Show"} growing list</Button>
       </div>
@@ -61,6 +62,23 @@ function GrowingNotificationsDemo() {
       </NotificationList>}
       <output id="notification-list-growing-requests">{`Requests: orders=${requests.orders}, approvals=${requests.approvals}`}</output>
       <output id="notification-list-growing-action">{`Last action: ${action}`}</output>
+    </div>
+  )
+}
+
+function NotificationLoadingHandoffDemo() {
+  const [phase, setPhase] = React.useState<"group" | "child">("group")
+  return (
+    <div id="notification-list-loading-handoff-demo" className="grid gap-3">
+      <Button onClick={() => setPhase((current) => current === "group" ? "child" : "group")}>Switch loading phase</Button>
+      <output>{`Loading phase: ${phase}`}</output>
+      <NotificationList>
+        <NotificationListGroupItem value="handoff-group" titleText="Loading handoff" loading={phase === "group"} loadingDelay={0}>
+          <NotificationListItem value="handoff-child" titleText="Notification loading handoff" loading={phase === "child"} loadingDelay={0} showClose>
+            Switch between loading the group and loading its notification.
+          </NotificationListItem>
+        </NotificationListGroupItem>
+      </NotificationList>
     </div>
   )
 }
@@ -98,6 +116,7 @@ function NotificationListDemo() {
       </NotificationList>
       <span id="notification-list-demo-last" className="text-(--sapContent_LabelColor)">{`Last action: ${last}`}</span>
       <GrowingNotificationsDemo />
+      <NotificationLoadingHandoffDemo />
     </div>
   )
 }
