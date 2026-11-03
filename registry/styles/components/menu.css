@@ -52,13 +52,13 @@
   color: var(--sapContent_NonInteractiveIconColor);
 }
 /* When any sibling has an icon, items without one keep the icon's space (ui5-menu-item-dummy-icon). */
-.fiori-menu:has(> .fiori-menu-item .fiori-menu-item__icon) > .fiori-menu-item:not(:has(.fiori-menu-item__icon)) > .fiori-menu-item__content::before {
+.fiori-menu:has(> .fiori-menu-item .fiori-menu-item__icon, > [data-slot="menu-group"] .fiori-menu-item__icon) .fiori-menu-item:not(:has(.fiori-menu-item__icon)) > .fiori-menu-item__content::before {
   content: "";
   box-sizing: content-box;
   flex-shrink: 0;
   width: var(--fiori-list-item-icon-size);
   height: var(--fiori-list-item-icon-size);
-  padding-inline-end: 0.75rem;
+  padding-inline-end: var(--fiori-list-item-icon-padding-inline-end);
 }
 .fiori-menu-item__text {
   display: inline-block;
@@ -77,6 +77,18 @@
   text-align: end;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* MenuItem.css.js .ui5-menu-item-checked: checkmark follows additional/end content. */
+.fiori-menu-item__checked {
+  box-sizing: content-box;
+  flex-shrink: 0;
+  padding-inline-start: 0.5rem;
+  color: var(--sapContent_BusyColor);
+}
+.fiori-menu-item__checked > svg {
+  /* UI5's check Icon retains Icon.css.js's default size (unlike the leading list icon). */
+  box-sizing: content-box;
+  padding-top: 0.25rem;
 }
 /* Submenu arrow: an icon-sized slot; the arrow is pinned to the item's end edge at the slot's top. */
 .fiori-menu-item__submenu {
