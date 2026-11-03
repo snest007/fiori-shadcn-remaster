@@ -1,3 +1,5 @@
+import * as React from "react"
+
 import { Avatar } from "@/components/ui/avatar"
 import { MenuItem } from "@/components/ui/menu"
 import { NotificationList, NotificationListGroupItem, NotificationListItem } from "@/components/ui/notification-list"
@@ -18,12 +20,41 @@ export type NotificationFixture = {
   footnotes?: string[]
   wrapping?: boolean
   loading?: boolean
+  /** A local child update after the initially busy group has rendered. */
+  loadingAfterGroup?: boolean
 }
 
 type Props = { groups?: { title: string; collapsed?: boolean; growing?: "button" | "scroll"; loading?: boolean; items: NotificationFixture[] }[]; items?: NotificationFixture[] }
 
 const LONG =
   "And with very long description and long labels of the action buttons - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+
+function FixtureItem({ fixture: n }: { fixture: NotificationFixture }) {
+  const [lateLoading, setLateLoading] = React.useState(false)
+  React.useEffect(() => {
+    if (!n.loadingAfterGroup) return
+    // Finish the group's initial roving-tabindex render before this child-only update.
+    const frame = requestAnimationFrame(() => setLateLoading(true))
+    return () => cancelAnimationFrame(frame)
+  }, [n.loadingAfterGroup])
+  return (
+    <NotificationListItem
+      titleText={n.title}
+      state={n.state}
+      read={n.read}
+      importance={n.important ? "important" : undefined}
+      showClose={n.showClose}
+      avatar={n.avatar ? <Avatar size="XS" initials={n.avatar} /> : undefined}
+      footnotes={n.footnotes}
+      menu={n.menu ? <MenuItem>Accept</MenuItem> : undefined}
+      wrappingType={n.wrapping ? "normal" : undefined}
+      loading={n.loading || lateLoading}
+      loadingDelay={0}
+    >
+      {n.description}
+    </NotificationListItem>
+  )
+}
 
 export default defineFixtures<Props>({
   name: "notification-list",
@@ -39,6 +70,10 @@ export default defineFixtures<Props>({
     {
       id: "notification-list-growing-button-loading",
       props: { groups: [{ title: "Orders", growing: "button", loading: true, items: [{ title: "New order", loading: true }] }] },
+    },
+    {
+      id: "notification-list-growing-button-local-child-loading",
+      props: { groups: [{ title: "Orders", growing: "button", loading: true, items: [{ title: "New order", description: "Updating this notification after the group rendered.", loadingAfterGroup: true, showClose: true }] }] },
     },
     {
       id: "notification-list-growing-scroll-loading",
@@ -85,24 +120,7 @@ export default defineFixtures<Props>({
     },
   ],
   react: ({ items, groups }) => {
-    const item = (n: NotificationFixture) => (
-      <NotificationListItem
-        key={n.title}
-        titleText={n.title}
-        state={n.state}
-        read={n.read}
-        importance={n.important ? "important" : undefined}
-        showClose={n.showClose}
-        avatar={n.avatar ? <Avatar size="XS" initials={n.avatar} /> : undefined}
-        footnotes={n.footnotes}
-        menu={n.menu ? <MenuItem>Accept</MenuItem> : undefined}
-        wrappingType={n.wrapping ? "normal" : undefined}
-        loading={n.loading}
-        loadingDelay={0}
-      >
-        {n.description}
-      </NotificationListItem>
-    )
+    const item = (n: NotificationFixture) => <FixtureItem key={n.title} fixture={n} />
     return (
       <NotificationList style={{ width: NOTIFICATION_WIDTH }}>
         {items?.map(item)}

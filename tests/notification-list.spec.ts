@@ -32,6 +32,7 @@ async function growingKeyboardOracle(page: Page, reference: boolean) {
           const item = document.createElement("ui5-li-notification") as any
           item.titleText = `${name} notification ${number}`
           item.showClose = true
+          item.loadingDelay = 0
           item.dataset.probeKey = `${name}-${number}`
           item.textContent = "And with very long description and long labels of the action buttons - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
           group.append(item)
@@ -706,6 +707,82 @@ test("notification-list: false child resets during group loading allow a fresh h
   await expect(growingItem(page, 1)).toHaveAccessibleName("Fetching notifications")
   await expect(growingItem(page, 1).locator(".fiori-nli__busy")).toHaveAttribute("inert", "")
   await expect(growingItem(page, 1).locator('[role="progressbar"]')).toBeVisible()
+})
+
+test("notification-list: a local child request survives busy group state until the owning group renders, matching UI5", async ({ page }) => {
+  const demo = page.locator("#notification-list-local-loading-demo")
+  const owner = demo.locator('[data-nli-group]')
+  const child = demo.locator('[data-nav-key="local-loading-child"]')
+  const busy = child.locator(".fiori-nli__busy")
+  await demo.getByRole("button", { name: "Start busy group", exact: true }).click()
+  await expect(owner.locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+  const start = child.getByRole("button", { name: "Start local child loading", exact: true })
+  await start.focus()
+  await expect(start).toBeFocused()
+  await expect(child).toHaveAttribute("tabindex", "0")
+  await start.click()
+  await expect(owner).toHaveAttribute("data-loading", "")
+  await expect(child).toHaveAttribute("data-loading", "")
+  await expect(busy).toHaveAttribute("inert", "")
+  await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+  await expect(demo.locator('[role="progressbar"]')).toHaveCount(2)
+  const more = owner.getByRole("button", { name: "More", exact: true })
+  await more.focus()
+  await expect(more).toBeFocused()
+  await expect(busy).toHaveAttribute("data-active", "")
+  await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+  await demo.getByRole("button", { name: "Render owning group", exact: true }).click()
+  await expect(owner).toHaveAccessibleName("Loading")
+  await expect(owner).toHaveAttribute("data-loading", "")
+  await expect(child).not.toHaveAttribute("data-loading")
+  await expect(busy).not.toHaveAttribute("data-active")
+  await expect(busy).not.toHaveAttribute("inert")
+  await expect(demo.locator("#notification-list-local-child-state")).toHaveText("Child request: loading")
+  await child.getByRole("button", { name: "Reset local child loading", exact: true }).click()
+  await expect(demo.locator("#notification-list-local-child-state")).toHaveText("Child request: idle")
+  await child.getByRole("button", { name: "Start local child loading", exact: true }).click()
+  await expect(busy).toHaveAttribute("inert", "")
+  await expect(busy.locator('[role="progressbar"]')).toBeVisible()
+
+  const oracle = await growingKeyboardOracle(page, true)
+  await oracle.setLoading(true)
+  await oracle.host().evaluate((group: any) => {
+    ;(window as any).__notificationOwnedRenders = 0
+    const before = group.onBeforeRendering.bind(group)
+    group.onBeforeRendering = () => { (window as any).__notificationOwnedRenders++; before() }
+    group.items[0].loading = true
+  })
+  const referenceChild = oracle.host().locator('ui5-li-notification[data-probe-key="orders-1"]')
+  const referenceBusy = referenceChild.locator(".ui5-nli-loading")
+  await expect(referenceChild).toHaveAttribute("loading", "")
+  await expect(referenceBusy).toHaveAttribute("active", "")
+  await expect(referenceBusy).toHaveAttribute("inert", "")
+  await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
+  expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(0)
+  await oracle.more().focus()
+  await expect(oracle.more()).toBeFocused()
+  await expect(referenceBusy).toHaveAttribute("active", "")
+  await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
+  expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(0)
+  await oracle.host().evaluate((group: any) => { group.titleText = "Rerendered busy group" })
+  await expect(referenceChild).not.toHaveAttribute("loading")
+  await expect(referenceBusy).not.toHaveAttribute("active")
+  await expect(referenceBusy).not.toHaveAttribute("inert")
+  expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(1)
+  await oracle.host().evaluate((group: any) => { group.items[0].loading = false; group.items[0].loading = true })
+  await expect(referenceBusy.locator('[role="progressbar"]')).toBeVisible()
+  expect(await page.evaluate(() => (window as any).__notificationOwnedRenders)).toBe(1)
+})
+
+test("notification-list: the local-child-loading fixture exposes both inline and child busy areas", async ({ page }) => {
+  for (const reference of [false, true]) {
+    await page.goto(reference ? "/ui5.html?only=notification-list-growing-button-local-child-loading" : "/index.html?fixtures&only=notification-list-growing-button-local-child-loading")
+    await page.waitForSelector("html[data-ready=true]")
+    const fixture = page.locator('[data-fixture="notification-list-growing-button-local-child-loading"]')
+    await expect(fixture.locator('[role="progressbar"]')).toHaveCount(2)
+    const child = fixture.locator(reference ? "ui5-li-notification" : '[data-slot="notification-list-item"]')
+    await expect(child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")).toHaveAttribute("inert", "")
+  }
 })
 
 test("notification-list: only the requesting group's first appended item focuses after loading completes", async ({ page }) => {

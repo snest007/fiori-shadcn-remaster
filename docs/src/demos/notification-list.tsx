@@ -83,6 +83,32 @@ function NotificationLoadingHandoffDemo() {
   )
 }
 
+function LocallyLoadingNotification() {
+  const [loading, setLoading] = React.useState(false)
+  return (
+    <NotificationListItem value="local-loading-child" titleText="Locally loading notification" loading={loading} loadingDelay={0} wrappingType="normal">
+      <Button onClick={() => setLoading((current) => !current)}>{loading ? "Reset" : "Start"} local child loading</Button>
+      <output id="notification-list-local-child-state">{loading ? "Child request: loading" : "Child request: idle"}</output>
+    </NotificationListItem>
+  )
+}
+
+function NotificationLocalLoadingDemo() {
+  const [renders, setRenders] = React.useState(0)
+  const [loading, setLoading] = React.useState(false)
+  return (
+    <div id="notification-list-local-loading-demo" className="grid gap-3">
+      <Button onClick={() => setLoading(true)} disabled={loading}>Start busy group</Button>
+      <Button onClick={() => setRenders((current) => current + 1)}>Render owning group</Button>
+      <NotificationList>
+        <NotificationListGroupItem value="local-loading-group" titleText={`Busy group ${renders}`} loading={loading} growing="button" loadingDelay={0}>
+          <LocallyLoadingNotification />
+        </NotificationListGroupItem>
+      </NotificationList>
+    </div>
+  )
+}
+
 function NotificationListDemo() {
   const [closed, setClosed] = React.useState<string[]>([])
   const [last, setLast] = React.useState("none")
@@ -117,6 +143,7 @@ function NotificationListDemo() {
       <span id="notification-list-demo-last" className="text-(--sapContent_LabelColor)">{`Last action: ${last}`}</span>
       <GrowingNotificationsDemo />
       <NotificationLoadingHandoffDemo />
+      <NotificationLocalLoadingDemo />
     </div>
   )
 }

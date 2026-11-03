@@ -82,7 +82,9 @@ type ListContextValue = {
   toggle: (value: string, collapsed: boolean) => void
 }
 const NotificationContext = React.createContext<ListContextValue | null>(null)
-const GroupLoadingContext = React.createContext(false)
+// Object identity is one owning group-render generation. A local child render keeps it.
+type GroupRender = { loading: boolean }
+const GroupRenderContext = React.createContext<GroupRender | null>(null)
 
 const isVisible = (el: HTMLElement) => el.offsetParent !== null
 const PAGE_SIZE = 10
@@ -332,14 +334,16 @@ function NotificationListItem({
   ...props
 }: NotificationListItemProps) {
   const ctx = useNotificationContext()
-  const groupLoading = React.useContext(GroupLoadingContext)
-  // NotificationListGroupItem.js/onBeforeRendering calls clearChildBusyIndicator only while
-  // CURRENT group.loading is true. Preserve immutable props by suppressing only an active
-  // child request; CURRENT false resets it even while the group stays busy.
-  const [childLoadingCleared, setChildLoadingCleared] = React.useState(false)
-  if (groupLoading && loading && !childLoadingCleared) setChildLoadingCleared(true)
-  if (!loading && childLoadingCleared) setChildLoadingCleared(false)
-  loading = !!loading && !groupLoading && !childLoadingCleared
+  const groupRender = React.useContext(GroupRenderContext)
+  // NotificationListGroupItem.js/onBeforeRendering clears children only when the OWNER
+  // renders while loading. Its slot metadata does not invalidate it on a local child's
+  // loading update. Keep that generation boundary and the latch until incoming false.
+  const [childLoadingState, setChildLoadingState] = React.useState<{ group: GroupRender | null; cleared: boolean }>({ group: null, cleared: false })
+  const childLoadingCleared = !!loading && (childLoadingState.cleared || (groupRender !== childLoadingState.group && !!groupRender?.loading))
+  if (groupRender !== childLoadingState.group || childLoadingCleared !== childLoadingState.cleared) {
+    setChildLoadingState({ group: groupRender, cleared: childLoadingCleared })
+  }
+  loading = !!loading && !childLoadingCleared
   const id = React.useId()
   const { texts } = ctx
   const core = React.useContext(ListCoreContext)
@@ -726,7 +730,7 @@ function NotificationListGroupItem({
         <div className="fiori-nli-group__list">
           <span ref={startRef} aria-hidden className="fiori-nli-group__start-marker" />
           <ul id={`${id}-items`} role="list" aria-labelledby={`${id}-title`} className="fiori-nli-group__items">
-            <GroupLoadingContext.Provider value={loading}>{children}</GroupLoadingContext.Provider>
+            <GroupRenderContext.Provider value={{ loading }}>{children}</GroupRenderContext.Provider>
           </ul>
           {growing === "button" && (
             <div className="fiori-list__growing fiori-nli-group__growing">
