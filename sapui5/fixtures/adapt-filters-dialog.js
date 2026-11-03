@@ -78,6 +78,16 @@ sap.ui.define([
         .find((control) => control.isA?.("sap.m.Dialog") && !originalIds.has(control.getId()) && control.getTitle() === "Warning")
       if (!warning) throw new Error("Adapt Filters Reset did not create its warning dialog")
       cell.removeChild(surface)
+      // Opening the warning re-renders the personalization dialog into the static area, where it
+      // would float over neighbouring fixture cells (variant-management-*). Keep that parent hidden
+      // across later renders; only the warning surface is compared in this case.
+      popup._oPopup.addStyleClass("adapt-filters-fixture-parent-hidden")
+      if (!document.getElementById("adapt-filters-parent-framing")) {
+        const style = document.createElement("style")
+        style.id = "adapt-filters-parent-framing"
+        style.textContent = ".sapMDialog.adapt-filters-fixture-parent-hidden { display: none !important }"
+        document.head.append(style)
+      }
       await popupHelper.showPopupInPlace(warning, cell)
     }
   }

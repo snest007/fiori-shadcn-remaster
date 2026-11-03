@@ -68,6 +68,11 @@ async function readCases(page: Page): Promise<CaseInfo[]> {
   return page.evaluate(() => (window as unknown as { __fixtures: CaseInfo[] }).__fixtures)
 }
 
+// The OpenUI5 reference renders the variant-list popover header slightly differently when several
+// reference pages load in parallel (shared UI5 Tooling server under load; ~1 in 3 parallel loads).
+// Run these comparisons one at a time; our side is unaffected either way.
+test.describe.configure({ mode: "serial" })
+
 for (const theme of THEMES) {
   for (const density of DENSITIES) {
     test(`${theme} ${density} matches SAPUI5`, async ({ context, page }) => {

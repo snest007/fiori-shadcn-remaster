@@ -441,6 +441,8 @@ function AdaptFiltersSession({
 
 function ResetConfirmation({ portal, standalone, title, message, ok, cancel, onConfirm, onCancel, id }: { portal: boolean; standalone?: boolean; title: string; message: string; ok: string; cancel: string; onConfirm: () => void; onCancel: () => void; id: string }) {
   const content = <DialogPrimitive.Content id={id} data-slot="adapt-filters-reset" role="alertdialog" aria-describedby={`${id}-message`} className="fiori-adapt-filters-reset" data-portal={portal ? "" : undefined} onPointerDownOutside={(event) => event.preventDefault()}
+    // sap.m.MessageBox closes only through its buttons or Escape; focus moving elsewhere must not dismiss it.
+    onInteractOutside={(event) => event.preventDefault()}
     onOpenAutoFocus={(event) => { if (!portal) event.preventDefault() }}
     onKeyDown={(event) => {
       if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); event.stopPropagation(); onConfirm() }

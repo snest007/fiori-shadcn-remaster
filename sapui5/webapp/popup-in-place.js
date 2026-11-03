@@ -40,6 +40,30 @@ sap.ui.define(["sap/ui/core/library"], (coreLibrary) => {
     surface.style.setProperty("transform", "none", "important")
     surface.style.setProperty("max-width", "none", "important")
     surface.style.setProperty("max-height", "none", "important")
+    // core/Popup.js keeps repositioning an open popup (resize/scroll/"followOf" handlers write
+    // position/top/left inline). Pin the in-place placement against those later writes.
+    surface.style.setProperty("position", "static", "important")
+    surface.style.setProperty("top", "auto", "important")
+    surface.style.setProperty("left", "auto", "important")
+    popup.oPopup?.setFollowOf?.(false)
+    // sap/m/Popover.js overrides oPopup._applyPosition and re-runs it from resize/orientation
+    // listeners (ResizeHandler on its scroll area); later page layout (more fixtures rendering)
+    // would write top/left/position back. In a fixture the popup must stay where we put it.
+    // Let it run (it also sizes content and toggles the resize handle) and re-pin afterwards: it may
+    // rewrite the whole style attribute, dropping our !important placement.
+    const pin = () => {
+      for (const [k, v] of [["position", "static"], ["inset", "auto"], ["top", "auto"], ["left", "auto"], ["transform", "none"], ["max-width", "none"], ["max-height", "none"]])
+        surface.style.setProperty(k, v, "important")
+    }
+    if (popup.oPopup && !popup.oPopup.__fixturePinned) {
+      const original = popup.oPopup._applyPosition
+      popup.oPopup._applyPosition = function (...args) {
+        const result = original.apply(this, args)
+        pin()
+        return result
+      }
+      popup.oPopup.__fixturePinned = true
+    }
     cell.append(surface)
 
     // Modal block layers cover sibling fixtures after the popup is moved from the static
