@@ -45,7 +45,7 @@ function fieldKeepsKey(el: HTMLElement, key: string, forward: boolean) {
   return forward ? !(s === value.length && e === value.length) : !(s === 0 && e === 0)
 }
 
-const OverflowContext = React.createContext({ overflowed: false, close: () => {} })
+const OverflowContext = React.createContext({ overflowed: false, close: () => {}, registerNestedInteraction: (_event: Event) => {} })
 type ItemRecord = { key: string; node: HTMLElement; child: React.ReactNode; priority: ToolbarItemOptions["overflowPriority"]; kind: "item" | "separator" | "spacer"; flexible: boolean; unmanaged: boolean; width?: string }
 
 /** UI5 Toolbar.js/distributeItems: ungrouped distribution units move right-to-left; separators cost zero. */
@@ -121,12 +121,13 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
   if (reverseOverflow) overflowItems.reverse()
   const hasOverflow = overflowItems.some((item) => item.kind !== "separator" && !item.node.hidden)
   const isOpen = React.useRef(false)
-  const nestedPointerDowns = React.useRef(new WeakSet<Event>())
+  const nestedInteractions = React.useRef(new WeakSet<Event>())
   const opening = React.useRef(0)
   const restoredOpening = React.useRef<number | null>(null)
   const renderedOpening = opening.current
   isOpen.current = open && hasOverflow
   const close = React.useCallback(() => setOpen(false), [])
+  const registerNestedInteraction = React.useCallback((event: Event) => { nestedInteractions.current.add(event) }, [])
   const isPickerTarget = React.useCallback((target: Node) => {
     const controls = overflowHost.current?.querySelectorAll<HTMLElement>("[aria-controls]") ?? []
     return [...controls].some((control) => control.getAttribute("aria-controls")?.split(/\s+/).some((id) => document.getElementById(id)?.contains(target)))
@@ -136,11 +137,11 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
     // Radix defers an outside pointer event until click. A child picker may have
     // removed that target by then; retain the original association while mounted.
     const capture = (event: PointerEvent) => {
-      if (event.target instanceof Node && isPickerTarget(event.target)) nestedPointerDowns.current.add(event)
+      if (event.target instanceof Node && isPickerTarget(event.target)) registerNestedInteraction(event)
     }
     document.addEventListener("pointerdown", capture, true)
     return () => document.removeEventListener("pointerdown", capture, true)
-  }, [open, isPickerTarget])
+  }, [open, isPickerTarget, registerNestedInteraction])
   const changeOpen = React.useCallback((next: boolean) => {
     // Toolbar.js/openOverflow reads the actual placement retained after closing.
     if (next) {
@@ -310,7 +311,7 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
         <PopoverTrigger asChild><Button ref={overflowButton} variant="transparent" size="icon" className="data-hidden:absolute data-hidden:invisible" data-slot="toolbar-overflow-button" data-hidden={!hasOverflow ? "" : undefined} aria-hidden={!hasOverflow || undefined} tabIndex={hasOverflow ? undefined : -1} aria-label={overflowButtonLabel} aria-haspopup="menu" title={overflowButtonLabel}><Icon icon={overflow} /></Button></PopoverTrigger>
       </div>
       <div ref={parking} hidden />
-      {items.map((item) => createPortal(<OverflowContext.Provider value={{ overflowed: overflowKeys.includes(item.key) || item.priority === "alwaysOverflow", close }}>{item.child}</OverflowContext.Provider>, item.node, item.key))}
+      {items.map((item) => createPortal(<OverflowContext.Provider value={{ overflowed: overflowKeys.includes(item.key) || item.priority === "alwaysOverflow", close, registerNestedInteraction }}>{item.child}</OverflowContext.Provider>, item.node, item.key))}
     </div>
     <PopoverContent key={renderedOpening} hideArrow side="bottom" align="end" aria-label={overflowPopoverLabel} {...overflowContentProps}
       className={cn("fiori-toolbar-overflow", overflowContentProps?.className)}
@@ -320,7 +321,7 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
         // therefore a sibling Radix layer; keep the toolbar open while its controlled popup
         // receives focus/interaction, as UI5 ToolbarSelect.onOpen does.
         const target = event.target as Node
-        if (overflowHost.current?.contains(target) || isPickerTarget(target) || nestedPointerDowns.current.has(event.detail.originalEvent)) event.preventDefault()
+        if (overflowHost.current?.contains(target) || isPickerTarget(target) || nestedInteractions.current.has(event.detail.originalEvent)) event.preventDefault()
       }}
       onOpenAutoFocus={(event) => { event.preventDefault(); if (overflowContentProps?.onOpenAutoFocus) overflowContentProps.onOpenAutoFocus(event); else overflowHost.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus() }}
       onCloseAutoFocus={(event) => {
@@ -355,7 +356,7 @@ function ToolbarButton({ overflowPriority: _priority, preventOverflowClosing = f
 
 type ToolbarItemProps = React.ComponentProps<"div"> & ToolbarItemOptions
 function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = false, className, children, ref, ...props }: ToolbarItemProps) {
-  const { overflowed, close } = React.useContext(OverflowContext)
+  const { overflowed, close, registerNestedInteraction } = React.useContext(OverflowContext)
   const wrapper = React.useRef<HTMLDivElement>(null)
   React.useImperativeHandle(ref, () => wrapper.current!, [])
   const currentKey = React.useRef<React.KeyboardEvent<HTMLDivElement> | null>(null)
@@ -423,6 +424,16 @@ function ToolbarItem({ overflowPriority: _priority, preventOverflowClosing = fal
     return child
   })
   return <div ref={wrapper} data-slot="toolbar-item" className={cn("fiori-toolbar-item", overflowed && "w-full", className)} {...props}
+    // UI5 ToolbarItem owns its picker's interactions. React portal descendants
+    // retain this ancestry even when their surface has no aria-controls link.
+    onPointerDownCapture={(event) => {
+      if (overflowed && !event.currentTarget.contains(event.target as Node)) registerNestedInteraction(event.nativeEvent)
+      props.onPointerDownCapture?.(event)
+    }}
+    onFocusCapture={(event) => {
+      if (overflowed && !event.currentTarget.contains(event.target as Node)) registerNestedInteraction(event.nativeEvent)
+      props.onFocusCapture?.(event)
+    }}
     onClick={(event) => {
       props.onClick?.(event)
       // ToolbarItem.js/attachCloseOverflowHandlers listens on the item itself, so
