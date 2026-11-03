@@ -51,6 +51,8 @@ export default defineFixtures<Props>({
       id: `avatar-group-overflow-${group}-${size.toLowerCase()}`,
       props: { group, size, width: group === "group" ? size === "S" ? "7.5rem" : "12rem" : size === "S" ? "9rem" : "15rem" },
     }))),
+    { id: "avatar-group-overflow-ultra-narrow-56", props: { group: "group", size: "S", width: "3.5rem", count: 4 } },
+    { id: "avatar-group-overflow-ultra-narrow-80", props: { group: "group", size: "S", width: "5rem", count: 4 } },
     { id: "avatar-group-overflow-custom-group", props: { group: "group", width: "12rem", customOverflow: true, count: 2 } },
     { id: "avatar-group-overflow-custom", props: { group: "individual", width: "9rem", customOverflow: true } },
     { id: "avatar-group-overflow-custom-fitting", props: { group: "individual", width: "15rem", customOverflow: true, count: 2 } },

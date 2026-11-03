@@ -45,6 +45,11 @@ const iconSizes: Record<AvatarSize, string> = {
   XL: "[&>svg]:size-(--fiori-avatar-icon-xl)",
 }
 
+// UI5 webcomponents-base/Keys.js isEnter/isSpace and ItemNavigation use hasModifierKeys.
+const hasAvatarModifier = (event: Pick<React.KeyboardEvent, "shiftKey" | "ctrlKey" | "altKey" | "metaKey">) =>
+  event.shiftKey || event.ctrlKey || event.altKey || event.metaKey
+const isAvatarActivationKey = (key: string) => key === "Enter" || key === " " || key === "Spacebar"
+
 // UI5: 1–3 letters from any script where initials are meaningful (not Han / Kana).
 const validInitials = (s?: string) =>
   !!s && /^\p{L}{1,3}$/u.test(s) && !/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(s)
@@ -65,6 +70,8 @@ function Avatar({
   badge,
   disabled,
   className,
+  onKeyDown,
+  onKeyUp,
   ...props
 }: AvatarProps) {
   const [imageFailed, setImageFailed] = React.useState(false)
@@ -129,6 +136,17 @@ function Avatar({
         aria-label={label}
         disabled={disabled}
         {...common}
+        onKeyDown={(event) => {
+          onKeyDown?.(event)
+          // Avatar.js _onkeydown delegates to Keys.isEnter/isSpace (no modifiers).
+          // A native button would otherwise activate modified Enter/Space by default.
+          if (hasAvatarModifier(event) && isAvatarActivationKey(event.key)) event.preventDefault()
+        }}
+        onKeyUp={(event) => {
+          onKeyUp?.(event)
+          // Avatar.js _onkeyup also rejects modified Space on release.
+          if (hasAvatarModifier(event) && isAvatarActivationKey(event.key)) event.preventDefault()
+        }}
         {...props}
       >
         {children}
@@ -143,7 +161,7 @@ function Avatar({
       aria-hidden={decorative || undefined}
       aria-label={decorative ? undefined : label}
       {...common}
-      {...(props as React.ComponentProps<"div">)}
+      {...({ onKeyDown, onKeyUp, ...props } as React.ComponentProps<"div">)}
     >
       {children}
     </div>
@@ -221,28 +239,44 @@ function AvatarGroup({
     const host = hostRef.current
     const container = containerRef.current
     if (!host || !container) return
-    // Port AvatarGroup.js _overflowItems/_getWidthToItem: reveal to measure, reserve the
-    // effective overflow width for every non-final item, then hide only a trailing suffix.
+    // Port AvatarGroup.js _overflowItems/_overflowButtonEffectiveWidth/_getWidthToItem:
+    // reveal only the current item, and reserve overflow width from the current visibility.
+    // Revealing every avatar together changes UI5's ultra-narrow group result.
     const measure = () => {
       const avatars = [...container.querySelectorAll<HTMLElement>(":scope > [data-slot=avatar]")]
       const overflow = overflowRef.current
       if (!overflow) return
-      avatars.forEach((avatar) => { avatar.hidden = false })
-      overflow.hidden = false
       const rtl = getComputedStyle(host).direction === "rtl"
       const hostBox = host.getBoundingClientRect()
       const widthToItem = (item: HTMLElement) => {
+        if (!item.offsetParent) return rtl ? 0 : -host.offsetLeft
         const box = item.getBoundingClientRect()
         // Slotted UI5 hosts share offset coordinates; our light-DOM avatars have the inner
         // flex container as offsetParent. Use the same integer distance from the host edge.
         return Math.round(rtl ? hostBox.right - box.right : box.left - hostBox.left)
       }
-      const effectiveOverflowWidth = isGroup && avatars[1] ? widthToItem(avatars[1]) : overflow.offsetWidth
-      const firstHidden = avatars.length < 2 ? -1 : avatars.findIndex((avatar, index) => {
-        const reserve = index !== avatars.length - 1 || hasCustomOverflow ? effectiveOverflowWidth : 0
-        return widthToItem(avatar) + avatar.offsetWidth + reserve > host.offsetWidth
-      })
-      const next = firstHidden < 0 ? avatars.length : firstHidden
+      const effectiveOverflowWidth = () => {
+        if (!isGroup) return overflow.offsetWidth
+        const second = avatars[1]
+        // AvatarGroup.js computes the LTR second-avatar offset before its hidden-item
+        // fallback: a hidden second avatar has offsetLeft=0. Keep that reservation,
+        // which lets the first avatar remain visible in a 56–80px group.
+        if (!rtl) return widthToItem(second)
+        return widthToItem(second.hidden ? overflow : second)
+      }
+      let next = avatars.length
+      if (avatars.length >= 2) {
+        for (let index = 0; index < avatars.length; index++) {
+          const avatar = avatars[index]
+          avatar.hidden = false
+          let totalWidth = widthToItem(avatar) + avatar.offsetWidth
+          if (index !== avatars.length - 1 || hasCustomOverflow) totalWidth += effectiveOverflowWidth()
+          if (totalWidth > host.offsetWidth) {
+            next = index
+            break
+          }
+        }
+      }
       const focused = document.activeElement
       const focusWasHidden = avatars.slice(next).some((avatar) => avatar === focused)
       const overflowWasRemoved = !hasCustomOverflow && next === avatars.length && overflow.contains(focused)
@@ -260,7 +294,7 @@ function AvatarGroup({
     container.querySelectorAll<HTMLElement>(":scope > [data-slot=avatar]").forEach((avatar) => observer.observe(avatar))
     if (overflowRef.current) observer.observe(overflowRef.current)
     return () => observer.disconnect()
-  }, [children, firstSize, isGroup, hasCustomOverflow, overflowButton])
+  }, [children, firstSize, isGroup, hasCustomOverflow, overflowButton, visibleCount])
 
   React.useLayoutEffect(() => {
     if (isGroup) return
@@ -281,6 +315,8 @@ function AvatarGroup({
     if (overflowButtonClicked) onOverflowClick?.(hiddenItems)
   }
   const moveFocus = (event: React.KeyboardEvent) => {
+    // ItemNavigation.js _onkeydown uses Keys helpers that ignore all modified navigation keys.
+    if (hasAvatarModifier(event)) return
     const buttons = controls()
     const index = buttons.indexOf(event.target as HTMLElement)
     if (index < 0) return
@@ -327,13 +363,15 @@ function AvatarGroup({
           onKeyDown?.(event)
           if (event.defaultPrevented) return
           if (!isGroup) return moveFocus(event)
+          // AvatarGroup.js _onkeydown uses Keys.isEnter/isSpace: all modifiers are rejected.
+          if (hasAvatarModifier(event)) return
           if (event.key === "Enter") event.currentTarget.click()
           if (event.key === " ") event.preventDefault()
         }}
         onKeyUp={(event) => {
           onKeyUp?.(event)
-          // AvatarGroup.js _onkeyup: Shift cancels Space activation.
-          if (isGroup && !event.defaultPrevented && !event.shiftKey && event.key === " ") {
+          // AvatarGroup.js _onkeyup uses Keys.isSpace, rejecting Shift/Ctrl/Alt/Meta on release.
+          if (isGroup && !event.defaultPrevented && !hasAvatarModifier(event) && event.key === " ") {
             event.preventDefault()
             event.currentTarget.click()
           }

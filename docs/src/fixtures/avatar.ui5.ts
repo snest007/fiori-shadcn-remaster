@@ -23,6 +23,8 @@ export default defineUi5(set, ({ size, shape, scheme: sc, initials, icon, image,
       ]),
       ...(customOverflow ? [h("ui5-button", { slot: "overflowButton" }, "All")] : [])
     )
+    // Let AvatarGroup.js _overflowItems own sequential visibility at the fixed ultra-narrow
+    // widths too; never pre-reveal items or pin an expected hidden count in the reference.
     // The group is width:100%; size it to its content as our inline group is.
     g.style.width = width ?? "max-content"
     return g

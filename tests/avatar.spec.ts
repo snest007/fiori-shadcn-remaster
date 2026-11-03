@@ -201,3 +201,145 @@ test("custom group overflow remains visible decoration within one group Tab stop
   await expect(page.locator("#avatar-group-events")).toHaveText("Group activated 1 times")
   await expect(page.locator("#avatar-custom-events")).toHaveText("Custom 0; overflow 0; hidden ")
 })
+
+const avatarModifiers = ["Shift", "Control", "Alt", "Meta"] as const
+
+test("group activation ignores modified Enter and Space, matching UI5 Keys", async ({ page }) => {
+  const group = page.locator("#avatar-overflow-group")
+  const events = page.locator("#avatar-group-events")
+  await group.focus()
+  await expect(group).toBeFocused()
+  for (const modifier of avatarModifiers) {
+    for (const key of ["Enter", "Space"]) {
+      await page.keyboard.press(`${modifier}+${key}`)
+      await page.evaluate(() => 0)
+      await expect(events).toHaveText("Group activated 0 times")
+    }
+  }
+  await page.keyboard.press("Enter")
+  await expect(events).toHaveText("Group activated 1 times")
+  await page.keyboard.press("Space")
+  await expect(events).toHaveText("Group activated 2 times")
+
+  await page.goto("/ui5.html?only=avatar")
+  await page.waitForSelector("html[data-ready=true]")
+  const oracle = page.locator('[data-fixture="avatar-group"] ui5-avatar-group')
+  await oracle.evaluate((element) => {
+    element.setAttribute("data-avatar-test-clicks", "0")
+    element.addEventListener("ui5-click", () => element.setAttribute("data-avatar-test-clicks", `${Number(element.getAttribute("data-avatar-test-clicks")) + 1}`))
+  })
+  const oracleFocus = oracle.locator(".ui5-avatar-group-items")
+  await oracleFocus.focus()
+  await expect(oracleFocus).toBeFocused()
+  for (const modifier of avatarModifiers) {
+    for (const key of ["Enter", "Space"]) {
+      await page.keyboard.press(`${modifier}+${key}`)
+      await page.evaluate(() => 0)
+      await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "0")
+    }
+  }
+  await page.keyboard.press("Enter")
+  await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "1")
+  await page.keyboard.press("Space")
+  await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "2")
+})
+
+test("individual avatars reject modified activation and navigation, matching UI5 Avatar and ItemNavigation", async ({ page }) => {
+  const group = page.locator("#avatar-overflow-individual")
+  await group.locator("..").evaluate((host) => { (host as HTMLElement).style.width = "24rem" })
+  await expect(group).toHaveAttribute("aria-label", "Individual avatars. 6 displayed, 0 hidden. Press ARROW keys to move.")
+  const first = group.getByRole("button", { name: "John Doe" })
+  const last = group.getByRole("button", { name: "Fiona Gray" })
+  await first.focus()
+  await expect(first).toBeFocused()
+  await page.keyboard.press("Shift+ArrowRight")
+  await expect(first).toBeFocused()
+  for (const modifier of avatarModifiers) {
+    for (const key of ["Enter", "Space"]) {
+      await page.keyboard.press(`${modifier}+${key}`)
+      await page.evaluate(() => 0)
+      await expect(page.locator("#avatar-group-events")).toHaveText("Group activated 0 times")
+    }
+    for (const key of ["ArrowRight", "ArrowDown", "End", "PageDown"]) {
+      await first.dispatchEvent("keydown", { key, shiftKey: modifier === "Shift", ctrlKey: modifier === "Control", altKey: modifier === "Alt", metaKey: modifier === "Meta" })
+      await expect(first).toBeFocused()
+    }
+  }
+  await page.keyboard.press("End")
+  await expect(last).toBeFocused()
+  for (const modifier of avatarModifiers) {
+    for (const key of ["ArrowLeft", "ArrowUp", "Home", "PageUp"]) {
+      await last.dispatchEvent("keydown", { key, shiftKey: modifier === "Shift", ctrlKey: modifier === "Control", altKey: modifier === "Alt", metaKey: modifier === "Meta" })
+      await expect(last).toBeFocused()
+    }
+  }
+  await page.keyboard.press("Home")
+  await expect(first).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(page.locator("#avatar-group-events")).toHaveText("Group activated 1 times")
+  await page.keyboard.press("Space")
+  await expect(page.locator("#avatar-group-events")).toHaveText("Group activated 2 times")
+
+  await page.goto("/ui5.html?only=avatar")
+  await page.waitForSelector("html[data-ready=true]")
+  const oracle = page.locator('[data-fixture="avatar-group-individual"] ui5-avatar-group')
+  await oracle.evaluate((element) => {
+    element.setAttribute("data-avatar-test-clicks", "0")
+    element.addEventListener("ui5-click", () => element.setAttribute("data-avatar-test-clicks", `${Number(element.getAttribute("data-avatar-test-clicks")) + 1}`))
+  })
+  const oracleFirst = oracle.locator("ui5-avatar").first().locator(".ui5-avatar-root")
+  const oracleLast = oracle.locator("ui5-avatar").last().locator(".ui5-avatar-root")
+  await oracleFirst.focus()
+  await expect(oracleFirst).toBeFocused()
+  await page.keyboard.press("Shift+ArrowRight")
+  await expect(oracleFirst).toBeFocused()
+  for (const modifier of avatarModifiers) {
+    for (const key of ["Enter", "Space"]) {
+      await page.keyboard.press(`${modifier}+${key}`)
+      await page.evaluate(() => 0)
+      await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "0")
+    }
+    for (const key of ["ArrowRight", "ArrowDown", "End", "PageDown"]) {
+      await oracleFirst.dispatchEvent("keydown", { key, shiftKey: modifier === "Shift", ctrlKey: modifier === "Control", altKey: modifier === "Alt", metaKey: modifier === "Meta" })
+      await expect(oracleFirst).toBeFocused()
+    }
+  }
+  await page.keyboard.press("End")
+  await expect(oracleLast).toBeFocused()
+  for (const modifier of avatarModifiers) {
+    for (const key of ["ArrowLeft", "ArrowUp", "Home", "PageUp"]) {
+      await oracleLast.dispatchEvent("keydown", { key, shiftKey: modifier === "Shift", ctrlKey: modifier === "Control", altKey: modifier === "Alt", metaKey: modifier === "Meta" })
+      await expect(oracleLast).toBeFocused()
+    }
+  }
+  await page.keyboard.press("Home")
+  await expect(oracleFirst).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "1")
+  await page.keyboard.press("Space")
+  await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "2")
+})
+
+test("ultra-narrow groups retain the first avatar through sequential width reservation, matching UI5", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=avatar")
+  await page.waitForSelector("html[data-ready=true]")
+  const host = page.locator('[data-fixture="avatar-group-overflow-ultra-narrow-56"] [data-slot="avatar-group"]')
+  for (const width of [56, 64, 72, 80, 120, 56]) {
+    await host.evaluate((element, width) => { (element as HTMLElement).style.width = `${width}px` }, width)
+    const shown = width === 120 ? 2 : 1
+    await expect(host.locator('[data-slot="avatar"]:visible')).toHaveCount(shown)
+    await expect(host.locator('[data-slot="avatar"][hidden]')).toHaveCount(4 - shown)
+    await expect(host.locator("[data-text]")).toHaveAttribute("data-text", `+${4 - shown}`)
+  }
+
+  await page.goto("/ui5.html?only=avatar")
+  await page.waitForSelector("html[data-ready=true]")
+  const oracle = page.locator('[data-fixture="avatar-group-overflow-ultra-narrow-56"] ui5-avatar-group')
+  for (const width of [56, 64, 72, 80, 120, 56]) {
+    await oracle.evaluate((element, width) => { element.style.width = `${width}px` }, width)
+    const shown = width === 120 ? 2 : 1
+    await expect.poll(() => oracle.evaluate((element: any) => element.hiddenItems.length)).toBe(4 - shown)
+    await expect(oracle.locator('ui5-avatar:not([hidden])')).toHaveCount(shown)
+    await expect(oracle.locator(".ui5-avatar-group-overflow-btn")).toHaveText(`+${4 - shown}`)
+  }
+})
