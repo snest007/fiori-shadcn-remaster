@@ -32,6 +32,8 @@ const item = (n: NotificationFixture) =>
       importance: n.important ? "Important" : undefined,
       "show-close": n.showClose,
       "wrapping-type": n.wrapping ? "Normal" : undefined,
+      loading: n.loading,
+      "loading-delay": "0",
     },
     ...(n.menu ? [h("ui5-menu", { slot: "menu" }, h("ui5-menu-item", { text: "Accept" }))] : []),
     ...(n.avatar ? [h("ui5-avatar", { slot: "avatar", size: "XS", initials: n.avatar })] : []),
@@ -44,7 +46,7 @@ export default defineUi5(set, ({ items, groups }) => {
     "ui5-notification-list",
     {},
     ...(items ?? []).map(item),
-    ...(groups ?? []).map((g) => h("ui5-li-notification-group", { "title-text": g.title, collapsed: g.collapsed }, ...g.items.map(item)))
+    ...(groups ?? []).map((g) => h("ui5-li-notification-group", { "title-text": g.title, collapsed: g.collapsed, growing: cap(g.growing), loading: g.loading, "loading-delay": "0" }, ...g.items.map(item)))
   )
   list.style.width = NOTIFICATION_WIDTH
   return list

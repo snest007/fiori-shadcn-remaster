@@ -17,9 +17,10 @@ export type NotificationFixture = {
   avatar?: string
   footnotes?: string[]
   wrapping?: boolean
+  loading?: boolean
 }
 
-type Props = { groups?: { title: string; collapsed?: boolean; items: NotificationFixture[] }[]; items?: NotificationFixture[] }
+type Props = { groups?: { title: string; collapsed?: boolean; growing?: "button" | "scroll"; loading?: boolean; items: NotificationFixture[] }[]; items?: NotificationFixture[] }
 
 const LONG =
   "And with very long description and long labels of the action buttons - Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
@@ -27,6 +28,22 @@ const LONG =
 export default defineFixtures<Props>({
   name: "notification-list",
   cases: [
+    {
+      id: "notification-list-growing-button",
+      props: { groups: [{ title: "Orders", growing: "button", items: [{ title: "New order", description: "An order is awaiting approval." }] }] },
+    },
+    {
+      id: "notification-list-growing-button-loading",
+      props: { groups: [{ title: "Orders", growing: "button", loading: true, items: [{ title: "New order", loading: true }] }] },
+    },
+    {
+      id: "notification-list-growing-scroll-loading",
+      props: { groups: [{ title: "Orders", growing: "scroll", loading: true, items: [{ title: "New order", loading: true }] }] },
+    },
+    {
+      id: "notification-list-growing-collapsed",
+      props: { groups: [{ title: "Orders", growing: "button", collapsed: true, items: [{ title: "New order" }] }] },
+    },
     {
       id: "notification-list-items",
       props: {
@@ -76,6 +93,8 @@ export default defineFixtures<Props>({
         footnotes={n.footnotes}
         menu={n.menu ? <MenuItem>Accept</MenuItem> : undefined}
         wrappingType={n.wrapping ? "normal" : undefined}
+        loading={n.loading}
+        loadingDelay={0}
       >
         {n.description}
       </NotificationListItem>
@@ -84,7 +103,7 @@ export default defineFixtures<Props>({
       <NotificationList style={{ width: NOTIFICATION_WIDTH }}>
         {items?.map(item)}
         {groups?.map((g) => (
-          <NotificationListGroupItem key={g.title} titleText={g.title} defaultCollapsed={g.collapsed}>
+          <NotificationListGroupItem key={g.title} titleText={g.title} defaultCollapsed={g.collapsed} growing={g.growing} loading={g.loading} loadingDelay={0}>
             {g.items.map(item)}
           </NotificationListGroupItem>
         ))}
