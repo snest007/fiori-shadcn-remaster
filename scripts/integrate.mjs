@@ -8,7 +8,8 @@
 //   node scripts/integrate.mjs status                 list codex/* branches, worktrees, merge state
 //   node scripts/integrate.mjs scope [branch…]        files each branch changes vs. what its card allows
 //   node scripts/integrate.mjs merge [branch…]        scope check, then merge --no-ff in the given order
-//   node scripts/integrate.mjs verify [--runs=3]      install, generate, typecheck, registry, N full runs, smoke install
+//   node scripts/integrate.mjs verify [--runs=3] [--workers=<positive integer>]
+//                                                     install, generate, typecheck, registry, N full runs, smoke install
 //   node scripts/integrate.mjs cleanup [branch…]      remove merged branches and their (clean) worktrees
 //
 // Branches default to every local codex/* branch not yet merged into main (cleanup: merged ones).
@@ -173,6 +174,11 @@ if (cmd === "prepare") {
   }
   appendFileSync(join(OUT, "merged.txt"), branches.join("\n") + "\n")
 } else if (cmd === "verify") {
+  const workerArgs = args.filter((a) => a === "--workers" || a.startsWith("--workers="))
+  const workers = workerArgs[0]?.slice("--workers=".length)
+  if (workerArgs.length > 1 || (workerArgs.length && (!/^[1-9]\d*$/.test(workers) || !Number.isSafeInteger(Number(workers))))) {
+    fail("verify --workers must be a positive integer, e.g. --workers=1.")
+  }
   requireCleanMain()
   const runs = Number(args.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 3)
   const killPorts = () => sh(`for p in ${PORT} ${SAPUI5_PORT} 4312 4313; do lsof -ti tcp:$p | xargs kill 2>/dev/null; done; true`, { allowFail: true })
@@ -187,7 +193,9 @@ if (cmd === "prepare") {
   if (steps.every((s) => s.ok)) {
     for (let i = 1; i <= runs; i++) {
       killPorts()
-      const r = sh("pnpm exec playwright test --retries=0", { allowFail: true, env: { PORT, SAPUI5_PORT }, log: `run-${i}.log` })
+      // INTEGRATION.md cause 6: the serial SAPUI5 spec can still overlap unrelated specs.
+      // --workers=1 isolates reference load; omitting it preserves configured defaults.
+      const r = sh(`pnpm exec playwright test --retries=0${workers ? ` --workers=${workers}` : ""}`, { allowFail: true, env: { PORT, SAPUI5_PORT }, log: `run-${i}.log` })
       const summary = r.out.split("\n").filter((l) => /^\s+\d+ (passed|failed|flaky|skipped|did not run)/.test(l)).map((l) => l.trim()).join(", ")
       const failing = [...new Set(r.out.split("\n").filter((l) => l.includes("✘")).map((l) => l.replace(/^\s*✘\s+\d+\s+/, "").replace(/\s+\(retry #\d+\).*|\s+\([\d.]+m?s\)$/, "").trim()))]
       results.push({ run: i, ok: r.ok, summary: summary || "(no summary line — see log)", failing })
@@ -227,6 +235,8 @@ if (cmd === "prepare") {
     ...steps.map((s) => `- ${s.ok ? "✔" : "✖"} ${s.name}${s.detail ? "\n```\n" + s.detail + "\n```" : ""}`),
     "",
     `## Full test runs (retries off, ${runs} required)`,
+    `Playwright workers: ${workers ?? "configured default"}.`,
+    "",
     ...results.map((r) => `- run ${r.run}: ${r.ok ? "✔" : "✖"} ${r.summary}${r.failing.length ? "\n" + r.failing.map((f) => `  - ✘ ${f}`).join("\n") : ""}`),
     "",
     "## Visual diff (worst cells)",
