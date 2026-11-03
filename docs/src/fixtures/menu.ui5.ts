@@ -10,7 +10,7 @@ import { defineUi5, h } from "../fixture-types"
 import { showShadowPopupInPlace } from "./ui5-popup-in-place"
 import set from "./menu"
 
-export default defineUi5(set, ({ icons, checkMode }) => {
+export default defineUi5(set, ({ icons, checkMode, disabledSubmenu }) => {
   if (checkMode) {
     const menu = h("ui5-menu", {},
       h("ui5-menu-item", { text: "Options", icon: icons ? "copy" : undefined }),
@@ -18,7 +18,7 @@ export default defineUi5(set, ({ icons, checkMode }) => {
         h("ui5-menu-item", { text: "Alpha", checked: true, icon: icons ? "paste" : undefined, "additional-text": "Ctrl+A" }),
         h("ui5-menu-item", { text: "Beta", checked: checkMode === "multiple" }),
         h("ui5-menu-item", { text: "Disabled", disabled: true, checked: checkMode === "multiple" }),
-        h("ui5-menu-item", { text: "Nested", checked: checkMode === "multiple" }, h("ui5-menu-item", { text: "Child" }))),
+        h("ui5-menu-item", { text: "Nested", disabled: disabledSubmenu, checked: checkMode === "multiple" || disabledSubmenu }, h("ui5-menu-item", { text: "Child" }))),
       h("ui5-menu-separator"),
       h("ui5-menu-item-group", {}, h("ui5-menu-item", { text: "Ordinary", checked: true })))
     return showShadowPopupInPlace(menu, ".ui5-menu-rp", "10rem")

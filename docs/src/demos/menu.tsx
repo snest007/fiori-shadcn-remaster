@@ -27,6 +27,11 @@ export default defineDemo({ title: "Checkable menu", order: 43, Demo: () => {
           <MenuGroup checkMode="single" aria-label="Controlled choices">
             {["A", "B"].map((name) => <MenuItem key={name} checked={controlledChoice === name} onCheckedChange={(checked) => { setControlledChoice(checked ? name : undefined); change(`Choice ${name}`)(checked) }}>Choice {name}</MenuItem>)}
           </MenuGroup>
+          <MenuGroup checkMode="single" aria-label="Disabled owner choice">
+            <MenuItem defaultChecked>Single owner peer</MenuItem>
+            <MenuSub defaultOpen><MenuSubTrigger disabled defaultChecked onCheckedChange={change("Disabled single owner")}>Disabled single owner</MenuSubTrigger>
+              <MenuSubContent><MenuItem>Unavailable single child</MenuItem></MenuSubContent></MenuSub>
+          </MenuGroup>
           <MenuSeparator />
           <MenuGroup checkMode="multiple">
             <MenuItem defaultChecked icon={copy} additionalText="Ctrl+C" onCheckedChange={change("Copy preference")}>Copy preference</MenuItem>
@@ -42,6 +47,8 @@ export default defineDemo({ title: "Checkable menu", order: 43, Demo: () => {
                 <MenuSub><MenuSubTrigger>Deeper</MenuSubTrigger><MenuSubContent aria-label="Deeper preferences" aria-labelledby={undefined}><MenuItem>Deep child</MenuItem></MenuSubContent></MenuSub>
               </MenuSubContent>
             </MenuSub>
+            <MenuSub open><MenuSubTrigger disabled checked onCheckedChange={change("Disabled multiple owner")}>Disabled multiple owner</MenuSubTrigger>
+              <MenuSubContent><MenuItem>Unavailable multiple child</MenuItem></MenuSubContent></MenuSub>
           </MenuGroup>
           <MenuGroup><MenuItem defaultChecked onCheckedChange={change("Ordinary")}>Ordinary</MenuItem></MenuGroup>
         </MenuContent>

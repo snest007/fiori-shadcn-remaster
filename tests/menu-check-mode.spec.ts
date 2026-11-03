@@ -210,6 +210,34 @@ test("menu checks: grouped parent click opens and focuses the first child withou
   await expect(result(page)).toHaveText("No checks")
 })
 
+test("menu checks: disabled checked submenu owners behave as checked leaves in single and multiple groups", async ({ page }) => {
+  await open(page)
+  await expect(radio(page, "Single owner peer")).toHaveAttribute("aria-checked", "false")
+  for (const [role, name, child] of [
+    ["menuitemradio", "Disabled single owner", "Unavailable single child"],
+    ["menuitemcheckbox", "Disabled multiple owner", "Unavailable multiple child"],
+  ] as const) {
+    const owner = rootMenu(page).getByRole(role, { name, exact: true })
+    await expect(owner).toHaveAttribute("aria-checked", "true")
+    await expect(owner).toHaveAttribute("aria-disabled", "true")
+    await expect(owner.locator(".fiori-menu-item__checked")).toHaveCount(1)
+    await expect(owner.locator(".fiori-menu-item__submenu")).toHaveCount(0)
+    for (const attribute of ["aria-haspopup", "aria-expanded", "aria-controls"]) await expect(owner).not.toHaveAttribute(attribute)
+    await expect(page.getByRole("menuitem", { name: child, exact: true })).toHaveCount(0)
+    await focus(owner)
+    for (const key of ["ArrowRight", "Enter", "Space", "Shift+Enter", "Shift+Space"]) {
+      await page.keyboard.press(key)
+      await expect(owner).toBeFocused()
+      await expect(owner).toHaveAttribute("aria-checked", "true")
+      await expect(page.getByRole("menuitem", { name: child, exact: true })).toHaveCount(0)
+    }
+    await owner.click({ force: true })
+    await expect(owner).toHaveAttribute("aria-checked", "true")
+    await expect(page.getByRole("menuitem", { name: child, exact: true })).toHaveCount(0)
+  }
+  await expect(result(page)).toHaveText("No checks")
+})
+
 test("menu checks: nested Escape/Left close only their owning level and modified keys do nothing", async ({ page }) => {
   await open(page)
   await focus(checkbox(page, "Nested"))

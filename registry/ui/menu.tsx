@@ -271,11 +271,16 @@ function MenuSeparator({ className, ...props }: React.ComponentProps<typeof Menu
 const MenuSubContext = React.createContext<{ close: () => void; open: (mouse?: boolean) => void; trigger: React.RefObject<HTMLDivElement | null>; mouse: React.RefObject<boolean> } | null>(null)
 function MenuSub({ open: openProp, defaultOpen, onOpenChange, ...props }: React.ComponentProps<typeof MenuPrimitive.Sub>) {
   const [uncontrolled, setUncontrolled] = React.useState(defaultOpen ?? false)
+  // MenuItem.js hasSubmenu returns false for disabled owners; its template omits
+  // the popup entirely, even if the owner has child items.
+  const disabledOwner = React.Children.toArray(props.children).some((child) =>
+    React.isValidElement<MenuSubTriggerProps>(child) && child.type === MenuSubTrigger && child.props.disabled)
+  React.useEffect(() => { if (disabledOwner && openProp === undefined) setUncontrolled(false) }, [disabledOwner, openProp])
   const setOpen = React.useCallback((open: boolean) => { if (openProp === undefined) setUncontrolled(open); onOpenChange?.(open) }, [openProp, onOpenChange])
   const trigger = React.useRef<HTMLDivElement>(null)
   const mouse = React.useRef(false)
-  const ctx = React.useMemo(() => ({ close: () => setOpen(false), open: (byMouse = false) => { mouse.current = byMouse; setOpen(true) }, trigger, mouse }), [setOpen])
-  return <MenuSubContext.Provider value={ctx}><MenuPrimitive.Sub data-slot="menu-sub" open={openProp ?? uncontrolled} onOpenChange={setOpen} {...props} /></MenuSubContext.Provider>
+  const ctx = React.useMemo(() => ({ close: () => setOpen(false), open: (byMouse = false) => { if (!disabledOwner) { mouse.current = byMouse; setOpen(true) } }, trigger, mouse }), [setOpen, disabledOwner])
+  return <MenuSubContext.Provider value={ctx}><MenuPrimitive.Sub data-slot="menu-sub" open={!disabledOwner && (openProp ?? uncontrolled)} onOpenChange={setOpen} {...props} /></MenuSubContext.Provider>
 }
 type MenuSubTriggerProps = React.ComponentProps<typeof MenuPrimitive.SubTrigger> & Omit<ItemExtras, "additionalText"> & CheckProps & StateKey
 function MenuSubTrigger({ className, icon, children, ref, checked: _checked, defaultChecked: _defaultChecked, onCheckedChange: _onCheckedChange, _menuStateKey: _key, disabled, onKeyDown, onKeyUp, onClick, onPointerMove, onPointerLeave, ...props }: MenuSubTriggerProps) {
@@ -284,16 +289,25 @@ function MenuSubTrigger({ className, icon, children, ref, checked: _checked, def
   const group = React.useContext(GroupContext)
   const hover = React.useContext(HoverContext)
   const checkable = !!group && group.mode !== "none"
-  // MenuItem.js _markChecked excludes submenu owners even when their checked property is true.
+  // MenuItem.js _markChecked excludes enabled submenu owners. Disabled owners
+  // have hasSubmenu=false and retain normal leaf checks and accessibility.
   const element = React.useRef<HTMLDivElement | null>(null)
   React.useEffect(() => () => { if (element.current) surface?.submenus.delete(element.current) }, [surface])
   const mergedRef = React.useCallback((node: HTMLDivElement | null) => {
     if (element.current) surface?.submenus.delete(element.current)
     element.current = node
     if (sub) sub.trigger.current = node
-    if (node && sub) surface?.submenus.set(node, sub)
+    if (node && sub && !disabled) surface?.submenus.set(node, sub)
     if (typeof ref === "function") ref(node); else if (ref) ref.current = node
-  }, [surface, sub, ref])
+  }, [surface, sub, ref, disabled])
+  if (disabled) {
+    // SubTrigger's onSelect is the native text-selection callback, not Item's
+    // cancelable activation callback. A disabled leaf does not activate either way.
+    const { onSelect: _nativeSelect, ...leafProps } = props
+    return <MenuItem {...leafProps} ref={mergedRef} data-slot="menu-sub-trigger" className={className} icon={icon}
+      checked={_checked} defaultChecked={_defaultChecked} onCheckedChange={_onCheckedChange} _menuStateKey={_key} disabled
+      onKeyDown={onKeyDown} onKeyUp={onKeyUp} onClick={onClick} onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>{children}</MenuItem>
+  }
   return <MenuPrimitive.SubTrigger {...props} ref={mergedRef} data-slot="menu-sub-trigger" className={cn("fiori-list-item fiori-menu-item", className)} disabled={checkable ? false : disabled}
     data-disabled={disabled ? "" : (props as Record<string, unknown>)["data-disabled"] as string | undefined} aria-disabled={disabled || props["aria-disabled"]} data-menu-checkable={checkable ? "" : undefined}
     role={props.role ?? (group?.mode === "single" ? "menuitemradio" : group?.mode === "multiple" ? "menuitemcheckbox" : "menuitem")} aria-checked={checkable ? false : undefined}
