@@ -91,6 +91,153 @@ for (const action of ["click", "Enter", "Space"] as const) {
   })
 }
 
+for (const custom of [false, true]) {
+  test(`${custom ? "custom" : "default"} overflow cancels shifted and interrupted Space without suppressing plain activation`, async ({ page }) => {
+    const demo = page.locator("#avatar-demo")
+    const group = demo.locator(custom ? "#avatar-overflow-custom" : "#avatar-overflow-individual")
+    const overflow = group.getByRole("button", { name: custom ? "All" : "Activate for complete list." })
+    const status = demo.locator(custom ? "#avatar-custom-events" : "#avatar-overflow-events")
+    const initialStatus = custom ? "Custom 0; overflow 0; hidden " : "Overflow activated 0 times"
+    await overflow.focus()
+    await expect(overflow).toBeFocused()
+
+    await page.keyboard.press("Shift+Space")
+    await expect(status).toHaveText(initialStatus)
+    await expect(demo.locator("#avatar-overflow-popover")).toBeHidden()
+
+    await page.keyboard.down("Space")
+    await page.keyboard.press("Escape")
+    await expect(overflow).toBeFocused()
+    await page.keyboard.up("Space")
+    await expect(status).toHaveText(initialStatus)
+
+    // Button.js retains cancellation when Shift is released while Space is still held.
+    await page.keyboard.down("Space")
+    await page.keyboard.press("Shift")
+    await expect(overflow).toBeFocused()
+    await page.keyboard.up("Space")
+    await expect(status).toHaveText(initialStatus)
+
+    for (const [index, key] of ["Space", "Enter"].entries()) {
+      await page.keyboard.press(key)
+      await expect(status).toHaveText(custom
+        ? `Custom ${index + 1}; overflow ${index + 1}; hidden Anna Bauer, Chen Kai, Dora Evans, Ethan Ford, Fiona Gray`
+        : `Overflow activated ${index + 1} times`)
+      if (!custom) {
+        const popover = demo.locator("#avatar-overflow-popover")
+        await expect(popover).toBeVisible()
+        await page.keyboard.press("Escape")
+        await expect(popover).toBeHidden()
+        await expect(overflow).toBeFocused()
+      }
+    }
+
+    await page.goto("/ui5.html?only=avatar")
+    await page.waitForSelector("html[data-ready=true]")
+    const oracle = page.locator(`[data-fixture="avatar-group-overflow-${custom ? "custom" : "individual-s"}"] ui5-avatar-group`)
+    await oracle.evaluate((element) => {
+      element.setAttribute("data-avatar-test-clicks", "0")
+      // A custom Button's ui5-click also bubbles; count the AvatarGroup event only.
+      element.addEventListener("ui5-click", (event) => {
+        if (event.target === element) element.setAttribute("data-avatar-test-clicks", `${Number(element.getAttribute("data-avatar-test-clicks")) + 1}`)
+      })
+    })
+    const oracleButton = oracle.locator(custom ? 'ui5-button[slot="overflowButton"]' : ".ui5-avatar-group-overflow-btn").locator("button")
+    await oracleButton.focus()
+    await expect(oracleButton).toBeFocused()
+    await page.keyboard.press("Shift+Space")
+    await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "0")
+    await page.keyboard.down("Space")
+    await page.keyboard.press("Escape")
+    await page.keyboard.up("Space")
+    await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "0")
+    await page.keyboard.down("Space")
+    await page.keyboard.press("Shift")
+    await page.keyboard.up("Space")
+    await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "0")
+    await page.keyboard.press("Space")
+    await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "1")
+    await page.keyboard.press("Enter")
+    await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "2")
+  })
+
+  test(`${custom ? "custom" : "default"} overflow retains UI5 Button native behavior for other modifiers`, async ({ page }) => {
+    const combinations = ["Shift+Enter", "Control+Enter", "Control+Space", "Alt+Enter", "Alt+Space", "Meta+Enter", "Meta+Space"]
+    await page.goto("/ui5.html?only=avatar")
+    await page.waitForSelector("html[data-ready=true]")
+    const oracle = page.locator(`[data-fixture="avatar-group-overflow-${custom ? "custom" : "individual-s"}"] ui5-avatar-group`)
+    await oracle.evaluate((element) => {
+      element.setAttribute("data-avatar-test-clicks", "0")
+      element.addEventListener("ui5-click", (event) => {
+        if (event.target === element) element.setAttribute("data-avatar-test-clicks", `${Number(element.getAttribute("data-avatar-test-clicks")) + 1}`)
+      })
+    })
+    const oracleButton = oracle.locator(custom ? 'ui5-button[slot="overflowButton"]' : ".ui5-avatar-group-overflow-btn").locator("button")
+    await oracleButton.focus()
+    await expect(oracleButton).toBeFocused()
+    const counts: number[] = []
+    for (const key of combinations) {
+      await page.keyboard.press(key)
+      // Button.js leaves these combinations to the browser; read the real oracle
+      // after the keyboard round trip instead of inventing activation for every modifier.
+      counts.push(Number(await oracle.getAttribute("data-avatar-test-clicks")))
+    }
+
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const demo = page.locator("#avatar-demo")
+    const overflow = demo.locator(custom ? "#avatar-overflow-custom" : "#avatar-overflow-individual")
+      .getByRole("button", { name: custom ? "All" : "Activate for complete list." })
+    const status = demo.locator(custom ? "#avatar-custom-events" : "#avatar-overflow-events")
+    await overflow.focus()
+    await expect(overflow).toBeFocused()
+    for (const [index, key] of combinations.entries()) {
+      await page.keyboard.press(key)
+      const count = counts[index]
+      await expect(status, key).toHaveText(custom
+        ? `Custom ${count}; overflow ${count}; hidden ${count ? "Anna Bauer, Chen Kai, Dora Evans, Ethan Ford, Fiona Gray" : ""}`
+        : `Overflow activated ${count} times`)
+      const activated = count > (counts[index - 1] ?? 0)
+      if (!custom && activated) {
+        const popover = demo.locator("#avatar-overflow-popover")
+        await expect(popover).toBeVisible()
+        await page.keyboard.press("Escape")
+        await expect(popover).toBeHidden()
+        await expect(overflow).toBeFocused()
+      }
+    }
+  })
+}
+
+test("group root retains its distinct UI5 Space path when Escape interrupts a held Space", async ({ page }) => {
+  const group = page.locator("#avatar-demo #avatar-overflow-group")
+  await group.focus()
+  await expect(group).toBeFocused()
+  await page.keyboard.down("Space")
+  await page.keyboard.press("Escape")
+  await page.keyboard.up("Space")
+  // AvatarGroup.js _onkeydown/_onkeyup has no Button.js cancellation state.
+  await expect(page.locator("#avatar-demo #avatar-group-events")).toHaveText("Group activated 1 times")
+  await expect(page.locator("#avatar-demo #avatar-overflow-events")).toHaveText("Overflow activated 0 times")
+
+  await page.goto("/ui5.html?only=avatar")
+  await page.waitForSelector("html[data-ready=true]")
+  const oracle = page.locator('[data-fixture="avatar-group-overflow-group-s"] ui5-avatar-group')
+  await oracle.evaluate((element) => {
+    element.setAttribute("data-avatar-test-clicks", "0")
+    element.addEventListener("ui5-click", (event) => {
+      if (event.target === element) element.setAttribute("data-avatar-test-clicks", `${Number(element.getAttribute("data-avatar-test-clicks")) + 1}`)
+    })
+  })
+  const oracleRoot = oracle.locator(".ui5-avatar-group-items")
+  await oracleRoot.focus()
+  await expect(oracleRoot).toBeFocused()
+  await page.keyboard.down("Space")
+  await page.keyboard.press("Escape")
+  await page.keyboard.up("Space")
+  await expect(oracle).toHaveAttribute("data-avatar-test-clicks", "1")
+})
+
 test("individual avatars rove while overflow remains a separate Tab stop", async ({ page }) => {
   const group = page.locator("#avatar-overflow-individual")
   const first = group.getByRole("button", { name: "John Doe" })

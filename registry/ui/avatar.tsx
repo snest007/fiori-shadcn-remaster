@@ -221,6 +221,8 @@ function AvatarGroup({
   const hostRef = React.useRef<HTMLDivElement>(null)
   const containerRef = React.useRef<HTMLDivElement>(null)
   const overflowRef = React.useRef<HTMLSpanElement>(null)
+  const overflowSpacePressed = React.useRef(false)
+  const overflowCancelAction = React.useRef(false)
   const [visibleCount, setVisibleCount] = React.useState(items.length)
   const [current, setCurrent] = React.useState(0)
   const hiddenItems = items.slice(visibleCount)
@@ -412,13 +414,43 @@ function AvatarGroup({
             if (!event.defaultPrevented) activate(overflowControl() ?? event.currentTarget, true)
           }}
           onKeyDown={(event) => {
+            if (isGroup) return
+            // Button.js _onkeydown/_onkeyup: Shift or Escape cancels a held Space.
+            // Listen to the default and slotted controls' bubbling events so preventDefault
+            // cancels their native click too, without changing the shared Button component.
+            if (event.key === "Shift" || (!hasAvatarModifier(event) && (event.key === "Escape" || event.key === "Esc"))) {
+              overflowCancelAction.current = true
+            } else if (!hasAvatarModifier(event) && (event.key === " " || event.key === "Spacebar")) {
+              overflowSpacePressed.current = true
+            }
             // Non-button custom content gets the same Enter/Space semantics as the default button.
-            if (isGroup || event.target !== event.currentTarget || event.defaultPrevented) return
+            if (event.target !== event.currentTarget || event.defaultPrevented) return
             if (event.key === "Enter") event.currentTarget.click()
             if (event.key === " ") event.preventDefault()
           }}
           onKeyUp={(event) => {
-            if (!isGroup && event.target === event.currentTarget && !event.defaultPrevented && !event.shiftKey && event.key === " ") event.currentTarget.click()
+            if (isGroup) return
+            const isSpace = (event.key === " " || event.key === "Spacebar") && !hasAvatarModifier(event)
+            const isShiftSpace = (event.key === " " || event.key === "Spacebar") && event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey
+            const isCancelKey = event.key === "Shift" || (!hasAvatarModifier(event) && (event.key === "Escape" || event.key === "Esc"))
+            if (isSpace || isShiftSpace) {
+              // Also reject a shifted release if Shift was pressed before this control gained focus.
+              const canceled = overflowCancelAction.current || isShiftSpace
+              overflowCancelAction.current = false
+              overflowSpacePressed.current = false
+              if (canceled) {
+                event.preventDefault()
+                return
+              }
+            } else if (isCancelKey && !overflowSpacePressed.current) {
+              overflowCancelAction.current = false
+            }
+            if (event.target === event.currentTarget && !event.defaultPrevented && !event.shiftKey && event.key === " ") event.currentTarget.click()
+          }}
+          onBlur={() => {
+            // Button.js _onfocusout clears cancellation when focus leaves the control.
+            overflowSpacePressed.current = false
+            overflowCancelAction.current = false
           }}
         >
           {hasCustomOverflow ? overflowButton : (
