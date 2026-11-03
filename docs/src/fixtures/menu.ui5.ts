@@ -1,5 +1,6 @@
 import "@ui5/webcomponents/dist/Menu.js"
 import "@ui5/webcomponents/dist/MenuItem.js"
+import "@ui5/webcomponents/dist/MenuItemGroup.js"
 import "@ui5/webcomponents/dist/MenuSeparator.js"
 import "@ui5/webcomponents-icons/dist/copy.js"
 import "@ui5/webcomponents-icons/dist/paste.js"
@@ -9,7 +10,19 @@ import { defineUi5, h } from "../fixture-types"
 import { showShadowPopupInPlace } from "./ui5-popup-in-place"
 import set from "./menu"
 
-export default defineUi5(set, ({ icons }) => {
+export default defineUi5(set, ({ icons, checkMode }) => {
+  if (checkMode) {
+    const menu = h("ui5-menu", {},
+      h("ui5-menu-item", { text: "Options", icon: icons ? "copy" : undefined }),
+      h("ui5-menu-item-group", { "check-mode": checkMode === "single" ? "Single" : "Multiple" },
+        h("ui5-menu-item", { text: "Alpha", checked: true, icon: icons ? "paste" : undefined, "additional-text": "Ctrl+A" }),
+        h("ui5-menu-item", { text: "Beta", checked: checkMode === "multiple" }),
+        h("ui5-menu-item", { text: "Disabled", disabled: true, checked: checkMode === "multiple" }),
+        h("ui5-menu-item", { text: "Nested", checked: checkMode === "multiple" }, h("ui5-menu-item", { text: "Child" }))),
+      h("ui5-menu-separator"),
+      h("ui5-menu-item-group", {}, h("ui5-menu-item", { text: "Ordinary", checked: true })))
+    return showShadowPopupInPlace(menu, ".ui5-menu-rp", "10rem")
+  }
   const menu = h(
     "ui5-menu",
     {},
