@@ -1,0 +1,5 @@
+{
+  "title": "Variant Management",
+  "description": "OpenUI5-compatible view selection, Save View and Manage Views with application-owned persistence.",
+  "registryDependencies": ["@fiori/button", "@fiori/checkbox", "@fiori/dialog", "@fiori/icons", "@fiori/illustrated-message", "@fiori/illustrations-core", "@fiori/input", "@fiori/list", "@fiori/popover", "@fiori/radio-group", "@fiori/table", "@fiori/title", "@fiori/toolbar"]
+}
