@@ -13,6 +13,10 @@ function SideNavigationDemo() {
   const [clicks, setClicks] = React.useState(0)
   const [preventEventsSelection, setPreventEventsSelection] = React.useState(false)
   const [eventsClicks, setEventsClicks] = React.useState(0)
+  const [lastModifiers, setLastModifiers] = React.useState("none")
+  const recordModifiers = (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
+    setLastModifiers([e.ctrlKey && "Control", e.altKey && "Alt", e.metaKey && "Meta", e.shiftKey && "Shift"].filter(Boolean).join("+") || "none")
+  }
   return (
     <div className="grid gap-4">
       <div className="flex items-center gap-4">
@@ -27,7 +31,7 @@ function SideNavigationDemo() {
         </Button>
         <span className="text-(--sapContent_LabelColor)">
           Selected: <span data-testid="side-navigation-demo-value">{value}</span> · clicks:{" "}
-          <span data-testid="side-navigation-demo-clicks">{clicks}</span>
+          <span data-testid="side-navigation-demo-clicks" data-modifiers={lastModifiers}>{clicks}</span>
           {" "}· Events callbacks: <span data-testid="side-navigation-demo-events-clicks">{eventsClicks}</span>
         </span>
       </div>
@@ -56,6 +60,7 @@ function SideNavigationDemo() {
             </SideNavigationItem>
             <SideNavigationItem text="Locations" value="locations" icon={building} disabled />
             <SideNavigationItem text="Events" value="events" icon={calendar} onClick={(e) => {
+              recordModifiers(e)
               setEventsClicks((count) => count + 1)
               if (preventEventsSelection) e.preventDefault()
             }}>
@@ -64,7 +69,7 @@ function SideNavigationDemo() {
             </SideNavigationItem>
           </SideNavigationGroup>
           <SideNavigationGroup text="Archive">
-            <SideNavigationItem text="History" value="history" icon={history} />
+            <SideNavigationItem text="History" value="history" icon={history} onClick={recordModifiers} />
           </SideNavigationGroup>
           <SideNavigationItem text="SAP Community" icon={chainLink} href="https://community.sap.com" target="_blank" />
         </SideNavigation>

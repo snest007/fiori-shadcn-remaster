@@ -321,6 +321,17 @@ function isGroupElement(el: React.ReactElement) {
   return el.type === SideNavigationGroup
 }
 
+// Keys.js isSpace / isEnter{,Shift,Ctrl,Alt}, used by NavigationMenuItem.js and
+// SideNavigationSelectableItemBase.js: Space has no modifiers; Enter accepts at most one
+// modifier family. getCtrlKey combines Ctrl and Meta, so Ctrl+Meta is still one family.
+function isNavigationSpace(e: React.KeyboardEvent) {
+  return (e.key === " " || e.key === "Spacebar") && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey
+}
+
+function isNavigationEnter(e: React.KeyboardEvent) {
+  return e.key === "Enter" && Number(e.shiftKey) + Number(e.altKey) + Number(e.ctrlKey || e.metaKey) <= 1
+}
+
 function OverflowItem({ ref, items, listRef }: {
   ref: React.Ref<HTMLDivElement>
   items: HTMLElement[]
@@ -367,15 +378,32 @@ function OverflowItem({ ref, items, listRef }: {
             aria-expanded={open}
             title={root.texts.overflowText}
             className="fiori-sn-item"
+            onPointerDown={(e) => {
+              // SideNavigationItemTemplate.js wires click to _onclick, not pointerdown.
+              // Keep native pointer focus while blocking Radix's premature opening/toggling.
+              if (e.button === 0) {
+                e.preventDefault()
+                e.currentTarget.focus({ preventScroll: true })
+              }
+            }}
+            onClick={(e) => {
+              // SideNavigationSelectableItemBase.js _activate stops propagation and opens More.
+              e.stopPropagation()
+              changeOpen(true)
+            }}
             onKeyDown={(e) => {
               // SideNavigationSelectableItemBase.js _onkeydown does not open More on Down.
-              // Space opens on keyup; block Radix Trigger's Down/Space keydown opening.
-              if (e.key === "ArrowDown" || e.key === " ") e.preventDefault()
+              // Own activation so Radix's raw key match cannot open for unsupported modifiers.
+              if (e.key === "ArrowDown" || e.key === " " || e.key === "Spacebar") e.preventDefault()
+              if (e.key === "Enter") {
+                if (isNavigationEnter(e)) changeOpen(true)
+                e.preventDefault()
+              }
             }}
             onKeyUp={(e) => {
-              if (e.key === " ") {
-                e.preventDefault()
+              if (isNavigationSpace(e)) {
                 changeOpen(true)
+                e.preventDefault()
               }
             }}
           >
@@ -433,7 +461,27 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmen
       focusSubmenuOnMount.current = !submenuOpen
       setSubmenuOpen(true)
     }
-    else if (e.defaultPrevented) close()
+    else {
+      if (!e.defaultPrevented) {
+        if (!item.unselectable && item.value !== undefined) {
+          onSelected()
+          root.select(item.value)
+        }
+      }
+      close()
+    }
+    // NavigationMenuItem.js _onkeyup explicitly clicks the enclosing anchor for plain Space.
+    // Enter activates the focused native-li without clicking its ancestor anchor; pointer clicks
+    // retain their native link action. Keep navigation after activation and preserve click modifiers.
+    if (item.href && !e.defaultPrevented && (e.type === "click" || ("key" in e && isNavigationSpace(e)))) {
+      const link = document.createElement("a")
+      link.href = item.href
+      if (item.target) link.target = item.target
+      link.dispatchEvent(new MouseEvent("click", {
+        bubbles: true, cancelable: true,
+        altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey,
+      }))
+    }
   }
   const common = {
     // Menu.js _navigatableMenuItems includes disabled rows. Keep the Radix collection enabled
@@ -459,21 +507,18 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmen
     },
     onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
       // NavigationMenuItem.js activates Space on keyup, while Enter activates on keydown.
-      if (e.key === " ") e.preventDefault()
-      if (e.key === "Enter" && hasSubmenu) {
-        activate(e)
-        // Radix SubTrigger opens on Enter without a click; activation above owns both actions.
-        e.preventDefault()
-      }
-      if (item.disabled && (e.key === "Enter" || e.key === " ")) {
+      if (e.key === " " || e.key === "Spacebar") e.preventDefault()
+      if (e.key === "Enter") {
+        if (isNavigationEnter(e)) activate(e)
+        // Process the original event before preventing Radix's default; callbacks may cancel it.
+        // Owning leaf activation also retains modifiers that Radix's synthetic click would lose.
         e.preventDefault()
         e.stopPropagation()
       }
     },
     onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.key === " " && !item.disabled) {
-        if (hasSubmenu) activate(e)
-        else e.currentTarget.click()
+      if (isNavigationSpace(e)) {
+        activate(e)
         e.preventDefault()
       }
     },
@@ -499,21 +544,8 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false, inSubmen
       onClick={activate}
       additionalText={item.href && item.target === "_blank" ? <SnIcon icon={arrowRight} className="fiori-sn-menu-external" /> : undefined}
       onSelect={(e) => {
-        if (item.disabled) {
-          e.preventDefault()
-          return
-        }
-        if (!item.unselectable && item.value !== undefined) {
-          onSelected()
-          root.select(item.value)
-        }
-        if (item.href) {
-          const link = document.createElement("a")
-          link.href = item.href
-          if (item.target) link.target = item.target
-          link.click()
-        }
-        close()
+        // NavigationMenuItem.js _activate owns selection/closing for clicks and accepted keys.
+        e.preventDefault()
       }}>
       {item.text}{item.tag && <span className="fiori-sn-menu-tag">{item.tag}</span>}
     </MenuItem>

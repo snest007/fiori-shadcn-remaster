@@ -9,6 +9,35 @@ const nav = (page: Page) => page.locator("#side-navigation-demo")
 const item = (page: Page, name: string) => nav(page).getByRole("treeitem", { name, exact: true })
 const value = (page: Page) => page.getByTestId("side-navigation-demo-value")
 
+async function waitCollapsedNavigation(page: Page) {
+  // SideNavigation.css.js clips widened hover/focus rows while ui5-sn-animating is present.
+  // Width can reach its target before that flag is cleared; wait for both before pointer cycles.
+  await expect.poll(() => nav(page).locator("[data-slot=side-navigation]").evaluate((el) => el.getBoundingClientRect().width)).toBe(64)
+  await expect(nav(page).locator(".fiori-sn__root")).not.toHaveAttribute("data-animating", "")
+}
+
+// Keys.js isSpace/isEnter/isEnterShift/isEnterAlt/isEnterCtrl: Meta and Control share
+// one family. NavigationMenuItem.js and SideNavigationSelectableItemBase.js use these cases.
+const overflowModifierCases = [
+  ["Shift+Space", false, "Shift"],
+  ["Alt+Space", false, "Alt"],
+  ["Control+Space", false, "Control"],
+  ["Meta+Space", false, "Meta"],
+  ["Control+Meta+Space", false, "Control+Meta"],
+  ["Control+Shift+Space", false, "Control+Shift"],
+  ["Shift+Enter", true, "Shift"],
+  ["Alt+Enter", true, "Alt"],
+  ["Control+Enter", true, "Control"],
+  ["Meta+Enter", true, "Meta"],
+  ["Control+Meta+Enter", true, "Control+Meta"],
+  ["Control+Shift+Enter", false, "Control+Shift"],
+  ["Meta+Shift+Enter", false, "Meta+Shift"],
+  ["Alt+Shift+Enter", false, "Alt+Shift"],
+  ["Control+Alt+Enter", false, "Control+Alt"],
+  ["Meta+Alt+Enter", false, "Alt+Meta"],
+  ["Control+Alt+Shift+Enter", false, "Control+Alt+Shift"],
+] as const
+
 test("expanded mode is a navigation landmark with two trees", async ({ page }) => {
   await expect(nav(page).getByRole("navigation", { name: "Main navigation" })).toBeVisible()
   await expect(nav(page).getByRole("tree", { name: "Primary Navigation Menu" })).toBeVisible()
@@ -200,6 +229,235 @@ test.describe("collapsed", () => {
     await expect(more).toBeFocused()
     await expect(more).toHaveAttribute("aria-expanded", "false")
     await expect(page.getByRole("menu", { name: "Additional Navigation Items", exact: true })).toHaveCount(0)
+  })
+
+  test("More keeps its focused hit target through pointerdown and opens only on click", async ({ page }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    await waitCollapsedNavigation(page)
+    const more = nav(page).getByRole("menuitem", { name: "More Items", exact: true })
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    await more.focus()
+    await expect(more).toBeFocused()
+    const before = (await more.boundingBox())!
+    await page.mouse.move(before.x + before.width / 2, before.y + before.height / 2)
+    await page.mouse.down()
+    await expect(more).toBeFocused()
+    await expect(more).toHaveAttribute("aria-expanded", "false")
+    await expect(menu).toHaveCount(0)
+    expect(await more.boundingBox()).toEqual(before)
+    await page.mouse.up()
+    await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+    await expect(more).toHaveAttribute("aria-expanded", "true")
+    await expect(page.getByTestId("side-navigation-demo-clicks")).toHaveText("0")
+    await page.keyboard.press("Escape")
+    await expect(menu).toHaveCount(0)
+    await expect(more).toBeFocused()
+  })
+
+  test("More accepts UI5's Enter modifier families and ignores modified Space and mixed Enter", async ({ page }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    const more = nav(page).getByRole("menuitem", { name: "More Items", exact: true })
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    await expect(more).toBeVisible()
+    await more.focus()
+    await expect(more).toBeFocused()
+    for (const [key, accepted] of overflowModifierCases) {
+      await page.keyboard.press(key)
+      if (accepted) {
+        await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+        await expect(more).toHaveAttribute("aria-expanded", "true")
+        await page.keyboard.press("Escape")
+      }
+      await expect(menu).toHaveCount(0)
+      await expect(more).toHaveAttribute("aria-expanded", "false")
+      await expect(more).toBeFocused()
+      await expect(page.getByTestId("side-navigation-demo-clicks")).toHaveText("0")
+    }
+  })
+
+  test("overflow parent ignores Shift+Space without callbacks, focus changes, or opening", async ({ page }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    await nav(page).getByRole("menuitem", { name: "More Items", exact: true }).click()
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+    const events = menu.getByRole("menuitem", { name: "Events", exact: true })
+    await events.focus()
+    await expect(events).toBeFocused()
+    await page.keyboard.press("Shift+Space")
+    await expect(events).toBeFocused()
+    await expect(events).toHaveAttribute("aria-expanded", "false")
+    const submenu = page.getByRole("menu", { name: "Events", exact: true })
+    await expect(submenu).toHaveCount(0)
+    await expect(page.getByTestId("side-navigation-demo-events-clicks")).toHaveText("0")
+    await expect(page.getByTestId("side-navigation-demo-clicks")).toHaveText("0")
+    await expect(value(page)).toHaveText("home")
+    await page.keyboard.press("Space")
+    await expect(submenu.getByRole("menuitem", { name: "Events", exact: true })).toBeFocused()
+    await expect(page.getByTestId("side-navigation-demo-events-clicks")).toHaveText("1")
+  })
+
+  test("overflow parent modifier matrix preserves callback modifiers and only opens for supported keys", async ({ page }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    await nav(page).getByRole("menuitem", { name: "More Items", exact: true }).click()
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+    const events = menu.getByRole("menuitem", { name: "Events", exact: true })
+    const submenu = page.getByRole("menu", { name: "Events", exact: true })
+    const callbacks = page.getByTestId("side-navigation-demo-clicks")
+    await events.focus()
+    await expect(events).toBeFocused()
+    let count = 0
+    for (const [key, accepted, modifiers] of overflowModifierCases) {
+      await page.keyboard.press(key)
+      if (accepted) {
+        count++
+        await expect(submenu.getByRole("menuitem", { name: "Events", exact: true })).toBeFocused()
+        await expect(callbacks).toHaveAttribute("data-modifiers", modifiers)
+        await page.keyboard.press("Escape")
+      }
+      await expect(submenu).toHaveCount(0)
+      await expect(events).toHaveAttribute("aria-expanded", "false")
+      await expect(events).toBeFocused()
+      await expect(callbacks).toHaveText(String(count))
+      await expect(page.getByTestId("side-navigation-demo-events-clicks")).toHaveText(String(count))
+      await expect(value(page)).toHaveText("home")
+    }
+  })
+
+  test("overflow leaf modifier matrix selects once with original modifiers and blocks unsupported defaults", async ({ page }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    await waitCollapsedNavigation(page)
+    const more = nav(page).getByRole("menuitem", { name: "More Items", exact: true })
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    const callbacks = page.getByTestId("side-navigation-demo-clicks")
+    for (const [key, accepted, modifiers] of overflowModifierCases) {
+      await expect(more).toBeVisible()
+      await more.click()
+      await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+      const history = menu.getByRole("menuitem", { name: "History", exact: true })
+      await history.focus()
+      await expect(history).toBeFocused()
+      const count = Number(await callbacks.textContent())
+      await page.keyboard.press(key)
+      if (accepted) {
+        await expect(menu).toHaveCount(0)
+        await expect(value(page)).toHaveText("history")
+        await expect(callbacks).toHaveText(String(count + 1))
+        await expect(callbacks).toHaveAttribute("data-modifiers", modifiers)
+        await expect(nav(page).getByRole("menuitemradio", { name: "History", exact: true })).toBeFocused()
+        // The selected trailing item reserves the visible slot; Home is now in More.
+        await more.click()
+        const home = menu.getByRole("menuitem", { name: "Home", exact: true })
+        await expect(home).toBeFocused()
+        await home.click()
+        await expect(menu).toHaveCount(0)
+        await expect(value(page)).toHaveText("home")
+        await expect(nav(page).getByRole("menuitemradio", { name: "Home", exact: true })).toBeFocused()
+      } else {
+        await expect(menu).toBeVisible()
+        await expect(history).toBeFocused()
+        await expect(value(page)).toHaveText("home")
+        await expect(callbacks).toHaveText(String(count))
+        await page.keyboard.press("Escape")
+        await expect(menu).toHaveCount(0)
+        await expect(more).toBeFocused()
+      }
+    }
+  })
+
+  for (const key of ["Enter", "Space"]) {
+    test(`More, overflow parent and leaf activate ${key} on ${key === "Enter" ? "keydown" : "keyup"} exactly once`, async ({ page }) => {
+      await page.locator("#side-navigation-demo-resize").click()
+      const more = nav(page).getByRole("menuitem", { name: "More Items", exact: true })
+      const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+      const submenu = page.getByRole("menu", { name: "Events", exact: true })
+      const callbacks = page.getByTestId("side-navigation-demo-events-clicks")
+      await expect(more).toBeVisible()
+      await more.focus()
+      await expect(more).toBeFocused()
+      await page.keyboard.down(key)
+      if (key === "Space") {
+        await expect(menu).toHaveCount(0)
+        await expect(more).toBeFocused()
+      } else await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+      await page.keyboard.up(key)
+      await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+      const events = menu.getByRole("menuitem", { name: "Events", exact: true })
+      await events.focus()
+      await expect(events).toBeFocused()
+      await page.keyboard.down(key)
+      if (key === "Space") {
+        await expect(submenu).toHaveCount(0)
+        await expect(events).toBeFocused()
+        await expect(callbacks).toHaveText("0")
+      } else {
+        await expect(submenu.getByRole("menuitem", { name: "Events", exact: true })).toBeFocused()
+        await expect(callbacks).toHaveText("1")
+      }
+      await page.keyboard.up(key)
+      const parentAction = submenu.getByRole("menuitem", { name: "Events", exact: true })
+      await expect(parentAction).toBeFocused()
+      await expect(callbacks).toHaveText("1")
+      await page.keyboard.down(key)
+      if (key === "Space") {
+        await expect(parentAction).toBeFocused()
+        await expect(callbacks).toHaveText("1")
+        await expect(value(page)).toHaveText("home")
+      } else {
+        await expect(menu).toHaveCount(0)
+        await expect(callbacks).toHaveText("2")
+        await expect(value(page)).toHaveText("events")
+      }
+      await page.keyboard.up(key)
+      await expect(menu).toHaveCount(0)
+      await expect(submenu).toHaveCount(0)
+      await expect(callbacks).toHaveText("2")
+      await expect(value(page)).toHaveText("events")
+      await expect(nav(page).getByRole("menuitemradio", { name: "Events", exact: true })).toBeFocused()
+    })
+  }
+
+  test("overflow links activate on supported Enter without navigation and follow href on plain Space", async ({ page, context }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    await waitCollapsedNavigation(page)
+    const more = nav(page).getByRole("menuitem", { name: "More Items", exact: true })
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    const callbacks = page.getByTestId("side-navigation-demo-clicks")
+    let count = 0
+    for (const key of ["Enter", "Shift+Enter", "Alt+Enter", "Control+Enter", "Meta+Enter", "Control+Meta+Enter"]) {
+      await more.click()
+      await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+      const external = menu.getByRole("menuitem", { name: "SAP Community", exact: true })
+      await external.focus()
+      await expect(external).toBeFocused()
+      await page.keyboard.press(key)
+      await expect(menu).toHaveCount(0)
+      await expect(callbacks).toHaveText(String(++count))
+      await expect(more).toBeFocused()
+      await expect(value(page)).toHaveText("home")
+      expect(context.pages()).toHaveLength(1)
+    }
+    await more.click()
+    await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
+    const external = menu.getByRole("menuitem", { name: "SAP Community", exact: true })
+    await external.focus()
+    await expect(external).toBeFocused()
+    for (const key of ["Shift+Space", "Meta+Space", "Control+Shift+Enter", "Meta+Alt+Enter"]) {
+      await page.keyboard.press(key)
+      await expect(external).toBeFocused()
+      await expect(menu).toBeVisible()
+      await expect(callbacks).toHaveText(String(count))
+      expect(context.pages()).toHaveLength(1)
+    }
+    await context.route("https://community.sap.com/**", (route) => route.fulfill({ body: "External navigation target" }))
+    const newPage = context.waitForEvent("page")
+    await page.keyboard.press("Space")
+    const popup = await newPage
+    await popup.waitForURL("https://community.sap.com/")
+    await expect(menu).toHaveCount(0)
+    await expect(callbacks).toHaveText(String(count + 1))
+    expect(context.pages()).toHaveLength(2)
+    await popup.close()
   })
 
   test("disabled overflow rows remain in focus navigation and block activation", async ({ page }) => {
