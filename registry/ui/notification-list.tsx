@@ -80,10 +80,11 @@ type ListContextValue = {
   texts: NotificationTexts
   close: (value: string) => void
   toggle: (value: string, collapsed: boolean) => void
+  initNavigation: () => void
 }
 const NotificationContext = React.createContext<ListContextValue | null>(null)
 // Object identity is one native owner-render generation, independent of React bookkeeping.
-type GroupRender = { loading: boolean }
+type GroupRender = { loading: boolean; collapsed: boolean }
 const GroupRenderContext = React.createContext<GroupRender | null>(null)
 
 const isVisible = (el: HTMLElement) => el.offsetParent !== null
@@ -146,6 +147,8 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
   })
   const toggleRef = React.useRef(onItemToggle)
   toggleRef.current = onItemToggle
+  const navigationInvalidation = React.useRef(() => {})
+  const initNavigation = React.useCallback(() => navigationInvalidation.current(), [])
   const ctx = React.useMemo(
     () => ({
       texts,
@@ -157,15 +160,64 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
         closeRef.current?.(v)
       },
       toggle: (v: string, c: boolean) => toggleRef.current?.(v, c),
+      initNavigation,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [JSON.stringify(textsProp)]
+    [JSON.stringify(textsProp), initNavigation]
   )
   const hasData = React.Children.toArray(children).length > 0
   // ItemNavigation.js/setCurrentItem retains the numeric enabled-item index when More
   // receives focus. Loading can change which real item occupies that index; _init does
   // not remap or clamp it, and NotificationListInternal's Home/End read it directly.
   const enabledItemIndex = React.useRef(0)
+  const enabledItems = React.useRef<HTMLElement[] | null>(null)
+  const assignedItem = React.useRef<HTMLElement | null>(null)
+  const coreRef = React.useRef(core)
+  coreRef.current = core
+  const [, updateNavigation] = React.useReducer((n: number) => n + 1, 0)
+  const reconcileNavigation = React.useCallback((items: HTMLElement[], focusedIndex?: number, genuineInit = false) => {
+    const previous = enabledItems.current
+    const changed = !previous || previous.length !== items.length || items.some((item, index) => item !== previous[index])
+    const focusChanged = focusedIndex !== undefined && focusedIndex !== enabledItemIndex.current
+    if (focusedIndex !== undefined) enabledItemIndex.current = focusedIndex
+    const current = items[enabledItemIndex.current] ?? null
+    const assignmentChanged = (genuineInit || focusedIndex !== undefined) && assignedItem.current !== current
+    if (!changed && !focusChanged && !assignmentChanged) return
+    enabledItems.current = items
+    assignedItem.current = current
+    updateNavigation()
+    // ItemNavigation.js/_init reapplies the retained numeric index only to enabled
+    // nodes after real membership changes. Do not clamp an absent retained node.
+    // Managed focus keeps the existing item's callback-before-setCurrentKey ordering.
+    if (focusedIndex === undefined) {
+      if (current) coreRef.current.setCurrentKey(current.dataset.navKey!)
+    }
+  }, [])
+  navigationInvalidation.current = () => {
+    reconcileNavigation(notificationNavigationItems(core.rootRef.current).filter((item) => item.hasAttribute("data-nav-key")), undefined, true)
+  }
+  React.useLayoutEffect(() => {
+    const root = core.rootRef.current
+    if (!root) return
+    const reconcile = () => {
+      if (root.isConnected) reconcileNavigation(notificationNavigationItems(root).filter((item) => item.hasAttribute("data-nav-key")))
+    }
+    reconcile()
+    const observer = new MutationObserver(reconcile)
+    // NotificationListInternal.js/getEnabledItems changes on real slots and group
+    // loading/collapse. More-only edits, child busy/content DOM and incidental React
+    // commits leave the ordered enabled nodes unchanged and cannot remap an owner.
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-loading", "data-collapsed"] })
+    return () => observer.disconnect()
+  }, [core.rootRef, reconcileNavigation])
+  const notificationCore = {
+    ...core,
+    // Generic List chooses a first key when a key disappears. Native _init leaves
+    // every enabled node at -1 if the retained index has no node; keep that mapping.
+    // _getCurrentItem can normalize a failed paging attempt without _applyTabIndex.
+    // Publish the last applied assignment, not a new one on an incidental render.
+    currentKey: enabledItems.current ? assignedItem.current?.dataset.navKey ?? null : core.currentKey,
+  }
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLUListElement>) => {
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
@@ -173,15 +225,19 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
     const item = target.closest<HTMLElement>("[data-nav-key], [data-nli-growing]")
     if (!item || !e.currentTarget.contains(item)) return
     const items = notificationNavigationItems(core.rootRef.current)
-    const i = items.indexOf(item)
+    const actualIndex = items.indexOf(item)
     const isGrowing = item.hasAttribute("data-nli-growing")
-    if (i === -1 && !isGrowing) return
+    const unmanaged = actualIndex === -1 && !isGrowing
     if (e.key === "PageUp" || e.key === "PageDown") {
-      if (e.shiftKey || target !== item) return
       // List.js passes getEnabledItems to ItemNavigation.js/_handlePageUpFlat and
       // _handlePageDownFlat. NotificationListInternal.js keeps More only in
-      // _allNavigationItems; _canNavigate leaves page keys on More uncancelled.
+      // _allNavigationItems. _getCurrentItem normalizes the numeric index, but a
+      // failed _canNavigate on More/unmanaged focus does not apply tab assignments.
       const pageItems = items.filter((el) => el.hasAttribute("data-nav-key"))
+      if (!pageItems.length) return
+      while (enabledItemIndex.current >= pageItems.length) enabledItemIndex.current--
+      if (enabledItemIndex.current < 0) enabledItemIndex.current = 0
+      if (target !== item || pageItems[enabledItemIndex.current] !== item) return
       const pageIndex = pageItems.indexOf(item)
       if (pageIndex === -1) return
       const next = e.key === "PageUp" ? Math.max(pageIndex - PAGE_SIZE, 0) : Math.min(pageIndex + PAGE_SIZE, pageItems.length - 1)
@@ -189,10 +245,19 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
       pageItems[next]?.focus()
       return
     }
+    const retained = items.filter((el) => el.hasAttribute("data-nav-key"))[enabledItemIndex.current]
+    const i = unmanaged ? items.indexOf(retained) : actualIndex
+    const boundary = e.key === "Home" || e.key === "End"
+    if (unmanaged) {
+      // NotificationListInternal.js/_focusSameItemOnNextRow and Home/End read the
+      // retained enabled item even after More ArrowUp focuses an unmanaged child.
+      if (!boundary && !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return
+      e.stopPropagation()
+    }
     const isGroup = (el?: HTMLElement) => el?.hasAttribute("data-nli-group")
     const up = e.key === "ArrowUp" || e.key === "ArrowLeft"
     const down = e.key === "ArrowDown" || e.key === "ArrowRight"
-    if (target !== item) {
+    if (target !== item && !(unmanaged && boundary)) {
       // On content inside the item.
       if (!up && !down) return
       e.preventDefault()
@@ -214,7 +279,7 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
       if (isGroup(item)) return
       // NotificationListInternal.js/_handleHomeKey uses the previously focused real item:
       // growing buttons are in _allNavigationItems but not ItemNavigation's enabled items.
-      const from = isGrowing ? items.indexOf(items.filter((el) => el.hasAttribute("data-nav-key"))[enabledItemIndex.current]) : i
+      const from = isGrowing || unmanaged ? items.indexOf(retained) : i
       if (from === -1) return
       to = 0
       for (let n = from - 1; n >= 0; n--) {
@@ -226,7 +291,7 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
     } else if (e.key === "End") {
       e.preventDefault()
       if (isGrowing) e.stopPropagation()
-      const from = isGrowing ? items.indexOf(items.filter((el) => el.hasAttribute("data-nav-key"))[enabledItemIndex.current]) : i
+      const from = isGrowing || unmanaged ? items.indexOf(retained) : i
       if (from === -1) return
       to = items.length - 1
       for (let n = from + 1; n < items.length; n++) {
@@ -250,7 +315,7 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
   }
 
   return (
-    <ListCoreContext.Provider value={core}>
+    <ListCoreContext.Provider value={notificationCore}>
       <NotificationContext.Provider value={ctx}>
         <div data-slot="notification-list" className={cn("fiori-notification-list", className)} {...props}>
           {/* navItems() looks for its root by this data-slot. */}
@@ -260,8 +325,9 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
               const target = e.target as HTMLElement
               if (target.closest("[data-nli-growing]")) return
               const item = target.closest<HTMLElement>("[data-nav-key]")
-              const index = notificationNavigationItems(core.rootRef.current).filter((el) => el.hasAttribute("data-nav-key")).indexOf(item!)
-              if (index !== -1) enabledItemIndex.current = index
+              const items = notificationNavigationItems(core.rootRef.current).filter((el) => el.hasAttribute("data-nav-key"))
+              const index = items.indexOf(item!)
+              if (index !== -1) reconcileNavigation(items, index)
             }}>
               {children}
               {!hasData && noDataText && (
@@ -367,6 +433,11 @@ function NotificationListItem({
     onFocus,
     onPointerDown,
   })
+  const desiredTabIndex = core?.currentKey === value ? 0 : -1
+  const [itemTabIndex, setItemTabIndex] = React.useState(desiredTabIndex)
+  // ItemNavigation.js/_init does not overwrite children omitted by their group's
+  // loading/collapse. A previous child 0 can remain while the new enabled owner is 0.
+  if (!groupRender?.loading && !groupRender?.collapsed && itemTabIndex !== desiredTabIndex) setItemTabIndex(desiredTabIndex)
   const [menuOpen, setMenuOpen] = React.useState(false)
   const [pressed, setPressed] = React.useState(false)
   const [showMore, setShowMore] = React.useState(false)
@@ -421,7 +492,7 @@ function NotificationListItem({
       data-show-more-pressed={pressed ? "" : undefined}
       data-buttons={buttons || undefined}
       role="listitem"
-      tabIndex={core?.currentKey === value ? 0 : -1}
+      tabIndex={itemTabIndex}
       aria-labelledby={labelledBy}
       className={cn("fiori-nli", className)}
       {...handlers}
@@ -429,7 +500,7 @@ function NotificationListItem({
         // NotificationListInternal.js/getEnabledItems excludes a busy group's children;
         // ItemNavigation.js/setCurrentItem ignores their focus without changing the owner
         // tab stop. More ArrowUp can still focus a child row. Keep the caller callback.
-        if (groupRender?.loading) {
+        if (groupRender?.loading || groupRender?.collapsed) {
           onFocus?.(e)
           return
         }
@@ -708,10 +779,21 @@ function NotificationListGroupItem({
   // membership rather than treating every React render as native onBeforeRendering.
   // ItemNavigation.js/_applyTabIndex changes decorated ListItemBase.js/forcedTabIndex,
   // invalidating the owner too. Include its effective DOM value, with caller overrides.
-  const groupRender = React.useMemo(() => ({ loading }), [
+  const groupRender = React.useMemo(() => ({ loading, collapsed }), [
     titleText ?? "", !!read, collapsed, growing, loading, loadingDelay, slotGeneration, groupTabIndex,
     texts.group, texts.expanded, texts.collapsed, texts.toggle, texts.loading, texts.busyTitle, texts.growingButton,
   ])
+  React.useLayoutEffect(() => {
+    const root = rootRef.current
+    const listRoot = core?.rootRef.current
+    if (!root || !listRoot || root.closest('[data-slot="list"]') !== listRoot) return
+    const parentGroup = root.parentElement?.closest("[data-nli-group]")
+    if (parentGroup?.closest('[data-slot="list"]') === listRoot) return
+    // List.js/items invalidates on direct child's changes; UI5Element.js/_attachSlotChange
+    // subscribes slotted groups. Genuine owner generations reapply _init even when the
+    // enabled array is equal. Local child/counter/request renders keep this token stable.
+    ctx.initNavigation()
+  }, [groupRender, ctx.initNavigation, core?.rootRef])
   const toggle = () => {
     const next = !collapsed
     if (collapsedProp === undefined) setState(next)

@@ -977,6 +977,140 @@ test("notification-list: More ArrowUp preserves the outer tab stop for busy unma
   }
 })
 
+test("notification-list: loading remaps retained tab stops and continues arrows from an unmanaged child, matching UI5", async ({ page }, testInfo) => {
+  const runs: Record<string, unknown>[] = []
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    const snapshots: Record<string, unknown>[] = []
+    const nodes = [
+      ["orders", oracle.group()], ["orders-1", oracle.child(1)], ["orders-2", oracle.child(2)], ["more:orders", oracle.more()],
+      ["approvals", oracle.group("approvals")], ["approvals-1", oracle.child(1, "approvals")], ["more:approvals", oracle.more("approvals")],
+    ] as const
+    const record = async (stage: string) => {
+      const tabStops = Object.fromEntries(await Promise.all(nodes.map(async ([key, node]) => [key, await node.getAttribute("tabindex")])))
+      const focus = (await Promise.all(nodes.map(async ([key, node]) => await node.evaluate((element) => element.matches(":focus")) ? key : null))).find(Boolean) ?? null
+      const children = Object.fromEntries(await Promise.all(([1, 2] as const).map(async (number) => {
+        const child = reference ? oracle.host().locator(`ui5-li-notification[data-probe-key="orders-${number}"]`) : oracle.child(number)
+        const busy = child.locator(reference ? ".ui5-nli-loading" : ".fiori-nli__busy")
+        return [number, {
+          loading: await child.evaluate((node, reference) => node.hasAttribute(reference ? "loading" : "data-loading"), reference),
+          active: await busy.evaluate((node, reference) => node.hasAttribute(reference ? "active" : "data-active"), reference),
+          inert: await busy.evaluate((node) => node.hasAttribute("inert")),
+        }]
+      })))
+      snapshots.push({ stage, tabStops, focus, children })
+    }
+    await oracle.child(1).focus()
+    await expect(oracle.child(1)).toBeFocused()
+    await expect(oracle.child(1)).toHaveAttribute("tabindex", "0")
+    await record("beforeLoading")
+    if (reference) await oracle.setLoading(true)
+    else {
+      // Match the native property update without moving the currently focused child.
+      await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).dispatchEvent("click")
+      await expect(oracle.host().locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+    }
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+    await record("afterLoading")
+    await oracle.more().focus()
+    await expect(oracle.more()).toBeFocused()
+    await record("afterMore")
+    await page.keyboard.press("ArrowUp")
+    await expect(oracle.child(2)).toBeFocused()
+    await record("afterArrowUp")
+    await oracle.clearEvents()
+    await page.keyboard.press("ArrowDown")
+    if (reference) await expect(oracle.child(1, "approvals")).toBeFocused()
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+    await record("afterArrowDown")
+    const events = await oracle.events()
+    if (reference) expect(events).toEqual([
+      { type: "keydown", key: "ArrowDown", prevented: true, bubbled: false },
+      { type: "keyup", key: "ArrowDown", prevented: false, bubbled: true },
+    ])
+    runs.push({ implementation: reference ? "UI5" : "React", snapshots, events })
+  }
+  await testInfo.attach("retained-tabstop-continuation.json", { body: JSON.stringify(runs, null, 2), contentType: "application/json" })
+  console.log(`B5_RETAINED_TABSTOP_CONTINUATION ${JSON.stringify(runs)}`)
+  expect(runs[1].snapshots).toEqual(runs[0].snapshots)
+  expect(runs[1].events).toEqual(runs[0].events)
+})
+
+test("notification-list: unmanaged boundaries and paging preserve applied assignments until genuine group init", async ({ page }, testInfo) => {
+  test.setTimeout(120_000)
+  const runs: Record<string, unknown>[] = []
+  const snapshot = async (oracle: Awaited<ReturnType<typeof growingKeyboardOracle>>) => {
+    const nodes = [
+      ["orders", oracle.group()], ["orders-1", oracle.child(1)], ["orders-2", oracle.child(2)], ["more:orders", oracle.more()],
+      ["approvals", oracle.group("approvals")], ["approvals-1", oracle.child(1, "approvals")], ["more:approvals", oracle.more("approvals")],
+    ] as const
+    const tabStops = Object.fromEntries(await Promise.all(nodes.map(async ([key, node]) => [key, await node.getAttribute("tabindex")])))
+    const focus = (await Promise.all(nodes.map(async ([key, node]) => await node.evaluate((element) => element.matches(":focus")) ? key : null))).find(Boolean) ?? null
+    return { tabStops, focus }
+  }
+  const startLoading = async (oracle: Awaited<ReturnType<typeof growingKeyboardOracle>>, reference: boolean) => {
+    if (reference) await oracle.setLoading(true)
+    else {
+      await growingDemo(page).getByRole("button", { name: "Start loading orders", exact: true }).dispatchEvent("click")
+      await expect(oracle.host().locator(".fiori-nli-group__growing-busy")).toHaveAttribute("data-busy", "")
+    }
+  }
+  for (const key of ["Home", "End", "PageUp", "PageDown"]) {
+    for (const reference of [true, false]) {
+      const oracle = await growingKeyboardOracle(page, reference)
+      await oracle.child(1).focus()
+      await expect(oracle.child(1)).toBeFocused()
+      await startLoading(oracle, reference)
+      await oracle.more().focus()
+      await expect(oracle.more()).toBeFocused()
+      await page.keyboard.press("ArrowUp")
+      await expect(oracle.child(2)).toBeFocused()
+      await oracle.clearEvents()
+      await page.keyboard.press(key)
+      if (reference) {
+        const destination = key === "Home" ? oracle.group("approvals") : key === "End" ? oracle.child(1, "approvals") : oracle.child(2)
+        await expect(destination).toBeFocused()
+      }
+      await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+      runs.push({ key, implementation: reference ? "UI5" : "React", snapshot: await snapshot(oracle), events: await oracle.events() })
+    }
+  }
+  for (const reference of [true, false]) {
+    const oracle = await growingKeyboardOracle(page, reference)
+    if (!reference) await growingDemo(page).getByLabel("Load behavior").selectOption("noop")
+    await oracle.group("approvals").focus()
+    await expect(oracle.group("approvals")).toBeFocused()
+    await startLoading(oracle, reference)
+    await oracle.more().focus()
+    await expect(oracle.more()).toBeFocused()
+    await page.keyboard.press("ArrowUp")
+    await expect(oracle.child(2)).toBeFocused()
+    await oracle.clearEvents()
+    await page.keyboard.press("PageDown")
+    await expect(oracle.child(2)).toBeFocused()
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))))
+    const afterPage = await snapshot(oracle)
+    const events = await oracle.events()
+    await oracle.more().click()
+    await expect.poll(() => oracle.loads()).toBe(1)
+    const afterCounter = await snapshot(oracle)
+    expect(afterCounter.tabStops).toEqual(afterPage.tabStops)
+    if (reference) {
+      await oracle.host().evaluate((group: any) => { group.loadingDelay = 1000 })
+      await oracle.host("approvals").evaluate((group: any) => { group.loadingDelay = 1000 })
+    } else await growingDemo(page).getByLabel("Loading delay").selectOption("1000")
+    await expect(oracle.child(1, "approvals")).toHaveAttribute("tabindex", "0")
+    runs.push({ key: "deferred-page-assignment", implementation: reference ? "UI5" : "React", afterPage, afterCounter, afterGroupInit: await snapshot(oracle), events })
+  }
+  await testInfo.attach("unmanaged-boundaries-paging.json", { body: JSON.stringify(runs, null, 2), contentType: "application/json" })
+  console.log(`B5_UNMANAGED_BOUNDARIES_PAGING ${JSON.stringify(runs)}`)
+  for (let index = 0; index < runs.length; index += 2) {
+    const { implementation: _native, ...native } = runs[index]
+    const { implementation: _react, ...react } = runs[index + 1]
+    expect(react).toEqual(native)
+  }
+})
+
 test("notification-list: the local-child-loading fixture exposes both inline and child busy areas", async ({ page }) => {
   for (const reference of [false, true]) {
     await page.goto(reference ? "/ui5.html?only=notification-list-growing-button-local-child-loading" : "/index.html?fixtures&only=notification-list-growing-button-local-child-loading")
