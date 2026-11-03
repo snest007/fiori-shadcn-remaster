@@ -237,7 +237,7 @@ test("notification-list: collapsed and loading groups omit children and More fro
 test("notification-list: Tab from group More continues to the next group's content and Shift+Tab returns to its first item", async ({ page }) => {
   await growingButton(page).focus()
   await page.keyboard.press("Tab")
-  await expect(growingItem(page, 1, "approvals").getByRole("button", { name: "More button. Show the full texts" })).toBeFocused()
+  await expect(growingItem(page, 1, "approvals").getByRole("button", { name: "Details button. Show the full texts" })).toBeFocused()
   await growingButton(page, "approvals").focus()
   await page.keyboard.press("Shift+Tab")
   await expect(growingItem(page, 1, "approvals")).toBeFocused()
@@ -257,7 +257,7 @@ test("notification-list: loading delays an inline spinner and leaves More enable
   await expect(growingGroup(page).locator(".fiori-nli-group__busy")).not.toHaveAttribute("data-busy")
   await growingButton(page).click()
   await expect(requests(page)).toHaveText("Requests: orders=2, approvals=0")
-  await expect(growingItem(page, 1).getByRole("button", { name: "More button. Show the full texts" })).toHaveText("Details")
+  await expect(growingItem(page, 1).getByRole("button", { name: "Details button. Show the full texts" })).toHaveText("Details")
 })
 
 test("notification-list: group overlay clears child busy requests until their loading prop resets", async ({ page }) => {

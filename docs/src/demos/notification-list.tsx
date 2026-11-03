@@ -47,7 +47,7 @@ function GrowingNotificationsDemo() {
         <Button onClick={() => setMounted((current) => !current)}>{mounted ? "Hide" : "Show"} growing list</Button>
       </div>
       {mounted && <NotificationList
-        texts={{ growingButton: "Load more notifications", more: "Details", loading: "Fetching notifications" }}
+        texts={{ growingButton: "Load more notifications", more: "Details", moreLabel: "Details button. Show the full texts", loading: "Fetching notifications" }}
         onItemClick={(value) => setAction(`click:${value}`)}
         onItemToggle={(value, collapsed) => setAction(`${collapsed ? "collapse" : "expand"}:${value}`)}
       >
