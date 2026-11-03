@@ -43,7 +43,7 @@ function fail(msg) {
 }
 
 function codexBranches() {
-  return git("for-each-ref --format=%(refname:short) refs/heads/codex/").split("\n").filter(Boolean)
+  return git("for-each-ref --format='%(refname:short)' refs/heads/codex/").split("\n").filter(Boolean)
 }
 const isMerged = (b) => sh(`git merge-base --is-ancestor ${b} main`, { allowFail: true }).ok
 function worktrees() {
@@ -80,7 +80,10 @@ function scopeOf(branch) {
     if (ALWAYS_OK.has(file)) return { file, verdict: "ok", why: "backlog checkbox" }
     if (card?.text.includes(file)) return { file, verdict: "ok", why: "listed in card" }
     const owner = OWNED.map((re) => file.match(re)?.[1]).find(Boolean)
-    if (owner && card?.text.includes(owner)) return { file, verdict: "ok", why: `owned by ${owner}` }
+    // The card must name the component as a file/path ("registry/ui/<owner>.tsx", "<owner>.css",
+    // "tests/<owner>.spec.ts", "`<owner>`"), not just use the word in prose ("…opens a button").
+    const named = owner && new RegExp(`(^|[\\s\`/(])${owner.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\.(tsx?|css|json|js|spec\\.ts|ui5\\.ts)|\`|/)`, "m").test(card?.text ?? "")
+    if (named) return { file, verdict: "ok", why: `owned by ${owner}` }
     const base = file.split("/").pop()
     if (messages.includes(file) || messages.includes(base)) return { file, verdict: "called-out", why: "named in a commit message" }
     return { file, verdict: "UNLISTED", why: owner ? `component "${owner}" not in card` : "shared file not in card" }
@@ -112,7 +115,7 @@ if (cmd === "status") {
     const dirty = path && existsSync(path) ? (git(`-C "${path}" status --porcelain`) ? "dirty" : "clean") : "-"
     console.log(`  ${b.padEnd(40)} ${isMerged(b) ? "merged  " : "PENDING "} worktree: ${path ?? "-"} (${dirty})`)
   }
-  const others = git("for-each-ref --format=%(refname:short) refs/heads/").split("\n").filter((b) => b && b !== "main" && !b.startsWith("codex/"))
+  const others = git("for-each-ref --format='%(refname:short)' refs/heads/").split("\n").filter((b) => b && b !== "main" && !b.startsWith("codex/"))
   if (others.length) console.log(`  other branches (not handled by this script): ${others.join(", ")}`)
 } else if (cmd === "scope") {
   let bad = 0
