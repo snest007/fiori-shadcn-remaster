@@ -48,11 +48,48 @@ export default defineUi5(set, ({ tabs, selected, width = TABS_WIDTH, overflowMod
   if (customStart) el.append(h("ui5-button", { slot: "startOverflowButton" }, "Previous"))
   if (customEnd) el.append(h("ui5-button", { slot: "overflowButton" }, "Next"))
   el.style.width = width
-  if (!list) return el
+  const tabsControl = el as Ui5FixtureElement & {
+    _waitForDomRef(): Promise<void>
+    _setItemsForStrip(): void
+    _showPopoverAt(button: HTMLElement, focus: boolean, preventFocus: boolean): Promise<void>
+    _closePopover(): void
+  }
+  const stripReady = (async () => {
+    await tabsControl._waitForDomRef()
+    const buttons = [
+      ...el.shadowRoot!.querySelectorAll<HTMLElement>("[ui5-button]"),
+      ...el.querySelectorAll<HTMLElement>("[ui5-button]"),
+    ] as (HTMLElement & { _waitForDomRef(): Promise<void> })[]
+    await Promise.all(buttons.map((button) => button._waitForDomRef()))
+    await renderFinished()
+    await document.fonts.ready
+    // INTEGRATION causes 4/6: TabContainer.onAfterRendering calls _setItemsForStrip before
+    // nested Button.connectedCallback has necessarily rendered its root (UI5Element.js).
+    // That first pass can measure a zero-width button and leave one extra tab visible while
+    // the cell's outer size stays unchanged. Recompute using UI5's own overflow algorithm
+    // after button/font readiness, and wait for its geometry and hidden state to settle.
+    let previous = ""
+    for (let pass = 0; pass < 100; pass++) {
+      tabsControl._setItemsForStrip()
+      await renderFinished()
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      const signature = [...el.shadowRoot!.querySelectorAll<HTMLElement>(".ui5-tc__tabStrip, .ui5-tc__overflow, [role=tab]"), ...buttons]
+        .map((item) => `${item.offsetWidth}:${item.hidden}:${item.hasAttribute("start-overflow")}:${item.hasAttribute("end-overflow")}`)
+        .join()
+      if (signature === previous) return
+      previous = signature
+    }
+    throw new Error("tabs: native overflow state did not settle")
+  })()
+  if (!list) {
+    tabsControl.fixtureReady = stripReady
+    return tabsControl
+  }
   const frame: Ui5FixtureElement = document.createElement("div")
   frame.style.cssText = "overflow:hidden;padding:.75rem"
   frame.append(el)
   const paint = async (tries = 0): Promise<void> => {
+    await stripReady
     await renderFinished()
     const root = el.shadowRoot?.querySelector<HTMLElement>(".ui5-tc-root")
     const button = el.shadowRoot?.querySelector<HTMLElement>('[data-ui5-stable="overflow-end"]')
@@ -63,7 +100,6 @@ export default defineUi5(set, ({ tabs, selected, width = TABS_WIDTH, overflowMod
     }
     // Populate the real overflow through TabContainer's API, then close before painting it in place.
     // preventInitialFocus keeps this shared reference page's other popup fixtures undisturbed.
-    const tabsControl = el as HTMLElement & { _setItemsForStrip(): void; _showPopoverAt(button: HTMLElement, focus: boolean, preventFocus: boolean): Promise<void>; _closePopover(): void }
     const popup = el.shadowRoot!.querySelector<HTMLElement & { open: boolean; _waitForDomRef(): Promise<void> }>("[ui5-responsive-popover]")!
     // UI5Element.connectedCallback resolves _waitForDomRef immediately before synchronous onEnterDOM.
     // Await that lifecycle before _showPopoverAt sets open: ResponsivePopover.handleOpenOnEnterDOM
