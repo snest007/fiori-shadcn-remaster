@@ -120,8 +120,11 @@ test.describe("Tabs responsive overflow", () => {
     await expect(root(page).getByRole("tab", { name: "Section 3", exact: true })).toHaveAttribute("aria-selected", "true")
     await root(page).locator("#tabs-select-last").click()
     await expect(root(page).getByRole("tab", { name: "Section 10", exact: true })).toHaveAttribute("aria-selected", "true")
+    await more(page).focus()
+    await expect(more(page)).toBeFocused()
     await root(page).evaluate((el) => { el.style.width = "100rem" })
     await expect(more(page)).toHaveCount(0)
+    await expect(root(page).getByRole("tab", { name: "Section 10", exact: true })).toHaveAttribute("tabindex", "0")
     await expect(root(page).getByRole("tab")).toHaveCount(10)
   })
 

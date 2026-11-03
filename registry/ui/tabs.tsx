@@ -23,8 +23,8 @@ type TabsContextValue = {
   select: (value: string) => void
   /** Initial auto-selection (UI5 selects the first tab); does not fire onValueChange. */
   autoSelect: (value: string) => void
-  focused: string | undefined
-  setFocused: (value: string | undefined) => void
+  focused: string | symbol | undefined
+  setFocused: (value: string | symbol | undefined) => void
   overflowMode: "end" | "startAndEnd"
   overflowButton?: React.ReactNode
   startOverflowButton?: React.ReactNode
@@ -75,7 +75,7 @@ function Tabs({
   const baseId = React.useId()
   const [uncontrolled, setUncontrolled] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolled
-  const [focused, setFocused] = React.useState<string | undefined>()
+  const [focused, setFocused] = React.useState<string | symbol | undefined>()
   const select = React.useCallback(
     (v: string) => {
       if (valueProp === undefined) setUncontrolled(v)
@@ -118,6 +118,8 @@ function Tabs({
 }
 
 const tabsIn = (list: HTMLElement) => [...list.querySelectorAll<HTMLElement>('[role="tab"]')].filter((t) => !t.hidden)
+
+const overflowFocus = { start: Symbol("tabs-overflow-start"), end: Symbol("tabs-overflow-end") }
 
 type OverflowState = { needed: boolean; start: number[]; end: number[] }
 const sameIndexes = (a: number[], b: number[]) => a.length === b.length && a.every((v, i) => v === b[i])
@@ -188,6 +190,9 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
     if (endRef.current) endRef.current.hidden = true
     const total = all.reduce((sum, item) => sum + itemWidth(item), 0)
     if (total <= list.offsetWidth) {
+      // TabContainer.js onAfterRendering restores the selected tab's navigation entry after an
+      // overflow control disappears. Symbols keep control focus distinct from arbitrary tab values.
+      if (ctx.focused === overflowFocus.start || ctx.focused === overflowFocus.end) ctx.setFocused(undefined)
       setOverflow((old) => old.needed ? { needed: false, start: [], end: [] } : old)
       setOpen(undefined)
       return
@@ -266,6 +271,7 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
     }
     hiddenStart.forEach((item) => { item.hidden = true; item.dataset.overflow = "start" })
     hiddenEnd.forEach((item) => { item.hidden = true; item.dataset.overflow = "end" })
+    if ([...hiddenStart, ...hiddenEnd].some((item) => item.dataset.value === ctx.focused) || (ctx.focused === overflowFocus.start && !hiddenStart.length) || (ctx.focused === overflowFocus.end && !hiddenEnd.length)) ctx.setFocused(undefined)
     const next = { needed: true, start: hiddenStart.map((item) => all.indexOf(item)), end: hiddenEnd.map((item) => all.indexOf(item)) }
     setOverflow((old) => sameIndexes(old.start, next.start) && sameIndexes(old.end, next.end) ? old : next)
     if (open && next[open].length === 0) setOpen(undefined)
@@ -293,7 +299,7 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
     if (!overflow.needed) return null
     const custom = side === "start" ? ctx.startOverflowButton : ctx.overflowButton
     const count = overflow[side].filter((i) => stripItems(listRef.current!)[i]?.dataset.slot === "tabs-trigger").length
-    const key = `overflow-${side}`
+    const key = overflowFocus[side]
     const controlProps = {
       "data-tabs-overflow-button": side,
       "aria-haspopup": "menu" as const,
@@ -329,7 +335,6 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
         data-additional-text={layout.additional ? "" : undefined}
         className="fiori-tabs__header"
         onKeyDown={(e) => {
-          onKeyDown?.(e)
           const target = (e.target as HTMLElement).closest<HTMLElement>('[role="tab"], [data-tabs-overflow-button]')
           if (e.defaultPrevented || !target || e.altKey || e.ctrlKey || e.metaKey) return
           const side = target.dataset.tabsOverflowButton as "start" | "end" | undefined
@@ -352,23 +357,21 @@ function TabsList({ className, children, onKeyDown, onKeyUp, onBlur, ...props }:
           if (next === undefined) return
           e.preventDefault()
           const item = nav[Math.min(Math.max(next, 0), last)]
-          ctx.setFocused(item.dataset.value ?? `overflow-${item.dataset.tabsOverflowButton}`)
+          ctx.setFocused(item.dataset.value ?? overflowFocus[item.dataset.tabsOverflowButton as "start" | "end"])
           item.focus()
         }}
         onKeyUp={(e) => {
-          onKeyUp?.(e)
           const tab = (e.target as HTMLElement).closest<HTMLElement>('[role="tab"]')
           if (e.defaultPrevented || !tab || e.key !== " ") return
           e.preventDefault()
           if (tab.getAttribute("aria-disabled") !== "true") ctx.select(tab.dataset.value!)
         }}
         onBlur={(e) => {
-          onBlur?.(e)
           if (!e.currentTarget.contains(e.relatedTarget as Node | null)) ctx.setFocused(undefined)
         }}
       >
         {control("start")}
-        <div ref={listRef} data-slot="tabs-list" role="tablist" className={cn("fiori-tabs__strip", className)} {...props}><TabsStripContext.Provider value={registerTab}>{children}</TabsStripContext.Provider></div>
+        <div ref={listRef} data-slot="tabs-list" role="tablist" className={cn("fiori-tabs__strip", className)} onKeyDown={onKeyDown} onKeyUp={onKeyUp} onBlur={onBlur} {...props}><TabsStripContext.Provider value={registerTab}>{children}</TabsStripContext.Provider></div>
         {control("end")}
       </div>
       <PopoverContent
