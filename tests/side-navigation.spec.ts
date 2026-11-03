@@ -237,22 +237,33 @@ test.describe("collapsed", () => {
     await more.click()
     const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
     await expect(menu).toBeVisible()
-    await expect.poll(async () => {
-      const anchor = (await more.boundingBox())!
-      const surface = (await menu.boundingBox())!
-      return Math.abs(surface.y + surface.height / 2 - anchor.y - anchor.height / 2)
-    }).toBeLessThan(1)
+    const expectPlacement = async () => {
+      let anchor = await more.boundingBox()
+      await expect.poll(async () => {
+        const current = await more.boundingBox()
+        const settled = current !== null && anchor !== null
+          && current.x === anchor.x && current.y === anchor.y
+          && current.width === anchor.width && current.height === anchor.height
+        anchor = current
+        return settled
+      }).toBe(true)
+      const triggerCenter = anchor!.y + anchor!.height / 2
+      const viewportHeight = await page.evaluate(() => document.documentElement.clientHeight)
+      await expect.poll(async () => {
+        const surface = (await menu.boundingBox())!
+        // Popover.js getHorizontalTop/calcPlacement centers the surface, then clamps with VIEWPORT_MARGIN (10px).
+        const expectedTop = Math.max(10, Math.min(triggerCenter - surface.height / 2, viewportHeight - surface.height - 10))
+        return Math.abs(surface.y - expectedTop)
+      }).toBeLessThanOrEqual(1)
+    }
+    await expectPlacement()
     await page.keyboard.press("Escape")
     await expect(menu).toHaveCount(0)
     await page.setViewportSize({ width: 1280, height: 280 })
     await more.evaluate((el) => el.scrollIntoView({ block: "end" }))
     await more.click()
     await expect(menu).toBeVisible()
-    await expect.poll(async () => {
-      const surface = (await menu.boundingBox())!
-      // Popover.js VIEWPORT_MARGIN is 10px on the UI5 reference.
-      return surface.y >= 10 && surface.y + surface.height <= 270
-    }).toBe(true)
+    await expectPlacement()
   })
 
   test("a hidden external leaf shows its indicator and opens its target once", async ({ page, context }) => {
