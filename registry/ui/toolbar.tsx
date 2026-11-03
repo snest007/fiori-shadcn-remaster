@@ -121,11 +121,17 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
   if (reverseOverflow) overflowItems.reverse()
   const hasOverflow = overflowItems.some((item) => item.kind !== "separator" && !item.node.hidden)
   const isOpen = React.useRef(false)
+  const opening = React.useRef(0)
+  const restoredOpening = React.useRef<number | null>(null)
+  const renderedOpening = opening.current
   isOpen.current = open && hasOverflow
   const close = React.useCallback(() => setOpen(false), [])
   const changeOpen = React.useCallback((next: boolean) => {
     // Toolbar.js/openOverflow reads the actual placement retained after closing.
-    if (next) setReverseOverflow(actualPlacement.current === "top")
+    if (next) {
+      if (!isOpen.current) opening.current++
+      setReverseOverflow(actualPlacement.current === "top")
+    }
     setOpen(next)
   }, [])
   const layout = React.useRef<() => void>(() => {})
@@ -200,7 +206,12 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
         if (target === host) host.insertBefore(item.node, button)
         else target.append(item.node)
       }
-      if (overflowed && hadFocus && !open) button.focus()
+      if (overflowed && hadFocus && !open) {
+        button.focus()
+        // Like UI5 Popup.js/resetFocus clearing _focusedElementBeforeOpen, hand off
+        // focus once; a queued Radix callback must not undo subsequent bar navigation.
+        restoredOpening.current = opening.current
+      }
       // Toolbar.js/shouldShowSeparatorInOverflow hides leading/trailing separators.
       if (overflowed && item.kind === "separator") {
         const index = overflowItems.indexOf(item)
@@ -286,7 +297,7 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
       <div ref={parking} hidden />
       {items.map((item) => createPortal(<OverflowContext.Provider value={{ overflowed: overflowKeys.includes(item.key) || item.priority === "alwaysOverflow", close }}>{item.child}</OverflowContext.Provider>, item.node, item.key))}
     </div>
-    <PopoverContent hideArrow side="bottom" align="end" aria-label={overflowPopoverLabel} {...overflowContentProps}
+    <PopoverContent key={renderedOpening} hideArrow side="bottom" align="end" aria-label={overflowPopoverLabel} {...overflowContentProps}
       className={cn("fiori-toolbar-overflow", overflowContentProps?.className)}
       onInteractOutside={(event) => {
         overflowContentProps?.onInteractOutside?.(event)
@@ -304,11 +315,13 @@ function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel =
         overflowContentProps?.onCloseAutoFocus?.(event)
         if (!event.defaultPrevented) {
           event.preventDefault()
-          // UI5 Toolbar.js/onOverflowPopoverOpened focuses the newly opened overflow item.
-          // Radix schedules unmount focus restoration; an old scope must not steal that focus.
-          if (isOpen.current) return
+          // UI5 Toolbar.js/onOverflowPopoverOpened focuses the new overflow item.
+          // Radix react-focus-scope queues unmount autofocus. Key each opening so an old
+          // callback cannot take focus after a later opening has itself closed.
+          if (isOpen.current || renderedOpening !== opening.current || restoredOpening.current === renderedOpening) return
           const target = hasOverflow ? overflowButton.current : bar.current && navigableItems(bar.current).at(-1)?.target
           target?.focus()
+          restoredOpening.current = renderedOpening
         }
       }}>
       <div ref={mountOverflow} className="fiori-toolbar-overflow-list" />

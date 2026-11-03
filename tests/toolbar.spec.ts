@@ -117,6 +117,18 @@ test.describe("Toolbar overflow", () => {
     await page.keyboard.press("ArrowRight")
     await expect(trigger).toBeFocused()
     await expect(trigger).toHaveAttribute("aria-haspopup", "menu")
+    // Capture the real Radix lifecycle listener so its delayed delivery can be replayed
+    // after a newer opening has closed and keyboard focus has moved back into the bar.
+    await page.evaluate(() => {
+      const add = EventTarget.prototype.addEventListener
+      ;(window as any).__toolbarCloseListeners = []
+      EventTarget.prototype.addEventListener = function(type, listener, options) {
+        if (type === "focusScope.autoFocusOnUnmount" && this instanceof HTMLElement && this.matches("[data-slot=popover-content][aria-label='Available Values']")) {
+          ;(window as any).__toolbarCloseListeners.push({ target: this, listener })
+        }
+        return add.call(this, type, listener, options)
+      }
+    })
     for (const key of ["Enter", "Space"]) {
       await page.keyboard.press(key)
       await expect(trigger).toHaveAttribute("aria-expanded", "true")
@@ -128,6 +140,14 @@ test.describe("Toolbar overflow", () => {
       await expect(trigger).toHaveAttribute("aria-expanded", "false")
     }
     await page.keyboard.press("ArrowLeft")
+    await expect(keep).toBeFocused()
+    await page.evaluate(() => {
+      const old = (window as any).__toolbarCloseListeners[0]
+      if (!old) throw new Error("No closing Toolbar focus scope was captured")
+      const event = new CustomEvent("focusScope.autoFocusOnUnmount", { cancelable: true })
+      if (typeof old.listener === "function") old.listener.call(old.target, event)
+      else old.listener.handleEvent(event)
+    })
     await expect(keep).toBeFocused()
     await page.keyboard.press("End")
     await expect(trigger).toBeFocused()
