@@ -3,6 +3,8 @@
 // Used by an agent following docs/plan/INTEGRATION.md. Every command prints a short summary and
 // writes details to .integration/; `verify` also writes REPORT.md (paste that back).
 //
+//   node scripts/integrate.mjs prepare <card-id…>     create .worktrees/<id> on branch codex/<id> from main, install, generate;
+//                                                     prints the path and the PORT/SAPUI5_PORT pair reserved for it
 //   node scripts/integrate.mjs status                 list codex/* branches, worktrees, merge state
 //   node scripts/integrate.mjs scope [branch…]        files each branch changes vs. what its card allows
 //   node scripts/integrate.mjs merge [branch…]        scope check, then merge --no-ff in the given order
@@ -108,7 +110,24 @@ function pending(args) {
 
 const [cmd = "status", ...args] = process.argv.slice(2)
 
-if (cmd === "status") {
+if (cmd === "prepare") {
+  requireCleanMain()
+  const ids = args.filter((a) => !a.startsWith("--"))
+  if (!ids.length) fail("prepare needs card ids, e.g. prepare F3 A1")
+  const taken = new Set([...worktrees().values()])
+  const used = codexBranches().length
+  ids.forEach((id, i) => {
+    const card = readdirSync("docs/plan/tasks").find((f) => f.startsWith(`${id}-`))
+    if (!card) fail(`No card docs/plan/tasks/${id}-*.md`)
+    const branch = `codex/${id}`
+    const path = join(process.cwd(), ".worktrees", id)
+    if (codexBranches().includes(branch) || taken.has(path)) fail(`${branch} or ${path} already exists — finish or clean it up first`)
+    sh(`git worktree add -b ${branch} "${path}" main`)
+    sh(`cd "${path}" && pnpm install --frozen-lockfile --prefer-offline && pnpm generate`, { log: `prepare-${id}.log` })
+    const port = 4320 + 2 * (used + i)
+    console.log(JSON.stringify({ card: `docs/plan/tasks/${card}`, branch, path, PORT: port, SAPUI5_PORT: port + 1 }))
+  })
+} else if (cmd === "status") {
   const wt = worktrees()
   console.log(`main ${git("rev-parse --short main")}  checkout: ${git("rev-parse --abbrev-ref HEAD")}  dirty: ${git("status --porcelain") ? "YES" : "no"}`)
   for (const b of codexBranches()) {
