@@ -1,5 +1,5 @@
 {
   "title": "Toolbar",
-  "registryDependencies": ["@fiori/button"],
-  "description": "Fiori toolbar with spacer and separator, and UI5's arrow-key navigation between items."
+  "registryDependencies": ["@fiori/button", "@fiori/icon", "@fiori/icons", "@fiori/popover", "@fiori/select"],
+  "description": "Fiori toolbar with priority-based overflow, stable arbitrary items, spacers, separators and UI5 arrow-key navigation."
 }
