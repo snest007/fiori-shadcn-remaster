@@ -11,3 +11,4 @@ registry.json
 registry/styles/fiori-components.css
 sapui5/dist/
 sapui5/.ui5/
+.integration/

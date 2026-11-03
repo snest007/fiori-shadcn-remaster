@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Integration of finished task-card branches (codex/<card-id>…) into main.
 // Used by an agent following docs/plan/INTEGRATION.md. Every command prints a short summary and
-// writes details to test-results/integration/; `verify` also writes REPORT.md (paste that back).
+// writes details to .integration/; `verify` also writes REPORT.md (paste that back).
 //
 //   node scripts/integrate.mjs status                 list codex/* branches, worktrees, merge state
 //   node scripts/integrate.mjs scope [branch…]        files each branch changes vs. what its card allows
@@ -15,7 +15,8 @@ import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, appendFileSync } from "node:fs"
 import { join } from "node:path"
 
-const OUT = "test-results/integration"
+// Not under test-results/: Playwright empties that folder at the start of every run.
+const OUT = ".integration"
 mkdirSync(OUT, { recursive: true })
 const PORT = process.env.PORT ?? "4310"
 const SAPUI5_PORT = process.env.SAPUI5_PORT ?? "4311"

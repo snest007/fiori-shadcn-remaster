@@ -57,7 +57,7 @@ Then `git add <files> && git commit --no-edit` and re-run `merge` for the remain
 node scripts/integrate.mjs verify                # install, generate, typecheck, registry, 3 full runs (retries off), smoke install
 ```
 
-It writes `test-results/integration/REPORT.md` and per-run logs (`run-N.log`). PASS requires all three runs green and the
+It writes `.integration/REPORT.md` and per-run logs (`run-N.log`). PASS requires all three runs green and the
 smoke install green.
 
 ### When something fails after merging (it passed on each branch alone)
@@ -80,7 +80,7 @@ which one it was, and re-run `verify`:
 
 If after two honest attempts a failure is still unexplained, stop: leave the branch merged if it was clean before,
 otherwise roll back with the command `merge` printed first (`git reset --hard <main before merging>`, also in
-`test-results/integration/main-before.txt` and the report), and describe the failure in the report.
+`.integration/main-before.txt` and the report), and describe the failure in the report.
 
 ## 4. Clean up
 
@@ -92,7 +92,7 @@ Also delete temp files you created. Don't push.
 
 ## 5. Report (paste this back to the owner)
 
-Fill the "Notes" section at the end of `test-results/integration/REPORT.md`:
+Fill the "Notes" section at the end of `.integration/REPORT.md`:
 
 - per branch: merged / returned (why), scope exceptions accepted (file → reason), fidelity mismatches found,
   forbidden shortcuts found;
