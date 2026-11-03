@@ -18,6 +18,7 @@ document.body.style.cssText = "margin:0;padding:1rem;background:var(--sapBackgro
 
 const root = document.getElementById("root")!
 root.style.cssText = "display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start"
+const fixtureReadiness: Promise<void>[] = []
 for (const set of fixtureSets) {
   const render = rendererFor(set.name)
   if (!render) continue
@@ -27,7 +28,9 @@ for (const set of fixtureSets) {
     const cell = document.createElement("div")
     cell.dataset.fixture = c.id
     cell.style.cssText = "display:inline-flex;padding:0.25rem;line-height:normal"
-    cell.append(render(c.props))
+    const fixture = render(c.props)
+    cell.append(fixture)
+    if (fixture.fixtureReady) fixtureReadiness.push(fixture.fixtureReady)
     const slot = document.createElement("div")
     slot.dataset.fixtureSlot = ""
     slot.style.display = "flex"
@@ -35,6 +38,10 @@ for (const set of fixtureSets) {
     root.append(slot)
   }
 }
+
+// INTEGRATION cause 4: fixture preparation can await work outside UI5's render queue.
+// Finish mounted fixtures before measuring stability, so snapSlots cannot freeze an intermediate box.
+await Promise.all(fixtureReadiness)
 
 // Wait for every custom element to be defined and rendered, fonts loaded, and icons drawn
 // (ui5-icon fills its <path> asynchronously).
