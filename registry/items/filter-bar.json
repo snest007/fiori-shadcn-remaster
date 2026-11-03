@@ -1,5 +1,11 @@
 {
   "title": "FilterBar",
-  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/input", "@fiori/label"],
-  "description": "Fiori filter bar (composite after the Fiori design guidelines): variant slot, basic search, labelled filter fields grid, Go, Adapt Filters (n), collapse with filter summary text."
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button",
+    "@fiori/input",
+    "@fiori/label",
+    "@fiori/adapt-filters-dialog"
+  ],
+  "description": "Fiori filter bar with declarative condition editors, built-in Adapt Filters personalization, ordered visibility, live search, required-field validation and SAPUI5 active-filter summaries."
 }

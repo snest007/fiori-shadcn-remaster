@@ -1,0 +1,272 @@
+/* OpenUI5 1.154 sap/m/p13n/Popup._createDialog; sap/ui/mdc/themes/base/AdaptFiltersPanel.less
+   and sap/m/themes/base/{Dialog,p13n.Container,p13n.QueryPanel}.less.
+   Spacing uses SAP space tokens; halves/quarters reproduce the LESS grid gutters. */
+.fiori-adapt-filters,
+.fiori-adapt-filters-reset {
+  box-sizing: border-box;
+  position: relative;
+  /* Like sap.ui.core.Popup's static-area z-index, let the popup shadow paint over
+     subsequent ordinary fixture controls instead of behind them. */
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  color: var(--sapTextColor);
+  font: var(--sapFontSize) var(--sapFontFamily);
+  background: var(--sapBackgroundColor);
+  border-radius: var(--sapElement_BorderCornerRadius);
+  box-shadow: var(--sapContent_Shadow3);
+  outline: none;
+  overflow: hidden;
+  --fiori-adapt-line-height: var(--sapElement_LineHeight);
+}
+.fiori-adapt-filters {
+  width: var(--fiori-adapt-content-width);
+  min-width: calc(var(--sapContent_Space_Small) * 20);
+  min-height: var(--fiori-popup-footer-height);
+}
+.fiori-adapt-filters[data-portal],
+.fiori-adapt-filters-reset[data-portal] {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  z-index: 50;
+  max-width: calc(100vw - var(--sapContent_Space_Medium));
+  max-height: calc(100vh - var(--sapContent_Space_Medium));
+}
+.fiori-adapt-filters__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--fiori-popup-block-layer-background);
+  opacity: var(--fiori-popup-block-layer-opacity);
+}
+.fiori-adapt-filters__header,
+.fiori-adapt-filters__footer {
+  box-sizing: border-box;
+  flex: none;
+  display: flex;
+  align-items: center;
+  min-height: var(--fiori-popup-footer-height);
+  padding-inline: var(--sapContent_Space_Small);
+}
+.fiori-adapt-filters__header {
+  justify-content: space-between;
+  background: var(--sapPageHeader_Background);
+  box-shadow: var(--sapContent_HeaderShadow);
+  position: relative;
+  z-index: 1;
+  touch-action: none;
+}
+.fiori-adapt-filters[data-portal] .fiori-adapt-filters__header { cursor: move; }
+.fiori-adapt-filters__title {
+  color: var(--sapPageHeader_TextColor);
+  font-family: var(--sapFontHeaderFamily);
+  font-size: var(--sapFontHeader5Size);
+  font-weight: normal;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fiori-adapt-filters__content {
+  height: var(--fiori-adapt-content-height);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1 1 auto;
+}
+.fiori-adapt-filters__tabs {
+  display: flex;
+  box-sizing: border-box;
+  flex: none;
+  /* IconTabBar keeps the cozy strip height even in compact mode. */
+  height: calc(var(--sapElement_LineHeight) + var(--sapList_BorderWidth));
+  padding-inline: calc(var(--sapContent_Space_Medium) + var(--sapContent_Space_Tiny) * 0.375);
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapGroup_ContentBorderColor);
+  background: var(--sapPageHeader_Background);
+}
+.fiori-adapt-filters__tab {
+  position: relative;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0 var(--sapContent_Space_Medium) 0 0;
+  height: var(--sapElement_LineHeight);
+  background: transparent;
+  color: var(--sapTab_TextColor);
+  font-family: var(--sapFontBoldFamily);
+  font-size: var(--sapFontSize);
+  cursor: pointer;
+}
+.fiori-adapt-filters__tab[aria-selected="true"] { color: var(--sapTab_Selected_TextColor); }
+.fiori-adapt-filters__tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-bottom: var(--sapTab_Selected_Indicator_Dimension) solid var(--sapTab_ForegroundColor);
+  border-radius: var(--fiori-tc-headeritemcontent-border-radius);
+}
+.fiori-adapt-filters__tab:focus-visible span {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: calc(var(--sapContent_Space_Tiny) / 4);
+}
+.fiori-adapt-filters__panel { position: relative; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.fiori-adapt-filters__toolbar {
+  box-sizing: border-box;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sapContent_Space_Tiny);
+  /* AdaptFiltersPanel's forms-mode list toolbar remains cozy in both densities. */
+  height: var(--sapElement_LineHeight);
+  padding-inline: var(--sapContent_Space_Small) var(--sapContent_Space_Tiny);
+  background: var(--sapBackgroundColor);
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_HeaderBorderColor);
+}
+.fiori-adapt-filters__toolbar h2 {
+  font-family: var(--sapFontHeaderFamily);
+  font-size: var(--sapFontHeader5Size);
+  font-weight: normal;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fiori-adapt-filters__search { margin-inline-start: auto; width: calc(var(--sapContent_Space_Small) * 16); min-width: 0; }
+.fiori-adapt-filters__search > * { width: 100%; }
+.fiori-adapt-filters__scroll { flex: 1; min-height: 0; overflow: auto; }
+.fiori-adapt-filters__row {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 4fr 6fr 2fr;
+  align-items: start;
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_BorderColor);
+  background: var(--sapList_Background);
+  outline: none;
+  padding-inline: calc(var(--sapContent_Space_Tiny) / 2);
+  min-height: calc(var(--fiori-adapt-line-height) + var(--sapList_BorderWidth));
+}
+.fiori-adapt-filters__row:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: calc(-1 * var(--sapContent_FocusWidth));
+}
+/* Grid's inline Button line box contributes one additional pixel when a row has
+   the delete action (AdaptFiltersPanelContent._createActionContainer). */
+.fiori-adapt-filters__row:has(.fiori-adapt-filters__actions > [data-slot="button"]) {
+  min-height: calc(var(--fiori-adapt-line-height) + var(--sapList_BorderWidth) + var(--sapButton_BorderWidth));
+}
+.fiori-adapt-filters__label {
+  width: 100%;
+  height: auto;
+  text-align: end;
+  justify-content: flex-end;
+  line-height: normal;
+  padding-top: calc(var(--sapContent_Space_Tiny) / 4);
+  padding-inline-end: calc(var(--sapContent_Space_Tiny) / 2);
+  white-space: normal;
+}
+.fiori-adapt-filters__editor { min-width: 0; padding-inline: calc(var(--sapContent_Space_Tiny) / 2); }
+.fiori-adapt-filters__editor > * { width: 100%; }
+.fiori-adapt-filters__editor[data-disabled] { /* The reused editor applies its own disabled opacity. */ }
+.fiori-adapt-filters__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding-inline: calc(var(--sapContent_Space_Tiny) * 2);
+  align-items: center;
+  min-height: var(--fiori-adapt-line-height);
+}
+.fiori-adapt-filters__grip { margin-inline-start: var(--sapContent_Space_Tiny); cursor: grab; width: var(--sapFontSize); height: var(--sapFontSize); }
+.fiori-adapt-filters__add {
+  background: var(--sapList_Background);
+  display: flex;
+  align-items: center;
+  padding: calc(var(--sapContent_Space_Tiny) / 4) var(--sapContent_Space_Tiny);
+  gap: var(--sapContent_Space_Tiny);
+  min-height: calc(var(--fiori-adapt-line-height) + var(--sapContent_Space_Tiny) / 2);
+}
+/* AdaptFiltersPanelContent._getAddFilterSection: 220px, expressed in SAP spacing units. */
+.fiori-adapt-filters__add > [data-slot=combobox] { width: calc(var(--sapContent_Space_Small) * 13.75); }
+.fiori-adapt-filters__no-results {
+  background: var(--sapList_Background);
+  color: var(--sapTextColor);
+  text-align: center;
+  line-height: var(--fiori-adapt-line-height);
+  min-height: calc(var(--fiori-adapt-line-height) + var(--sapContent_Space_Tiny) / 2);
+  border-block: var(--sapList_BorderWidth) solid var(--sapList_BorderColor);
+}
+.fiori-adapt-filters__footer {
+  justify-content: flex-end;
+  background: var(--sapPageFooter_Background);
+  border-top: var(--sapButton_BorderWidth) solid var(--sapPageFooter_BorderColor);
+  gap: var(--sapContent_Space_Tiny);
+}
+.fiori-adapt-filters__group-header {
+  display: flex;
+  align-items: flex-end;
+  height: var(--sapElement_LineHeight);
+  background: var(--sapList_GroupHeaderBackground);
+  border-bottom: var(--sapList_BorderWidth) solid var(--sapList_BorderColor);
+  padding-inline: var(--sapContent_Space_Small);
+  padding-top: var(--sapContent_Space_Small);
+}
+.fiori-adapt-filters__group-header > button:first-child {
+  border: 0; background: transparent; color: var(--sapList_GroupHeaderTextColor); font: var(--sapFontHeader6Size) var(--sapFontHeaderFamily);
+  line-height: var(--sapElement_Compact_LineHeight);
+  padding: 0; text-align: start; flex: 1; cursor: pointer;
+}
+.fiori-adapt-filters__group-header > button:first-child:focus-visible { outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor); }
+.fiori-adapt-filters__active { display: block; border-radius: 50%; background: var(--sapNeutralElementColor); width: var(--sapContent_Space_Tiny); height: var(--sapContent_Space_Tiny); margin: var(--sapContent_Space_Small); }
+.fiori-adapt-filters__options { padding: var(--sapContent_Space_Small); }
+.fiori-adapt-filters__move { position: absolute; inset-inline-end: var(--sapContent_Space_Tiny); inset-block-end: var(--sapContent_Space_Tiny); display: flex; background: var(--sapList_Background); box-shadow: var(--sapContent_Shadow1); }
+.fiori-adapt-filters__resize {
+  position: absolute; inset-inline-end: 0; inset-block-end: 0;
+  width: var(--sapContent_Space_Small); height: var(--sapContent_Space_Small);
+  cursor: var(--fiori-dialog-resize-cursor); touch-action: none;
+  color: var(--sapContent_IconColor);
+}
+.fiori-adapt-filters__resize > svg { width: 100%; height: 100%; }
+.fiori-adapt-filters__resize:focus-visible { outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor); }
+/* Popup Reset uses sap.m.MessageBox.warning, not a personalization panel. */
+.fiori-adapt-filters-reset { width: max-content; max-width: 100%; }
+.fiori-adapt-filters-reset__in-place { display: flex; }
+/* sap.m.MessageBox's .sapMMsgBoxText is an inline-block aligned to the middle of
+   the font strut. The dialog rounds its default 49.3125px content up to 50px. */
+.fiori-adapt-filters-reset__message { margin: 0; padding: var(--sapContent_Space_Small); white-space: normal; line-height: normal; min-height: calc(var(--sapContent_Space_Small) * 3.125); flex: none; }
+.fiori-adapt-filters-reset__message > span { display: inline-block; vertical-align: middle; max-width: 100%; }
+.fiori-adapt-filters-reset__warning { color: var(--sapCriticalElementColor); width: var(--sapFontHeader5Size); height: var(--sapFontHeader5Size); margin-inline-end: var(--sapContent_Space_Tiny); }
+.fiori-adapt-filters-reset .fiori-adapt-filters__header { justify-content: flex-start; }
+.fiori-adapt-filters-reset__message { background: var(--sapGroup_ContentBackground); }
+.fiori-adapt-filters-reset .fiori-adapt-filters__header { box-shadow: inset 0 calc(-1 * var(--sapButton_BorderWidth)) var(--sapWarningBorderColor), var(--sapContent_HeaderShadow); }
+.fiori-adapt-filters-reset .fiori-adapt-filters__footer { --fiori-button-base-min-width: calc(var(--sapContent_Space_Small) * 4); }
+:is([data-density="compact"], .sapUiSizeCompact) .fiori-adapt-filters,
+:is([data-density="compact"], .sapUiSizeCompact) .fiori-adapt-filters-reset { --fiori-adapt-line-height: var(--sapElement_Compact_LineHeight); }
+:is([data-density="compact"], .sapUiSizeCompact) .fiori-adapt-filters__label { line-height: var(--fiori-adapt-line-height); padding-top: 0; }
+/* Horizon HC IconTabBar.less: the empty content retains a .125rem border on
+   both edges, adding four pixels below the unchanged 2.75rem tab header. */
+:is([data-theme="sap_horizon_hcb"], [data-theme="sap_horizon_hcw"]) .fiori-adapt-filters__tabs {
+  height: calc(var(--sapElement_LineHeight) + var(--sapContent_FocusWidth) * 2);
+  border-bottom: calc(var(--sapContent_FocusWidth) * 2) solid var(--sapObjectHeader_BorderColor);
+}
+:is([data-theme="sap_horizon_hcb"], [data-theme="sap_horizon_hcw"]) .fiori-adapt-filters__tab { font-family: var(--sapFontFamily); }
+:is([data-theme="sap_horizon_hcb"], [data-theme="sap_horizon_hcw"]) .fiori-adapt-filters-reset .fiori-adapt-filters__header { box-shadow: inset 0 calc(-1 * var(--sapContent_FocusWidth)) var(--sapWarningBorderColor); }
+/* sap.m.Button's HC cozy content padding is .5625rem; UI5 WC's corresponding
+   parameter is .6875rem. Use the SAP spacing/border tokens for the SAPUI5 port. */
+:is([data-theme="sap_horizon_hcb"], [data-theme="sap_horizon_hcw"]) :is(.fiori-adapt-filters, .fiori-adapt-filters-reset) {
+  --fiori-button-base-padding: calc(var(--sapContent_Space_Tiny) + var(--sapButton_BorderWidth));
+  --fiori-button-base-min-width: calc(var(--sapContent_Space_Small) * 2.25);
+  --sapButton_Emphasized_FontFamily: var(--sapFontFamily);
+}
+:is([data-theme="sap_horizon_hcb"], [data-theme="sap_horizon_hcw"]) :is(.fiori-adapt-filters, .fiori-adapt-filters-reset) button[data-variant="emphasized"] { font-weight: bold; }
+:is([data-theme="sap_horizon_hcb"], [data-theme="sap_horizon_hcw"]) [data-density="compact"] :is(.fiori-adapt-filters, .fiori-adapt-filters-reset),
+:is([data-theme="sap_horizon_hcb"][data-density="compact"], [data-theme="sap_horizon_hcw"][data-density="compact"]) :is(.fiori-adapt-filters, .fiori-adapt-filters-reset) {
+  --fiori-button-base-padding: calc(var(--sapContent_Space_Tiny) - var(--sapButton_BorderWidth));
+  --fiori-button-base-min-width: var(--sapContent_Space_Medium);
+}
+@media (max-width: 600px) {
+  .fiori-adapt-filters__toolbar h2 { display: none; }
+  .fiori-adapt-filters__row { grid-template-columns: 4fr 6fr 2fr; }
+}

@@ -1,5 +1,5 @@
 // Dev-only OpenUI5 oracle; keep ids/props aligned with fixtures-sapui5/sapui5-button.tsx.
-sap.ui.define(["sap/m/Button", "ref/fixtures/variant-management"], (Button, variantManagement) => [{
+sap.ui.define(["sap/m/Button", "ref/fixtures/variant-management", "ref/adapt-filters-dialog"], (Button, variantManagement, adaptFilters) => [adaptFilters, {
   name: "sapui5-button",
   cases: [
     { id: "sapui5-button-default", props: { variant: "default", text: "Button" } },

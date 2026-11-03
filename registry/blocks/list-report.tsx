@@ -4,7 +4,7 @@ import { Bar } from "@/components/ui/bar"
 import { Button } from "@/components/ui/button"
 import { DataTable, createDataTableColumnHelper } from "@/components/ui/data-table"
 import { DynamicPage, DynamicPageHeader, DynamicPageTitle } from "@/components/ui/dynamic-page"
-import { FilterBar, FilterBarItem, filterSummary } from "@/components/ui/filter-bar"
+import { FilterBar, filterSummary, type FilterDefinition, type FilterValues } from "@/components/ui/filter-bar"
 import { Icon } from "@/components/ui/icon"
 import { Input } from "@/components/ui/input"
 import { ObjectIdentifier } from "@/components/ui/object-identifier"
@@ -62,6 +62,29 @@ const PRODUCTS: Product[] = [
 
 const CATEGORIES = [...new Set(PRODUCTS.map((p) => p.category))].sort()
 
+// Declarative editors are reused unchanged in the bar and its built-in personalization dialog.
+const filters: FilterDefinition[] = [
+  {
+    key: "category", label: "Category", group: "product", groupLabel: "Product",
+    render: ({ id, conditions, onConditionsChange, disabled, valueState, valueStateMessage }) => (
+      <Select value={String(conditions[0]?.values[0] ?? "all")} onValueChange={(value) => onConditionsChange(value === "all" ? [] : [{ operator: "EQ", values: [value] }])}>
+        <SelectTrigger id={id} aria-label="Category" disabled={disabled} valueState={valueState} valueStateMessage={valueStateMessage}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All</SelectItem>
+          {CATEGORIES.map((category) => <SelectItem key={category} value={category}>{category}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    ),
+  },
+  {
+    key: "supplier", label: "Supplier", group: "supplier", groupLabel: "Supplier",
+    render: ({ id, conditions, onConditionsChange, disabled, valueState, valueStateMessage }) => (
+      <Input id={id} aria-label="Supplier" disabled={disabled} valueState={valueState} valueStateMessage={valueStateMessage} value={String(conditions[0]?.values[0] ?? "")}
+        onChange={(event) => onConditionsChange(event.target.value ? [{ operator: "Contains", values: [event.target.value] }] : [])} />
+    ),
+  },
+]
+
 const col = createDataTableColumnHelper<Product>()
 const columns = col.columns([
   col.accessor("name", {
@@ -86,13 +109,15 @@ const columns = col.columns([
 
 export default function ListReport() {
   const [search, setSearch] = React.useState("")
-  const [category, setCategory] = React.useState("all")
-  const [supplier, setSupplier] = React.useState("")
+  const [values, setValues] = React.useState<FilterValues>({})
+  const [visibleKeys, setVisibleKeys] = React.useState(["category", "supplier"])
+  const category = String(values.category?.[0]?.values[0] ?? "all")
+  const supplier = String(values.supplier?.[0]?.values[0] ?? "")
   const [applied, setApplied] = React.useState({ search: "", category: "all", supplier: "" })
   const [selected, setSelected] = React.useState<string[]>([])
   const [opened, setOpened] = React.useState<string | null>(null)
 
-  const active = [category !== "all" && "Category", supplier && "Supplier"].filter(Boolean) as string[]
+  const active = [search && "Search Terms", category !== "all" && "Category", supplier && "Supplier"].filter(Boolean) as string[]
   const rows = PRODUCTS.filter(
     (p) =>
       (!applied.search || `${p.name} ${p.id}`.toLowerCase().includes(applied.search.toLowerCase())) &&
@@ -147,28 +172,11 @@ export default function ListReport() {
               showToggle={false}
               searchValue={search}
               onSearchChange={setSearch}
-              activeFilters={active}
+              id="list-report-filter-bar"
+              filters={filters} values={values} onValuesChange={setValues}
+              visibleKeys={visibleKeys} onVisibleKeysChange={setVisibleKeys}
               onGo={go}
-            >
-              <FilterBarItem label="Category">
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger aria-label="Category">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    {CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FilterBarItem>
-              <FilterBarItem label="Supplier" fieldId="list-report-supplier">
-                <Input id="list-report-supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
-              </FilterBarItem>
-            </FilterBar>
+            />
           </DynamicPageHeader>
         }
         footer={
