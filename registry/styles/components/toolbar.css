@@ -1,11 +1,28 @@
-/* Toolbar items (ui5-toolbar .ui5-tb-item): fixed width, spaced by the item margin; the last item
-   has no end margin (UI5 drops it while the overflow button is hidden). Flexible spacers have no margin. */
-.fiori-toolbar > :not([data-slot="toolbar-spacer"][data-flexible]) {
-  flex-shrink: 0;
-  margin-inline-start: var(--fiori-x-toolbar-item-margin-left);
-  margin-inline-end: var(--fiori-x-toolbar-item-margin-right);
-}
-.fiori-toolbar > :not([data-slot="toolbar-spacer"][data-flexible]):last-child {
-  margin-inline-start: 0;
-  margin-inline-end: 0;
-}
+/* UI5 Toolbar.css: fixed item margins; a hidden overflow button occupies no space. */
+.fiori-toolbar-items { display: flex; align-items: inherit; justify-content: inherit; width: 100%; height: 100%; }
+.fiori-toolbar-container { display: flex; align-items: center; flex-shrink: 0; margin-inline-start: var(--fiori-x-toolbar-item-margin-left); margin-inline-end: var(--fiori-x-toolbar-item-margin-right); }
+.fiori-toolbar-container[data-flexible] { flex: auto; margin: 0; }
+.fiori-toolbar-container[data-unmanaged] { display: contents; }
+.fiori-toolbar-container[data-unmanaged] > * { flex-shrink: 0; margin-inline-start: var(--fiori-x-toolbar-item-margin-left); margin-inline-end: var(--fiori-x-toolbar-item-margin-right); }
+.fiori-toolbar-items:has([data-slot="toolbar-overflow-button"][data-hidden]) > .fiori-toolbar-container:nth-last-child(2) { margin-inline-start: 0; margin-inline-end: 0; }
+.fiori-toolbar-items:has([data-slot="toolbar-overflow-button"][data-hidden]) > .fiori-toolbar-container[data-unmanaged]:nth-last-child(2) > * { margin-inline-start: 0; margin-inline-end: 0; }
+[data-slot="toolbar-overflow-button"][data-hidden] { visibility: hidden; position: absolute; }
+.fiori-toolbar-container[hidden], .fiori-toolbar-container[data-hidden] { display: none; }
+.fiori-toolbar-item { display: inline-flex; align-items: center; }
+.fiori-toolbar-separator { height: var(--fiori-x-toolbar-separator-height); width: .0625rem; background: var(--sapToolbar_SeparatorColor); }
+/* UI5 ToolbarPopover.css and ToolbarButton.css: overflow has its own padding, .25rem
+   row spacing and horizontal separators; toolbar buttons are full-width and start-aligned. */
+/* UI5 PopupsCommon.css: the root clips its radius while the content scrolls.
+   ToolbarPopover.css applies toolbar padding to that scrolling content part. */
+.fiori-toolbar-overflow-content { flex: auto; min-height: 0; overflow: auto; padding: var(--fiori-toolbar-overflow-padding); }
+.fiori-toolbar-overflow-list { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; }
+.fiori-toolbar-overflow-list > .fiori-toolbar-container { width: 100%; margin-inline: 0; }
+.fiori-toolbar-overflow-list > .fiori-toolbar-container:not(:last-child) { margin-bottom: .25rem; }
+.fiori-toolbar-overflow-list .fiori-toolbar-item, .fiori-toolbar-overflow-list .fiori-toolbar-item > *, .fiori-toolbar-overflow-button { width: 100%; }
+.fiori-toolbar-overflow-button { justify-content: start; padding-inline: var(--fiori-button-base-padding); }
+.fiori-toolbar-overflow-list .fiori-toolbar-separator { width: 100%; height: .0625rem; }
+/* UI5 2.28 ToolbarTemplate.js omits [visible] on the overflow separator wrapper, although
+   Toolbar.js/setSeperatorsVisibilityInOverflow sets separator.visible. ToolbarPopover.css
+   therefore hides every overflow separator. Preserve the installed reference's omission;
+   when its template starts forwarding [visible], the edge-visibility calculation is ready. */
+.fiori-toolbar-overflow-list > [data-kind="separator"] { display: none; }

@@ -30,14 +30,19 @@ function Switch({
   readOnly,
   readOnlyText = "Read Only",
   onClick,
+  onCheckedChange,
+  ref,
   "aria-describedby": ariaDescribedBy,
   ...props
 }: SwitchProps) {
+  const changeTarget = React.useRef<HTMLButtonElement>(null)
+  React.useImperativeHandle(ref, () => changeTarget.current!, [])
   const descId = React.useId()
   const graphical = design === "graphical"
   const kind = graphical ? "graphical" : textOn || textOff ? "textual" : "no-label"
   return (
     <SwitchPrimitive.Root
+      ref={changeTarget}
       data-slot="switch"
       data-design={kind}
       data-readonly={readOnly ? "" : undefined}
@@ -47,6 +52,11 @@ function Switch({
       onClick={(e) => {
         onClick?.(e)
         if (readOnly) e.preventDefault() // vetoes Radix's toggle
+      }}
+      onCheckedChange={(checked) => {
+        onCheckedChange?.(checked)
+        // UI5 Switch.js/toggle emits change only after the user toggles.
+        changeTarget.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
       }}
       {...props}
     >

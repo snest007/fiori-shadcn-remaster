@@ -118,6 +118,7 @@ function ComboBox({
   onKeyUp,
   onFocus,
   onBlur,
+  ref,
   "aria-describedby": ariaDescribedBy,
   ...props
 }: ComboBoxProps) {
@@ -131,6 +132,7 @@ function ComboBox({
   const [active, setActive] = React.useState(-1)
 
   const inputRef = React.useRef<HTMLInputElement>(null)
+  React.useImperativeHandle(ref, () => inputRef.current!, [])
   const listRef = React.useRef<HTMLDivElement>(null)
   const lastValue = React.useRef(value)
   const userTyped = React.useRef("")
@@ -162,6 +164,8 @@ function ComboBox({
     if (v !== lastValue.current) {
       lastValue.current = v
       onCommit?.(v)
+      // UI5 ComboBox.js/_fireChangeEvent emits a committed change, not each input.
+      inputRef.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
     }
   }
   /** Put `text` in the field and select it from `from` to the end (UI5's atomic value + selection). */
@@ -178,6 +182,9 @@ function ComboBox({
     if (prevSelected.current?.text !== selectedItem?.text) {
       prevSelected.current = selectedItem
       onSelectionChange?.(selectedItem)
+      // UI5 ComboBox.js/_selectMatchingItem also emits selection-change during
+      // interaction, which a ToolbarItem with a first MultiComboBox listens for.
+      if (open || inputRef.current?.matches(":focus")) inputRef.current?.dispatchEvent(new Event("fiori-control-selection-change", { bubbles: true }))
     }
   })
 

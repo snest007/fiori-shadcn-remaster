@@ -19,10 +19,14 @@ type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root>
 function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, ...props }: SelectProps) {
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolledValue
+  const changeTarget = React.useRef<HTMLDivElement>(null)
   const setValue = React.useCallback(
     (v: string) => {
       if (valueProp === undefined) setUncontrolledValue(v)
       onValueChange?.(v)
+      // UI5 Select.js/_fireChangeEvent emits committed change independently of forms.
+      // Bubble this semantic event so ToolbarItem can hear opaque function wrappers.
+      changeTarget.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
     },
     [valueProp, onValueChange]
   )
@@ -61,7 +65,7 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
 
   return (
     <SelectContext.Provider value={ctx}>
-      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue }}>
+      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget }}>
         <SelectPrimitive.Root data-slot="select" value={value} onValueChange={setValue} open={open} onOpenChange={setOpen} {...props} />
       </SelectOpenContext.Provider>
     </SelectContext.Provider>
@@ -73,6 +77,7 @@ const SelectOpenContext = React.createContext<{
   setOpen: (o: boolean) => void
   value: string | undefined
   setValue: (v: string) => void
+  changeTarget: React.RefObject<HTMLDivElement | null>
 } | null>(null)
 
 function SelectGroup(props: React.ComponentProps<typeof SelectPrimitive.Group>) {
@@ -111,6 +116,7 @@ function SelectTrigger({
 
   return (
     <div
+      ref={state?.changeTarget}
       data-slot="select-trigger-wrapper"
       data-value-state={hasState ? valueState : undefined}
       data-disabled={disabled ? "" : undefined}
