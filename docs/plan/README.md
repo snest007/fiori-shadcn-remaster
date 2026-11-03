@@ -19,7 +19,10 @@ Suggested prompt: `Read AGENTS.md, then implement docs/plan/tasks/<card-id>.md. 
 One card per branch. Cards in the same wave touch disjoint files and can run in parallel (separate worktrees/branches);
 later waves depend on earlier ones.
 
-**Merging is also done by Codex**, in a separate session, with [INTEGRATION.md](INTEGRATION.md):
+**Easiest: one Codex session runs everything** with sub-agents (a worker per card, a fresh reviewer per card, then
+integration) — [RUN.md](RUN.md): `Read AGENTS.md and docs/plan/RUN.md, then run cards F3.`
+
+Or by hand: merging in a separate session with [INTEGRATION.md](INTEGRATION.md):
 `Read AGENTS.md and docs/plan/INTEGRATION.md, then integrate the pending codex/* branches.`
 It reviews scope and fidelity, merges, runs `node scripts/integrate.mjs verify` (3 full runs + smoke install),
 cleans up and prints `.integration/REPORT.md` — paste that report to the owner/Claude for sign-off.
