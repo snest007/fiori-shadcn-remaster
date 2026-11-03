@@ -373,3 +373,77 @@
   bottom: 0.5rem;
   background: var(--sapGroup_TitleBorderColor);
 }
+
+/* TabContainer.css.js: overflow controls are 1.5rem pills in both densities. These fixed
+   geometry values have no UI5 theme parameter; button colors/borders remain Button's tokens. */
+.fiori-tab[hidden],
+.fiori-tabs__separator[hidden],
+.fiori-tabs__overflow[hidden] { display: none; }
+.fiori-tabs__strip { min-width: 0; }
+.fiori-tabs__overflow { flex: 0 0 0; }
+.fiori-tabs__overflow--end { padding-inline-start: .188rem; margin-inline-end: 1rem; }
+.fiori-tabs__overflow--start { margin-inline-start: 1rem; }
+.fiori-tabs__overflow-button {
+  height: 1.5rem;
+  border-radius: .75rem;
+  color: var(--fiori-tc-overflow-text-color);
+}
+.fiori-tabs__overflow-button:not(:active):hover { color: var(--fiori-tc-overflow-text-color); }
+.fiori-tabs__overflow-button:focus-visible {
+  outline: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  outline-offset: .125rem;
+}
+.fiori-tabs__overflow-button:focus-visible::after { display: none; }
+/* TabInOverflow.css.js atop the reused ListItemCustom and Popover surfaces. */
+.fiori-tabs__popover { width: max-content; }
+.fiori-tabs__overflow-item { color: var(--fiori-tc-overflowitem-default-color); }
+.fiori-tabs__overflow-item .fiori-li__content { color: inherit; }
+.fiori-tabs__overflow-wrapper[data-semantic] {
+  padding-inline-start: calc(var(--fiori-tc-overflowitem-additional, 0) * (var(--fiori-tc-overflowitem-indent) + var(--fiori-tc-overflowitem-extra-indent)));
+}
+.fiori-tabs__overflow-content {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: var(--fiori-tc-item-text);
+  pointer-events: none;
+  font-size: var(--sapFontSize);
+}
+.fiori-tabs__overflow-item[data-design="positive"]:not([data-disabled]) .fiori-tabs__overflow-content { color: var(--fiori-tc-overflowitem-positive-color); }
+.fiori-tabs__overflow-item[data-design="negative"]:not([data-disabled]) .fiori-tabs__overflow-content { color: var(--fiori-tc-overflowitem-negative-color); }
+.fiori-tabs__overflow-item[data-design="critical"]:not([data-disabled]) .fiori-tabs__overflow-content { color: var(--fiori-tc-overflowitem-critical-color); }
+.fiori-tabs__overflow-item[data-active] .fiori-tabs__overflow-content { color: var(--sapList_Active_TextColor); }
+.fiori-tabs__overflow-semantic {
+  position: absolute;
+  inset-inline-start: -1.25rem;
+  display: var(--fiori-tc-headeritemsemanticicon-display);
+  width: var(--fiori-tc-headeritemsemanticicon-size);
+  height: var(--fiori-tc-headeritemsemanticicon-size);
+  margin-inline-end: .5rem;
+}
+.fiori-tabs__overflow-item[data-design="positive"] .fiori-tabs__overflow-semantic { color: var(--sapPositiveTextColor); }
+.fiori-tabs__overflow-item[data-design="negative"] .fiori-tabs__overflow-semantic { color: var(--sapNegativeTextColor); }
+.fiori-tabs__overflow-item[data-design="critical"] .fiori-tabs__overflow-semantic { color: var(--sapCriticalTextColor); }
+.fiori-tabs__overflow-icon[data-slot="icon"] {
+  box-sizing: content-box;
+  min-width: 1.375rem;
+  min-height: 1.375rem;
+  padding-inline-end: .75rem;
+  color: var(--fiori-tc-overflowitem-current-color);
+}
+.fiori-tabs__overflow-item:focus-visible::after { inset: var(--fiori-tc-overflowitem-focus-offset); }
+/* TabSeparatorInOverflow.css.js: separators remain in DOM order, including the first overflow row. */
+.fiori-tabs__overflow-separator[data-custom] {
+  min-height: calc(.25rem + .0625rem);
+  width: calc(100% - .5rem);
+  border-bottom: .0625rem solid var(--sapGroup_TitleBorderColor);
+  margin-inline-end: .5rem;
+  opacity: 1;
+}
+.fiori-tabs__overflow-separator[data-custom]:first-child { min-height: calc(.5rem + .0625rem); }
+
+/* ListTemplate.js wraps its list container in an inline-block BusyIndicator whose flex root
+   contributes the first row's baseline. Keep that DOM layout here without changing shared List. */
+.fiori-tabs__overflow-list { font-size: var(--sapFontLargeSize); line-height: normal; }
+.fiori-tabs__overflow-list > .fiori-list { display: inline-block; }
+.fiori-tabs__overflow-list .fiori-list__container { display: flex; align-items: center; justify-content: center; }
