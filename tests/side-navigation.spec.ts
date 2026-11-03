@@ -172,7 +172,7 @@ test.describe("collapsed", () => {
     await expect(nav(page).getByRole("menuitemradio", { name: "History", exact: true })).toBeVisible()
   })
 
-  for (const key of ["Enter", "Space", "ArrowDown"]) {
+  for (const key of ["Enter", "Space"]) {
     test(`More participates in menubar focus and opens with ${key}`, async ({ page }) => {
       await page.locator("#side-navigation-demo-resize").click()
       const bar = nav(page).getByRole("menubar", { name: "Primary Navigation Menu" })
@@ -184,12 +184,93 @@ test.describe("collapsed", () => {
       await page.keyboard.press(key)
       const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
       await expect(menu).toBeVisible()
-      await expect(menu.getByRole("menuitem", { name: "Events", exact: true })).toBeFocused()
+      await expect(menu.getByRole("menuitem", { name: "Locations", exact: true })).toBeFocused()
       await page.keyboard.press("Escape")
       await expect(menu).toHaveCount(0)
       await expect(more).toBeFocused()
     })
   }
+
+  test("More keeps focus and stays closed on ArrowDown, as UI5's item key handler", async ({ page }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    const more = nav(page).getByRole("menuitem", { name: "More Items", exact: true })
+    await expect(more).toBeVisible()
+    await more.focus()
+    await page.keyboard.press("ArrowDown")
+    await expect(more).toBeFocused()
+    await expect(more).toHaveAttribute("aria-expanded", "false")
+    await expect(page.getByRole("menu", { name: "Additional Navigation Items", exact: true })).toHaveCount(0)
+  })
+
+  test("disabled overflow rows remain in focus navigation and block activation", async ({ page }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    await nav(page).getByRole("menuitem", { name: "More Items", exact: true }).click()
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    const locations = menu.getByRole("menuitem", { name: "Locations", exact: true })
+    await expect(locations).toBeFocused()
+    await expect(locations).toHaveAttribute("aria-disabled", "true")
+    for (const key of ["Enter", "Space"]) {
+      await page.keyboard.press(key)
+      await expect(menu).toBeVisible()
+      await expect(locations).toBeFocused()
+      await expect(value(page)).toHaveText("home")
+    }
+    // Bypass Playwright's aria-disabled actionability gate to exercise UI5's pointer-accessible row.
+    await locations.click({ force: true })
+    await expect(menu).toBeVisible()
+    await expect(value(page)).toHaveText("home")
+    await page.keyboard.press("ArrowDown")
+    await expect(menu.getByRole("menuitem", { name: "Events", exact: true })).toBeFocused()
+    await page.keyboard.press("ArrowUp")
+    await expect(locations).toBeFocused()
+    await page.keyboard.press("End")
+    await expect(menu.getByRole("menuitem", { name: "SAP Community", exact: true })).toBeFocused()
+    await page.keyboard.press("Home")
+    await expect(locations).toBeFocused()
+  })
+
+  test("overflow menu centers on More and clamps inside a constrained viewport", async ({ page }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    const more = nav(page).getByRole("menuitem", { name: "More Items", exact: true })
+    await expect(more).toBeVisible()
+    await more.evaluate((el) => el.scrollIntoView({ block: "center" }))
+    await more.click()
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    await expect(menu).toBeVisible()
+    await expect.poll(async () => {
+      const anchor = (await more.boundingBox())!
+      const surface = (await menu.boundingBox())!
+      return Math.abs(surface.y + surface.height / 2 - anchor.y - anchor.height / 2)
+    }).toBeLessThan(1)
+    await page.keyboard.press("Escape")
+    await expect(menu).toHaveCount(0)
+    await page.setViewportSize({ width: 1280, height: 280 })
+    await more.evaluate((el) => el.scrollIntoView({ block: "end" }))
+    await more.click()
+    await expect(menu).toBeVisible()
+    await expect.poll(async () => {
+      const surface = (await menu.boundingBox())!
+      // Popover.js VIEWPORT_MARGIN is 10px on the UI5 reference.
+      return surface.y >= 10 && surface.y + surface.height <= 270
+    }).toBe(true)
+  })
+
+  test("a hidden external leaf shows its indicator and opens its target once", async ({ page, context }) => {
+    await page.locator("#side-navigation-demo-resize").click()
+    await nav(page).getByRole("menuitem", { name: "More Items", exact: true }).click()
+    const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
+    const external = menu.getByRole("menuitem", { name: "SAP Community", exact: true })
+    await expect(external.locator(".fiori-sn-menu-external")).toBeVisible()
+    await context.route("https://community.sap.com/**", (route) => route.fulfill({ body: "External navigation target" }))
+    const newPage = context.waitForEvent("page")
+    await external.click()
+    const popup = await newPage
+    await popup.waitForURL("https://community.sap.com/")
+    await expect(menu).toHaveCount(0)
+    await expect(value(page)).toHaveText("home")
+    expect(context.pages()).toHaveLength(2)
+    await popup.close()
+  })
 
   test("overflow selection reveals the selected trailing item and focuses it", async ({ page }) => {
     await page.locator("#side-navigation-demo-resize").click()

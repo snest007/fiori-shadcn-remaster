@@ -32,6 +32,8 @@ export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = S
       text: it.text,
       icon: it.icon && ICON_IDS[it.icon],
       disabled: it.disabled,
+      href: "href" in it ? it.href : undefined,
+      target: "target" in it ? it.target : undefined,
     }, ...("items" in it && it.items?.length ? [
       ...(!it.unselectable ? [h("ui5-navigation-menu-item", { text: it.text, class: "ui5-navigation-menu-item-root-parent" })] : []),
       ...it.items.map(menuItem),

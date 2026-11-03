@@ -131,15 +131,30 @@
 }
 .fiori-sn-menu-item .fiori-menu-item__icon {
   color: inherit;
-  /* NavigationMenuItem.css.js fixes real icons to 1rem in both densities; override Menu's size utility. */
-  width: 1rem !important;
-  height: 1rem !important;
 }
 .fiori-sn-menu-item .fiori-menu-item__submenu > svg {
-  /* Override the shared Icon size utility with NavigationMenu's submenu-arrow dimensions. */
-  width: 0.75rem !important;
-  height: 0.75rem !important;
+  position: relative;
+  inset-inline-end: auto;
   color: inherit;
+}
+.fiori-sn-menu-item:has(.fiori-sn-menu-external, .fiori-menu-item__submenu) .fiori-menu-item__content {
+  padding-inline-end: 0;
+}
+.fiori-sn-menu-item[data-disabled] {
+  pointer-events: initial;
+  cursor: default;
+}
+.fiori-sn-menu-item[data-highlighted]::after {
+  inset: 0;
+  border-radius: var(--fiori-side-navigation-item-border-radius);
+}
+.fiori-sn-menu-item .fiori-menu-item__additional-text {
+  margin-inline-start: 0;
+  color: inherit;
+}
+/* NavigationMenuItemTemplate.js iconEnd and NavigationMenuItem.css.js. */
+.fiori-sn-menu-item .fiori-sn-menu-external {
+  height: 0.875rem;
 }
 .fiori-sn-menu > [data-slot="menu-group"]:has(> .fiori-menu-item .fiori-menu-item__icon) > .fiori-menu-item:not(:has(.fiori-menu-item__icon)) > .fiori-menu-item__content::before {
   content: "";

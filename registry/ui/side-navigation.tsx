@@ -330,20 +330,28 @@ function OverflowItem({ ref, items, listRef }: {
   const [open, setOpen] = React.useState(false)
   const [menuItems, setMenuItems] = React.useState<SideNavigationItemProps[]>([])
   const selectedFromMenu = React.useRef(false)
+  const menuRef = React.useRef<HTMLDivElement>(null)
   const id = React.useId()
+  const changeOpen = (next: boolean) => {
+    if (next) {
+      root.setPopoverKey(null)
+      selectedFromMenu.current = false
+      setMenuItems(items.map((host) => root.collapsedItems.current.get(host)).filter((item): item is SideNavigationItemProps => !!item))
+    }
+    setOpen(next)
+  }
+  // Menu.js _afterPopoverOpen focuses _allMenuItems[0], including disabled items.
+  // Override Menu's normal enabled-first focus without changing the shared Menu component.
+  const initialFocus = { onOpenAutoFocus: (e: Event) => {
+    e.preventDefault()
+    menuRef.current?.querySelector<HTMLElement>('[role^="menuitem"]')?.focus({ preventScroll: true })
+  } }
   React.useEffect(() => {
     if (!items.length) setOpen(false)
   }, [items.length])
   return (
     <div ref={ref} role="none" data-kind="item" data-sn-overflow="" className="fiori-sn-host fiori-sn-overflow">
-      <Menu open={open} onOpenChange={(next) => {
-        if (next) {
-          root.setPopoverKey(null)
-          selectedFromMenu.current = false
-          setMenuItems(items.map((host) => root.collapsedItems.current.get(host)).filter((item): item is SideNavigationItemProps => !!item))
-        }
-        setOpen(next)
-      }} modal={false}>
+      <Menu open={open} onOpenChange={changeOpen} modal={false}>
         <MenuTrigger asChild>
           <div
             data-slot="side-navigation-overflow"
@@ -359,12 +367,23 @@ function OverflowItem({ ref, items, listRef }: {
             aria-expanded={open}
             title={root.texts.overflowText}
             className="fiori-sn-item"
+            onKeyDown={(e) => {
+              // SideNavigationSelectableItemBase.js _onkeydown does not open More on Down.
+              // Space opens on keyup; block Radix Trigger's Down/Space keydown opening.
+              if (e.key === "ArrowDown" || e.key === " ") e.preventDefault()
+            }}
+            onKeyUp={(e) => {
+              if (e.key === " ") {
+                e.preventDefault()
+                changeOpen(true)
+              }
+            }}
           >
             <SnIcon icon={overflow} className="fiori-sn-item__icon" />
             <div id={`${id}-text`} className="fiori-sn-item__text">{root.texts.overflowText}</div>
           </div>
         </MenuTrigger>
-        <MenuContent side="right" align="start" aria-label={root.texts.overflowMenuLabel} aria-labelledby={undefined} className="fiori-sn-menu"
+        <MenuContent ref={menuRef} side="right" align="center" aria-label={root.texts.overflowMenuLabel} aria-labelledby={undefined} className="fiori-sn-menu" {...initialFocus}
           onCloseAutoFocus={(e) => {
             // SideNavigation.js _onMenuClose: after selection focus the newly visible selected
             // parent, rather than restoring focus to More. Escape restores the trigger normally.
@@ -391,16 +410,41 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
   const subs = subItemProps(item.children)
   const descriptionId = React.useId()
   const activate = (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
+    if (item.disabled) {
+      e.preventDefault()
+      e.stopPropagation()
+      return
+    }
     item.onClick?.(e)
     root.itemClick(item.value, e)
     if (e.defaultPrevented && (!subs.length || parentRow)) close()
   }
   const common = {
-    disabled: item.disabled,
+    // Menu.js _navigatableMenuItems includes disabled rows. Keep the Radix collection enabled
+    // for focus and navigation, expose the disabled state, and block only activation below.
+    disabled: false,
+    "data-disabled": item.disabled ? "" : undefined,
+    "aria-disabled": item.disabled || undefined,
     "aria-label": item.accessibleName,
     title: item.tooltip,
     icon: parentRow ? undefined : item.icon,
-    className: cn("fiori-sn-menu-item", parentRow && "fiori-sn-menu-parent", item.design === "action" && "fiori-sn-menu-action"),
+    // NavigationMenuItem.css.js uses 1rem real icons and .75rem submenu arrows. Normal
+    // descendant utilities take precedence over Menu/Icon's generic size utilities.
+    className: cn("fiori-sn-menu-item [&>div>svg]:size-4 [&>div>div>svg]:size-3", parentRow && "fiori-sn-menu-parent", item.design === "action" && "fiori-sn-menu-action"),
+    onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+      // NavigationMenuItem.js activates Space on keyup, while Enter activates on keydown.
+      if (e.key === " ") e.preventDefault()
+      if (item.disabled && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+    },
+    onKeyUp: (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === " " && !item.disabled) {
+        e.preventDefault()
+        e.currentTarget.click()
+      }
+    },
   }
   // SideNavigationPopoverTemplate.js renderMenuItem duplicates a selectable parent's own
   // navigation action at the beginning of its submenu, before its sub-items.
@@ -421,7 +465,12 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
   return (
     <MenuItem {...common}
       onClick={activate}
-      onSelect={() => {
+      additionalText={item.href && item.target === "_blank" ? <SnIcon icon={arrowRight} className="fiori-sn-menu-external" /> : undefined}
+      onSelect={(e) => {
+        if (item.disabled) {
+          e.preventDefault()
+          return
+        }
         if (!item.unselectable && item.value !== undefined) {
           onSelected()
           root.select(item.value)

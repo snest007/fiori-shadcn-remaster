@@ -2,6 +2,7 @@ import type * as React from "react"
 
 import { SideNavigation, SideNavigationGroup, SideNavigationItem, SideNavigationSubItem } from "@/components/ui/side-navigation"
 import { Menu, MenuContent, MenuGroup, MenuItem, MenuSub, MenuSubContent, MenuSubTrigger } from "@/components/ui/menu"
+import { Icon } from "@/components/ui/icon"
 import * as icons from "@/lib/fiori-icons"
 
 import { defineFixtures } from "../fixture-types"
@@ -73,6 +74,8 @@ const overflowEntries: Entry[] = Array.from({ length: 10 }, (_, i) => ({
   ...(i === 8 ? { items: [{ text: "Page 9 detail", value: "page-9-detail" }] } : {}),
 }))
 
+const overflowMenuItemClass = "fiori-sn-menu-item [&>div>svg]:size-4 [&>div>div>svg]:size-3"
+
 export default defineFixtures<Props>({
   name: "side-navigation",
   cases: [
@@ -86,6 +89,10 @@ export default defineFixtures<Props>({
     { id: "side-navigation-collapsed-overflow-sub-selected", props: { entries: overflowEntries, collapsed: true, selected: "page-9-detail", height: "18rem" } },
     { id: "side-navigation-collapsed-overflow-groups", props: { entries: main, fixed, collapsed: true, selected: "history", height: "18rem" } },
     { id: "side-navigation-overflow-menu", props: { entries: overflowEntries.slice(5).map((e, i) => i === 4 ? { ...e, icon: undefined } : e), overflowMenu: true } },
+    { id: "side-navigation-overflow-menu-external", props: { entries: [
+      { text: "Disabled", icon: "product", disabled: true },
+      { text: "External", icon: "chainLink", href: "#external", target: "_blank" },
+    ], overflowMenu: true } },
   ],
   react: ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu }) => {
     // The overflow surface is shown in place like menu.tsx; actual measurement, opening,
@@ -97,15 +104,18 @@ export default defineFixtures<Props>({
             <MenuGroup>
               {(entries as ItemSpec[]).map((it) => it.items?.length ? (
                 <MenuSub key={it.text}>
-                  <MenuSubTrigger icon={iconData(it.icon)} className="fiori-sn-menu-item">{it.text}</MenuSubTrigger>
+                  <MenuSubTrigger icon={iconData(it.icon)} className={overflowMenuItemClass}>{it.text}</MenuSubTrigger>
                   <MenuSubContent className="fiori-sn-menu">
                     <MenuGroup>
-                      {!it.unselectable && <MenuItem className="fiori-sn-menu-item fiori-sn-menu-parent">{it.text}</MenuItem>}
-                      {it.items.map((s) => <MenuItem key={s.text} icon={iconData(s.icon)} className="fiori-sn-menu-item">{s.text}</MenuItem>)}
+                      {!it.unselectable && <MenuItem className={`${overflowMenuItemClass} fiori-sn-menu-parent`}>{it.text}</MenuItem>}
+                      {it.items.map((s) => <MenuItem key={s.text} icon={iconData(s.icon)} className={overflowMenuItemClass}>{s.text}</MenuItem>)}
                     </MenuGroup>
                   </MenuSubContent>
                 </MenuSub>
-              ) : <MenuItem key={it.text} icon={iconData(it.icon)} className="fiori-sn-menu-item">{it.text}</MenuItem>)}
+              ) : <MenuItem key={it.text} icon={iconData(it.icon)} disabled={it.disabled} className={overflowMenuItemClass}
+                additionalText={it.href && it.target === "_blank" ? <Icon icon={icons.arrowRight} className="fiori-sn-menu-external" style={{ width: "1rem", height: "0.875rem" }} /> : undefined}>
+                {it.text}
+              </MenuItem>)}
             </MenuGroup>
           </MenuContent>
         </Menu>
