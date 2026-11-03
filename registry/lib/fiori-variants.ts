@@ -39,7 +39,7 @@ function normalizeVariants(items: Variant[], standard: Variant): Variant[] {
       executeOnSelect: storedStandard?.executeOnSelect ?? standard.executeOnSelect },
     ...clone(unique.filter((item) => item.key !== STANDARD_VARIANT_KEY)),
   ]
-  const defaultKey = variants.find((item) => item.default && item.visible !== false)?.key ?? STANDARD_VARIANT_KEY
+  const defaultKey = unique.find((item) => item.default && item.visible !== false)?.key ?? STANDARD_VARIANT_KEY
   return variants.map((item) => ({ ...item, default: item.key === defaultKey,
     favorite: item.key === defaultKey ? true : item.favorite }))
 }

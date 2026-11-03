@@ -190,7 +190,7 @@ test.describe("variants: asynchronous storage contract", () => {
       };
       function Consumer() {
         const views = useVariantState({
-          initialVariants: [{ key: "standard", title: "Standard", state: { values: {}, visibleKeys: ["supplier", "category"], search: "" } }],
+          initialVariants: [{ key: "standard", title: "Standard", default: true, state: { values: {}, visibleKeys: ["supplier", "category"], search: "" } }],
           storage,
           onExecute: state => harness.executions.push({ state, rendered: document.getElementById("variants-test-state").textContent })
         });
