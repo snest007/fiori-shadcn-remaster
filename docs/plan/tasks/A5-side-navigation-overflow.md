@@ -20,7 +20,8 @@ fixtures/demo/spec. Reuse `@/components/ui/menu` (don't edit it).
 - Only in collapsed mode. Measure the flexible area height (ResizeObserver); move trailing items into the overflow item.
 - Overflow opens a Menu with the hidden items (sub-items as submenus, as UI5); selecting selects the item and closes.
 - Selected item stays reachable (UI5 behaviour when the selected item is hidden: check and match).
-- Keyboard: overflow item is part of the menubar navigation; Enter/Space/↓ open the menu.
+- Keyboard: overflow item is part of the menubar navigation; Enter/Space open the menu. ↓ keeps focus on the overflow
+  item and leaves the menu closed, as UI5's item key handler.
 
 ## Fixtures
 

@@ -1,9 +1,12 @@
 import type * as React from "react"
 
 import { SideNavigation, SideNavigationGroup, SideNavigationItem, SideNavigationSubItem } from "@/components/ui/side-navigation"
+import { Menu, MenuContent, MenuGroup, MenuItem, MenuSub, MenuSubContent, MenuSubTrigger } from "@/components/ui/menu"
+import { Icon } from "@/components/ui/icon"
 import * as icons from "@/lib/fiori-icons"
 
 import { defineFixtures } from "../fixture-types"
+import { inPlace } from "./popover"
 
 // Data-driven so side-navigation.ui5.ts renders the same navigation.
 export type IconName = "home" | "group" | "calendar" | "history" | "chainLink" | "customer" | "product" | "actionSettings" | "sysHelp" | "building"
@@ -11,7 +14,7 @@ export type SubSpec = { text: string; value?: string; icon?: IconName; disabled?
 export type ItemSpec = SubSpec & { expanded?: boolean; href?: string; target?: string; design?: "action"; items?: SubSpec[] }
 export type GroupSpec = { group: string; expanded?: boolean; disabled?: boolean; items: ItemSpec[] }
 export type Entry = ItemSpec | GroupSpec
-export type Props = { entries: Entry[]; fixed?: Entry[]; collapsed?: boolean; selected?: string; height?: string }
+export type Props = { entries: Entry[]; fixed?: Entry[]; collapsed?: boolean; selected?: string; height?: string; overflowMenu?: boolean; overflowAnchorFocus?: boolean }
 
 export const SN_HEIGHT = "28rem"
 export const ICON_IDS: Record<IconName, string> = {
@@ -64,6 +67,18 @@ const flat: Entry[] = [
   { text: "Unselectable parent", value: "parent", icon: "calendar", unselectable: true, expanded: true, items: [{ text: "Child A", value: "a" }, { text: "Child B", value: "b" }] },
 ]
 
+const overflowEntries: Entry[] = Array.from({ length: 10 }, (_, i) => ({
+  text: `Page ${i + 1}`,
+  value: `page-${i + 1}`,
+  icon: i === 0 ? "home" : "product",
+  ...(i === 8 ? { items: [{ text: "Page 9 detail", value: "page-9-detail" }] } : {}),
+}))
+
+const overflowMenuItemClass = "fiori-sn-menu-item [&>div>svg]:size-4 [&>div>div>svg]:size-3"
+const fixtureLink = (it: ItemSpec, row: React.ReactElement) => it.href && !it.disabled
+  ? <a key={it.text} role="menuitem" data-sn-fixture-link="" href={it.href} target={it.target} className="[color-scheme:normal] text-inherit no-underline">{row}</a>
+  : row
+
 export default defineFixtures<Props>({
   name: "side-navigation",
   cases: [
@@ -72,8 +87,49 @@ export default defineFixtures<Props>({
     { id: "side-navigation-flat", props: { entries: flat, selected: "products", height: "22rem" } },
     { id: "side-navigation-parent-selected", props: { entries: flat, selected: "archived", height: "22rem" } },
     { id: "side-navigation-collapsed-flat", props: { entries: flat, collapsed: true, selected: "archived", height: "22rem" } },
+    { id: "side-navigation-collapsed-overflow", props: { entries: overflowEntries, collapsed: true, selected: "page-1", height: "18rem" } },
+    { id: "side-navigation-collapsed-overflow-selected", props: { entries: overflowEntries, collapsed: true, selected: "page-10", height: "18rem" } },
+    { id: "side-navigation-collapsed-overflow-sub-selected", props: { entries: overflowEntries, collapsed: true, selected: "page-9-detail", height: "18rem" } },
+    { id: "side-navigation-collapsed-overflow-groups", props: { entries: main, fixed, collapsed: true, selected: "history", height: "18rem" } },
+    { id: "side-navigation-overflow-menu", props: { entries: overflowEntries.slice(5).map((e, i) => i === 4 ? { ...e, icon: undefined } : e), overflowMenu: true } },
+    { id: "side-navigation-overflow-menu-external", props: { entries: [
+      { text: "Disabled", icon: "product", disabled: true },
+      { text: "External", icon: "chainLink", href: "#external", target: "_blank" },
+    ], overflowMenu: true } },
+    { id: "side-navigation-overflow-menu-external-anchor-focus", props: { entries: [
+      { text: "Disabled", icon: "product", disabled: true },
+      { text: "External", icon: "chainLink", href: "#external", target: "_blank" },
+    ], overflowMenu: true, overflowAnchorFocus: true } },
   ],
-  react: ({ entries, fixed, collapsed, selected, height = SN_HEIGHT }) => {
+  react: ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu, overflowAnchorFocus }) => {
+    // The overflow surface is shown in place like menu.tsx; actual measurement, opening,
+    // selection and submenus are exercised through the real navigation in its behaviour spec.
+    if (overflowMenu) return (
+      <div className={inPlace}>
+        <Menu open modal={false}>
+          <MenuContent portal={false} preventInitialFocus aria-label="Navigation" className="fiori-sn-menu w-56" ref={(node) => {
+            if (node && overflowAnchorFocus) requestAnimationFrame(() => node.querySelector<HTMLAnchorElement>("[data-sn-fixture-link]")?.focus({ preventScroll: true }))
+          }}>
+            <MenuGroup className="overflow-auto">
+              {(entries as ItemSpec[]).map((it) => it.items?.length ? (
+                <MenuSub key={it.text}>
+                  <MenuSubTrigger icon={iconData(it.icon)} className={overflowMenuItemClass}>{it.text}</MenuSubTrigger>
+                  <MenuSubContent className="fiori-sn-menu">
+                    <MenuGroup>
+                      {!it.unselectable && <MenuItem className={`${overflowMenuItemClass} fiori-sn-menu-parent`}>{it.text}</MenuItem>}
+                      {it.items.map((s) => <MenuItem key={s.text} icon={iconData(s.icon)} className={overflowMenuItemClass}>{s.text}</MenuItem>)}
+                    </MenuGroup>
+                  </MenuSubContent>
+                </MenuSub>
+              ) : fixtureLink(it, <MenuItem key={it.text} icon={iconData(it.icon)} disabled={it.disabled} className={overflowMenuItemClass}
+                additionalText={it.href && it.target === "_blank" ? <Icon icon={icons.arrowRight} className="fiori-sn-menu-external" style={{ width: "1rem", height: "0.875rem" }} /> : undefined}>
+                {it.text}
+              </MenuItem>))}
+            </MenuGroup>
+          </MenuContent>
+        </Menu>
+      </div>
+    )
     const sub = (s: SubSpec) => (
       <SideNavigationSubItem key={s.text} text={s.text} value={s.value} icon={iconData(s.icon)} disabled={s.disabled} unselectable={s.unselectable} />
     )
@@ -102,7 +158,7 @@ export default defineFixtures<Props>({
         item(e)
       )
     return (
-      <div style={{ height }}>
+      <div style={{ height, display: "flex" }}>
         <SideNavigation
           accessibleName={`Side navigation fixture ${collapsed ? "collapsed" : "expanded"} ${entries.length}`}
           collapsed={collapsed}

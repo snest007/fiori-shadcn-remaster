@@ -35,7 +35,7 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 - [x] [A2 Toolbar overflow](tasks/A2-toolbar-overflow.md) — M
 - [x] [A3 Breadcrumbs overflow](tasks/A3-breadcrumbs-overflow.md) — S
 - [x] [A4 AvatarGroup overflow "+N"](tasks/A4-avatar-group-overflow.md) — S
-- [ ] [A5 SideNavigation overflow item](tasks/A5-side-navigation-overflow.md) — M — returned: [fix list](returns/A5.md)
+- [x] [A5 SideNavigation overflow item](tasks/A5-side-navigation-overflow.md) — M
 
 ## Wave B — feature gaps in existing components (independent)
 

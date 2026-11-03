@@ -3,6 +3,8 @@ import "@ui5/webcomponents-fiori/dist/SideNavigation.js"
 import "@ui5/webcomponents-fiori/dist/SideNavigationGroup.js"
 import "@ui5/webcomponents-fiori/dist/SideNavigationItem.js"
 import "@ui5/webcomponents-fiori/dist/SideNavigationSubItem.js"
+import "@ui5/webcomponents-fiori/dist/NavigationMenu.js"
+import "@ui5/webcomponents-fiori/dist/NavigationMenuItem.js"
 import "@ui5/webcomponents-icons/dist/home.js"
 import "@ui5/webcomponents-icons/dist/group.js"
 import "@ui5/webcomponents-icons/dist/calendar.js"
@@ -17,11 +19,42 @@ import "@ui5/webcomponents-icons/dist/navigation-right-arrow.js"
 import "@ui5/webcomponents-icons/dist/navigation-down-arrow.js"
 import "@ui5/webcomponents-icons/dist/arrow-right.js"
 import "@ui5/webcomponents-icons/dist/overflow.js"
+import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 
 import { defineUi5, h } from "../fixture-types"
+import { showShadowPopupInPlace } from "./ui5-popup-in-place"
 import set, { ICON_IDS, SN_HEIGHT, isGroup, type Entry, type ItemSpec, type SubSpec } from "./side-navigation"
 
-export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = SN_HEIGHT }) => {
+export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu, overflowAnchorFocus }) => {
+  if (overflowMenu) {
+    // SideNavigationPopoverTemplate.js renderMenuItem: NavigationMenu is the real overflow
+    // surface, with a duplicated selectable parent row at the beginning of each submenu.
+    const menuItem = (it: ItemSpec | SubSpec): HTMLElement => h("ui5-navigation-menu-item", {
+      text: it.text,
+      icon: it.icon && ICON_IDS[it.icon],
+      disabled: it.disabled,
+      href: "href" in it ? it.href : undefined,
+      target: "target" in it ? it.target : undefined,
+    }, ...("items" in it && it.items?.length ? [
+      ...(!it.unselectable ? [h("ui5-navigation-menu-item", { text: it.text, class: "ui5-navigation-menu-item-root-parent" })] : []),
+      ...it.items.map(menuItem),
+    ] : []))
+    const host = h("ui5-navigation-menu", {}, ...(entries as ItemSpec[]).map(menuItem))
+    const frame = showShadowPopupInPlace(host, ".ui5-menu-rp", "14rem")
+    if (overflowAnchorFocus) {
+      const focusAnchor = async (tries = 0): Promise<void> => {
+        await renderFinished()
+        const link = host.querySelector("ui5-navigation-menu-item[href]")?.shadowRoot?.querySelector<HTMLAnchorElement>("a")
+        if (link) link.focus({ preventScroll: true })
+        else if (tries < 100) {
+          await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+          return focusAnchor(tries + 1)
+        } else throw new Error("SideNavigation overflow fixture anchor did not render")
+      }
+      void focusAnchor()
+    }
+    return frame
+  }
   const sub = (s: SubSpec) =>
     h("ui5-side-navigation-sub-item", {
       text: s.text,
@@ -58,6 +91,11 @@ export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = S
     ...(fixed ?? []).map((e) => entry(e, "fixedItems"))
   )
   const wrap = h("div", {}, nav)
+  // Native SideNavigation.handleResize measures this constrained height for the collapsed
+  // overflow cases, including the selected parent and separators in overflowItems.
   wrap.style.height = height
+  // Align the inline-block hosts at the top; their light/shadow DOM fallback baselines differ
+  // when every trailing flexible item is hidden by overflow.
+  wrap.style.display = "flex"
   return wrap
 })
