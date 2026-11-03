@@ -37,7 +37,7 @@ test("launchpad: overflow navigation updates the page at a short viewport height
   const more = nav.getByRole("menuitem", { name: "More Items", exact: true })
   await expect(more).toBeVisible()
   await more.click()
-  const menu = page.getByRole("menu", { name: "Navigation", exact: true })
+  const menu = page.getByRole("menu", { name: "Additional Navigation Items", exact: true })
   await menu.getByRole("menuitem", { name: "Sales orders", exact: true }).click()
   await expect(menu).toHaveCount(0)
   await expect(page.locator("[data-slot=launchpad-page] h2")).toHaveText("Sales orders")

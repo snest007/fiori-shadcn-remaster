@@ -3,6 +3,8 @@ import "@ui5/webcomponents-fiori/dist/SideNavigation.js"
 import "@ui5/webcomponents-fiori/dist/SideNavigationGroup.js"
 import "@ui5/webcomponents-fiori/dist/SideNavigationItem.js"
 import "@ui5/webcomponents-fiori/dist/SideNavigationSubItem.js"
+import "@ui5/webcomponents-fiori/dist/NavigationMenu.js"
+import "@ui5/webcomponents-fiori/dist/NavigationMenuItem.js"
 import "@ui5/webcomponents-icons/dist/home.js"
 import "@ui5/webcomponents-icons/dist/group.js"
 import "@ui5/webcomponents-icons/dist/calendar.js"
@@ -19,9 +21,23 @@ import "@ui5/webcomponents-icons/dist/arrow-right.js"
 import "@ui5/webcomponents-icons/dist/overflow.js"
 
 import { defineUi5, h } from "../fixture-types"
+import { showShadowPopupInPlace } from "./ui5-popup-in-place"
 import set, { ICON_IDS, SN_HEIGHT, isGroup, type Entry, type ItemSpec, type SubSpec } from "./side-navigation"
 
-export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = SN_HEIGHT }) => {
+export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu }) => {
+  if (overflowMenu) {
+    // SideNavigationPopoverTemplate.js renderMenuItem: NavigationMenu is the real overflow
+    // surface, with a duplicated selectable parent row at the beginning of each submenu.
+    const menuItem = (it: ItemSpec | SubSpec): HTMLElement => h("ui5-navigation-menu-item", {
+      text: it.text,
+      icon: it.icon && ICON_IDS[it.icon],
+      disabled: it.disabled,
+    }, ...("items" in it && it.items?.length ? [
+      ...(!it.unselectable ? [h("ui5-navigation-menu-item", { text: it.text, class: "ui5-navigation-menu-item-root-parent" })] : []),
+      ...it.items.map(menuItem),
+    ] : []))
+    return showShadowPopupInPlace(h("ui5-navigation-menu", {}, ...(entries as ItemSpec[]).map(menuItem)), ".ui5-menu-rp", "14rem")
+  }
   const sub = (s: SubSpec) =>
     h("ui5-side-navigation-sub-item", {
       text: s.text,
@@ -58,6 +74,11 @@ export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = S
     ...(fixed ?? []).map((e) => entry(e, "fixedItems"))
   )
   const wrap = h("div", {}, nav)
+  // Native SideNavigation.handleResize measures this constrained height for the collapsed
+  // overflow cases, including the selected parent and separators in overflowItems.
   wrap.style.height = height
+  // Align the inline-block hosts at the top; their light/shadow DOM fallback baselines differ
+  // when every trailing flexible item is hidden by overflow.
+  wrap.style.display = "flex"
   return wrap
 })

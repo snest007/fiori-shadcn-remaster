@@ -30,6 +30,8 @@ type SideNavigationTexts = {
   /** Text and accessible description of the collapsed overflow item. */
   overflowText: string
   overflowDescription: string
+  overflowMenuLabel: string
+  overflowParentDescription: string
   /** Description of a selectable parent item (it navigates; the arrow expands). */
   parentItemDescription: (text: string) => string
 }
@@ -44,6 +46,8 @@ const defaultTexts: SideNavigationTexts = {
   popoverLabel: "Navigation",
   overflowText: "More Items",
   overflowDescription: "Displays additional navigation items that are hidden due to limited screen space.",
+  overflowMenuLabel: "Additional Navigation Items",
+  overflowParentDescription: "This menu item opens a submenu and also links to a page. To go to the page, press Enter or the right arrow key to open the submenu, then select the first item in the submenu.",
   parentItemDescription: (text) => `To navigate to navigation item ${text}, press Spacebar or Enter.`,
 }
 
@@ -360,7 +364,7 @@ function OverflowItem({ ref, items, listRef }: {
             <div id={`${id}-text`} className="fiori-sn-item__text">{root.texts.overflowText}</div>
           </div>
         </MenuTrigger>
-        <MenuContent side="right" align="start" aria-label={root.texts.popoverLabel} aria-labelledby={undefined} className="fiori-sn-menu"
+        <MenuContent side="right" align="start" aria-label={root.texts.overflowMenuLabel} aria-labelledby={undefined} className="fiori-sn-menu"
           onCloseAutoFocus={(e) => {
             // SideNavigation.js _onMenuClose: after selection focus the newly visible selected
             // parent, rather than restoring focus to More. Escape restores the trigger normally.
@@ -385,6 +389,7 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
 }) {
   const root = useRoot()
   const subs = subItemProps(item.children)
+  const descriptionId = React.useId()
   const activate = (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => {
     item.onClick?.(e)
     root.itemClick(item.value, e)
@@ -401,9 +406,10 @@ function OverflowMenuItem({ item, onSelected, close, parentRow = false }: {
   // navigation action at the beginning of its submenu, before its sub-items.
   if (subs.length && !parentRow) return (
     <MenuSub>
-      <MenuSubTrigger {...common} onClick={activate}>
+      <MenuSubTrigger {...common} onClick={activate} aria-describedby={!item.unselectable ? descriptionId : undefined}>
         {item.text}{item.tag && <span className="fiori-sn-menu-tag">{item.tag}</span>}
       </MenuSubTrigger>
+      {!item.unselectable && <span id={descriptionId} className="fiori-sn-hidden-text">{root.texts.overflowParentDescription}</span>}
       <MenuSubContent aria-label={item.accessibleName || item.text} aria-labelledby={undefined} className="fiori-sn-menu">
         <MenuGroup>
           {!item.unselectable && <OverflowMenuItem item={item} parentRow onSelected={onSelected} close={close} />}

@@ -131,20 +131,36 @@
 }
 .fiori-sn-menu-item .fiori-menu-item__icon {
   color: inherit;
-  width: 1rem;
-  height: 1rem;
+  /* NavigationMenuItem.css.js fixes real icons to 1rem in both densities; override Menu's size utility. */
+  width: 1rem !important;
+  height: 1rem !important;
 }
 .fiori-sn-menu-item .fiori-menu-item__submenu > svg {
-  width: 0.75rem;
-  height: 0.75rem;
+  /* Override the shared Icon size utility with NavigationMenu's submenu-arrow dimensions. */
+  width: 0.75rem !important;
+  height: 0.75rem !important;
   color: inherit;
+}
+.fiori-sn-menu > [data-slot="menu-group"]:has(> .fiori-menu-item .fiori-menu-item__icon) > .fiori-menu-item:not(:has(.fiori-menu-item__icon)) > .fiori-menu-item__content::before {
+  content: "";
+  box-sizing: content-box;
+  flex-shrink: 0;
+  width: var(--fiori-list-item-icon-size);
+  height: var(--fiori-list-item-icon-size);
+  padding-inline-end: var(--fiori-list-item-icon-padding-inline-end);
 }
 .fiori-sn-menu [data-slot="menu-sub-content"] .fiori-sn-menu-item,
 [data-slot="menu-sub-content"].fiori-sn-menu .fiori-sn-menu-item {
   font-family: var(--sapFontFamily);
 }
-.fiori-sn-menu .fiori-sn-menu-parent {
+.fiori-sn-menu [data-slot="menu-group"] > .fiori-sn-menu-parent {
   font-family: var(--fiori-side-navigation-parent-item-font-family);
+}
+.fiori-sn-menu .fiori-sn-menu-item[data-state="open"] {
+  border-bottom: none;
+}
+.fiori-sn-menu-item:active {
+  color: var(--sapList_Active_TextColor);
 }
 .fiori-sn-menu-action {
   color: var(--sapButton_TextColor);
