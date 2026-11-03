@@ -284,6 +284,7 @@ function MenuSub({ open: openProp, defaultOpen, onOpenChange, ...props }: React.
 }
 type MenuSubTriggerProps = React.ComponentProps<typeof MenuPrimitive.SubTrigger> & Omit<ItemExtras, "additionalText"> & CheckProps & StateKey
 function MenuSubTrigger({ className, icon, children, ref, checked: _checked, defaultChecked: _defaultChecked, onCheckedChange: _onCheckedChange, _menuStateKey: _key, disabled, onKeyDown, onKeyUp, onClick, onPointerMove, onPointerLeave, ...props }: MenuSubTriggerProps) {
+  const root = React.useContext(MenuContext)
   const sub = React.useContext(MenuSubContext)
   const surface = React.useContext(SurfaceContext)
   const group = React.useContext(GroupContext)
@@ -308,12 +309,14 @@ function MenuSubTrigger({ className, icon, children, ref, checked: _checked, def
       checked={_checked} defaultChecked={_defaultChecked} onCheckedChange={_onCheckedChange} _menuStateKey={_key} disabled
       onKeyDown={onKeyDown} onKeyUp={onKeyUp} onClick={onClick} onPointerMove={onPointerMove} onPointerLeave={onPointerLeave}>{children}</MenuItem>
   }
+  // ButtonTemplate.js's native Space activation completes before Menu.js _afterPopoverOpen
+  // focuses a row; consume the opener's keyup just as MenuItem does.
   return <MenuPrimitive.SubTrigger {...props} ref={mergedRef} data-slot="menu-sub-trigger" className={cn("fiori-list-item fiori-menu-item", className)} disabled={checkable ? false : disabled}
     data-disabled={disabled ? "" : (props as Record<string, unknown>)["data-disabled"] as string | undefined} aria-disabled={disabled || props["aria-disabled"]} data-menu-checkable={checkable ? "" : undefined}
     role={props.role ?? (group?.mode === "single" ? "menuitemradio" : group?.mode === "multiple" ? "menuitemcheckbox" : "menuitem")} aria-checked={checkable ? false : undefined}
     onClick={(e) => { onClick?.(e); if (!e.defaultPrevented && !disabled) sub?.open(); e.preventDefault() }}
-    onKeyDown={(e) => { onKeyDown?.(e); if (e.defaultPrevented || surface?.element?.hasAttribute("data-sn-overflow-menu")) return; if (e.key === " " || e.key === "Spacebar") e.preventDefault(); if (e.key === "Enter") { if (activationAllowed(e) && !disabled) sub?.open(); e.preventDefault(); e.stopPropagation() } }}
-    onKeyUp={(e) => { onKeyUp?.(e); if (surface?.element?.hasAttribute("data-sn-overflow-menu")) return; if (!e.defaultPrevented && (e.key === " " || e.key === "Spacebar") && activationAllowed(e) && !disabled) { sub?.open(); e.preventDefault(); e.stopPropagation() } }}
+    onKeyDown={(e) => { onKeyDown?.(e); if (e.defaultPrevented || surface?.element?.hasAttribute("data-sn-overflow-menu")) return; if (e.key === " " || e.key === "Spacebar") { if (root) root.triggerSpace = false; e.preventDefault() } if (e.key === "Enter") { if (activationAllowed(e) && !disabled) sub?.open(); e.preventDefault(); e.stopPropagation() } }}
+    onKeyUp={(e) => { onKeyUp?.(e); if (surface?.element?.hasAttribute("data-sn-overflow-menu")) return; if (root?.triggerSpace && (e.key === " " || e.key === "Spacebar")) { root.triggerSpace = false; return } if (!e.defaultPrevented && (e.key === " " || e.key === "Spacebar") && activationAllowed(e) && !disabled) { sub?.open(); e.preventDefault(); e.stopPropagation() } }}
     onPointerMove={(e) => { onPointerMove?.(e); hover?.(e) }} onPointerLeave={(e) => { onPointerLeave?.(e); e.preventDefault() }}>
     <ItemContent icon={icon} end={<div className="fiori-menu-item__submenu"><Icon icon={slimArrowRight} /></div>}>{children}</ItemContent>
   </MenuPrimitive.SubTrigger>

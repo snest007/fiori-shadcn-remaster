@@ -57,6 +57,13 @@ export default defineDemo({ title: "Checkable menu", order: 43, Demo: () => {
         <MenuTrigger asChild><Button id="menu-check-mode-retain-trigger">Retain open</Button></MenuTrigger>
         <MenuContent aria-label="Retain preferences"><MenuGroup checkMode="multiple"><MenuItem onCheckedChange={change("Retained")}>Retained</MenuItem></MenuGroup></MenuContent>
       </Menu>
+      <Menu><MenuTrigger asChild><Button id="menu-check-mode-first-owner-trigger">First submenu</Button></MenuTrigger>
+        <MenuContent aria-label="First owner preferences"><MenuGroup checkMode="multiple">
+          <MenuSub><MenuSubTrigger>First owner</MenuSubTrigger>
+            <MenuSubContent aria-label="First owner children" aria-labelledby={undefined}><MenuItem>First child</MenuItem></MenuSubContent>
+          </MenuSub>
+        </MenuGroup></MenuContent>
+      </Menu>
       <Menu><MenuTrigger asChild><Button id="menu-check-mode-pages-trigger">Page navigation</Button></MenuTrigger>
         <MenuContent aria-label="Page preferences" style={{ maxHeight: "12rem" }}><MenuGroup checkMode="multiple">
           {Array.from({ length: 15 }, (_, index) => <MenuItem key={index}>Page {index + 1}</MenuItem>)}
