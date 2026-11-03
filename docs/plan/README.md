@@ -31,7 +31,7 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 
 ## Wave A — overflow ("More") behaviour (independent)
 
-- [ ] [A1 Tabs overflow](tasks/A1-tabs-overflow.md) — M
+- [x] [A1 Tabs overflow](tasks/A1-tabs-overflow.md) — M
 - [ ] [A2 Toolbar overflow](tasks/A2-toolbar-overflow.md) — M
 - [ ] [A3 Breadcrumbs overflow](tasks/A3-breadcrumbs-overflow.md) — S
 - [ ] [A4 AvatarGroup overflow "+N"](tasks/A4-avatar-group-overflow.md) — S
