@@ -4,17 +4,17 @@ import "@ui5/webcomponents-icons/dist/slim-arrow-down.js"
 import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 
 import { defineUi5, h } from "../fixture-types"
-import set, { BREADCRUMBS_WIDTH, BREADCRUMBS_OVERFLOW_WIDTH, trail } from "./breadcrumbs"
+import set, { BREADCRUMBS_WIDTH, BREADCRUMBS_OVERFLOW_WIDTH, BREADCRUMBS_HIDDEN_MIDDLE_WIDTH, trail } from "./breadcrumbs"
 
 const pascal = (s: string) => s.split("-").map((w) => w[0].toUpperCase() + w.slice(1)).join("")
 
-export default defineUi5(set, ({ separators, design, lastLink, overflow, open }) => {
+export default defineUi5(set, ({ separators, design, lastLink, overflow, open, hiddenMiddle }) => {
   const el = h(
     "ui5-breadcrumbs",
     { separators: separators && pascal(separators).replace("Backslash", "BackSlash"), design: design && pascal(design) },
-    ...trail.map((t, i) => h("ui5-breadcrumbs-item", { href: i < trail.length - 1 || lastLink ? "#" : undefined }, t))
+    ...trail.map((t, i) => h("ui5-breadcrumbs-item", { hidden: hiddenMiddle && i === 1, href: i < trail.length - 1 || lastLink ? "#" : undefined }, t))
   )
-  el.style.width = overflow ? BREADCRUMBS_OVERFLOW_WIDTH : BREADCRUMBS_WIDTH
+  el.style.width = hiddenMiddle ? BREADCRUMBS_HIDDEN_MIDDLE_WIDTH : overflow ? BREADCRUMBS_OVERFLOW_WIDTH : BREADCRUMBS_WIDTH
   if (!open) return el
   const frame = document.createElement("div")
   frame.style.cssText = "overflow:hidden;padding:0.75rem"
@@ -36,7 +36,7 @@ export default defineUi5(set, ({ separators, design, lastLink, overflow, open })
     const sheet = new CSSStyleSheet()
     sheet.replaceSync(`
       [ui5-responsive-popover] { display: flex !important; position: relative !important;
-        inset: auto !important; transform: none !important; width: ${BREADCRUMBS_OVERFLOW_WIDTH};
+        inset: auto !important; transform: none !important; width: ${hiddenMiddle ? BREADCRUMBS_HIDDEN_MIDDLE_WIDTH : BREADCRUMBS_OVERFLOW_WIDTH};
         max-width: none !important; max-height: none !important; }
     `)
     const desc = Object.getOwnPropertyDescriptor(ShadowRoot.prototype, "adoptedStyleSheets")

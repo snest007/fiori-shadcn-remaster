@@ -24,7 +24,7 @@ function BreadcrumbsDemo() {
         <BreadcrumbsItem href="#home" onClick={go("Home")}>Home</BreadcrumbsItem>
         <BreadcrumbsItem href="#products" onClick={go("Products")}>Products</BreadcrumbsItem>
         <BreadcrumbsItem href="#laptops" onClick={go("Laptops")}>Laptops</BreadcrumbsItem>
-        <BreadcrumbsItem>Notebook 15</BreadcrumbsItem>
+        <BreadcrumbsItem onClick={go("Notebook 15")}>Notebook 15</BreadcrumbsItem>
       </Breadcrumbs>
       <Breadcrumbs separators="greater-than" aria-label="Folder path">
         <BreadcrumbsItem href="#root">Documents</BreadcrumbsItem>
@@ -50,6 +50,23 @@ function BreadcrumbsDemo() {
         </Breadcrumbs>
         <p>Selected ancestor: <b id="breadcrumbs-overflow-demo-last">{overflowLast}</b></p>
       </section>
+      <section id="breadcrumbs-hidden-middle-demo">
+        <Breadcrumbs id="breadcrumbs-hidden-middle-demo-trail" aria-label="Hidden middle navigation trail" style={{ width: 100 }}>
+          <BreadcrumbsItem href="#breadcrumbs-hidden-middle-home">Home</BreadcrumbsItem>
+          <BreadcrumbsItem id="breadcrumbs-hidden-middle-demo-products" hidden href="#breadcrumbs-hidden-middle-products">Products</BreadcrumbsItem>
+          <BreadcrumbsItem href="#breadcrumbs-hidden-middle-laptops">Laptops</BreadcrumbsItem>
+          <BreadcrumbsItem>Notebook 15</BreadcrumbsItem>
+        </Breadcrumbs>
+      </section>
+      <Breadcrumbs id="breadcrumbs-overrides-demo-trail" aria-label="Custom navigation trail" overflowLabel="Hidden ancestors" overflowListLabel="Ancestor choices" style={{ width: 192 }}>
+        <BreadcrumbsItem href="#breadcrumbs-custom-home">Home</BreadcrumbsItem>
+        <BreadcrumbsItem href="#breadcrumbs-custom-products">Products</BreadcrumbsItem>
+        <BreadcrumbsItem href="#breadcrumbs-custom-laptops">Laptops</BreadcrumbsItem>
+        <BreadcrumbsItem>Notebook 15</BreadcrumbsItem>
+      </Breadcrumbs>
+      <Breadcrumbs id="breadcrumbs-no-href-demo-trail" design="no-current-page" aria-label="Action navigation trail">
+        <BreadcrumbsItem onClick={go("Action")}>Action</BreadcrumbsItem>
+      </Breadcrumbs>
       <p className="text-(length:--sapFontSmallSize) text-(--sapContent_LabelColor)">
         One Tab stop; ←/→ move between items, Home/End jump, Enter or Space follows a link. Last link: <b id="demo-breadcrumbs-last">{last}</b>
       </p>
