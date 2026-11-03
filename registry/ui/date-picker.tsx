@@ -156,9 +156,10 @@ function DatePicker({
     s.setValue(next)
     if (next !== s.value) {
       onValueChange?.(next, d ?? null)
-      // UI5 DatePicker.js/_updateValueAndFireEvents emits the committed change.
-      changeTarget.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
     }
+    // UI5 DatePicker.js/onSelectedDatesChange and _updateValueAndFireEvents emit
+    // the committed change even for the same date, before closing the picker.
+    changeTarget.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
   }
 
   const yearEnd = new Date(new Date().getFullYear(), 11, 31)

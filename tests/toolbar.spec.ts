@@ -359,6 +359,48 @@ test.describe("Toolbar review regressions", () => {
     await expect(trigger).toBeFocused()
   })
 
+  for (const pinned of [false, true]) {
+    test(`same-date calendar confirmation ${pinned ? "keeps pinned overflow open" : "closes default overflow"} without a value-change callback`, async ({ page }) => {
+      await page.goto("/index.html")
+      await page.waitForSelector("html[data-ready=true]")
+      const toolbar = page.locator("#toolbar-same-date-demo")
+      const trigger = toolbar.getByRole("button", { name: "Additional Options" })
+      const outer = page.getByRole("dialog", { name: "Same date controls", exact: true })
+      const label = `Toolbar same date ${pinned ? "pinned" : "default"}`
+      const date = outer.getByRole("textbox", { name: label, exact: true })
+      const count = outer.getByTestId(`${label}-commits`)
+      const calendar = page.locator("[data-slot=picker-popover]")
+      await trigger.click()
+      for (const confirmation of ["click", "Enter"] as const) {
+        await expect(date).toHaveValue("2026-11-03")
+        await expect(count).toHaveText("0")
+        await date.focus()
+        await expect(date).toBeFocused()
+        await page.keyboard.press("F4")
+        await expect(calendar).toBeVisible()
+        await expect(outer).toBeVisible()
+        const selected = calendar.locator('[role="gridcell"][data-date="20261103"]')
+        await expect(selected).toHaveAttribute("aria-selected", "true")
+        await expect(selected).toBeFocused()
+        if (confirmation === "click") await selected.click()
+        else await page.keyboard.press("Enter")
+        await expect(calendar).toHaveCount(0)
+        if (pinned) {
+          await expect(outer).toBeVisible()
+          await expect(date).toBeFocused()
+        } else {
+          await expect(outer).toBeHidden()
+          await expect(trigger).toBeFocused()
+          await trigger.click()
+          await expect(outer).toBeVisible()
+        }
+        await expect(date).toHaveValue("2026-11-03")
+        await expect(count).toHaveText("0")
+        await expect(page.locator("#demo-toolbar-last")).toHaveText("none")
+      }
+    })
+  }
+
   test("mixed controls use the first control's event type across opaque siblings", async ({ page }) => {
     await page.goto("/index.html")
     await page.waitForSelector("html[data-ready=true]")

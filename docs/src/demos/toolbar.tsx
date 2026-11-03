@@ -25,12 +25,13 @@ function WrappedToolbarSelect({ onCommit, label }: { onCommit: (value: string) =
   </Select></span>
 }
 
-function WrappedToolbarControl({ kind, label, onCommit }: {
+function WrappedToolbarControl({ kind, label, onCommit, initialValue }: {
   kind: "combo" | "multi" | "date" | "switch"
   label: string
   onCommit: (value: string) => void
+  initialValue?: string
 }) {
-  const [value, setValue] = React.useState(kind === "combo" ? "Hardware" : "")
+  const [value, setValue] = React.useState(initialValue ?? (kind === "combo" ? "Hardware" : ""))
   const [selected, setSelected] = React.useState<string[]>([])
   const [checked, setChecked] = React.useState(false)
   const [commits, setCommits] = React.useState(0)
@@ -105,6 +106,10 @@ function ToolbarDemo() {
       <Toolbar id="toolbar-function-controls-demo" aria-label="Function control overflow" alignContent="start" style={{ width: "20rem" }} overflowPopoverLabel="Function controls">
         {(["combo", "multi", "date", "switch"] as const).map((kind) => <ToolbarItem key={kind} overflowPriority="alwaysOverflow"><WrappedToolbarControl kind={kind} label={`Function ${kind}`} onCommit={(value) => setLast(`Function ${kind}: ${value}`)} /></ToolbarItem>)}
         {(["combo", "multi", "date", "switch"] as const).map((kind) => <ToolbarItem key={`pinned-${kind}`} overflowPriority="alwaysOverflow" preventOverflowClosing><WrappedToolbarControl kind={kind} label={`Pinned ${kind}`} onCommit={(value) => setLast(`Pinned ${kind}: ${value}`)} /></ToolbarItem>)}
+      </Toolbar>
+      <Toolbar id="toolbar-same-date-demo" aria-label="Same date overflow" alignContent="start" overflowPopoverLabel="Same date controls">
+        <ToolbarItem overflowPriority="alwaysOverflow"><WrappedToolbarControl kind="date" label="Toolbar same date default" initialValue="2026-11-03" onCommit={(value) => setLast(value)} /></ToolbarItem>
+        <ToolbarItem overflowPriority="alwaysOverflow" preventOverflowClosing><WrappedToolbarControl kind="date" label="Toolbar same date pinned" initialValue="2026-11-03" onCommit={(value) => setLast(value)} /></ToolbarItem>
       </Toolbar>
       <Toolbar id="toolbar-mixed-controls-demo" aria-label="Mixed control overflow" alignContent="start" style={{ width: "20rem" }} overflowPopoverLabel="Mixed controls">
         <ToolbarItem overflowPriority="alwaysOverflow"><MultiComboBox aria-label="First selection control"><MultiComboBoxItem text="Hardware" /></MultiComboBox><WrappedToolbarControl kind="combo" label="Combo after multi" onCommit={(value) => setLast(`Mixed combo: ${value}`)} /></ToolbarItem>
