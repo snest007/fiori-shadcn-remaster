@@ -58,7 +58,9 @@ node scripts/integrate.mjs verify                # install, generate, typecheck,
 ```
 
 It writes `.integration/REPORT.md` and per-run logs (`run-N.log`). PASS requires all three runs green and the
-smoke install green.
+smoke install green. Run it with the **default workers** (no `--workers` flag). `--workers=1` is only a diagnostic for
+cause 6 — a final PASS obtained with `--workers=1` doesn't count, because parallel runs are what the owner uses (the
+suite takes ~3 min in parallel, ~13 min with one worker).
 
 ### When something fails after merging (it passed on each branch alone)
 

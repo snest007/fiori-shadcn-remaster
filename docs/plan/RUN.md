@@ -78,7 +78,7 @@ Follow `docs/plan/INTEGRATION.md` sections 2–4 for the cards whose verdict is 
 
 ```bash
 node scripts/integrate.mjs merge <branches in backlog order>   # add --accept-scope only for files a reviewer justified
-node scripts/integrate.mjs verify                               # 3 full runs, retries off, + smoke install
+node scripts/integrate.mjs verify                               # 3 full runs, retries off, default workers, + smoke install
 node scripts/integrate.mjs cleanup
 ```
 
