@@ -330,3 +330,58 @@ test.describe("MultiComboBox item groups", () => {
   })
 
 })
+
+const rangeInput = (page: Page) => page.locator("#multi-combobox-demo #multi-combobox-ranges")
+const rangeList = (page: Page) => page.locator('[id="multi-combobox-ranges-list"]')
+const rangeOption = (page: Page, name: string) => rangeList(page).getByRole("option", { name, exact: true })
+const rangeSelected = (page: Page) => page.locator('#multi-combobox-demo [data-testid="multi-combobox-ranges-selected"]')
+
+test.describe("MultiComboBox grouped ranges", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+  })
+
+  test("Shift crosses a header without selecting it and uses its unselected state for the next item", async ({ page }) => {
+    await rangeInput(page).focus()
+    await page.keyboard.press("F4")
+    await expect(rangeOption(page, "Apricot")).toBeFocused()
+    await rangeOption(page, "Avocado").focus()
+    await expect(rangeOption(page, "Avocado")).toBeFocused()
+    await page.keyboard.press("Shift+ArrowDown")
+    const header = rangeList(page).getByRole("group", { name: "Vegetables", exact: true })
+    await expect(header).toBeFocused()
+    await expect(header).not.toHaveAttribute("aria-selected")
+    await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+    // MultiComboBoxItemGroup.js/selected is always false; _handleItemRangeSelection
+    // copies the current row's selected state into the adjacent item.
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(rangeOption(page, "Asparagus")).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Apricot, Broccoli")
+    await page.keyboard.press("Shift+ArrowUp")
+    await expect(header).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Apricot, Broccoli")
+    await page.keyboard.press("Shift+ArrowUp")
+    await expect(rangeOption(page, "Avocado")).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Apricot, Broccoli")
+  })
+
+  test("filtered Shift ranges follow visible rows and retain selected items hidden by filtering", async ({ page }) => {
+    await rangeInput(page).focus()
+    await rangeInput(page).fill("a")
+    await expect(rangeInput(page)).toHaveValue("a")
+    await expect(rangeList(page).getByRole("option")).toHaveText(["Apple", "Apricot", "Avocado", "Asparagus"])
+    await expect(rangeOption(page, "Broccoli")).toHaveCount(0)
+    await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+    await rangeOption(page, "Avocado").focus()
+    await expect(rangeOption(page, "Avocado")).toBeFocused()
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(rangeList(page).getByRole("group", { name: "Vegetables", exact: true })).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(rangeOption(page, "Asparagus")).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Apricot, Broccoli")
+    await expect(rangeList(page).getByRole("option", { selected: true })).toHaveText("Apricot")
+    await expect(rangeOption(page, "Broccoli")).toHaveCount(0)
+  })
+})

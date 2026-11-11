@@ -291,8 +291,13 @@ function ComboBox({
     const sel = allRows.findIndex((i) => !isGroup(i) && i.text.toLowerCase() === value.toLowerCase())
     if (sel >= 0) setActive(sel)
     else if (!value && items.length) {
-      setActive(allRows.indexOf(items[0]))
-      applyText(items[0].text, "")
+      // UI5 ComboBox.js/_resetFilter + _keydown select the first non-group
+      // item after _filterItems has moved groups ahead of standalone items.
+      const first = allRows.find((item): item is ComboBoxItemProps => !isGroup(item))
+      if (first) {
+        setActive(allRows.indexOf(first))
+        applyText(first.text, "")
+      }
     }
   }
 

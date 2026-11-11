@@ -11,6 +11,7 @@ const COUNTRIES = [
 ]
 
 function MultiComboBoxDemo() {
+  const [rangeSelected, setRangeSelected] = React.useState(["Apricot", "Asparagus", "Broccoli"])
   const [groupSelected, setGroupSelected] = React.useState<string[]>([])
   const [selected, setSelected] = React.useState(["DE", "FR"])
   return (
@@ -45,9 +46,22 @@ function MultiComboBoxDemo() {
           <MultiComboBoxItemGroup headerText="Empty" />
           <MultiComboBoxItem text="Japan" />
         </MultiComboBox>
+        <Label htmlFor="multi-combobox-ranges" showColon>Grouped ranges</Label>
+        <MultiComboBox id="multi-combobox-ranges" selectedValues={rangeSelected} onSelectionChange={setRangeSelected} filter="contains" noTypeahead>
+          <MultiComboBoxItemGroup headerText="Fruit">
+            <MultiComboBoxItem text="Apple" />
+            <MultiComboBoxItem text="Apricot" />
+            <MultiComboBoxItem text="Avocado" />
+          </MultiComboBoxItemGroup>
+          <MultiComboBoxItemGroup headerText="Vegetables">
+            <MultiComboBoxItem text="Asparagus" />
+            <MultiComboBoxItem text="Broccoli" />
+          </MultiComboBoxItemGroup>
+        </MultiComboBox>
       </div>
       <p className="mt-2 text-(length:--sapFontSmallSize) text-(--sapContent_LabelColor)">
         Grouped selection: <span data-testid="multi-combobox-groups-selected">{groupSelected.join(", ") || "—"}</span>.
+        Range selection: <span data-testid="multi-combobox-ranges-selected">{rangeSelected.join(", ") || "—"}</span>.
       </p>
       <p className="mt-4 text-(length:--sapFontSmallSize) text-(--sapContent_LabelColor)">
         Typing filters the list and completes inline; Enter selects the match. F4 / Alt+↓ toggle the list and focus an item; Space

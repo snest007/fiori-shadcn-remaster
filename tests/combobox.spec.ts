@@ -234,4 +234,22 @@ test.describe("ComboBox item groups", () => {
     await expect(groupInput(page)).toHaveValue("Canada")
   })
 
+  test("blank F4 follows native grouped-first ordering while closed arrows retain declaration order", async ({ page }) => {
+    const input = page.locator("#combobox-demo #combobox-ordering")
+    const list = page.locator('[id="combobox-ordering-list"]')
+    await input.focus()
+    await page.keyboard.press("ArrowDown")
+    await expect(input).toHaveValue("Japan")
+    await expect(list).toHaveCount(0)
+    await page.keyboard.press("ControlOrMeta+a")
+    await page.keyboard.press("Backspace")
+    await expect(input).toHaveValue("")
+    await page.keyboard.press("F4")
+    await expect(input).toHaveValue("Argentina")
+    await expect(list.getByRole("option")).toHaveText(["Argentina", "Japan"])
+    const active = await input.getAttribute("aria-activedescendant")
+    await expect(list.locator(`[id="${active}"]`)).toHaveText("Argentina")
+    await expect(input).toBeFocused()
+  })
+
 })

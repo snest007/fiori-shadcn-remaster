@@ -37,6 +37,13 @@ function ComboBoxDemo() {
         <ComboBox id="combo-disabled" disabled defaultValue="Germany">
           <ComboBoxItem text="Germany" />
         </ComboBox>
+        <Label htmlFor="combobox-ordering" showColon>Standalone before group</Label>
+        <ComboBox id="combobox-ordering" placeholder="Type or choose">
+          <ComboBoxItem text="Japan" />
+          <ComboBoxItemGroup headerText="Americas">
+            <ComboBoxItem text="Argentina" />
+          </ComboBoxItemGroup>
+        </ComboBox>
         <Label htmlFor="combobox-groups" showColon>Grouped countries</Label>
         <ComboBox id="combobox-groups" onCommit={setGroupCommitted} onSelectionChange={(item) => setGroupSelection(item?.text ?? "")} placeholder="Type or choose">
           <ComboBoxItemGroup headerText="Americas">
