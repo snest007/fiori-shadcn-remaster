@@ -15,6 +15,26 @@ type ColorPalettePopoverProps = Omit<ColorPaletteProps, "ref" | "popupMode"> & {
   contentProps?: Omit<PopoverContentProps, "children" | "side" | "hideArrow" | "portal">
 }
 
+// popup-utils/PopoverRegistry.js shares one 300ms update interval and captured document scroll across open popovers.
+const openPalettePositions = new Set<() => void>()
+let positionInterval: number | undefined
+const repositionOpenPalettes = () => { openPalettePositions.forEach((reposition) => reposition()) }
+function registerPalettePosition(reposition: () => void) {
+  openPalettePositions.add(reposition)
+  if (openPalettePositions.size === 1) {
+    document.addEventListener("scroll", repositionOpenPalettes, true)
+    positionInterval = window.setInterval(repositionOpenPalettes, 300)
+  }
+  return () => {
+    openPalettePositions.delete(reposition)
+    if (!openPalettePositions.size) {
+      document.removeEventListener("scroll", repositionOpenPalettes, true)
+      window.clearInterval(positionInterval)
+      positionInterval = undefined
+    }
+  }
+}
+
 function getFocusedElement() {
   // PopupUtils.js getFocusedElement -> getActiveElement.js follows every open ShadowRoot.
   let element = document.activeElement
@@ -49,6 +69,8 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
   const contentNode = React.useRef<HTMLDivElement | null>(null)
   const mountContent = React.useCallback((node: HTMLDivElement | null) => { contentNode.current = node; setContentMounted(!!node) }, [])
   const [missingOpenerOrigin, setMissingOpenerOrigin] = React.useState(false)
+  const [positionVersion, updatePosition] = React.useReducer((value: number) => value + 1, 0)
+  const repositionRequest = React.useRef<() => void>(() => {})
   const missingOpenerRef = React.useRef(false)
   React.useLayoutEffect(() => {
     missingOpenerRef.current = missingActiveOpener
@@ -70,9 +92,14 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     const root = directionRef.current?.getRootNode() as Document | ShadowRoot | undefined
     return root?.getElementById(opener) ?? document.getElementById(opener)
   }
-  const anchorRef = React.useMemo(() => ({ current: { getBoundingClientRect: () => missingActiveOpener
-    ? missingOpenerOrigin ? new DOMRect() : retainedOpenerRect.current ?? new DOMRect()
-    : resolveOpener()?.getBoundingClientRect() ?? new DOMRect() } }), [anchor, missingActiveOpener, missingOpenerOrigin])
+  const anchorRef = React.useMemo(() => ({ current: { getBoundingClientRect: () => {
+    if (missingActiveOpener) return missingOpenerOrigin ? new DOMRect() : retainedOpenerRect.current ?? new DOMRect()
+    const node = resolveOpener()
+    const rect = node?.getBoundingClientRect() ?? new DOMRect()
+    // _show refreshes the live opener rectangle on real positioning; a later clear retains this painted geometry.
+    if (node) retainedOpenerRect.current = rect
+    return rect
+  } } }), [anchor, missingActiveOpener, missingOpenerOrigin, positionVersion])
   const isOpenerPointerDown = (event: Event) => {
     const node = resolveOpener()
     return event.type === "pointerdown" && !!node && (openerPointerPaths.current.get(event)?.includes(node)
@@ -129,11 +156,28 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
   }, [open, observedAnchor, changeOpen])
   const paintedOpen = open && anchorVisible
   React.useLayoutEffect(() => {
+    repositionRequest.current = () => {
+      // Popover._resize/reposition/_show recomputes physical origin whenever the active opener is missing.
+      if (missingOpenerRef.current) setMissingOpenerOrigin(true)
+      else updatePosition()
+    }
+  })
+  React.useLayoutEffect(() => {
+    if (!paintedOpen) return
+    const root = contentNode.current?.closest<HTMLElement>("[data-slot=color-palette-popover]")
+    if (!root) return
+    const reposition = () => repositionRequest.current()
+    const unregister = registerPalettePosition(reposition)
+    // PopoverRegistry.attachScrollHandler also captures scroll within the popup's own root.
+    root.addEventListener("scroll", reposition, true)
+    return () => { root.removeEventListener("scroll", reposition, true); unregister() }
+  }, [paintedOpen, contentMounted])
+  React.useLayoutEffect(() => {
     if (!paintedOpen) return
     const root = contentNode.current?.closest<HTMLElement>("[data-slot=color-palette-popover]")
     if (!root) return
     // Popup.js _registerResizeHandler -> ResizeHandler.js observes getDomRef and repositions on the next frame.
-    // An active missing opener keeps its prior box until that real size change; registration alone must not move it.
+    // Size registration alone must not move an active missing opener; actual resize joins the registry's idle/scroll triggers.
     let previous = root.getBoundingClientRect()
     let active = true
     const frames = new Set<number>()
@@ -142,7 +186,7 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
         frames.delete(frame)
         if (!active) return
         const next = root.getBoundingClientRect()
-        if (missingOpenerRef.current && (next.width !== previous.width || next.height !== previous.height)) setMissingOpenerOrigin(true)
+        if (next.width !== previous.width || next.height !== previous.height) repositionRequest.current()
         previous = next
       })
       frames.add(frame)
@@ -196,7 +240,7 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     </div>
     <Popover open={paintedOpen} onOpenChange={changeOpen}>
       <PopoverAnchor virtualRef={anchorRef} />
-      {/* Popover.js _show uses physical top/left 0 after an active missing opener is recomputed; keep its prior placement before the real resize trigger. */}
+      {/* Popover.js _show uses physical top/left 0 after a missing opener is recomputed by real resize, scroll or the registry's idle tick. */}
       <PopoverContent {...contentProps} id={id} data-slot="color-palette-popover" portal={portal} side={missingOpenerOrigin ? "bottom" : side} align={missingOpenerOrigin ? rtl ? "end" : "start" : contentProps?.align}
         avoidCollisions={missingOpenerOrigin ? false : contentProps?.avoidCollisions} dir={rtl ? "rtl" : "ltr"}
         hideArrow aria-label={popoverLabel} className={cn("fiori-color-palette-popover", className, contentProps?.className)}

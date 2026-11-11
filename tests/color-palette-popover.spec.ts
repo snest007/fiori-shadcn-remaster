@@ -285,14 +285,17 @@ for (const mode of ["null", "missing ID"] as const) test(`color-palette-popover:
   const button = root.locator("#color-palette-popover-lifecycle-opener")
   await button.click(); await expect(popup).toBeVisible()
   const original = (await popup.boundingBox())!
-  await root.locator("#color-palette-popover-lifecycle-clear").dispatchEvent("click")
-  if (mode === "missing ID") await root.locator("#color-palette-popover-lifecycle-clear").dispatchEvent("click")
+  const immediate = await popup.evaluate(async (node, missingId) => {
+    const clear = document.getElementById("color-palette-popover-lifecycle-clear")!
+    clear.click(); if (missingId) clear.click()
+    await Promise.resolve() // Sample the own commit before the registry's next real timer/scroll task.
+    return { box: node.getBoundingClientRect().toJSON(), missing: node.hasAttribute("data-missing-opener"), origin: node.hasAttribute("data-missing-opener-origin") }
+  }, mode === "missing ID")
+  expect(immediate.missing).toBe(true); expect(immediate.origin).toBe(false)
+  expect(immediate.box.x).toBeCloseTo(original.x, 4); expect(immediate.box.y).toBeCloseTo(original.y, 4)
   await expect(popup).toBeVisible()
   await expect(popup).toHaveAttribute("data-missing-opener", "")
   await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":true,"changes":[],"events":[]}')
-  const retained = (await popup.boundingBox())!
-  expect(retained.x).toBeCloseTo(original.x, 4); expect(retained.y).toBeCloseTo(original.y, 4)
-  await expect(popup).not.toHaveAttribute("data-missing-opener-origin", "")
   await root.locator("#color-palette-popover-lifecycle-count").dispatchEvent("click")
   await expect(popup.locator("[data-color-palette-area=main]")).toHaveCount(7)
   await expect(popup).toHaveAttribute("data-missing-opener-origin", "")
@@ -301,6 +304,54 @@ for (const mode of ["null", "missing ID"] as const) test(`color-palette-popover:
   await button.evaluate((node) => { node.setAttribute("hidden", "") })
   await expect(popup).toBeHidden()
   await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":false,"changes":[false],"events":[]}')
+})
+
+for (const trigger of ["idle", "document scroll", "popup scroll"] as const) test(`color-palette-popover: missing opener repositions on native registry ${trigger} without a resize`, async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-lifecycle-example"), popup = page.locator("#color-palette-popover-lifecycle-surface")
+  await root.locator("#color-palette-popover-lifecycle-presence").click()
+  await root.locator("#color-palette-popover-lifecycle-opener").click(); await expect(popup).toBeVisible()
+  if (trigger === "popup scroll") {
+    await popup.evaluate((node) => { node.style.maxHeight = "32px"; node.style.overflow = "auto" })
+    await expect.poll(() => popup.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true)
+  }
+  const before = (await popup.boundingBox())!
+  const immediate = await popup.evaluate(async (node) => {
+    document.getElementById("color-palette-popover-lifecycle-clear")!.click()
+    await Promise.resolve()
+    return { box: node.getBoundingClientRect().toJSON(), origin: node.hasAttribute("data-missing-opener-origin") }
+  })
+  expect(immediate.origin).toBe(false)
+  expect(immediate.box.x).toBeCloseTo(before.x, 4); expect(immediate.box.y).toBeCloseTo(before.y, 4)
+  if (trigger === "document scroll") await page.evaluate(() => window.scrollBy(0, 20))
+  else if (trigger === "popup scroll") {
+    await popup.evaluate((node) => { node.scrollTop = 8 })
+    await expect.poll(() => popup.evaluate((node) => node.scrollTop)).toBeGreaterThan(0)
+  }
+  await expect(popup).toHaveAttribute("data-missing-opener-origin", "")
+  const origin = (await popup.boundingBox())!
+  expect(Math.abs(origin.x)).toBeLessThanOrEqual(1); expect(Math.abs(origin.y)).toBeLessThanOrEqual(1)
+  expect(origin.width).toBe(before.width); expect(origin.height).toBe(before.height)
+  await expect(popup.locator("[data-color-palette-area=main]")).toHaveCount(2)
+  await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":true,"changes":[],"events":[]}')
+})
+
+test("color-palette-popover: moved and scrolled live opener retains its latest painted position until clear recomputes", async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-lifecycle-example"), popup = page.locator("#color-palette-popover-lifecycle-surface")
+  await root.locator("#color-palette-popover-lifecycle-presence").click()
+  await root.locator("#color-palette-popover-lifecycle-opener").click(); await expect(popup).toBeVisible()
+  const initial = (await popup.boundingBox())!
+  await root.locator("#color-palette-popover-lifecycle-opener").evaluate((node) => { node.style.transform = "translateY(20px)" })
+  await page.evaluate(() => window.scrollBy(0, 40))
+  await expect.poll(async () => Math.abs((await popup.boundingBox())!.y - (initial.y - 20))).toBeLessThanOrEqual(1)
+  const moved = (await popup.boundingBox())!
+  const immediate = await popup.evaluate(async (node) => {
+    document.getElementById("color-palette-popover-lifecycle-clear")!.click(); await Promise.resolve()
+    return { box: node.getBoundingClientRect().toJSON(), origin: node.hasAttribute("data-missing-opener-origin") }
+  })
+  expect(immediate.origin).toBe(false)
+  expect(immediate.box.x).toBeCloseTo(moved.x, 4); expect(immediate.box.y).toBeCloseTo(moved.y, 4)
+  await expect(popup).toHaveAttribute("data-missing-opener-origin", "")
+  await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":true,"changes":[],"events":[]}')
 })
 
 test("color-palette-popover: forceMount has one closed owner, stable caller refs and actual focus transitions", async ({ page }) => {
