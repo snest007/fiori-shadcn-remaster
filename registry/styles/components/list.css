@@ -204,20 +204,20 @@
 .fiori-li[data-actionable]:not([data-active]):not(:active):not([data-selected]):hover .fiori-li__additional-text {
   text-shadow: var(--sapContent_TextShadow);
 }
-.fiori-li[data-actionable][data-selected]:not([data-active]):not(:active):hover {
+.fiori-li[data-actionable][data-selected]:not([data-active]):not(:active):not([data-moving]):hover {
   background-color: var(--sapList_Hover_SelectionBackground);
 }
-.fiori-li[data-active][data-actionable] {
+.fiori-li[data-active][data-actionable]:not([data-moving]) {
   background-color: var(--sapList_Active_Background);
   border-bottom-color: var(--sapList_Active_Background);
 }
-.fiori-li[data-active][data-actionable] .fiori-li__icon,
-.fiori-li[data-active][data-actionable] .fiori-li__title,
-.fiori-li[data-active][data-actionable] .fiori-li__desc,
-.fiori-li[data-active][data-actionable] .fiori-li__additional-text {
+.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__icon,
+.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__title,
+.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__desc,
+.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__additional-text {
   color: var(--sapList_Active_TextColor);
 }
-.fiori-li[data-active][data-actionable] .fiori-li__additional-text {
+.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__additional-text {
   text-shadow: none;
 }
 /* Focus: keyboard only (UI5 also shows it on mouse focus on desktop). */
@@ -460,3 +460,9 @@
   font-weight: 700;
   font-family: var(--sapFontHeaderFamily);
 }
+
+/* UI5 DraggableElement.css / ListItemBase.css: hide the active/focus decoration while moving. */
+.fiori-list { position: relative; }
+.fiori-li[data-movable] { cursor: grab !important; }
+.fiori-li[data-moving] { cursor: grabbing !important; opacity: var(--sapContent_DisabledOpacity); }
+.fiori-li[data-moving]::after { content: none; }

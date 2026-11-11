@@ -1,5 +1,7 @@
 import * as React from "react"
 
+import { useFioriDragAndDrop, type FioriMoveHandlers } from "@/lib/fiori-drag-and-drop"
+
 import { clearAll, navigationRightArrow, overflow, sortAscending, sortDescending } from "@/lib/fiori-icons"
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -155,7 +157,7 @@ function navGrid(grid: HTMLElement): HTMLElement[][] {
 /* ------------------------------------------------------------------------------------------------ */
 /* Table                                                                                            */
 
-type TableProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
+type TableProps = Omit<React.ComponentProps<"div">, "onSelect"> & FioriMoveHandlers & {
   /** "scroll" (default): columns keep their width and the table scrolls horizontally. "popin": columns that don't fit move into the row as "label: value". */
   overflowMode?: "scroll" | "popin"
   selectionMode?: "none" | "single" | "multi"
@@ -214,6 +216,8 @@ function Table({
   growingSubtext,
   onLoadMore,
   onRowClick,
+  onMoveOver,
+  onMove,
   virtualRows,
   gridRef,
   texts: textsProp,
@@ -227,6 +231,12 @@ function Table({
   onClick,
   onFocus,
   onPointerDown,
+  onDragStart,
+  onDragEnd,
+  onDragEnter,
+  onDragLeave,
+  onDragOver,
+  onDrop,
   ...props
 }: TableProps) {
   const texts = React.useMemo(() => ({ ...defaultTableTexts, ...textsProp }), [textsProp])
@@ -244,6 +254,25 @@ function Table({
     },
     [gridRef]
   )
+
+  const dragAndDrop = useFioriDragAndDrop({
+    rootRef,
+    kind: "table",
+    // TableDragAndDrop._ondragover scans Table.rows, including group rows in the default slot.
+    getItems: () => [...(gridEl.current?.querySelectorAll<HTMLElement>('[data-slot="table-row"], [data-slot="table-group-row"]') ?? [])].filter((row) => row.closest("[data-table-grid]") === gridEl.current),
+    onMoveOver,
+    onMove,
+    dragHandlers: { onDragStart, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDrop },
+    focusSource: (source) => {
+      // UI5 handleDrop.js calls source.focus(); TableRowBase.focus first sets tabindex=-1.
+      // Reuse TableNavigation focus for this grid's rows; nested and cross-container sources keep their own focus.
+      if (isNavRow(source)) {
+        if (source.closest("[data-table-grid]") === gridEl.current) return focusElement(source)
+        source.setAttribute("tabindex", "-1")
+      }
+      source.focus()
+    },
+  })
 
   // Children: the header row plus body rows (each body row learns its order / alternation).
   const all = flatChildren(children)
@@ -627,6 +656,8 @@ function Table({
     }
     if (!grid.contains(origin)) return
     if (busy) return
+    // UI5 2.28 TableDragAndDrop has no _onkeydown: movable rows retain TableNavigation focus semantics.
+    // Keyboard data reordering is supported by List._moveItem, not by ui5-table.
     const g = getGrid()
     const items = g.flat()
     if (!isFromCurrentItem(e) && items.includes(origin)) setCurrent(origin, g)
@@ -943,6 +974,7 @@ function Table({
         onClick={handleClick}
         onFocus={handleFocus}
         onPointerDown={handlePointerDown}
+        {...dragAndDrop.handlers}
         {...props}
       >
         {/* Focus sentinels (UI5's #before/#after): tabbing onto them moves focus to the current row/cell. */}
@@ -988,6 +1020,7 @@ function Table({
             <BusyIndicator active delay={0} className="fiori-table__loading" />
           )}
         </div>
+        {dragAndDrop.indicator}
         <div ref={afterRef} tabIndex={0} className="fiori-table__sentinel" data-table-sentinel="" />
         {showGrowingButton && (
           <div
@@ -1249,6 +1282,8 @@ type TableRowProps = React.ComponentProps<"div"> & {
   rowKey?: string
   /** The row reacts to press (hover/active styles, `onRowClick`). */
   interactive?: boolean
+  /** Allows mouse dragging; the container only emits move-over/move, leaving data order to the caller. */
+  movable?: boolean
   /** Shows the navigated indicator at the row end. */
   navigated?: boolean
   /** Status bar at the row start (sap.m list/table highlight). */
@@ -1259,7 +1294,7 @@ type TableRowProps = React.ComponentProps<"div"> & {
   position?: number
 }
 
-function TableRow({ rowKey, interactive = false, navigated = false, highlight = "none", actions, position, className, children, ...props }: TableRowProps) {
+function TableRow({ rowKey, interactive = false, movable = false, navigated = false, highlight = "none", actions, position, className, children, ...props }: TableRowProps) {
   const ctx = useTableContext("TableRow")
   const { order, alternate, first, last } = React.useContext(RowPlacementContext)
   const id = React.useId()
@@ -1289,6 +1324,8 @@ function TableRow({ rowKey, interactive = false, navigated = false, highlight = 
       aria-rowindex={(position ?? order) + 2}
       aria-selected={selectable ? selected : undefined}
       data-slot="table-row"
+      data-movable={movable ? "" : undefined}
+      draggable={movable}
       data-table-nav-row=""
       data-row-key={rowKey}
       data-position={position}

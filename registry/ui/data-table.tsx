@@ -83,6 +83,10 @@ type DataTableProps<TData extends RowData> = Omit<TableProps, "children" | "virt
   /** Row actions per row (TableRowAction / TableRowActionNavigation elements). */
   rowActions?: (row: TData) => React.ReactNode
   interactiveRows?: boolean
+  /** Row movability. onMoveOver/onMove are passed to Table; callers reorder their data.
+   * Like UI5 TableDragAndDrop._ondragover + TableVirtualizer, destinations are mounted rows only.
+   * Dragging does not materialize unseen data; scroll to render another destination. */
+  rowMovable?: boolean | ((row: TData) => boolean)
   /** Render only the rows in view. Needs a fixed `rowHeight` (px) and a height (`virtualHeight` or className). */
   virtualize?: boolean
   rowHeight?: number
@@ -104,6 +108,7 @@ function DataTable<TData extends RowData>({
   rowNavigated,
   rowActions,
   interactiveRows,
+  rowMovable,
   virtualize = false,
   rowHeight = 45,
   virtualHeight,
@@ -184,6 +189,7 @@ function DataTable<TData extends RowData>({
             rowKey={row.id}
             position={position}
             interactive={interactiveRows}
+            movable={typeof rowMovable === "function" ? rowMovable(row.original) : rowMovable}
             highlight={rowHighlight?.(row.original)}
             navigated={rowNavigated?.(row.original)}
             actions={rowActions?.(row.original)}

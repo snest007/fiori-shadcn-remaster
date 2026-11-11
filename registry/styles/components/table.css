@@ -405,3 +405,46 @@
   overflow: auto;
   height: var(--fiori-x-table-height, 100%);
 }
+
+/* UI5 DropIndicator.css: literal geometry has no theme parameter; color follows SAP's DnD token.
+   Shared with List via fiori-drag-and-drop.ts (all component CSS ships in fiori-theme). */
+.fiori-drop-indicator {
+  position: absolute;
+  pointer-events: none;
+  z-index: 99;
+  margin-top: -.0625rem;
+}
+.fiori-drop-indicator[data-placement="Before"][data-first] { margin-top: .3125rem; }
+.fiori-drop-indicator[data-placement="After"][data-last] { margin-top: -.3125rem; }
+.fiori-drop-indicator__needle {
+  height: .125rem;
+  width: 100%;
+  inset-inline: 0;
+  background: var(--sapContent_DragAndDropActiveColor);
+}
+.fiori-drop-indicator__needle::before {
+  /* UI5 shadow DOM keeps browser content-box sizing; neutralize Tailwind preflight here. */
+  box-sizing: content-box;
+  top: -.1875rem;
+  content: "";
+  position: absolute;
+  width: .25rem;
+  height: .25rem;
+  border-radius: .25rem;
+  border: .125rem solid var(--sapContent_DragAndDropActiveColor);
+  /* DropIndicator.css fixes its hollow handle to white in every theme. */
+  background-color: white;
+  pointer-events: none;
+}
+.fiori-drop-indicator__rect {
+  border: .125rem solid var(--sapContent_DragAndDropActiveColor);
+  position: absolute;
+  inset: 0;
+}
+.fiori-drop-indicator__rect::before {
+  content: " ";
+  position: absolute;
+  inset: 0;
+  background: var(--sapContent_DragAndDropActiveColor);
+  opacity: .05;
+}
