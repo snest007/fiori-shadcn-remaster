@@ -62,11 +62,14 @@ type ColorPaletteProps = React.ComponentProps<"div"> & {
   popupMode?: boolean
 }
 
-function itemChildren(children: React.ReactNode): React.ReactElement<ColorPaletteItemProps>[] {
+function itemChildren(children: React.ReactNode, path: string[] = []): React.ReactElement<ColorPaletteItemProps>[] {
   return React.Children.toArray(children).flatMap((child) => {
     if (!React.isValidElement(child)) return []
-    if (child.type === React.Fragment) return itemChildren((child.props as { children?: React.ReactNode }).children)
-    return child.type === ColorPaletteItem ? [child as React.ReactElement<ColorPaletteItemProps>] : []
+    const itemPath = [...path, String(child.key)]
+    if (child.type === React.Fragment) return itemChildren((child.props as { children?: React.ReactNode }).children, itemPath)
+    // ColorPalette.js _ensureSingleSelectionOrDeselectAll uses distinct physical item identities.
+    // Retain the complete Fragment path: sibling Fragments each start their local keys at ".0".
+    return child.type === ColorPaletteItem ? [React.cloneElement(child as React.ReactElement<ColorPaletteItemProps>, { key: JSON.stringify(itemPath) })] : []
   })
 }
 

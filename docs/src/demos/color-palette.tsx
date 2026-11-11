@@ -27,6 +27,14 @@ function ColorPaletteDemo() {
       <ColorPaletteItem value="red" selected /><ColorPaletteItem value="red" selected />
       <ColorPaletteItem value="" /><ColorPaletteItem value="#ff0000" onClick={(event) => event.preventDefault()} tooltip="Canceled click" />
     </ColorPalette>
+    <ColorPalette id="color-palette-fragments" onItemClick={({ color }) => setEvents((history) => [...history, color])}>
+      <React.Fragment key="first">
+        <ColorPaletteItem value="red" selected /><ColorPaletteItem value="green" />
+      </React.Fragment>
+      <React.Fragment key="second">
+        <ColorPaletteItem value="red" selected /><ColorPaletteItem value="blue" />
+      </React.Fragment>
+    </ColorPalette>
   </div>
 }
 

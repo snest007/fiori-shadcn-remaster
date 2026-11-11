@@ -171,3 +171,21 @@ test("color-palette: mouse focus has no keyboard ring", async ({ page }) => {
   await expect(swatches(control(page)).nth(1)).toBeFocused()
   expect(await swatches(control(page)).nth(1).evaluate((node) => getComputedStyle(node, "::before").content)).not.toBe("none")
 })
+
+test("color-palette: sibling Fragments keep equal colors as separate selectable items", async ({ page }) => {
+  const root = page.locator("#color-palette-demo #color-palette-fragments"), main = swatches(root)
+  await expect(main).toHaveCount(4)
+  await expect(root.locator('[aria-pressed="true"]')).toHaveCount(1)
+  await expect(main.nth(0)).toHaveAttribute("aria-pressed", "false")
+  await expect(main.nth(2)).toHaveAttribute("aria-pressed", "true")
+  await main.nth(0).click()
+  await expect(events(page)).toHaveText('["red"]') // Parent rerender also preserves the clicked identity.
+  await expect(root.locator('[aria-pressed="true"]')).toHaveCount(1)
+  await expect(main.nth(0)).toHaveAttribute("aria-pressed", "true")
+  await expect(main.nth(2)).toHaveAttribute("aria-pressed", "false")
+  await main.nth(2).click()
+  await expect(events(page)).toHaveText('["red","red"]')
+  await expect(root.locator('[aria-pressed="true"]')).toHaveCount(1)
+  await expect(main.nth(0)).toHaveAttribute("aria-pressed", "false")
+  await expect(main.nth(2)).toHaveAttribute("aria-pressed", "true")
+})
