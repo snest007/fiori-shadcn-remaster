@@ -37,7 +37,9 @@ test("color-palette-popover: initial focus, no late theft, Escape and opener res
   await expect(opener(page)).toBeFocused()
   await expect(events(page)).toHaveText("[]")
   await demo(page).locator("#color-palette-popover-default-toggle").click()
-  await open(page); await expect(main(page).nth(0)).toBeFocused()
+  // Escape preserves the delegate's current roving tab stop; hiding the default does not reset it.
+  await open(page); await expect(main(page).nth(1)).toBeFocused()
+  await pressTo(page, "ArrowRight", main(page).nth(2))
 })
 
 test("color-palette-popover: selection closes and reopens at selected item with retained history", async ({ page }) => {

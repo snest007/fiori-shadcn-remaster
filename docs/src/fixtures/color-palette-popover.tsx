@@ -11,7 +11,7 @@ export default defineFixtures<{ recent?: boolean; defaultButton?: boolean }>({
     { id: "color-palette-popover", props: {} },
     { id: "color-palette-popover-default-recent", props: { recent: true, defaultButton: true } },
   ],
-  react: ({ recent, defaultButton }) => <div className={inPlace}>
+  react: ({ recent, defaultButton }) => <div className={inPlace} style={{ fontSize: "1rem" }}>
     <ColorPalettePopover open portal={false} showRecentColors={recent} showDefaultColor={defaultButton} defaultColor="#003366"
       contentProps={{ onOpenAutoFocus: (event) => event.preventDefault(), onCloseAutoFocus: (event) => event.preventDefault() }}>
       {paletteColors.map((value) => <ColorPaletteItem key={value} value={value} />)}

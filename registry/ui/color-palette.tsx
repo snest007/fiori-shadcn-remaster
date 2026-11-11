@@ -237,7 +237,7 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
     <div data-slot="color-palette" data-popup-mode={popupMode ? "" : undefined} ref={setRoot} className={cn("fiori-color-palette", className)} {...props}>
       <div className="fiori-color-palette__root">
         {showDefaultColor && <div className="fiori-color-palette__default-wrapper">
-          <Button ref={defaultRef} variant="transparent" className="fiori-color-palette__default" onClick={chooseDefault}
+          <Button ref={defaultRef} variant="transparent" className="fiori-color-palette__default h-(--fiori-color-palette-button-height) border-0 rounded-none p-[.0625rem]" onClick={chooseDefault}
             onKeyDown={(event) => {
               if (!isPlain(event)) return
               const key = event.key

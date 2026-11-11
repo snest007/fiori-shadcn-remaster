@@ -54,10 +54,11 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
           const target = previousFocus.current?.isConnected ? previousFocus.current : resolveOpener()
           target?.focus()
         }}>
-        <ColorPalette {...paletteProps} ref={paletteRef} popupMode onItemClick={(detail) => {
+        {/* ColorPalettePopoverTemplate.js wraps the inline-block palette in an ordinary div. */}
+        <div><ColorPalette {...paletteProps} ref={paletteRef} popupMode onItemClick={(detail) => {
           changeOpen(false)
           paletteProps.onItemClick?.(detail)
-        }} />
+        }} /></div>
       </PopoverContent>
     </Popover>
   )

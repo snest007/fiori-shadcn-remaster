@@ -16,10 +16,15 @@ export default defineUi5(set, ({ recent, defaultButton }) => {
   // The closed native ResponsivePopover already contains the palette. Keep it in its own cell,
   // using only display/position overrides; no opening/focus side effects can dismiss another fixture.
   frame.fixtureReady = (async () => {
-    await renderFinished()
-    const popup = host.shadowRoot?.querySelector<HTMLElement>("ui5-responsive-popover")
-    if (!popup) throw new Error("color-palette-popover: native surface missing")
-    placeInPlace(popup)
+    await customElements.whenDefined(host.localName)
+    // As in showShadowPopupInPlace, nondefault theme styles can delay the first shadow render.
+    for (let frame = 0; frame <= 100; frame++) {
+      await renderFinished()
+      const popup = host.shadowRoot?.querySelector<HTMLElement>("ui5-responsive-popover")
+      if (popup) { placeInPlace(popup); return }
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    }
+    throw new Error("color-palette-popover: native surface missing")
   })()
   return frame
 })

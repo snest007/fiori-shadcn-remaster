@@ -1,3 +1,5 @@
 /* ColorPalettePopoverTemplate.js hides the arrow/header/footer on desktop and removes content padding. */
 .fiori-color-palette-popover { min-width: 0; }
+/* UI5's popup has no font-size declaration; the palette and its inline wrapper inherit ambient text. */
+.fiori-popup.fiori-color-palette-popover { font-size: inherit; }
 .fiori-color-palette-popover .fiori-popup__root { overflow: visible; }
