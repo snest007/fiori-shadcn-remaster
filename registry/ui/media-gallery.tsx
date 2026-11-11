@@ -295,7 +295,8 @@ function MediaGallery({
           <ul role="listbox" aria-label={accessibleName}>
             {/* MediaGalleryTemplate.js wraps MediaGalleryItemTemplate's focusable button in
                 an option. Keep the native focus element/keyboard path, but put option semantics
-                on that element so there is one interactive control, not an option/button nest.
+                on that element: Axe nested-interactive rejects the native option/button nest.
+                This changes semantic placement only, keeping geometry and callback timing.
                 A hidden item's host stays hidden while its original navigation slot is retained. */}
             {visibleItems.map((item) => <li key={item.key} className="fiori-media-gallery__thumbnail" role="presentation"
               onClick={() => selectItem(item.key)}>

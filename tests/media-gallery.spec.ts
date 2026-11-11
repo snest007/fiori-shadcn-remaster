@@ -13,6 +13,7 @@ test("media gallery selects by click, ignores disabled and duplicate selections,
   const root = gallery(page)
   await expect(root.getByRole("listbox", { name: "Product pictures" })).toBeVisible()
   await expect(root.getByRole("option")).toHaveCount(5)
+  await expect(root.getByRole("option", { name: "Product thumbnail 0" })).toHaveAttribute("aria-checked", "true")
   await expect(root.getByRole("option").nth(1)).toHaveAttribute("aria-disabled", "true")
   await expect(root.getByRole("option").locator("button,[tabindex]")).toHaveCount(0)
   await expect(thumbnails(root)).toHaveCount(4)
