@@ -3,8 +3,10 @@ import { createPortal } from "react-dom"
 
 import { Button } from "@/components/ui/button"
 import { ColorPaletteItem } from "@/components/ui/color-palette"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ComboBox, ComboBoxItem } from "@/components/ui/combobox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ColorPalettePopover } from "@/components/ui/color-palette-popover"
 import { paletteColors } from "../fixtures/color-palette"
 import { defineDemo } from "./types"
@@ -153,72 +155,41 @@ function RetainedShadowOpenerExample() {
   </div>
 }
 
-function NativeBoundaryExample() {
-  const [open, setOpen] = React.useState(false)
-  const [secondOpen, setSecondOpen] = React.useState(false)
+function LayerExample() {
   const [dialogOpen, setDialogOpen] = React.useState(false)
-  const [popoverOpen, setPopoverOpen] = React.useState(false)
+  const [paletteOpen, setPaletteOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(true)
   const [retained, setRetained] = React.useState(false)
-  const [portal, setPortal] = React.useState(false)
-  const [cancelFocus, setCancelFocus] = React.useState(false)
-  const [focusCanceled, setFocusCanceled] = React.useState(false)
-  const [escapeMode, setEscapeMode] = React.useState("none")
-  const [geometry, setGeometry] = React.useState(false)
-  const [collision, setCollision] = React.useState(false)
-  const [placement, setPlacement] = React.useState<"Bottom" | "Top" | "Start" | "End">("Bottom")
+  const [cancelEscape, setCancelEscape] = React.useState(false)
+  const [popoverOpen, setPopoverOpen] = React.useState(false)
   const [events, setEvents] = React.useState<string[]>([])
-  const [shadow, setShadow] = React.useState<ShadowRoot | null>(null)
-  const opener = React.useRef<HTMLButtonElement | null>(null), secondOpener = React.useRef<HTMLButtonElement | null>(null)
-  const boundary = React.useRef<HTMLDivElement | null>(null)
-  const hostRef = React.useCallback((node: HTMLDivElement | null) => { if (node) setShadow(node.shadowRoot ?? node.attachShadow({ mode: "open" })) }, [])
-  const log = (value: string) => setEvents((history) => [...history, value])
-  return <Popover open={popoverOpen} onOpenChange={setPopoverOpen}><div id="color-palette-popover-boundary-example">
-    <Button id="color-palette-popover-boundary-opener" ref={opener} onClick={() => setOpen(true)}>Open native boundary palette</Button>
-    <Button id="color-palette-popover-boundary-second-opener" ref={secondOpener} onClick={() => setSecondOpen(true)}>Open newer palette</Button>
-    <Button id="color-palette-popover-boundary-dialog-opener" onClick={() => setDialogOpen(true)}>Open newer dialog</Button>
-    <PopoverTrigger asChild><Button id="color-palette-popover-boundary-popover-opener"><span id="color-palette-popover-boundary-popover-label">Open newer popover</span></Button></PopoverTrigger>
-    <label><input id="color-palette-popover-boundary-retained" type="checkbox" checked={retained} onChange={(event) => setRetained(event.target.checked)} />Retain native surface</label>
-    <label><input id="color-palette-popover-boundary-portal" type="checkbox" checked={portal} onChange={(event) => setPortal(event.target.checked)} />Portal native surface</label>
-    <label><input id="color-palette-popover-boundary-cancel-open-focus" type="checkbox" checked={cancelFocus} onChange={(event) => setCancelFocus(event.target.checked)} />Cancel opening autofocus</label>
-    <label><input id="color-palette-popover-boundary-cancel-outside-focus" type="checkbox" checked={focusCanceled} onChange={(event) => setFocusCanceled(event.target.checked)} />Cancel outside focus callback</label>
-    <label><input id="color-palette-popover-boundary-geometry" type="checkbox" checked={geometry} onChange={(event) => setGeometry(event.target.checked)} />Use large caller geometry</label>
-    <label><input id="color-palette-popover-boundary-collision" type="checkbox" checked={collision} onChange={(event) => setCollision(event.target.checked)} />Use caller collision boundary</label>
-    <select id="color-palette-popover-boundary-placement" aria-label="Boundary placement" value={placement} onChange={(event) => setPlacement(event.target.value as typeof placement)}>
-      {["Bottom", "Top", "Start", "End"].map((value) => <option key={value}>{value}</option>)}
-    </select>
-    <select id="color-palette-popover-boundary-escape" aria-label="Escape handler" value={escapeMode} onChange={(event) => setEscapeMode(event.target.value)}>
-      {["none", "itemPrevent", "itemStop", "contentPrevent", "contentStop", "marked"].map((value) => <option key={value}>{value}</option>)}
-    </select>
-    <input id="color-palette-popover-boundary-outside" aria-label="Outside palette focus" />
-    <div id="color-palette-popover-boundary-shadow-host" ref={hostRef} />
-    {shadow && createPortal(<input id="color-palette-popover-boundary-prior" aria-label="Deep prior focus" />, shadow)}
-    <iframe id="color-palette-popover-boundary-frame" title="Outside frame focus" srcDoc='<input id="frame-focus" aria-label="Frame focus" />' />
-    <div id="color-palette-popover-boundary-collision-box" ref={boundary} />
-    <ColorPalettePopover id="color-palette-popover-boundary-surface" open={open} opener={opener} onOpenChange={(next) => { setOpen(next); log(`open:${next}`) }}
-      portal={portal} placement={placement} showDefaultColor contentProps={{ forceMount: retained || undefined,
-        style: geometry ? { width: 320, height: 320 } : undefined, collisionBoundary: collision ? boundary.current : undefined,
-        collisionPadding: collision ? { top: 12, bottom: 18, left: 14, right: 16 } : undefined,
-        onOpenAutoFocus: (event) => { log("autofocus:open"); if (cancelFocus) event.preventDefault() }, onCloseAutoFocus: () => log("autofocus:close"),
-        onPointerDownOutside: (event) => log(`outside:pointer:${event.defaultPrevented}`),
-        onFocusOutside: (event) => { if (focusCanceled) event.preventDefault(); log(`outside:focus:${event.defaultPrevented}`) },
-        onInteractOutside: (event) => log(`outside:interact:${event.defaultPrevented}`),
-        onEscapeKeyDown: (event) => { log(`escape:${event.defaultPrevented}:${event.target instanceof HTMLElement ? event.target.id : ""}`); if (escapeMode === "contentPrevent") event.preventDefault(); if (escapeMode === "contentStop") event.stopPropagation() } }}>
-      {paletteColors.map((value, index) => <ColorPaletteItem id={`color-palette-popover-boundary-item-${index}`} key={value} value={value} onKeyDown={(event) => {
-        if (event.key !== "Escape") return
-        log(`item:${event.defaultPrevented}`)
-        if (escapeMode === "itemPrevent") event.preventDefault()
-        if (escapeMode === "itemStop") event.stopPropagation()
-        if (escapeMode === "marked") (event.nativeEvent as KeyboardEvent & { _sapui_handledByControl?: boolean })._sapui_handledByControl = true
-      }} />)}
-    </ColorPalettePopover>
-    <ColorPalettePopover id="color-palette-popover-boundary-second" opener={secondOpener} open={secondOpen} onOpenChange={setSecondOpen} portal={portal}
-      contentProps={{ forceMount: retained || undefined }}><ColorPaletteItem value="red" /><ColorPaletteItem value="blue" /></ColorPalettePopover>
-    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}><DialogContent id="color-palette-popover-boundary-dialog" aria-describedby={undefined}>
-      <DialogHeader><DialogTitle>Boundary dialog</DialogTitle></DialogHeader><input id="color-palette-popover-boundary-dialog-input" aria-label="Dialog focus" />
-    </DialogContent></Dialog>
-    <PopoverContent data-testid="color-palette-popover-boundary-popover" aria-label="Boundary popover"><input aria-label="Popover focus" /></PopoverContent>
-    <output id="color-palette-popover-boundary-state">{JSON.stringify({ open, secondOpen, dialogOpen, popoverOpen, events })}</output>
-  </div></Popover>
+  const opener = React.useRef<HTMLButtonElement | null>(null)
+  return <div id="color-palette-popover-layers-example">
+    <label><input id="color-palette-popover-layers-retained" type="checkbox" checked={retained} onChange={(event) => setRetained(event.target.checked)} />Keep palette history</label>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <DialogTrigger asChild><Button id="color-palette-popover-layers-dialog-opener">Choose dialog colors</Button></DialogTrigger>
+      <DialogContent id="color-palette-popover-layers-dialog" aria-describedby={undefined}>
+        <DialogHeader><DialogTitle>Dialog color settings</DialogTitle></DialogHeader>
+        <Button id="color-palette-popover-layers-opener" ref={opener} onClick={() => setPaletteOpen(true)}>Choose nested color</Button>
+        <Button id="color-palette-popover-layers-unmount" onClick={() => setMounted(!mounted)}>Toggle color chooser</Button>
+        <label><input id="color-palette-popover-layers-cancel-escape" type="checkbox" checked={cancelEscape} onChange={(event) => setCancelEscape(event.target.checked)} />Keep chooser open on Escape</label>
+        {mounted && <ColorPalettePopover id="color-palette-popover-layers-palette" opener={opener} open={paletteOpen} onOpenChange={setPaletteOpen}
+          showRecentColors contentProps={{ forceMount: retained || undefined, onEscapeKeyDown: (event) => { if (cancelEscape) event.preventDefault() } }}
+          onItemClick={({ color }) => setEvents((history) => [...history, color])}>
+          <ColorPaletteItem value="red" /><ColorPaletteItem value="blue" />
+        </ColorPalettePopover>}
+        <Select defaultValue="de"><SelectTrigger id="color-palette-popover-layers-select" aria-label="Dialog country"><SelectValue /></SelectTrigger>
+          <SelectContent data-testid="color-palette-popover-layers-select-list"><SelectItem value="de">Germany</SelectItem><SelectItem value="jp">Japan</SelectItem></SelectContent>
+        </Select>
+        <ComboBox id="color-palette-popover-layers-combo" aria-label="Dialog city" defaultValue="Berlin"><ComboBoxItem text="Berlin" /><ComboBoxItem text="Tokyo" /></ComboBox>
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <PopoverTrigger asChild><Button id="color-palette-popover-layers-popover-opener">Open color explanation</Button></PopoverTrigger>
+          <PopoverContent id="color-palette-popover-layers-popover" aria-label="Color explanation"><input aria-label="Color note" /></PopoverContent>
+        </Popover>
+        <output id="color-palette-popover-layers-state">{JSON.stringify({ paletteOpen, mounted, events })}</output>
+      </DialogContent>
+    </Dialog>
+  </div>
 }
 
 function ColorPalettePopoverDemo() {
@@ -240,7 +211,7 @@ function ColorPalettePopoverDemo() {
     </ColorPalettePopover>
     <span id="color-palette-popover-name-label">{" Popup target "}</span><span id="color-palette-popover-empty-label" />
     <output id="color-palette-popover-events">{JSON.stringify(events)}</output>
-    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample /><ForceMountExample /><RetainedShadowOpenerExample /><NativeBoundaryExample />
+    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample /><ForceMountExample /><RetainedShadowOpenerExample /><LayerExample />
   </div>
 }
 

@@ -1,6 +1,5 @@
 {
   "title": "ColorPalettePopover",
   "description": "Fiori color palette popover with external opener, selection dismissal and persistent local palette history.",
-  "dependencies": ["radix-ui"],
   "registryDependencies": ["@fiori/color-palette", "@fiori/popover"]
 }

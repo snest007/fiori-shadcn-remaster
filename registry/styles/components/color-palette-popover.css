@@ -1,13 +1,7 @@
 /* ColorPalettePopoverTemplate.js hides arrow/header/footer on desktop and removes content padding. */
-.fiori-color-palette-popover { min-width: 0; }
+.fiori-color-palette-popover { max-width: var(--radix-popover-content-available-width); }
 /* UI5's popup has no font-size declaration; its palette inherits ambient text. */
 .fiori-popup.fiori-color-palette-popover { font-size: inherit; }
-/* Popup.css.js resets the browser's manual-popover host; closed DOM owns no keyboard/pointer layer. */
-.fiori-color-palette-popover[data-native-palette] {
-  position: fixed; inset: auto; margin: 0; padding: 0; border: none; pointer-events: auto;
-  max-height: var(--radix-popover-content-available-height);
-  max-width: var(--radix-popover-content-available-width);
-}
 /* Popover.calcPlacement -> styles:719-725 caps the root; PopupsCommon.css.js scrolls only its content. */
 .fiori-color-palette-popover .fiori-popup__root {
   max-height: var(--radix-popover-content-available-height);
