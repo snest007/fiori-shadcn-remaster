@@ -74,7 +74,9 @@
   background-color: var(--sapButton_Selected_Hover_Background);
   color: var(--sapButton_Selected_TextColor);
 }
-.fiori-segmented-button__item:not([data-disabled]):active {
+/* SegmentedButton.css.js gives its slotted :active rule the same specificity as
+   selected:hover, so the later active background wins while the pointer is held. */
+.fiori-segmented-button__item[data-state]:not([data-disabled]):active {
   background-color: var(--sapButton_Active_Background);
 }
 .fiori-segmented-button__item[data-disabled] {
