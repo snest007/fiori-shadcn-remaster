@@ -127,11 +127,11 @@ function DialogContent({ className, children, state = "none", portal = true, dra
     } else if (ref) ref.current = node
   }, [movable, portal, ref, updateGeometry])
   React.useLayoutEffect(() => {
-    // Popup.js onEnterDOM uses Device.isDesktop(): touch phones/tablets are excluded, except
-    // Windows 8+ hybrid desktops. A narrow non-touch browser remains desktop in UI5 2.28.
-    const windowsVersion = navigator.userAgent.match(/Windows NT (\d+\.\d)/)
+    // Device.js isWindows8OrAbove parses the NT MAJOR and compares >= 8, so touch NT 6.2/6.3
+    // remain non-desktop in UI5 2.28. A narrow non-touch browser still counts as desktop.
+    const windowsVersion = navigator.userAgent.match(/Windows NT (\d+).(\d)/)
     setDesktop(!("ontouchstart" in window || navigator.maxTouchPoints > 0)
-      || Boolean(navigator.platform.includes("Win") && windowsVersion && Number.parseFloat(windowsVersion[1]) >= 6.2))
+      || Boolean(navigator.platform.includes("Win") && windowsVersion && Number.parseFloat(windowsVersion[1]) >= 8))
   }, [])
   React.useLayoutEffect(() => {
     if (!open) {
