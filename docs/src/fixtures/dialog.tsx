@@ -4,7 +4,7 @@ import type { ValueState } from "@/components/ui/input"
 
 import { defineFixtures } from "../fixture-types"
 
-type Props = { state?: ValueState; footer?: boolean }
+type Props = { state?: ValueState; footer?: boolean; draggable?: boolean; resizable?: boolean; rtl?: boolean }
 const states = ["negative", "critical", "positive", "information"] as const
 
 // Overlays are pixel-compared as their surface, rendered in place: the dialog is open but non-modal
@@ -15,12 +15,15 @@ export default defineFixtures<Props>({
   cases: [
     { id: "dialog", props: { footer: true } },
     { id: "dialog-no-footer", props: {} },
+    { id: "dialog-draggable", props: { footer: true, draggable: true } },
+    { id: "dialog-resizable", props: { footer: true, resizable: true } },
+    { id: "dialog-resizable-rtl", props: { footer: true, resizable: true, rtl: true } },
     ...states.map((state) => ({ id: `dialog-${state}`, props: { state, footer: true } })),
   ],
-  react: ({ state, footer }) => (
-    <div className="overflow-hidden p-3">
+  react: ({ state, footer, draggable, resizable, rtl }) => (
+    <div className="overflow-hidden p-3" dir={rtl ? "rtl" : undefined}>
       <Dialog open modal={false}>
-        <DialogContent portal={false} state={state} onOpenAutoFocus={(e) => e.preventDefault()}>
+        <DialogContent portal={false} state={state} draggable={draggable} resizable={resizable} onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
             <DialogTitle>Dialog title</DialogTitle>
           </DialogHeader>
