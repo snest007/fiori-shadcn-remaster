@@ -66,7 +66,8 @@ const dismissOnMouseDown = (event: MouseEvent) => {
     if (!popup) {
       // PopoverRegistry.clickHandler:56-76 stops at a newer Dialog, or a hit inside a newer Popover.
       // Outside a foreign Popover, its own Radix callback handles dismissal while the native loop may continue below it.
-      if (node.dataset.slot === "dialog-content" || event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) return
+      const trigger = event.composedPath().find((target): target is HTMLElement => target instanceof HTMLElement && target.dataset.slot === "popover-trigger" && target.getAttribute("aria-controls") === node.id)
+      if (node.dataset.slot === "dialog-content" || trigger || event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) return
       continue
     }
     if (popup.isOpener(event) || event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) return
@@ -227,6 +228,15 @@ function NativePaletteContent({ active, getAnchorRect, isOpener, onDismiss, onBe
           if (height > viewportHeight || y < limit.top + padding("top")) y = limit.top + padding("top")
           else if (y + height > limit.bottom - padding("bottom")) y = limit.bottom - padding("bottom") - height
         }
+      }
+      if (avoidCollisions) {
+        // Popover._show:353-363 clamps Top/Left to the viewport margin, while preserving Bottom/Right origin.
+        const clamp = (value: number, minimum: number, maximum: number) => Math.min(Math.max(value, minimum), Math.max(minimum, maximum))
+        const rawX = x, rawY = y
+        x = clamp(x, limit.left + padding("left"), limit.right - width - padding("right"))
+        y = clamp(y, limit.top + padding("top"), limit.bottom - box.height - padding("bottom"))
+        if (actualSide === "right") x = Math.max(x, rawX)
+        if (actualSide === "bottom") y = Math.max(y, rawY)
       }
       node.style.setProperty("--radix-popover-content-available-width", `${Math.max(0, Math.round(availableWidth))}px`)
       node.style.setProperty("--radix-popover-content-available-height", `${Math.max(0, Math.round(availableHeight))}px`)

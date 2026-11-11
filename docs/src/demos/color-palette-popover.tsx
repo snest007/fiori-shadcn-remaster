@@ -4,7 +4,7 @@ import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { ColorPaletteItem } from "@/components/ui/color-palette"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Popover, PopoverContent } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ColorPalettePopover } from "@/components/ui/color-palette-popover"
 import { paletteColors } from "../fixtures/color-palette"
 import { defineDemo } from "./types"
@@ -172,11 +172,11 @@ function NativeBoundaryExample() {
   const boundary = React.useRef<HTMLDivElement | null>(null)
   const hostRef = React.useCallback((node: HTMLDivElement | null) => { if (node) setShadow(node.shadowRoot ?? node.attachShadow({ mode: "open" })) }, [])
   const log = (value: string) => setEvents((history) => [...history, value])
-  return <div id="color-palette-popover-boundary-example">
+  return <Popover open={popoverOpen} onOpenChange={setPopoverOpen}><div id="color-palette-popover-boundary-example">
     <Button id="color-palette-popover-boundary-opener" ref={opener} onClick={() => setOpen(true)}>Open native boundary palette</Button>
     <Button id="color-palette-popover-boundary-second-opener" ref={secondOpener} onClick={() => setSecondOpen(true)}>Open newer palette</Button>
     <Button id="color-palette-popover-boundary-dialog-opener" onClick={() => setDialogOpen(true)}>Open newer dialog</Button>
-    <Button id="color-palette-popover-boundary-popover-opener" onClick={() => setPopoverOpen(true)}>Open newer popover</Button>
+    <PopoverTrigger asChild><Button id="color-palette-popover-boundary-popover-opener"><span id="color-palette-popover-boundary-popover-label">Open newer popover</span></Button></PopoverTrigger>
     <label><input id="color-palette-popover-boundary-retained" type="checkbox" checked={retained} onChange={(event) => setRetained(event.target.checked)} />Retain native surface</label>
     <label><input id="color-palette-popover-boundary-portal" type="checkbox" checked={portal} onChange={(event) => setPortal(event.target.checked)} />Portal native surface</label>
     <label><input id="color-palette-popover-boundary-cancel-open-focus" type="checkbox" checked={cancelFocus} onChange={(event) => setCancelFocus(event.target.checked)} />Cancel opening autofocus</label>
@@ -216,9 +216,9 @@ function NativeBoundaryExample() {
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}><DialogContent id="color-palette-popover-boundary-dialog" aria-describedby={undefined}>
       <DialogHeader><DialogTitle>Boundary dialog</DialogTitle></DialogHeader><input id="color-palette-popover-boundary-dialog-input" aria-label="Dialog focus" />
     </DialogContent></Dialog>
-    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}><PopoverContent id="color-palette-popover-boundary-popover" aria-label="Boundary popover"><input aria-label="Popover focus" /></PopoverContent></Popover>
+    <PopoverContent data-testid="color-palette-popover-boundary-popover" aria-label="Boundary popover"><input aria-label="Popover focus" /></PopoverContent>
     <output id="color-palette-popover-boundary-state">{JSON.stringify({ open, secondOpen, dialogOpen, popoverOpen, events })}</output>
-  </div>
+  </div></Popover>
 }
 
 function ColorPalettePopoverDemo() {

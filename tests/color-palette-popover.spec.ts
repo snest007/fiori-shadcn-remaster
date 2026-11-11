@@ -504,7 +504,7 @@ for (const retained of [false, true]) {
     test(`color-palette-popover: ${mode} ${newer} is topmost with existing ${foreign}`, async ({ page }) => {
       const { root, popup, button } = await prepareBoundary(page, retained, true)
       const foreignOpener = root.locator(`#color-palette-popover-boundary-${foreign}-opener`)
-      const foreignSurface = page.locator(`#color-palette-popover-boundary-${foreign}`)
+      const foreignSurface = foreign === "popover" ? page.getByTestId("color-palette-popover-boundary-popover") : page.locator("#color-palette-popover-boundary-dialog")
       if (newer === "foreign") {
         await button.click(); await expect(popup).toBeVisible()
         await foreignOpener.evaluate((node) => (node as HTMLElement).click()); await expect(foreignSurface).toBeVisible()
@@ -522,12 +522,22 @@ for (const retained of [false, true]) {
       const { root, popup, button } = await prepareBoundary(page, retained, true)
       await button.click(); await expect(popup).toBeVisible()
       await root.locator(`#color-palette-popover-boundary-${foreign}-opener`).evaluate((node) => (node as HTMLElement).click())
-      const foreignSurface = page.locator(`#color-palette-popover-boundary-${foreign}`)
+      const foreignSurface = foreign === "popover" ? page.getByTestId("color-palette-popover-boundary-popover") : page.locator("#color-palette-popover-boundary-dialog")
       await expect(foreignSurface).toBeVisible()
       await foreignSurface.locator("input").click(); await expect(foreignSurface.locator("input")).toBeFocused()
       await expect(popup).toBeVisible(); await expect(foreignSurface).toBeVisible()
     })
   }
+  test(`color-palette-popover: ${mode} a newer real PopoverTrigger label click preserves the older palette`, async ({ page }) => {
+    const { root, popup, button } = await prepareBoundary(page, retained, true)
+    await button.click(); await expect(popup).toBeVisible()
+    const foreignTrigger = root.locator("#color-palette-popover-boundary-popover-opener")
+    await foreignTrigger.evaluate((node) => (node as HTMLElement).click())
+    const foreignSurface = page.getByTestId("color-palette-popover-boundary-popover")
+    await expect(foreignSurface).toBeVisible(); await expect(foreignTrigger).toHaveAttribute("aria-controls", await foreignSurface.getAttribute("id") as string)
+    await foreignTrigger.locator("#color-palette-popover-boundary-popover-label").click()
+    await expect(foreignSurface).toBeHidden(); await expect(popup).toBeVisible()
+  })
   for (const placement of ["Bottom", "Top", "Start", "End"] as const) {
     test(`color-palette-popover: ${mode} constrained ${placement} uses native more-room fallback and root limits`, async ({ page }) => {
       await page.setViewportSize({ width: 400, height: 420 })
@@ -543,7 +553,7 @@ for (const retained of [false, true]) {
         return { rect: node.getBoundingClientRect().toJSON(), root: root.getBoundingClientRect().toJSON(), width: parseFloat(node.style.getPropertyValue("--radix-popover-content-available-width")), height: parseFloat(node.style.getPropertyValue("--radix-popover-content-available-height")), scrollWidth: content.scrollWidth, clientWidth: content.clientWidth }
       })
       if (placement === "Bottom") { expect(sizes.rect.y).toBe(136); expect(sizes.height).toBe(274); expect(sizes.root.height).toBeLessThanOrEqual(274) }
-      if (placement === "Top") { expect(sizes.rect.y).toBe(0); expect(sizes.height).toBe(250); expect(sizes.root.height).toBeLessThanOrEqual(250) }
+      if (placement === "Top") { expect(sizes.rect.y).toBe(10); expect(sizes.height).toBe(250); expect(sizes.root.height).toBeLessThanOrEqual(250) }
       if (placement === "Start" || placement === "End") { expect(sizes.width).toBe(140); expect(sizes.root.width).toBeLessThanOrEqual(140); expect(sizes.scrollWidth).toBeGreaterThan(sizes.clientWidth) }
     })
   }
