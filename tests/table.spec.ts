@@ -301,3 +301,123 @@ test("data-table: virtualization keeps the full row count and navigates beyond t
   const row = (await g.locator('[aria-rowindex="14"]').boundingBox())!
   expect(row.y).toBeGreaterThanOrEqual(head.y + head.height - 1)
 })
+
+test("table: dragTo emits the accepted Before placement and the demo reorders data", async ({ page }) => {
+  const table = page.locator("#table-demo #table-movable")
+  const source = table.locator('[data-row-key="P0001"]')
+  const target = table.locator('[data-row-key="P0003"]')
+  await source.dragTo(target, { targetPosition: { x: 40, y: 2 } })
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("P0001 Before P0003")
+  await expect(table.locator('[data-slot="table-row"]').first()).toHaveAttribute("data-row-key", "P0002")
+  await expect(source).toBeFocused()
+})
+
+test("table: drag over the center region falls back from rejected On to After", async ({ page }) => {
+  const table = page.locator("#table-demo #table-movable")
+  const target = table.locator('[data-row-key="P0002"]')
+  const height = (await target.boundingBox())!.height
+  await table.locator('[data-row-key="P0001"]').dragTo(target, { targetPosition: { x: 40, y: height * .6 } })
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("P0001 After P0002")
+})
+
+test("table: uncanceled move-over rejects the drop; nonmovable rows do not start a drag", async ({ page }) => {
+  const table = page.locator("#table-demo #table-movable")
+  await page.locator("#table-demo #table-move-allow").click()
+  await table.locator('[data-row-key="P0001"]').dragTo(table.locator('[data-row-key="P0002"]'))
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("")
+  await page.locator("#table-demo #table-move-allow").click()
+  const fixed = table.locator('[data-row-key="P0004"]')
+  await expect(fixed).toHaveAttribute("draggable", "false")
+  await fixed.dragTo(table.locator('[data-row-key="P0002"]'))
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("")
+})
+
+test("table: accepting a move never reorders library children automatically", async ({ page }) => {
+  const table = page.locator("#table-demo #table-movable")
+  await page.locator("#table-demo #table-move-reorder").click()
+  const target = table.locator('[data-row-key="P0002"]')
+  const height = (await target.boundingBox())!.height
+  await table.locator('[data-row-key="P0001"]').dragTo(target, { targetPosition: { x: 40, y: height * .6 } })
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("P0001 After P0002")
+  await expect(table.locator('[data-slot="table-row"]').first()).toHaveAttribute("data-row-key", "P0001")
+})
+
+test("table: movable rows preserve native modifier-key focus navigation without move events", async ({ page }) => {
+  const table = page.locator("#table-demo #table-movable")
+  const first = table.locator('[data-row-key="P0001"]')
+  await focusTable(page, "table-movable")
+  await expect(first).toBeFocused()
+  await page.keyboard.press("Control+ArrowDown")
+  await expect(first).toBeFocused()
+  await page.keyboard.press("Control+End")
+  await expect(table.locator('[data-row-key="P0004"]')).toBeFocused()
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("")
+})
+
+test("data-table: rowMovable and move events pass through for mounted virtual rows", async ({ page }) => {
+  const table = page.locator("#table-demo #table-data-movable")
+  const rows = table.locator('[data-slot="table-row"]')
+  await expect(rows.first()).toHaveAttribute("draggable", "false")
+  expect(await rows.count()).toBeLessThan(15)
+  const source = table.locator('[data-row-key="P0002"]')
+  const target = table.locator('[data-row-key="P0003"]')
+  await source.dragTo(target, { targetPosition: { x: 40, y: 2 } })
+  await expect(page.locator("#table-demo #table-data-move-log")).toHaveText("P0002 Before P0003")
+  // No offscreen destination is synthesized: scrolling must mount another target, as UI5 does.
+  const g = table.locator('[data-table-grid]')
+  await g.evaluate((element) => { element.scrollTop = element.scrollHeight })
+  await expect(table.locator('[data-row-key="P0100"]')).toBeVisible()
+  const last = table.locator('[data-row-key="P0100"]')
+  const penultimate = table.locator('[data-row-key="P0099"]')
+  await last.dragTo(penultimate, { targetPosition: { x: 40, y: 2 } })
+  await expect(page.locator("#table-demo #table-data-move-log")).toHaveText("P0100 Before P0099")
+  await expect(last).toHaveAttribute("aria-rowindex", "100")
+  await expect(penultimate).toHaveAttribute("aria-rowindex", "101")
+  await expect(last).toBeFocused()
+  await expect(table.locator('[data-row-key="P0002"]')).toHaveCount(0)
+})
+
+test("table: drag-over paints its accepted line and dropping clears the indicator", async ({ page }) => {
+  const table = page.locator("#table-demo #table-movable")
+  const source = table.locator('[data-row-key="P0001"]')
+  const target = table.locator('[data-row-key="P0002"]')
+  await source.evaluate((element) => element.dispatchEvent(new DragEvent("dragstart", { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() })))
+  await target.evaluate((element) => {
+    const box = element.getBoundingClientRect()
+    element.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, clientY: box.top + 2 }))
+  })
+  const indicator = table.locator('[data-slot="drop-indicator"]')
+  await expect(indicator).toHaveAttribute("data-placement", "Before")
+  await expect(indicator.locator(".fiori-drop-indicator__needle")).toBeVisible()
+  await target.dispatchEvent("drop")
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("P0001 Before P0002")
+  await expect(indicator).toHaveCount(0)
+  await source.dispatchEvent("dragend")
+})
+
+test("table: nested draggable content retains its own source element and native originalEvent", async ({ page }) => {
+  const table = page.locator("#table-demo #table-movable")
+  await table.locator("#table-movable-nested-source").dragTo(table.locator('[data-row-key="P0002"]'), { targetPosition: { x: 40, y: 2 } })
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("table-movable-nested-source Before P0002")
+  await expect(page.locator("#table-demo #table-move-log")).toHaveAttribute("data-native-over", "true")
+  await expect(table.locator('[data-slot="table-row"]').last()).toHaveAttribute("data-row-key", "P0004")
+})
+
+test("table: the drag registry preserves sources across List and Table containers", async ({ page }) => {
+  await focusTable(page, "table-movable")
+  const previousTargetFocus = page.locator('#table-demo #table-movable [data-row-key="P0001"]')
+  await expect(previousTargetFocus).toBeFocused()
+  const source = page.locator("#list-demo #list-movable-Bananas")
+  const target = page.locator('#table-demo #table-movable [data-row-key="P0002"]')
+  await source.evaluate((element) => element.dispatchEvent(new DragEvent("dragstart", { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() })))
+  await target.evaluate((element) => {
+    const box = element.getBoundingClientRect()
+    element.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, clientY: box.top + 2 }))
+  })
+  await target.dispatchEvent("drop")
+  await expect(page.locator("#table-demo #table-move-log")).toHaveText("list-movable-Bananas Before P0002")
+  await expect(previousTargetFocus).toHaveAttribute("tabindex", "-1")
+  await expect(source).toBeFocused()
+  await source.dispatchEvent("dragend")
+  await expect(source).not.toHaveAttribute("data-moving")
+})

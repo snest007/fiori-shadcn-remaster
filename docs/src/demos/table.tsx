@@ -1,4 +1,5 @@
 import * as React from "react"
+import type { FioriMoveDetail } from "@/lib/fiori-drag-and-drop"
 
 import { DataTable, createDataTableColumnHelper } from "@/components/ui/data-table"
 import {
@@ -159,9 +160,57 @@ function DataTables() {
   )
 }
 
+function MovableTables() {
+  const [rows, setRows] = React.useState(() => makeProducts(0, 4))
+  const [data, setData] = React.useState(() => makeProducts(0, 100))
+  const [allow, setAllow] = React.useState(true)
+  const [reorder, setReorder] = React.useState(true)
+  const [log, setLog] = React.useState("")
+  const [virtualLog, setVirtualLog] = React.useState("")
+  const nativeEvent = React.useRef<Event | null>(null)
+  const [nativeOver, setNativeOver] = React.useState(false)
+  const move = (event: FioriMoveDetail, update: React.Dispatch<React.SetStateAction<Product[]>>, report: (value: string) => void) => {
+    const source = event.source.element?.dataset.rowKey ?? event.source.element?.id
+    const target = event.destination.element.dataset.rowKey
+    const placement = event.destination.placement
+    report(`${source} ${placement} ${target}`)
+    if (!reorder || !source || !target || source === target || placement === "On") return
+    update((current) => {
+      const item = current.find((row) => row.id === source)
+      if (!item) return current
+      const next = current.filter((row) => row.id !== source)
+      const index = next.findIndex((row) => row.id === target) + (placement === "After" ? 1 : 0)
+      next.splice(index, 0, item)
+      return next
+    })
+  }
+  return <div className="grid gap-2">
+    <p>Drag rows to reorder. Table modifier keys continue to move focus. Virtual drag targets are the rendered rows.</p>
+    <div className="flex gap-2">
+      <Button id="table-move-allow" aria-pressed={allow} onClick={() => setAllow(!allow)}>Accept drops</Button>
+      <Button id="table-move-reorder" aria-pressed={reorder} onClick={() => setReorder(!reorder)}>Reorder data</Button>
+    </div>
+    <Table id="table-movable" aria-label="Movable products" onDragOver={(event) => { nativeEvent.current = event.nativeEvent }} onMoveOver={(event) => {
+      setNativeOver(event.originalEvent === nativeEvent.current)
+      if (allow && event.source.element && event.destination.placement !== "On") event.preventDefault()
+    }} onMove={(event) => move(event, setRows, setLog)}>
+      <TableHeaderRow><TableHeaderCell>Product</TableHeaderCell><TableHeaderCell>Supplier</TableHeaderCell></TableHeaderRow>
+      {rows.map((row) => <TableRow key={row.id} rowKey={row.id} movable={row.id !== "P0004"}>
+        <TableCell>{row.id === "P0004" ? <span id="table-movable-nested-source" draggable>{row.name}</span> : row.name}</TableCell><TableCell>{row.supplier}</TableCell>
+      </TableRow>)}
+    </Table>
+    <span id="table-move-log" data-native-over={nativeOver}>{log}</span>
+    <DataTable id="table-data-movable" aria-label="Virtual movable products" data={data} columns={columns} getRowId={(row) => row.id}
+      rowMovable={(row) => row.id !== "P0001"} selectionMode="single" virtualize rowHeight={45} virtualHeight="12rem" overscan={0} sortTrigger="none"
+      onMoveOver={(event) => { if (event.source.element && event.destination.placement !== "On") event.preventDefault() }}
+      onMove={(event) => move(event, setData, setVirtualLog)} />
+    <span id="table-data-move-log">{virtualLog}</span>
+  </div>
+}
+
 function TableDemo() {
   return (
-    <div className="grid gap-6">
+    <div id="table-demo" className="grid gap-6">
       <SelectionTable />
       <PopinTable />
       <Table id="table-empty" aria-label="Empty" noDataText="No products found">
@@ -171,6 +220,7 @@ function TableDemo() {
         </TableHeaderRow>
       </Table>
       <DataTables />
+      <MovableTables />
     </div>
   )
 }
