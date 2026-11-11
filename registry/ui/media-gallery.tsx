@@ -63,7 +63,7 @@ function attachRef<T>(ref: React.Ref<T> | undefined, node: T) {
 }
 type Presentation = {
   thumbnailDesign?: boolean; square?: boolean; interactive?: boolean; tabIndex?: number
-  selected?: boolean; activate?: () => void
+  selected?: boolean; option?: boolean; activate?: () => void
   register?: (host: MediaGalleryItemElement | null, focus: HTMLDivElement | null) => void
 }
 
@@ -108,7 +108,11 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
       data-selected={selected || undefined} data-disabled={disabled || undefined}
       className={cn("fiori-media-gallery-item", className)}>
       <div ref={focusRef} className="fiori-media-gallery-item__root" tabIndex={disabled ? undefined : presentation.tabIndex ?? tabIndex}
-        role={interactive ? "button" : undefined}
+        role={presentation.option ? "option" : interactive ? "button" : undefined}
+        aria-checked={presentation.option ? selected : undefined}
+        aria-disabled={presentation.option && disabled || undefined}
+        aria-label={item["aria-label"]}
+        aria-labelledby={item["aria-labelledby"]}
         onKeyDown={(event) => {
           if (modified(event)) return
           // MediaGalleryItem.js: Enter selects on keydown; Space prevents scrolling here and selects on keyup.
@@ -289,15 +293,19 @@ function MediaGallery({
         </div>
         {!phone && <div className="fiori-media-gallery__thumbnails-wrapper">
           <ul role="listbox" aria-label={accessibleName}>
-            {visibleItems.map((item) => <li key={item.key} className="fiori-media-gallery__thumbnail" role="option"
-              aria-checked={item.key === selectedKey} onClick={() => selectItem(item.key)}>
-              <ItemSurface item={item.props} presentation={{ thumbnailDesign: true, interactive: true, selected: item.key === selectedKey,
+            {/* MediaGalleryTemplate.js wraps MediaGalleryItemTemplate's focusable button in
+                an option. Keep the native focus element/keyboard path, but put option semantics
+                on that element so there is one interactive control, not an option/button nest.
+                A hidden item's host stays hidden while its original navigation slot is retained. */}
+            {visibleItems.map((item) => <li key={item.key} className="fiori-media-gallery__thumbnail" role="presentation"
+              onClick={() => selectItem(item.key)}>
+              <ItemSurface item={item.props} presentation={{ option: true, thumbnailDesign: true, interactive: true, selected: item.key === selectedKey,
                 tabIndex: navigation[normalizedIndex] === item.key ? 0 : -1, activate: () => selectItem(item.key), register: register(item.key) }} />
             </li>)}
-            {overflow > 0 && <li className="fiori-media-gallery__overflow" role="option" aria-checked="false">
+            {overflow > 0 && <li className="fiori-media-gallery__overflow" role="presentation">
               {/* MediaGallery.css.js styles the ui5-button host at 4rem in both densities.
                   Inline host overrides also preserve those styles against Button's utility layer. */}
-              <Button ref={overflowRef} tabIndex={navigation[normalizedIndex] === "__overflow" ? 0 : -1} onClick={onOverflowClick}
+              <Button ref={overflowRef} role="option" aria-checked="false" tabIndex={navigation[normalizedIndex] === "__overflow" ? 0 : -1} onClick={onOverflowClick}
                 style={{ width: "4rem", height: "4rem", background: "var(--fiori-media-gallery-overflow-btn-background)",
                   color: "var(--fiori-media-gallery-overflow-btn-color)", border: "var(--fiori-media-gallery-overflow-btn-border)" }}>
                 {overflowText(overflow)}

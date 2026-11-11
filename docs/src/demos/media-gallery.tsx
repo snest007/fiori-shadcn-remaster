@@ -49,7 +49,7 @@ function MediaGalleryDemo() {
       </MediaGallery>
       <Button id="media-gallery-ref-remove" onClick={() => setMounted(false)}>Remove ref example</Button>
       <p id="media-gallery-ref-cleanups">Ref cleanups: {refCleanups}</p>
-      {mounted && <MediaGallery id="media-gallery-ref-example" ref={cleanupRef} style={{ width: 320, height: 320 }}>
+      {mounted && <MediaGallery id="media-gallery-ref-example" accessibleName="Ref cleanup pictures" ref={cleanupRef} style={{ width: 320, height: 320 }}>
         <MediaGalleryItem ref={cleanupRef}><img src={mediaImage(0)} alt="Ref example" /></MediaGalleryItem>
       </MediaGallery>}
     </div>
