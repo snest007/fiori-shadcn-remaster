@@ -12,7 +12,11 @@ async function open(page: Page) {
   await expect(surface(page)).toBeVisible()
 }
 async function focusSwatch(target: Locator) {
-  await target.dispatchEvent("mousedown")
+  // Native Popover.isClicked uses coordinates even for synthetic mousedown; hit the actual painted swatch.
+  await target.evaluate((node) => {
+    const rect = node.getBoundingClientRect()
+    node.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, composed: true, clientX: rect.x + rect.width / 2, clientY: rect.y + rect.height / 2 }))
+  })
   await expect(target).toHaveAttribute("tabindex", "0")
   await target.focus()
   await expect(target).toBeFocused()
@@ -511,6 +515,17 @@ for (const retained of [false, true]) {
         await expect(popup.getByRole("button", { name: "Default Color", exact: true })).toBeFocused()
         await page.keyboard.press("Escape"); await expect(popup).toBeHidden(); await expect(foreignSurface).toBeVisible()
       }
+    })
+  }
+  for (const foreign of ["dialog", "popover"] as const) {
+    test(`color-palette-popover: ${mode} a pointer inside newer ${foreign} leaves the older palette open`, async ({ page }) => {
+      const { root, popup, button } = await prepareBoundary(page, retained, true)
+      await button.click(); await expect(popup).toBeVisible()
+      await root.locator(`#color-palette-popover-boundary-${foreign}-opener`).evaluate((node) => (node as HTMLElement).click())
+      const foreignSurface = page.locator(`#color-palette-popover-boundary-${foreign}`)
+      await expect(foreignSurface).toBeVisible()
+      await foreignSurface.locator("input").click(); await expect(foreignSurface.locator("input")).toBeFocused()
+      await expect(popup).toBeVisible(); await expect(foreignSurface).toBeVisible()
     })
   }
   for (const placement of ["Bottom", "Top", "Start", "End"] as const) {

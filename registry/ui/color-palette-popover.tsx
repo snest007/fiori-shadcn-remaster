@@ -27,6 +27,24 @@ type PalettePopup = {
   iframeFocus: (element: HTMLElement) => void
 }
 const openedPalettes: PalettePopup[] = []
+const popupOrder: HTMLElement[] = []
+const foreignPopupSelector = '.fiori-popup[data-slot="dialog-content"],.fiori-popup[data-slot="popover-content"]'
+let foreignPopupObserver: MutationObserver | undefined
+function syncForeignPopupOrder(records: MutationRecord[] = []) {
+  // Bridge the native ordered registry to existing shared Radix surfaces without changing their own dismissal callbacks.
+  const current = new Set([...document.querySelectorAll<HTMLElement>(foreignPopupSelector)].filter((node) => node.dataset.state === "open"))
+  for (let index = popupOrder.length - 1; index >= 0; index--) {
+    const node = popupOrder[index]
+    if (!openedPalettes.some((popup) => popup.node === node) && !current.has(node)) popupOrder.splice(index, 1)
+  }
+  current.forEach((node) => { if (!popupOrder.includes(node)) popupOrder.push(node) })
+  // A closed force-mounted foreign surface can reopen with the same DOM identity; its new lifecycle moves to the top.
+  for (const record of records) if (record.type === "attributes" && record.oldValue !== "open" && record.target instanceof HTMLElement && current.has(record.target)) {
+    const index = popupOrder.indexOf(record.target)
+    if (index !== -1) popupOrder.splice(index, 1)
+    popupOrder.push(record.target)
+  }
+}
 let positionInterval: number | undefined
 let originalPointer: PointerEvent | undefined
 const repositionOpenPalettes = () => { [...openedPalettes].forEach((popup) => popup.reposition()) }
@@ -41,8 +59,16 @@ const dismissOnMouseDown = (event: MouseEvent) => {
   // PopoverRegistry.clickHandler and Popover.isClicked use the actual painted rectangle, not DOM ancestry.
   const original = originalPointer && originalPointer.target === event.target && originalPointer.clientX === event.clientX && originalPointer.clientY === event.clientY ? originalPointer : event
   originalPointer = undefined
-  for (const popup of [...openedPalettes].reverse()) {
-    const rect = popup.node.getBoundingClientRect()
+  syncForeignPopupOrder()
+  for (const node of [...popupOrder].reverse()) {
+    const popup = openedPalettes.find((popup) => popup.node === node)
+    const rect = node.getBoundingClientRect()
+    if (!popup) {
+      // PopoverRegistry.clickHandler:56-76 stops at a newer Dialog, or a hit inside a newer Popover.
+      // Outside a foreign Popover, its own Radix callback handles dismissal while the native loop may continue below it.
+      if (node.dataset.slot === "dialog-content" || event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) return
+      continue
+    }
     if (popup.isOpener(event) || event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) return
     if (!popup.pointerOutside(original)) return
   }
@@ -59,7 +85,13 @@ const dismissOnEscape = (event: KeyboardEvent) => {
   if (popup?.escape(event)) event.stopImmediatePropagation()
 }
 function registerPalettePopup(popup: PalettePopup) {
+  if (!openedPalettes.length) {
+    syncForeignPopupOrder()
+    foreignPopupObserver = new MutationObserver(syncForeignPopupOrder)
+    foreignPopupObserver.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-state"], attributeOldValue: true })
+  }
   openedPalettes.push(popup)
+  popupOrder.push(popup.node)
   popup.node.addEventListener("scroll", repositionOpenPalettes, true)
   if (openedPalettes.length === 1) {
     document.addEventListener("scroll", repositionOpenPalettes, true)
@@ -72,6 +104,8 @@ function registerPalettePopup(popup: PalettePopup) {
   return () => {
     const index = openedPalettes.indexOf(popup)
     if (index !== -1) openedPalettes.splice(index, 1)
+    const orderIndex = popupOrder.indexOf(popup.node)
+    if (orderIndex !== -1) popupOrder.splice(orderIndex, 1)
     popup.node.removeEventListener("scroll", repositionOpenPalettes, true)
     if (!openedPalettes.length) {
       document.removeEventListener("scroll", repositionOpenPalettes, true)
@@ -82,6 +116,9 @@ function registerPalettePopup(popup: PalettePopup) {
       window.clearInterval(positionInterval)
       positionInterval = undefined
       originalPointer = undefined
+      foreignPopupObserver?.disconnect()
+      foreignPopupObserver = undefined
+      popupOrder.length = 0
     }
   }
 }
