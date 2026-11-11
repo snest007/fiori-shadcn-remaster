@@ -25,8 +25,20 @@ function MultiComboBoxItem(_props: MultiComboBoxItemProps): React.ReactNode {
   return null
 }
 
-type MultiComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
+type MultiComboBoxItemGroupProps = {
+  /** Text of the nonselectable group header. An empty string omits the header. */
+  headerText: string
   /** <MultiComboBoxItem> elements (fragments and arrays are fine). */
+  children?: React.ReactNode
+}
+
+/** Declares a group of items, rendered by the MultiComboBox. */
+function MultiComboBoxItemGroup(_props: MultiComboBoxItemGroupProps): React.ReactNode {
+  return null
+}
+
+type MultiComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
+  /** <MultiComboBoxItem> and <MultiComboBoxItemGroup> elements (fragments and arrays are fine). */
   children?: React.ReactNode
   /** Values (item `value`, else `text`) of the selected items; each one shows as a token. */
   selectedValues?: string[]
@@ -89,13 +101,23 @@ const NO_AUTOCOMPLETE = new Set([
 const defaultTokensCountText = (n: number) => (n === 0 ? "No Tokens" : n === 1 ? "Contains 1 token" : `Contains ${n} tokens`)
 const defaultSelectAllText = (selected: number, total: number) => `Select All (${selected} of ${total})`
 
-function collectItems(children: React.ReactNode, out: Item[] = []) {
+type Entry = Item | { headerText: string; items: Item[] }
+const isGroup = (entry: Entry): entry is { headerText: string; items: Item[] } => "items" in entry
+
+// UI5 MultiComboBox.js/_getItems and _filterItems separate group containers from
+// selectable items. List.js/_getItems includes group headers in open navigation;
+// MultiComboBox.js/_navigateToNextItem skips them while closed. They never select.
+function collectEntries(children: React.ReactNode, out: Entry[] = []) {
   React.Children.forEach(children, (child) => {
     if (!React.isValidElement(child)) return
     if (child.type === MultiComboBoxItem) {
       const p = child.props as MultiComboBoxItemProps
       out.push({ ...p, key: p.value ?? p.text })
-    } else if (child.type === React.Fragment) collectItems((child.props as { children?: React.ReactNode }).children, out)
+    } else if (child.type === MultiComboBoxItemGroup) {
+      const p = child.props as MultiComboBoxItemGroupProps
+      const nested = collectEntries(p.children).flatMap((entry) => isGroup(entry) ? entry.items : [entry])
+      out.push({ headerText: p.headerText, items: nested })
+    } else if (child.type === React.Fragment) collectEntries((child.props as { children?: React.ReactNode }).children, out)
   })
   return out
 }
@@ -163,7 +185,8 @@ function MultiComboBox({
   "aria-label": ariaLabel,
   ...props
 }: MultiComboBoxProps) {
-  const items = collectItems(children)
+  const entries = collectEntries(children)
+  const items = entries.flatMap((entry) => isGroup(entry) ? entry.items : [entry])
   const [uncontrolledSelected, setUncontrolledSelected] = React.useState(defaultSelectedValues)
   const selectedValues = selectedProp ?? uncontrolledSelected
   const selectedSet = new Set(selectedValues)
@@ -199,6 +222,12 @@ function MultiComboBox({
   const selectedItems = items.filter((i) => selectedSet.has(i.key))
   const filtered = filtering ? items.filter((i) => filters[filter](typed, i.text)) : items
   const visible = filterSelected ? selectedItems : filtered
+  const rowsFor = (shown: Item[]) => entries.flatMap((entry): Entry[] => {
+    if (!isGroup(entry)) return shown.includes(entry) ? [entry] : []
+    const groupItems = entry.items.filter((item) => shown.includes(item))
+    return groupItems.length ? [...(entry.headerText ? [entry] : []), ...groupItems] : []
+  })
+  const visibleRows = rowsFor(visible)
   const allSelected = items.length > 0 && selectedItems.length === items.length
 
   const valueState: ValueState = alreadySelected || (invalid && !noValidation) ? "negative" : valueStateProp
@@ -252,7 +281,7 @@ function MultiComboBox({
     pendingSelection.current = null
   })
 
-  const optionEls = () => [...(listRef.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
+  const optionEls = () => [...(listRef.current?.querySelectorAll<HTMLElement>('[role="option"], [data-slot="multi-combobox-group-header"]') ?? [])]
   const focusOption = (index: number) => {
     const els = optionEls()
     const el = els[Math.max(0, Math.min(index, els.length - 1))]
@@ -283,7 +312,8 @@ function MultiComboBox({
     const match = items.findIndex((i) => i.text.localeCompare(value, undefined, { sensitivity: "base" }) === 0)
     const fromToken = focusedTokenText !== undefined ? items.findIndex((i) => i.text === focusedTokenText) : -1
     const firstSelected = items.findIndex((i) => selectedSet.has(i.key))
-    focusOnOpen.current = fromToken >= 0 ? fromToken : match >= 0 ? match : firstSelected >= 0 ? firstSelected : 0
+    const itemIndex = fromToken >= 0 ? fromToken : match >= 0 ? match : firstSelected >= 0 ? firstSelected : 0
+    focusOnOpen.current = rowsFor(items).indexOf(items[itemIndex])
     setOpen(true)
   }
 
@@ -442,13 +472,13 @@ function MultiComboBox({
       return
     }
     if (index === -1) return
-    const item = visible[index]
+    const item = visibleRows[index]
     if (shift && (key === "ArrowDown" || key === "ArrowUp")) {
       e.preventDefault()
-      const next = visible[index + (key === "ArrowDown" ? 1 : -1)]
+      const next = visibleRows[index + (key === "ArrowDown" ? 1 : -1)]
       if (!next || readOnly) return
-      const wanted = selectedSet.has(item.key)
-      if (selectedSet.has(next.key) !== wanted) setSelected(wanted ? [...selectedValues, next.key] : selectedValues.filter((k) => k !== next.key))
+      const wanted = !isGroup(item) && selectedSet.has(item.key)
+      if (!isGroup(next) && selectedSet.has(next.key) !== wanted) setSelected(wanted ? [...selectedValues, next.key] : selectedValues.filter((k) => k !== next.key))
       focusOption(index + (key === "ArrowDown" ? 1 : -1))
       return
     }
@@ -475,13 +505,13 @@ function MultiComboBox({
         return focusOption(key === "PageUp" ? Math.max(index - SKIP_ITEMS, 0) : Math.min(index + SKIP_ITEMS, els.length - 1))
       case " ":
         e.preventDefault()
-        if (readOnly) return
+        if (readOnly || isGroup(item)) return
         toggleItem(item.key)
         if (!selectedSet.has(item.key) || selectedItems.length > 1 || !filterSelected) return
         return setFilterSelected(false)
       case "Enter":
         e.preventDefault()
-        return pressItem(item)
+        if (!isGroup(item)) return pressItem(item)
     }
   }
 
@@ -510,6 +540,40 @@ function MultiComboBox({
   }
 
   const iconCount = readOnly ? 0 : 1
+
+  const renderItem = (item: Item) => {
+    const isSelected = selectedSet.has(item.key)
+    return (
+      <div
+        key={item.key}
+        role="option"
+        aria-selected={isSelected}
+        tabIndex={visibleRows.indexOf(item) === 0 ? 0 : -1}
+        data-state={isSelected ? "checked" : undefined}
+        className="fiori-list-item fiori-multi-combobox__item"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => pressItem(item)}
+      >
+        <Checkbox
+          tabIndex={-1}
+          aria-hidden
+          checked={isSelected}
+          disabled={readOnly}
+          className="fiori-multi-combobox__checkbox"
+          onClick={(e) => {
+            // The check box toggles and keeps the list open (UI5 selectionComponentPressed).
+            e.preventDefault()
+            e.stopPropagation()
+            if (readOnly) return
+            toggleItem(item.key)
+            ;(e.currentTarget.closest('[role="option"]') as HTMLElement | null)?.focus()
+          }}
+        />
+        <span className="fiori-multi-combobox__item-text">{filtering && !filterSelected ? highlight(item.text, typed) : item.text}</span>
+        {item.additionalText && <span className="fiori-multi-combobox__item-additional">{item.additionalText}</span>}
+      </div>
+    )
+  }
 
   const listContent = (
     <PopoverPrimitive.Content
@@ -573,36 +637,19 @@ function MultiComboBox({
           aria-label={listLabel}
           aria-multiselectable
         >
-          {visible.map((item, i) => {
-            const isSelected = selectedSet.has(item.key)
+          {entries.map((entry, index) => {
+            if (!isGroup(entry)) return visible.includes(entry) ? renderItem(entry) : null
+            const groupItems = entry.items.filter((item) => visible.includes(item))
+            if (!groupItems.length) return null
             return (
-              <div
-                key={item.key}
-                role="option"
-                aria-selected={isSelected}
-                tabIndex={i === 0 ? 0 : -1}
-                data-state={isSelected ? "checked" : undefined}
-                className="fiori-list-item fiori-multi-combobox__item"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => pressItem(item)}
-              >
-                <Checkbox
-                  tabIndex={-1}
-                  aria-hidden
-                  checked={isSelected}
-                  disabled={readOnly}
-                  className="fiori-multi-combobox__checkbox"
-                  onClick={(e) => {
-                    // The check box toggles and keeps the list open (UI5 selectionComponentPressed).
-                    e.preventDefault()
-                    e.stopPropagation()
-                    if (readOnly) return
-                    toggleItem(item.key)
-                    ;(e.currentTarget.closest('[role="option"]') as HTMLElement | null)?.focus()
-                  }}
-                />
-                <span className="fiori-multi-combobox__item-text">{filtering && !filterSelected ? highlight(item.text, typed) : item.text}</span>
-                {item.additionalText && <span className="fiori-multi-combobox__item-additional">{item.additionalText}</span>}
+              <div key={`group-${index}`} data-slot="multi-combobox-item-group" role="group">
+                {entry.headerText && (
+                  <div data-slot="multi-combobox-group-header" role="group" aria-label={entry.headerText}
+                    tabIndex={visibleRows.indexOf(entry) === 0 ? 0 : -1} className="fiori-multi-combobox__group-header">
+                    <span>{entry.headerText}</span>
+                  </div>
+                )}
+                {groupItems.map((item) => renderItem(item))}
               </div>
             )
           })}
@@ -785,4 +832,4 @@ function MultiComboBox({
   )
 }
 
-export { MultiComboBox, MultiComboBoxItem, type MultiComboBoxFilter, type MultiComboBoxItemProps, type MultiComboBoxProps }
+export { MultiComboBox, MultiComboBoxItem, MultiComboBoxItemGroup, type MultiComboBoxItemGroupProps, type MultiComboBoxFilter, type MultiComboBoxItemProps, type MultiComboBoxProps }

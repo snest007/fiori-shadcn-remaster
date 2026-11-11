@@ -1,5 +1,5 @@
 import type { ValueState } from "@/components/ui/input"
-import { MultiComboBox, MultiComboBoxItem } from "@/components/ui/multi-combobox"
+import { MultiComboBox, MultiComboBoxItem, MultiComboBoxItemGroup } from "@/components/ui/multi-combobox"
 
 import { defineFixtures, FIELD_WIDTH } from "../fixture-types"
 import { inPlace } from "./popover"
@@ -13,10 +13,15 @@ type Props = {
   width?: string
   /** Render the open list only, in place (the field itself is covered by the other cases). */
   list?: boolean
+  groups?: boolean
   selectAll?: boolean
 }
 const states = ["negative", "critical", "positive", "information"] as const
 export const MCB_ITEMS = ["Argentina", "Brazil", "Canada", "Denmark", "Estonia", "France"]
+export const MCB_GROUPS = [
+  { headerText: "Americas", items: MCB_ITEMS.slice(0, 3) },
+  { headerText: "Europe", items: MCB_ITEMS.slice(3) },
+]
 const TWO = ["Argentina", "Brazil"]
 const MANY = MCB_ITEMS.slice(0, 5)
 
@@ -31,8 +36,9 @@ export default defineFixtures<Props>({
     { id: "multi-combobox-readonly", props: { selected: MANY, readOnly: true } },
     { id: "multi-combobox-list", props: { selected: TWO, list: true } },
     { id: "multi-combobox-list-select-all", props: { selected: TWO, list: true, selectAll: true } },
+    { id: "multi-combobox-groups-open", props: { selected: TWO, list: true, groups: true, selectAll: true } },
   ],
-  react: ({ selected = [], width = FIELD_WIDTH, list, selectAll, ...p }) => {
+  react: ({ selected = [], width = FIELD_WIDTH, list, selectAll, groups, ...p }) => {
     const field = (
       <MultiComboBox
         defaultSelectedValues={selected}
@@ -43,7 +49,11 @@ export default defineFixtures<Props>({
         showSelectAll={selectAll}
         {...p}
       >
-        {MCB_ITEMS.map((c) => <MultiComboBoxItem key={c} text={c} />)}
+        {groups ? MCB_GROUPS.map((group) => (
+          <MultiComboBoxItemGroup key={group.headerText} headerText={group.headerText}>
+            {group.items.map((c) => <MultiComboBoxItem key={c} text={c} />)}
+          </MultiComboBoxItemGroup>
+        )) : MCB_ITEMS.map((c) => <MultiComboBoxItem key={c} text={c} />)}
       </MultiComboBox>
     )
     if (!list) return <div style={{ width }}>{field}</div>

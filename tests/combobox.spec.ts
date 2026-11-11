@@ -132,3 +132,106 @@ test.describe("ComboBox (Fiori model)", () => {
     await expect(page.getByTestId("cb-committed")).toHaveText("Japan")
   })
 })
+
+const groupInput = (page: Page) => page.locator("#combobox-demo #combobox-groups")
+const groupList = (page: Page) => page.locator('[id="combobox-groups-list"]')
+const groupSelection = (page: Page) => page.locator('#combobox-demo [data-testid="combobox-groups-selection"]')
+
+test.describe("ComboBox item groups", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    await groupInput(page).focus()
+  })
+
+  test("ARIA groups label their items; headers and empty groups are not options", async ({ page }) => {
+    await page.keyboard.press("F4")
+    await expect(groupList(page)).toBeVisible()
+    await expect(groupList(page).locator('[data-slot="combobox-item-group"]')).toHaveCount(2)
+    await expect(groupList(page).locator('[data-slot="combobox-item-group"]').filter({ has: page.getByRole("group", { name: "Americas", exact: true }) }).getByRole("option")).toHaveCount(3)
+    await expect(groupList(page).locator('[data-slot="combobox-item-group"]').filter({ has: page.getByRole("group", { name: "Europe", exact: true }) }).getByRole("option")).toHaveCount(3)
+    await expect(groupList(page).getByRole("option")).toHaveCount(7)
+    await expect(groupList(page).getByRole("group", { name: "Empty" })).toHaveCount(0)
+    for (const header of await groupList(page).locator('[data-slot="combobox-group-header"]').all()) {
+      await expect(header).not.toHaveAttribute("tabindex")
+      await expect(header).not.toHaveAttribute("aria-selected")
+      await expect(header).toHaveAttribute("role", "group")
+    }
+    await groupList(page).locator('[data-slot="combobox-group-header"]').first().click()
+    await expect(groupInput(page)).toHaveValue("Argentina")
+    await expect(groupInput(page)).toBeFocused()
+  })
+
+  test("filtering keeps only groups with item matches and ignores header text", async ({ page }) => {
+    await page.keyboard.type("ca")
+    await expect(groupInput(page)).toHaveValue("Canada")
+    await expect(groupSelection(page)).toHaveText("Canada")
+    await expect(groupList(page).locator('[data-slot="combobox-item-group"]')).toHaveCount(1)
+    await expect(groupList(page).locator('[data-slot="combobox-item-group"]').filter({ has: page.getByRole("group", { name: "Americas", exact: true }) }).getByRole("option")).toHaveText("Canada")
+    await expect.poll(() => groupInput(page).evaluate((el: HTMLInputElement) => el.value.slice(el.selectionStart!, el.selectionEnd!))).toBe("nada")
+    await page.keyboard.press("ControlOrMeta+a")
+    await page.keyboard.type("Europe")
+    await expect(groupInput(page)).toHaveValue("Europe")
+    await expect(groupList(page)).toHaveCount(0)
+    await expect(groupSelection(page)).toHaveText("—")
+  })
+
+  test("open navigation focuses headers without selecting them; Enter keeps the picker open", async ({ page }) => {
+    await page.keyboard.press("F4")
+    await expect(groupInput(page)).toHaveValue("Argentina")
+    for (const value of ["Brazil", "Canada"]) {
+      await page.keyboard.press("ArrowDown")
+      await expect(groupInput(page)).toHaveValue(value)
+      const active = await groupInput(page).getAttribute("aria-activedescendant")
+      await expect(groupList(page).locator(`[id="${active}"]`)).toHaveAttribute("role", "option")
+    }
+    await page.keyboard.press("ArrowDown")
+    await expect(groupInput(page)).toHaveValue("")
+    await expect(groupSelection(page)).toHaveText("—")
+    const headerId = await groupInput(page).getAttribute("aria-activedescendant")
+    await expect(groupList(page).locator(`[id="${headerId}"]`)).toHaveAttribute("aria-label", "Europe")
+    await expect(groupList(page).locator(`[id="${headerId}"]`)).not.toHaveAttribute("aria-selected")
+    await page.keyboard.press("Enter")
+    await expect(groupList(page)).toBeVisible()
+    await page.keyboard.press("ArrowDown")
+    await expect(groupInput(page)).toHaveValue("Denmark")
+    await page.keyboard.press("ArrowUp")
+    await expect(groupInput(page)).toHaveValue("")
+    await page.keyboard.press("PageDown")
+    await expect(groupInput(page)).toHaveValue("Japan")
+    await page.keyboard.press("PageUp")
+    await expect(groupInput(page)).toHaveValue("")
+    const firstHeader = await groupInput(page).getAttribute("aria-activedescendant")
+    await expect(groupList(page).locator(`[id="${firstHeader}"]`)).toHaveAttribute("aria-label", "Americas")
+    await page.keyboard.press("ArrowDown")
+    await expect(groupInput(page)).toHaveValue("Argentina")
+    await page.keyboard.press("Enter")
+    await expect(groupList(page)).toHaveCount(0)
+    await expect(page.locator('#combobox-demo [data-testid="combobox-groups-committed"]')).toHaveText("Argentina")
+  })
+
+  test("group item selection emits the existing committed event bridge", async ({ page }) => {
+    await groupInput(page).evaluate((el) => {
+      el.addEventListener("fiori-control-change", () => el.setAttribute("data-commits", String(Number(el.getAttribute("data-commits") ?? "0") + 1)))
+    })
+    await page.keyboard.press("F4")
+    await expect(groupList(page)).toBeVisible()
+    await groupList(page).getByRole("option", { name: "France" }).click()
+    await expect(groupInput(page)).toHaveValue("France")
+    await expect(groupInput(page)).toHaveAttribute("data-commits", "1")
+    await expect(groupSelection(page)).toHaveText("France")
+    await expect(page.locator('#combobox-demo [data-testid="combobox-groups-committed"]')).toHaveText("France")
+    await expect(groupInput(page)).toBeFocused()
+  })
+
+  test("closed navigation skips group headers and autocompletes only items", async ({ page }) => {
+    for (const value of ["Argentina", "Brazil", "Canada", "Denmark"]) {
+      await page.keyboard.press("ArrowDown")
+      await expect(groupInput(page)).toHaveValue(value)
+      await expect(groupList(page)).toHaveCount(0)
+    }
+    await page.keyboard.press("ArrowUp")
+    await expect(groupInput(page)).toHaveValue("Canada")
+  })
+
+})

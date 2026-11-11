@@ -1,5 +1,6 @@
 import "@ui5/webcomponents/dist/MultiComboBox.js"
 import "@ui5/webcomponents/dist/MultiComboBoxItem.js"
+import "@ui5/webcomponents/dist/MultiComboBoxItemGroup.js"
 import "@ui5/webcomponents-icons/dist/decline.js"
 import "@ui5/webcomponents-icons/dist/slim-arrow-down.js"
 
@@ -8,9 +9,9 @@ import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 import { defineUi5, FIELD_WIDTH, h } from "../fixture-types"
 import { ui5State } from "./ui5-helpers"
 import { placeInPlace } from "./ui5-popup-in-place"
-import set, { MCB_ITEMS } from "./multi-combobox"
+import set, { MCB_ITEMS, MCB_GROUPS } from "./multi-combobox"
 
-export default defineUi5(set, ({ selected = [], placeholder, valueState, disabled, readOnly, width = FIELD_WIDTH, list, selectAll }) => {
+export default defineUi5(set, ({ selected = [], placeholder, valueState, disabled, readOnly, width = FIELD_WIDTH, list, selectAll, groups }) => {
   const el = h(
     "ui5-multi-combobox",
     {
@@ -21,7 +22,7 @@ export default defineUi5(set, ({ selected = [], placeholder, valueState, disable
       "accessible-name": "Countries",
       "show-select-all": selectAll,
     },
-    ...MCB_ITEMS.map((c) => h("ui5-mcb-item", { text: c, selected: selected.includes(c) }))
+    ...(groups ? MCB_GROUPS.map((group) => h("ui5-mcb-item-group", { "header-text": group.headerText }, ...group.items.map((c) => h("ui5-mcb-item", { text: c, selected: selected.includes(c) })))) : MCB_ITEMS.map((c) => h("ui5-mcb-item", { text: c, selected: selected.includes(c) })))
   )
   if (!list) {
     el.style.width = width
