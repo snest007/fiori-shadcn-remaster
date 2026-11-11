@@ -68,7 +68,8 @@ type Presentation = {
 }
 
 function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; presentation: Presentation }) {
-  const { selected: selectedProp = false, disabled = false, layout = "Square", thumbnail, children, className, ref, tabIndex, ...props } = item
+  const { selected: selectedProp = false, disabled = false, layout = "Square", thumbnail, children, className, ref, tabIndex,
+    "aria-label": ariaLabel, "aria-labelledby": ariaLabelledBy, ...props } = item
   const { thumbnailDesign = false, square = true, interactive = false, selected = selectedProp, activate, register } = presentation
   const hostRef = React.useRef<MediaGalleryItemElement | null>(null), focusRef = React.useRef<HTMLDivElement | null>(null)
   const registerRef = React.useRef(register); registerRef.current = register
@@ -102,6 +103,8 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
     register?.(hostRef.current, focusRef.current)
     return () => register?.(null, null)
   }, [selected, disabled, layout, register])
+  // Keep names on the option/focus surface. A named structural host would add a
+  // disallowed generic child to the listbox (Axe aria-required-children).
   return (
     <div {...props} ref={setHost} data-slot="media-gallery-item" data-layout={layout} data-square={square || undefined}
       data-thumbnail-design={thumbnailDesign || undefined} data-interactive={interactive || undefined}
@@ -111,8 +114,8 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
         role={presentation.option ? "option" : interactive ? "button" : undefined}
         aria-checked={presentation.option ? selected : undefined}
         aria-disabled={presentation.option && disabled || undefined}
-        aria-label={item["aria-label"]}
-        aria-labelledby={item["aria-labelledby"]}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         onKeyDown={(event) => {
           if (modified(event)) return
           // MediaGalleryItem.js: Enter selects on keydown; Space prevents scrolling here and selects on keyup.
