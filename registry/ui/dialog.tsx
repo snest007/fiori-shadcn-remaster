@@ -96,8 +96,12 @@ function DialogContent({ className, children, state = "none", portal = true, dra
   const { modal, open } = React.useContext(DialogContext)
   const [rangeRef, range] = usePopupMediaRange<HTMLDivElement>()
   const surfaceRef = React.useRef<HTMLDivElement | null>(null)
+  const surfaceObserver = React.useRef<ResizeObserver | null>(null)
   const mouseCleanup = React.useRef<(() => void) | undefined>(undefined)
   const resized = React.useRef(false)
+  // Dialog.js _draggedOrResized belongs to the dialog instance and survives close/reopen.
+  // Keyboard movement leaves it false; pointer dragging and either resize path set it true.
+  const draggedOrResized = React.useRef(false)
   const [geometry, setGeometry] = React.useState<React.CSSProperties>({})
   const geometryRef = React.useRef<React.CSSProperties>({})
   const [desktop, setDesktop] = React.useState(false)
@@ -112,7 +116,11 @@ function DialogContent({ className, children, state = "none", portal = true, dra
     setGeometry(geometryRef.current)
   }, [])
   const contentRef = React.useCallback<React.RefCallback<HTMLDivElement>>((node) => {
+    if (surfaceRef.current && surfaceRef.current !== node) surfaceObserver.current?.unobserve(surfaceRef.current)
     surfaceRef.current = node
+    // Radix Portal may mount Content after the open effect has created its observer.
+    // Observe in both lifecycle paths so Popup.js's open-surface ResizeHandler is always bound.
+    if (node) surfaceObserver.current?.observe(node)
     if (node && portal && movable) {
       // Dialog.js _show/_center uses rounded offset sizes on every open. A stable ref centers
       // only on mount, so subsequent drag/resize renders cannot re-center the moving surface.
@@ -121,7 +129,10 @@ function DialogContent({ className, children, state = "none", portal = true, dra
     if (typeof ref === "function") {
       const cleanup = ref(node)
       if (typeof cleanup === "function") return () => {
-        if (surfaceRef.current === node) surfaceRef.current = null
+        if (surfaceRef.current === node) {
+          if (node) surfaceObserver.current?.unobserve(node)
+          surfaceRef.current = null
+        }
         cleanup()
       }
     } else if (ref) ref.current = node
@@ -155,7 +166,23 @@ function DialogContent({ className, children, state = "none", portal = true, dra
     }
     // Dialog.js _screenResize() calls _center() even after the dialog was moved/resized.
     window.addEventListener("resize", center)
-    return () => window.removeEventListener("resize", center)
+    let resizeFrame = 0
+    // Popup.js _registerResizeHandler observes getDomRef(); Dialog.js _resize re-centers
+    // on content/surface size changes only before pointer dragging or any resizing.
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(resizeFrame)
+      resizeFrame = requestAnimationFrame(() => {
+        if (!draggedOrResized.current) center()
+      })
+    })
+    surfaceObserver.current = observer
+    if (surfaceRef.current) observer.observe(surfaceRef.current)
+    return () => {
+      window.removeEventListener("resize", center)
+      if (surfaceObserver.current === observer) surfaceObserver.current = null
+      observer.disconnect()
+      cancelAnimationFrame(resizeFrame)
+    }
   }, [open, portal, movable, updateGeometry])
   React.useEffect(() => () => mouseCleanup.current?.(), [])
   const minHeight = (node: HTMLElement) => {
@@ -181,6 +208,7 @@ function DialogContent({ className, children, state = "none", portal = true, dra
     if (!movable || !draggable || event.target !== event.currentTarget || event.defaultPrevented) return
     const node = surfaceRef.current
     if (!node) return
+    draggedOrResized.current = true
     const box = node.getBoundingClientRect()
     const computed = getComputedStyle(node)
     updateGeometry({ top: box.top, left: box.left, width: Math.round(Number.parseFloat(computed.width) * 100) / 100, height: Math.round(Number.parseFloat(computed.height) * 100) / 100 })
@@ -201,6 +229,7 @@ function DialogContent({ className, children, state = "none", portal = true, dra
     const node = surfaceRef.current
     if (!node) return
     resized.current = true
+    draggedOrResized.current = true
     const box = node.getBoundingClientRect(), computed = getComputedStyle(node)
     const minimumWidth = Number.parseFloat(computed.minWidth), minimumHeight = minHeight(node)
     const rtl = computed.direction === "rtl", x = event.clientX, y = event.clientY
@@ -229,6 +258,7 @@ function DialogContent({ className, children, state = "none", portal = true, dra
     const delta = event.key === "ArrowLeft" || event.key === "ArrowUp" ? -MOVEMENT_STEP : MOVEMENT_STEP
     if (event.shiftKey) {
       resized.current = true
+      draggedOrResized.current = true
       // Dialog.js _resizeWithEvent uses physical arrows also in RTL (left decreases width).
       updateGeometry({ left: box.left, top: box.top,
         width: clamp(box.width + (horizontal ? delta : 0), Number.parseFloat(getComputedStyle(node).minWidth), window.innerWidth - box.left),

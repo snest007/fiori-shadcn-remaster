@@ -279,3 +279,240 @@ test("dialog: UI5 disables movement handles on touch phones; narrow desktop stil
   await expect(desktop).toHaveCount(0)
   await expectBox(await openMovable(page), centered)
 })
+
+async function expectCentered(page: Page, dialog: Locator) {
+  await expect.poll(async () => {
+    const box = (await dialog.boundingBox())!, viewport = page.viewportSize()!
+    return [box.x, box.y]
+  }).toEqual(await dialog.evaluate(node => [Math.round((innerWidth - (node as HTMLElement).offsetWidth) / 2), Math.round((innerHeight - (node as HTMLElement).offsetHeight) / 2)]))
+}
+
+async function openAutoSize(page: Page) {
+  await page.locator("#dialog-demo #dialog-auto-open").click()
+  const dialog = page.locator("#dialog-auto-content")
+  await expect(dialog).toBeVisible()
+  await expectCentered(page, dialog)
+  return dialog
+}
+
+// Wait for a real surface ResizeObserver notification and UI5 ResizeHandler's animation-frame
+// phase, so a position-preservation assertion cannot pass before a queued re-center runs.
+async function settleSurfaceSize(dialog: Locator) {
+  await dialog.evaluate(node => new Promise<void>(resolve => {
+    const observer = new ResizeObserver(() => requestAnimationFrame(() => requestAnimationFrame(() => {
+      observer.disconnect()
+      resolve()
+    })))
+    observer.observe(node)
+  }))
+}
+
+type NativeDialogProbe = HTMLElement & {
+  open: boolean
+  _draggedOrResized: boolean
+  _resizeHandler: () => void
+}
+
+async function openNativeAutoSize(page: Page) {
+  const nativePage = await page.context().newPage()
+  await nativePage.goto(new URL("/ui5.html?only=dialog", page.url()).href)
+  await nativePage.waitForSelector("html[data-ready=true]")
+  await nativePage.evaluate(() => {
+    const style = document.createElement("style")
+    style.textContent = "#dialog-native-auto { width:24rem; }"
+    document.head.append(style)
+    const dialog = document.createElement("ui5-dialog") as NativeDialogProbe
+    dialog.id = "dialog-native-auto"
+    Object.assign(dialog, { headerText: "Native content-sized dialog", draggable: true, resizable: true })
+    const content = document.createElement("div")
+    content.id = "dialog-native-growth"
+    content.style.height = "40px"
+    content.textContent = "Product information"
+    dialog.append(content)
+    // Popup.js binds _resizeHandler in its constructor. Count the real installed handler
+    // before opening, without replacing Dialog._resize or its _draggedOrResized behavior.
+    const resize = dialog._resizeHandler
+    dialog.dataset.resizeCount = "0"
+    dialog._resizeHandler = () => {
+      resize()
+      dialog.dataset.resizeCount = String(Number(dialog.dataset.resizeCount) + 1)
+    }
+    document.body.append(dialog)
+    dialog.open = true
+  })
+  const dialog = nativePage.locator("#dialog-native-auto")
+  await expect(dialog).toBeVisible()
+  await expect.poll(() => dialog.getAttribute("data-resize-count")).not.toBe("0")
+  await expectCentered(nativePage, dialog)
+  return { page: nativePage, dialog }
+}
+
+async function growNative(dialog: Locator, height: number) {
+  const count = Number(await dialog.getAttribute("data-resize-count"))
+  await dialog.locator("#dialog-native-growth").evaluate((node, next) => { node.style.height = `${next}px` }, height)
+  await expect.poll(async () => Number(await dialog.getAttribute("data-resize-count"))).toBeGreaterThan(count)
+}
+
+test("dialog: touch Windows capability matches installed UI5 for NT 6.2, 6.3, 8.0 and 10.0", async ({ browser, page }) => {
+  for (const [version, enabled] of [["6.2", false], ["6.3", false], ["8.0", true], ["10.0", true]] as const) {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, hasTouch: true,
+      userAgent: `Mozilla/5.0 (Windows NT ${version}; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36` })
+    try {
+      await context.addInitScript(() => Object.defineProperty(navigator, "platform", { get: () => "Win32" }))
+      const devicePage = await context.newPage()
+      await devicePage.goto(new URL("/ui5.html?only=dialog", page.url()).href)
+      await devicePage.waitForSelector("html[data-ready=true]")
+      const native = await devicePage.locator("ui5-dialog[draggable]").first().evaluate(node => {
+        const dialog = node as HTMLElement & { onDesktop: boolean; _movable: boolean }
+        return { desktop: dialog.onDesktop, movable: dialog._movable, handle: !!dialog.shadowRoot!.querySelector(".ui5-popup-drag-resize-handler") }
+      })
+      expect(native).toEqual({ desktop: enabled, movable: enabled, handle: enabled })
+      await devicePage.goto(page.url())
+      await devicePage.waitForSelector("html[data-ready=true]")
+      await devicePage.locator("#dialog-demo #dialog-movable-open").click()
+      const dialog = devicePage.locator("#dialog-movable-content")
+      await expect(dialog).toBeVisible()
+      await expect(dialog.locator('[data-slot="dialog-movement-handle"], [data-slot="dialog-resize-handle"]')).toHaveCount(native.movable ? 2 : 0)
+      const initial = (await dialog.boundingBox())!
+      await mouseDelta(devicePage, dialog.locator('[data-slot="dialog-header"]'), 16, 16)
+      await expectBox(dialog, { ...initial, x: initial.x + (native.movable ? 16 : 0), y: initial.y + (native.movable ? 16 : 0) })
+    } finally { await context.close() }
+  }
+})
+
+for (const keyboardMove of [false, true]) {
+  test(`dialog: auto size re-centers after content growth and shrink${keyboardMove ? " even after keyboard movement" : ""}, as UI5`, async ({ page }) => {
+    const dialog = await openAutoSize(page)
+    const native = await openNativeAutoSize(page)
+    try {
+      if (keyboardMove) {
+        for (const [surface, selector] of [[dialog, '[data-slot="dialog-movement-handle"]'], [native.dialog, ".ui5-popup-drag-resize-handler"]] as const) {
+          const initial = (await surface.boundingBox())!, handle = surface.locator(selector)
+          await handle.focus(); await expect(handle).toBeFocused(); await handle.press("ArrowDown")
+          await expectBox(surface, { y: initial.y + 16 })
+        }
+      }
+      const initial = (await dialog.boundingBox())!
+      await growNative(native.dialog, 200)
+      await expectCentered(native.page, native.dialog)
+      expect(await native.dialog.evaluate(node => (node as NativeDialogProbe)._draggedOrResized)).toBe(false)
+      await dialog.locator("#dialog-auto-toggle").click()
+      await expect.poll(async () => (await dialog.boundingBox())!.height).toBeGreaterThan(initial.height)
+      await expectCentered(page, dialog)
+      await growNative(native.dialog, 40)
+      await expectCentered(native.page, native.dialog)
+      await dialog.locator("#dialog-auto-toggle").click()
+      await expectBox(dialog, { height: initial.height })
+      await expectCentered(page, dialog)
+    } finally { await native.page.close() }
+  })
+}
+
+test("dialog: pointer dragging freezes auto size and suppresses surface-size re-centering, as UI5", async ({ page }) => {
+  const dialog = await openAutoSize(page), native = await openNativeAutoSize(page)
+  try {
+    for (const [surface, header] of [[dialog, '[data-slot="dialog-header"]'], [native.dialog, ".ui5-popup-header-root"]] as const) {
+      const initial = (await surface.boundingBox())!
+      await mouseDelta(surface.page(), surface.locator(header), 32, 32)
+      await expectBox(surface, { ...initial, x: initial.x + 32, y: initial.y + 32 })
+      await surface.evaluate(node => { node.style.maxHeight = "96px" })
+      await settleSurfaceSize(surface)
+      await expectBox(surface, { x: initial.x + 32, y: initial.y + 32, height: 96 })
+    }
+    expect(await native.dialog.evaluate(node => (node as NativeDialogProbe)._draggedOrResized)).toBe(true)
+    await dialog.locator("#dialog-auto-close").click()
+    await expect(dialog).toHaveCount(0)
+    const reopened = await openAutoSize(page), initial = (await reopened.boundingBox())!
+    await reopened.locator("#dialog-auto-toggle").click()
+    await settleSurfaceSize(reopened)
+    await expectBox(reopened, initial)
+  } finally { await native.page.close() }
+})
+
+for (const pointer of [false, true]) {
+  test(`dialog: ${pointer ? "pointer" : "keyboard"} resize flag survives reopen while auto dimensions are restored, as UI5`, async ({ page }) => {
+    const dialog = await openAutoSize(page), native = await openNativeAutoSize(page)
+    try {
+      for (const [surface, keyHandle, mouseHandle] of [[dialog, '[data-slot="dialog-movement-handle"]', '[data-slot="dialog-resize-handle"]'], [native.dialog, ".ui5-popup-drag-resize-handler", ".ui5-popup-resize-handle"]] as const) {
+        const initial = (await surface.boundingBox())!
+        if (pointer) await mouseDelta(surface.page(), surface.locator(mouseHandle), 32, 32)
+        else { const handle = surface.locator(keyHandle); await handle.focus(); await expect(handle).toBeFocused(); await handle.press("Shift+ArrowDown") }
+        await expectBox(surface, { x: initial.x, y: initial.y, height: initial.height + (pointer ? 32 : 16) })
+        await surface.evaluate(node => { node.style.maxHeight = "96px" })
+        await settleSurfaceSize(surface)
+        await expectBox(surface, { x: initial.x, y: initial.y, height: 96 })
+      }
+      await native.dialog.evaluate(node => { (node as NativeDialogProbe).open = false })
+      await expect(native.dialog).not.toBeVisible()
+      await native.dialog.evaluate(node => { node.style.maxHeight = ""; (node as NativeDialogProbe).open = true })
+      await expect(native.dialog).toBeVisible(); await expectCentered(native.page, native.dialog)
+      expect(await native.dialog.evaluate(node => (node as NativeDialogProbe)._draggedOrResized)).toBe(true)
+      const nativeInitial = (await native.dialog.boundingBox())!
+      await growNative(native.dialog, 200)
+      await expectBox(native.dialog, { x: nativeInitial.x, y: nativeInitial.y })
+      await dialog.locator("#dialog-auto-close").click()
+      await expect(dialog).toHaveCount(0)
+      const reopened = await openAutoSize(page), initial = (await reopened.boundingBox())!
+      await reopened.locator("#dialog-auto-toggle").click()
+      await expect.poll(async () => (await reopened.boundingBox())!.height).toBeGreaterThan(initial.height)
+      await settleSurfaceSize(reopened)
+      await expectBox(reopened, { x: initial.x, y: initial.y })
+    } finally { await native.page.close() }
+  })
+}
+
+test("dialog: custom movement texts replace the handle, descriptions, role and resize tooltip", async ({ page }) => {
+  const dialog = await openAutoSize(page), handle = dialog.getByRole("img", { name: "Move or resize window" })
+  await expect(handle).toHaveAttribute("aria-roledescription", "Window control")
+  await expect(dialog.locator('[data-slot="dialog-resize-handle"]')).toHaveAttribute("title", "Resize this window")
+  expect(await handle.evaluate(node => document.getElementById(node.getAttribute("aria-describedby")!)!.textContent)).toBe("Move with arrows; resize with Shift and arrows.")
+  const descriptions = await dialog.evaluate(node => node.getAttribute("aria-describedby")!.split(" ").map(id => document.getElementById(id)!.textContent))
+  expect(descriptions).toContain("The final control moves and resizes this window.")
+  expect(descriptions).toContain("Change the content to see when the dialog re-centers.")
+})
+
+test("dialog: Ctrl, Alt and Meta arrows do not move or resize, including Shift combinations, as UI5", async ({ page }) => {
+  const dialog = await openMovable(page), native = await openNativeAutoSize(page)
+  try {
+    for (const [surface, selector] of [[dialog, '[data-slot="dialog-movement-handle"]'], [native.dialog, ".ui5-popup-drag-resize-handler"]] as const) {
+      const initial = (await surface.boundingBox())!, handle = surface.locator(selector)
+      await handle.focus(); await expect(handle).toBeFocused()
+      for (const key of ["Control+ArrowDown", "Alt+ArrowDown", "Meta+ArrowDown", "Control+Shift+ArrowRight", "Alt+Shift+ArrowRight", "Meta+Shift+ArrowRight"]) {
+        await handle.press(key)
+        await expectBox(surface, initial)
+        await expect(handle).toBeFocused()
+      }
+    }
+    expect(await native.dialog.evaluate(node => (node as NativeDialogProbe)._draggedOrResized)).toBe(false)
+  } finally { await native.page.close() }
+})
+
+test("dialog: the surface size observer disconnects on close and is renewed on reopen", async ({ page }) => {
+  await page.addInitScript(() => {
+    const records: { targets: Element[]; disconnected: boolean }[] = []
+    ;(window as typeof window & { dialogResizeRecords: typeof records }).dialogResizeRecords = records
+    const NativeObserver = window.ResizeObserver
+    window.ResizeObserver = class extends NativeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        super(callback)
+        const record = { targets: [] as Element[], disconnected: false }
+        records.push(record)
+        const observe = this.observe.bind(this), disconnect = this.disconnect.bind(this)
+        this.observe = (target, options) => { record.targets.push(target); observe(target, options) }
+        this.disconnect = () => { record.disconnected = true; disconnect() }
+      }
+    }
+  })
+  await page.reload(); await page.waitForSelector("html[data-ready=true]")
+  const counts = () => page.evaluate(() => {
+    const records = (window as typeof window & { dialogResizeRecords: { targets: Element[]; disconnected: boolean }[] }).dialogResizeRecords
+      .filter(record => record.targets.some(target => target.id === "dialog-auto-content"))
+    return { total: records.length, active: records.filter(record => !record.disconnected).length }
+  })
+  const dialog = await openAutoSize(page)
+  await expect.poll(counts).toEqual({ total: 1, active: 1 })
+  await dialog.locator("#dialog-auto-close").click(); await expect(dialog).toHaveCount(0)
+  await expect.poll(counts).toEqual({ total: 1, active: 0 })
+  await openAutoSize(page)
+  await expect.poll(counts).toEqual({ total: 2, active: 1 })
+})
