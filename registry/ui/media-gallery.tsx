@@ -269,9 +269,15 @@ function MediaGallery({
     }); observer.observe(host)
     return () => { observer.disconnect(); frames.forEach((frame) => cancelAnimationFrame(frame)) }
   }, [])
-  // Native onAfterRendering invokes _updateLayout after every own commit, not only
-  // a ResizeHandler notification, so new layout/showAll/item inputs are measured too.
-  React.useLayoutEffect(() => { measureLayout.current() })
+  React.useLayoutEffect(() => {
+    measureLayout.current()
+    // Render.js scheduleRenderTask queues native rendering in requestAnimationFrame;
+    // MediaGallery.onAfterRendering then reads live dimensions via _updateLayout.
+    // Keep that pending own-commit read: a zero -> original-size restore can happen
+    // before ResizeObserver samples zero, without producing another resize entry.
+    const frame = requestAnimationFrame(() => { measureLayout.current() })
+    return () => { cancelAnimationFrame(frame) }
+  })
   React.useLayoutEffect(() => {
     let next = selectionRef.current
     if (!items.length) next = null
