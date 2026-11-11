@@ -94,6 +94,7 @@ function ForceMountExample() {
   const [, sample] = React.useReducer((value) => value + 1, 0)
   const opener = React.useRef<HTMLButtonElement | null>(null)
   const objectRef = React.useRef<HTMLDivElement | null>(null)
+  const contentRef = React.useRef<HTMLDivElement | null>(null)
   const callbackNode = React.useRef<HTMLDivElement | null>(null)
   const counts = React.useRef({ mounts: 0, cleanups: 0 })
   const callbackRef = React.useCallback((node: HTMLDivElement | null) => {
@@ -105,12 +106,14 @@ function ForceMountExample() {
     <Button id="color-palette-popover-force-opener" ref={opener} onClick={() => setOpen(true)}><span id="color-palette-popover-force-opener-label">Choose retained surface color</span></Button>
     <Button id="color-palette-popover-force-sample" onClick={sample}>Read retained refs</Button>
     {mounted && <ColorPalettePopover id="color-palette-popover-force-surface" portal={false} open={open} opener={opener} onOpenChange={setOpen}
-      contentProps={{ forceMount: true, onOpenAutoFocus: () => setAutoFocus((history) => [...history, "open"]), onCloseAutoFocus: () => setAutoFocus((history) => [...history, "close"]) }}
+      contentProps={{ forceMount: true, ref: contentRef, role: "region", "aria-description": "Retained content API", style: { opacity: 1 },
+        onOpenAutoFocus: () => setAutoFocus((history) => [...history, "open"]), onCloseAutoFocus: () => setAutoFocus((history) => [...history, "close"]) }}
       onItemClick={({ color }) => setEvents((history) => [...history, color])}>
       <ColorPaletteItem id="color-palette-popover-force-object" ref={objectRef} value="red" />
       <ColorPaletteItem id="color-palette-popover-force-callback" ref={callbackRef} value="blue" />
     </ColorPalettePopover>}
     <output id="color-palette-popover-force-state">{JSON.stringify({ object: objectRef.current?.id ?? null, callback: callbackNode.current?.id ?? null, ...counts.current, events, autoFocus })}</output>
+    <output id="color-palette-popover-force-content-ref">{contentRef.current?.id ?? "none"}</output>
   </div>
 }
 
@@ -120,6 +123,7 @@ function RetainedShadowOpenerExample() {
   const [preventOutside, setPreventOutside] = React.useState(true)
   const [changes, setChanges] = React.useState<boolean[]>([])
   const [outside, setOutside] = React.useState<{ phase: string; defaultPrevented: boolean }[]>([])
+  const [escapePrevented, setEscapePrevented] = React.useState<boolean | null>(null)
   const opener = React.useRef<HTMLButtonElement | null>(null)
   const mount = React.useCallback((node: HTMLDivElement | null) => {
     if (node) setRoot(node.shadowRoot ?? node.attachShadow({ mode: "open" }))
@@ -131,6 +135,10 @@ function RetainedShadowOpenerExample() {
     </button>, root)}
     <Button id="color-palette-popover-force-shadow-guard" onClick={() => setPreventOutside(!preventOutside)}>Toggle outside prevention</Button>
     <Button id="color-palette-popover-force-shadow-outside">Outside retained shadow surface</Button>
+    <input id="color-palette-popover-force-shadow-escape-input" aria-label="Independent Escape control" defaultValue="edited" onKeyDown={(event) => {
+      if (event.key === "Escape") { setEscapePrevented(event.defaultPrevented); if (!event.defaultPrevented) event.currentTarget.value = "restored" }
+    }} />
+    <output id="color-palette-popover-force-shadow-escape-state">{JSON.stringify(escapePrevented)}</output>
     <ColorPalettePopover id="color-palette-popover-force-shadow-surface" portal={false} opener={opener} open={open}
       onOpenChange={(next) => { setOpen(next); setChanges((history) => [...history, next]) }}
       contentProps={{ forceMount: true, onPointerDownOutside: (event) => {
@@ -150,7 +158,7 @@ function ColorPalettePopoverDemo() {
   const [count, setCount] = React.useState(15)
   const [nameCase, setNameCase] = React.useState(0)
   const opener = React.useRef<HTMLButtonElement | null>(null)
-  return <div id="color-palette-popover-demo" className="flex items-center gap-4">
+  return <div id="color-palette-popover-demo" className="flex flex-col items-start gap-4">
     <Button id="color-palette-popover-opener" ref={opener} aria-expanded={open} onClick={() => setOpen(!open)}>Choose color</Button>
     <Button id="color-palette-popover-default-toggle" onClick={() => setShowDefault(!showDefault)}>Toggle default</Button>
     <Button id="color-palette-popover-count" onClick={() => setCount(count === 15 ? 12 : count === 12 ? 3 : 15)}>Change color count</Button>

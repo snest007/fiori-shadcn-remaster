@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Slot } from "radix-ui"
 
 import { ColorPalette, ColorPaletteStateContext, ColorPaletteStateProvider, type ColorPaletteProps } from "@/components/ui/color-palette"
 import { Popover, PopoverAnchor, PopoverContent, type PopoverContentProps } from "@/components/ui/popover"
@@ -40,6 +41,140 @@ function getFocusedElement() {
   let element = document.activeElement
   while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement
   return element && "focus" in element && typeof element.focus === "function" ? element as HTMLElement : null
+}
+
+type RetainedPaletteContentProps = PopoverContentProps & {
+  active: boolean
+  getAnchorRect: () => DOMRect
+  onDismiss: () => void
+}
+
+/** Popup.js keeps native manual-popover DOM while registering interactions only while open. */
+function RetainedPaletteContent({ active, getAnchorRect, onDismiss, children, className, ref, side = "bottom", align = "center", sideOffset = 0, alignOffset = 0,
+  collisionPadding, collisionBoundary, avoidCollisions = true, arrowPadding: _arrowPadding, sticky = "partial", hideWhenDetached: _hideDetached,
+  updatePositionStrategy = "optimized", asChild, portal: _portal, hideArrow: _arrow, forceMount: _force,
+  onOpenAutoFocus: _openFocus, onCloseAutoFocus: _closeFocus, onPointerDownOutside, onFocusOutside, onInteractOutside,
+  onEscapeKeyDown, onKeyDown, ...props }: RetainedPaletteContentProps) {
+  const root = React.useRef<HTMLDivElement | null>(null)
+  const place = React.useRef<() => void>(() => {})
+  const handlers = React.useRef({ onDismiss, onPointerDownOutside, onFocusOutside, onInteractOutside, onEscapeKeyDown })
+  React.useLayoutEffect(() => { handlers.current = { onDismiss, onPointerDownOutside, onFocusOutside, onInteractOutside, onEscapeKeyDown } })
+  const mount = React.useCallback((node: HTMLDivElement | null) => {
+    root.current = node
+    if (typeof ref === "function") {
+      const cleanup = ref(node)
+      if (typeof cleanup === "function") return () => { if (root.current === node) root.current = null; cleanup() }
+      return
+    }
+    if (ref) ref.current = node
+  }, [ref])
+  React.useLayoutEffect(() => {
+    place.current = () => {
+      const node = root.current
+      if (!node) return
+      // Popup.js _show/hide uses the browser's manual popover; hidden DOM owns no keyboard/pointer layer.
+      if (!active) { if (node.matches(":popover-open")) node.hidePopover(); return }
+      if (!node.matches(":popover-open")) node.showPopover()
+      const rect = getAnchorRect()
+      const box = node.getBoundingClientRect()
+      const tokenMargin = parseFloat(getComputedStyle(node).getPropertyValue("--fiori-popup-viewport-margin"))
+      const padding = (edge: "left" | "top" | "right" | "bottom") => typeof collisionPadding === "number" ? collisionPadding : collisionPadding?.[edge] ?? tokenMargin
+      const boundaries = (Array.isArray(collisionBoundary) ? collisionBoundary : [collisionBoundary]).filter((boundary): boundary is Element => !!boundary)
+      const limit = boundaries.reduce((limits, boundary) => {
+        const box = boundary.getBoundingClientRect()
+        return { left: Math.max(limits.left, box.left), top: Math.max(limits.top, box.top), right: Math.min(limits.right, box.right), bottom: Math.min(limits.bottom, box.bottom) }
+      }, { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight })
+      let actualSide = side
+      const rtl = node.matches(":dir(rtl)")
+      const position = (placement: typeof side) => {
+        const vertical = placement === "bottom" || placement === "top"
+        const start = vertical ? rtl ? rect.right - box.width : rect.left : rect.top
+        const end = vertical ? rtl ? rect.left : rect.right - box.width : rect.bottom - box.height
+        const offset = alignOffset * (align === "end" ? -1 : 1) * (vertical && rtl ? -1 : 1)
+        const cross = (align === "start" ? start : align === "end" ? end : vertical ? rect.left + (rect.width - box.width) / 2 : rect.top + (rect.height - box.height) / 2) + offset
+        return vertical ? { x: cross, y: placement === "bottom" ? rect.bottom + sideOffset : rect.top - box.height - sideOffset }
+          : { x: placement === "right" ? rect.right + sideOffset : rect.left - box.width - sideOffset, y: cross }
+      }
+      let next = position(actualSide)
+      // Popover.calcPlacement tries the requested/opposite placement, then limits the cross axis to the viewport.
+      if (avoidCollisions) {
+        const opposite = { bottom: "top", top: "bottom", left: "right", right: "left" } as const
+        const outside = side === "bottom" ? next.y + box.height > limit.bottom - padding("bottom") : side === "top" ? next.y < limit.top + padding("top")
+          : side === "right" ? next.x + box.width > limit.right - padding("right") : next.x < limit.left + padding("left")
+        if (outside) { actualSide = opposite[side]; next = position(actualSide) }
+        if (sticky === "partial") {
+          if (actualSide === "top" || actualSide === "bottom") next.x = Math.max(rect.left - box.width, Math.min(next.x, rect.right))
+          else next.y = Math.max(rect.top - box.height, Math.min(next.y, rect.bottom))
+        }
+        next.x = Math.max(limit.left + padding("left"), Math.min(next.x, limit.right - box.width - padding("right")))
+        next.y = Math.max(limit.top + padding("top"), Math.min(next.y, limit.bottom - box.height - padding("bottom")))
+      }
+      if (node.hasAttribute("data-missing-opener-origin")) next = { x: 0, y: 0 }
+      node.dataset.side = actualSide
+      node.style.left = `${next.x}px`; node.style.top = `${next.y}px`
+      node.dataset.mediaRange = box.width < 600 ? "S" : box.width < 1024 ? "M" : box.width < 1440 ? "L" : "XL"
+    }
+    place.current()
+  })
+  React.useLayoutEffect(() => {
+    if (!active || updatePositionStrategy !== "always") return
+    // Only the caller's explicit public "always" strategy adds animation-frame positioning; native default remains 300ms.
+    let frame: number
+    const tick = () => { place.current(); frame = requestAnimationFrame(tick) }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [active, updatePositionStrategy])
+  // ColorPalettePopover has no arrow; its native opener IntersectionObserver already governs detachment.
+  React.useLayoutEffect(() => {
+    const node = root.current
+    if (!active || !node) return
+    let pointerTarget: EventTarget | null = null
+    const inside = (event: Event) => event.composedPath().includes(node)
+    const pointer = (event: PointerEvent) => {
+      if (inside(event)) return
+      pointerTarget = event.target
+      const outside = new CustomEvent("dismissableLayer.pointerDownOutside", { cancelable: true, detail: { originalEvent: event } })
+      const call = () => { handlers.current.onPointerDownOutside?.(outside); handlers.current.onInteractOutside?.(outside) }
+      if (event.target) { event.target.addEventListener(outside.type, call, { once: true }); event.target.dispatchEvent(outside) }
+      else call()
+      if (!outside.defaultPrevented) handlers.current.onDismiss()
+    }
+    const focus = (event: FocusEvent) => {
+      if (inside(event) || event.target === pointerTarget) return
+      const outside = new CustomEvent("dismissableLayer.focusOutside", { cancelable: true, detail: { originalEvent: event } })
+      const call = () => { handlers.current.onFocusOutside?.(outside); handlers.current.onInteractOutside?.(outside) }
+      if (event.target) { event.target.addEventListener(outside.type, call, { once: true }); event.target.dispatchEvent(outside) }
+      else call()
+      if (!outside.defaultPrevented) handlers.current.onDismiss()
+    }
+    const click = () => { pointerTarget = null }
+    const key = (event: KeyboardEvent) => {
+      if (event.key !== "Escape" || event.defaultPrevented) return
+      handlers.current.onEscapeKeyDown?.(event)
+      if (!event.defaultPrevented) { event.preventDefault(); handlers.current.onDismiss() }
+    }
+    document.addEventListener("pointerdown", pointer, true)
+    document.addEventListener("focusin", focus, true)
+    document.addEventListener("click", click, true)
+    document.addEventListener("keydown", key, true)
+    return () => {
+      document.removeEventListener("pointerdown", pointer, true)
+      document.removeEventListener("focusin", focus, true)
+      document.removeEventListener("click", click, true)
+      document.removeEventListener("keydown", key, true)
+    }
+  }, [active])
+  const Root = asChild ? Slot.Root : "div"
+  return <Root {...props} ref={mount} popover="manual" role={props.role ?? "dialog"} tabIndex={props.tabIndex ?? -1} data-retained="" data-state={active ? "open" : "closed"}
+    data-align={align} data-hide-arrow="" data-media-range="S" className={cn("fiori-popup fiori-popover-surface z-50 outline-none", className)}
+    onKeyDown={(event) => {
+      onKeyDown?.(event)
+      if (event.defaultPrevented || event.key !== "Tab") return
+      // Popup.forwardToFirst/forwardToLast only wraps the boundary; palette Tab selection handles its own rows first.
+      const buttons = [...(root.current?.querySelectorAll<HTMLElement>("button:not([disabled]),[data-color-palette-area]:not([data-disabled])") ?? [])].filter((button) => !button.closest("[hidden]"))
+      const target = event.shiftKey ? buttons.at(-1) : buttons[0]
+      if (target && event.target === (event.shiftKey ? buttons[0] : buttons.at(-1))) { event.preventDefault(); target.focus() }
+    }}><div className="fiori-popup__root">{children}</div></Root>
 }
 
 function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, onOpenChange, placement = "Bottom", popoverLabel = "Color Palette",
@@ -233,14 +368,8 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     if (paintedOpen && !focusedRequest.current) handleOpenFocus(new Event("focusScope.autoFocusOnMount", { cancelable: true }), true)
     else if (!paintedOpen && focusedRequest.current) handleCloseFocus(new Event("focusScope.autoFocusOnUnmount", { cancelable: true }))
   }, [forceMount, paintedOpen])
-  return (
-    <><div hidden ref={directionRef} dir={paletteProps.dir}>
-      {/* Popup.js hide keeps palette commits active while closed; this dormant instance shares its state with the live surface. */}
-      {!paintedOpen && !forceMount && !contentMounted && renderPalette(false)}
-    </div>
-    <Popover open={paintedOpen} onOpenChange={changeOpen}>
-      <PopoverAnchor virtualRef={anchorRef} />
-      {/* Popover.js _show uses physical top/left 0 after a missing opener is recomputed by real resize, scroll or the registry's idle tick. */}
+  // Popover.js _show uses physical top/left 0 after a missing opener is recomputed by real resize, scroll or the registry's idle tick.
+  const surface = (
       <PopoverContent {...contentProps} id={id} data-slot="color-palette-popover" portal={portal} side={missingOpenerOrigin ? "bottom" : side} align={missingOpenerOrigin ? rtl ? "end" : "start" : contentProps?.align}
         avoidCollisions={missingOpenerOrigin ? false : contentProps?.avoidCollisions} dir={rtl ? "rtl" : "ltr"}
         hideArrow aria-label={popoverLabel} className={cn("fiori-color-palette-popover", className, contentProps?.className)}
@@ -256,6 +385,15 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
         {/* ColorPalettePopoverTemplate.js wraps the inline-block palette in an ordinary div. */}
         {renderPalette(true)}
       </PopoverContent>
+  )
+  return (
+    <><div hidden ref={directionRef} dir={paletteProps.dir}>
+      {/* Popup.js hide keeps palette commits active while closed; this dormant instance shares its state with the live surface. */}
+      {!paintedOpen && !forceMount && !contentMounted && renderPalette(false)}
+    </div>
+    <Popover open={paintedOpen} onOpenChange={changeOpen}>
+      <PopoverAnchor virtualRef={anchorRef} />
+      {forceMount ? <RetainedPaletteContent {...surface.props} active={paintedOpen} getAnchorRect={anchorRef.current.getBoundingClientRect} onDismiss={() => changeOpen(false)} /> : surface}
     </Popover></>
   )
 }

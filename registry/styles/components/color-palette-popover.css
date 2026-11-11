@@ -3,3 +3,5 @@
 /* UI5's popup has no font-size declaration; the palette and its inline wrapper inherit ambient text. */
 .fiori-popup.fiori-color-palette-popover { font-size: inherit; }
 .fiori-color-palette-popover .fiori-popup__root { overflow: visible; }
+/* Popup.css.js resets the browser's manual-popover host geometry; closed retained DOM has no interaction layer. */
+.fiori-color-palette-popover[data-retained] { position: fixed; inset: auto; margin: 0; padding: 0; border: none; max-width: calc(100vw - 2 * var(--fiori-popup-viewport-margin)); }
