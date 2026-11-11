@@ -274,8 +274,16 @@ test("color-palette: painted border clicks invoke caller and selection callbacks
   await host.hover()
   const point = await host.evaluate((node) => {
     const rect = node.getBoundingClientRect(), border = parseFloat(getComputedStyle(node).borderLeftWidth)
-    return { x: rect.x + border / 2, y: rect.y + rect.height / 2, border }
+    // Rounded inner hit areas can include the middle border; choose a measured point owned by the outer host.
+    const x = rect.x + border / 4
+    for (let offset = border / 4; border > 0 && offset < rect.height / 2; offset += border / 2) {
+      const y = rect.y + offset
+      if (document.elementFromPoint(x, y) === node) return { x, y, border }
+    }
+    return null
   })
+  expect(point).not.toBeNull()
+  if (!point) throw new Error("No painted host border point")
   expect(point.border).toBeGreaterThan(0)
   expect(await host.evaluate((node, point) => document.elementFromPoint(point.x, point.y) === node, point)).toBe(true)
   await page.mouse.move(point.x, point.y)
