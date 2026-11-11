@@ -42,7 +42,7 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 - [ ] [B1 Dialog draggable / resizable](tasks/B1-dialog-drag-resize.md) — M
 - [x] [B2 Menu checkable items and groups](tasks/B2-menu-check-mode.md) — S
 - [ ] [B3 ComboBox / MultiComboBox item groups](tasks/B3-combobox-groups.md) — M
-- [ ] [B4 Table and List drag & drop reordering](tasks/B4-drag-and-drop.md) — L
+- [x] [B4 Table and List drag & drop reordering](tasks/B4-drag-and-drop.md) — L
 - [x] [B5 NotificationList growing](tasks/B5-notification-growing.md) — S
 
 ## Wave C — new components
