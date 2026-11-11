@@ -1,0 +1,6 @@
+{
+  "title": "ColorPalette",
+  "description": "Fiori predefined color palette with the UI5 five-column keyboard model, default color and local recent colors.",
+  "registryDependencies": ["@fiori/button"],
+  "files": [{ "path": "registry/lib/fiori-color.ts", "type": "registry:lib" }]
+}

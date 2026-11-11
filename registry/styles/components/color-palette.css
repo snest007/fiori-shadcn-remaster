@@ -1,0 +1,67 @@
+/* Port of UI5 2.28 ColorPalette.css.js and ColorPaletteItem.css.js. */
+/* ColorPalette.css.js excludes hidden hosts so caller display overrides keep native cascade behavior. */
+.fiori-color-palette:not([hidden]) { display: inline-block; }
+.fiori-color-palette:not([hidden])[data-popup-mode] { width: 100%; overflow: hidden; }
+.fiori-color-palette__root { display: flex; flex-direction: column; }
+.fiori-color-palette__items {
+  display: flex;
+  box-sizing: content-box;
+  max-width: var(--fiori-color-palette-row-width);
+  flex-flow: wrap;
+  max-height: var(--fiori-color-palette-row-height);
+  overflow: hidden;
+  padding: var(--fiori-color-palette-swatch-container-padding);
+}
+.fiori-color-palette__default-wrapper { display: flex; flex-direction: column; }
+.fiori-color-palette__default {
+  width: 100%;
+  height: var(--fiori-color-palette-button-height);
+  text-align: center;
+  border: none;
+  padding: .0625rem;
+  border-radius: 0;
+}
+.fiori-color-palette__separator { width: 100%; height: .0625rem; background: var(--sapToolbar_SeparatorColor); }
+.fiori-color-palette__recent-wrapper { width: 100%; display: flex; align-items: center; flex-direction: column; gap: .25rem; }
+.fiori-color-palette-item:not([hidden]) {
+  height: var(--fiori-color-palette-item-height);
+  width: var(--fiori-color-palette-item-height);
+  border: .0625rem solid var(--sapContent_ForegroundBorderColor);
+  border-radius: var(--fiori-color-palette-item-outer-border-radius);
+  display: inline-block;
+  margin: var(--fiori-color-palette-item-margin);
+  box-sizing: border-box;
+  background-color: var(--fiori-x-color-palette-item-background-color);
+}
+.fiori-color-palette-item:not([data-disabled]):hover,
+.fiori-color-palette-item[data-selected] {
+  height: var(--fiori-color-palette-item-hover-height);
+  width: var(--fiori-color-palette-item-hover-height);
+  margin: var(--fiori-color-palette-item-hover-margin);
+  border-radius: var(--fiori-color-palette-item-hover-outer-border-radius);
+}
+.fiori-color-palette-item__inner { position: relative; box-sizing: border-box; border-radius: var(--fiori-color-palette-item-inner-border-radius); width: 100%; height: 100%; outline: none; }
+.fiori-color-palette-item:not([data-disabled]):hover .fiori-color-palette-item__inner,
+.fiori-color-palette-item[data-selected] .fiori-color-palette-item__inner { border-radius: var(--fiori-color-palette-item-hover-inner-border-radius); }
+.fiori-color-palette-item:not([data-disabled]) .fiori-color-palette-item__inner:focus-visible { border: var(--fiori-color-palette-item-selected-focused-border); }
+.fiori-color-palette-item__inner::before,
+.fiori-color-palette-item__inner::after { box-sizing: border-box; position: absolute; pointer-events: none; }
+.fiori-color-palette-item:not([data-disabled]) .fiori-color-palette-item__inner:focus-visible:not(:hover)::before {
+  content: ""; inset: var(--fiori-color-palette-item-before-focus-inset); border: var(--fiori-color-palette-item-before-focus-color); border-radius: var(--fiori-color-palette-item-before-focus-border-radius);
+}
+.fiori-color-palette-item:not([data-disabled]) .fiori-color-palette-item__inner:focus-visible:not(:hover)::after {
+  content: ""; inset: var(--fiori-color-palette-item-after-focus-inset); border: var(--fiori-color-palette-item-after-focus-color); border-radius: var(--fiori-color-palette-item-after-focus-border-radius);
+}
+.fiori-color-palette-item:not([data-disabled]):hover .fiori-color-palette-item__inner:focus-visible::before {
+  content: ""; inset: var(--fiori-color-palette-item-before-focus-hover-inset); border: var(--fiori-color-palette-item-before-focus-color); border-radius: var(--fiori-color-palette-item-before-focus-border-radius);
+}
+.fiori-color-palette-item:not([data-disabled]):hover .fiori-color-palette-item__inner:focus-visible::after {
+  content: ""; inset: var(--fiori-color-palette-item-after-focus-hover-inset); border: var(--fiori-color-palette-item-after-focus-color); border-radius: var(--fiori-color-palette-item-after-focus-border-radius);
+}
+/* The selected marker is UI5's SAP theme border, independent of the caller's CSS color. */
+.fiori-color-palette-item[data-selected]:not([data-disabled]):not(:has(:focus-visible)) .fiori-color-palette-item__inner::after,
+.fiori-color-palette-item:not([data-selected]):not([data-disabled]):hover .fiori-color-palette-item__inner:not(:focus-visible)::after {
+  content: ""; inset: calc(var(--fiori-color-palette-item-after-focus-hover-inset) - .0625rem); border: var(--fiori-color-palette-item-after-not-focus-color); border-radius: calc(var(--fiori-color-palette-item-after-focus-border-radius) + .0625rem);
+}
+.fiori-color-palette-item:not([data-disabled]):not([data-selected]):not(:hover) .fiori-color-palette-item__inner:focus-visible::after { border: var(--fiori-color-palette-item-after-focus-not-selected-border); }
+.fiori-color-palette-item[data-selected]:not([data-disabled]) .fiori-color-palette-item__inner:focus-visible::before { inset: var(--fiori-color-palette-item-selected-focused-border-before); }
