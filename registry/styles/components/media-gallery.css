@@ -1,0 +1,61 @@
+/* UI5 2.28 generated/themes/MediaGallery.css.js and MediaGalleryItem.css.js.
+   Literal rem geometry, percentages, layers, opacities and focus offsets have no component
+   theme parameters in those sources; all themed values below use generated SAP parameters. */
+.fiori-media-gallery { width: 100%; height: 100%; }
+.fiori-media-gallery__root { width: inherit; height: inherit; background: var(--sapBaseColor); display: flex; flex-direction: column; position: relative; }
+.fiori-media-gallery[data-menu-vertical-align="Top"] .fiori-media-gallery__root { flex-direction: column-reverse; }
+.fiori-media-gallery[data-effective-layout="Horizontal"] .fiori-media-gallery__root { flex-direction: row-reverse; }
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-menu-horizontal-align="Right"] .fiori-media-gallery__root { flex-direction: row; }
+.fiori-media-gallery__display-wrapper { width: 100%; display: flex; justify-content: center; position: relative; }
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-show-all-thumbnails] .fiori-media-gallery__display-wrapper { flex-grow: 3; flex-basis: 0; }
+.fiori-media-gallery__display { width: 100%; position: relative; margin: 1rem; display: flex; justify-content: center; }
+.fiori-media-gallery__display > .fiori-media-gallery-item { z-index: 1; }
+.fiori-media-gallery__display .fiori-carousel { width: calc(100% - 2rem); }
+.fiori-media-gallery__display .fiori-carousel__item { padding: 0; overflow: hidden; }
+.fiori-media-gallery__thumbnails-wrapper { margin-block: 1rem 0; }
+.fiori-media-gallery[data-menu-vertical-align="Top"] .fiori-media-gallery__thumbnails-wrapper { margin-block: 0 1rem; }
+.fiori-media-gallery[data-effective-layout="Horizontal"] .fiori-media-gallery__thumbnails-wrapper { margin-inline: 0 1rem; }
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-menu-horizontal-align="Right"] .fiori-media-gallery__thumbnails-wrapper { margin-inline: 1rem 0; }
+.fiori-media-gallery[data-show-all-thumbnails] .fiori-media-gallery__thumbnails-wrapper { overflow-x: auto; overflow-y: hidden; }
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-show-all-thumbnails] .fiori-media-gallery__thumbnails-wrapper { overflow-y: auto; overflow-x: hidden; flex-grow: 1; flex-basis: 0; }
+.fiori-media-gallery__thumbnails-wrapper ul { height: 5rem; display: flex; flex-wrap: nowrap; padding-left: 0; margin-top: 0; margin-bottom: 0; list-style-type: none; padding-inline-start: 0; }
+.fiori-media-gallery[data-effective-layout="Horizontal"] ul { width: 5rem; flex-wrap: wrap; }
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-show-all-thumbnails][data-media-range="M"] ul { width: 10rem; }
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-show-all-thumbnails][data-media-range="L"] ul { width: 15rem; }
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-show-all-thumbnails][data-media-range="XL"] ul { width: 20rem; }
+.fiori-media-gallery__thumbnail, .fiori-media-gallery__overflow [data-slot="button"] { width: 4rem; height: 4rem; flex-shrink: 0; }
+.fiori-media-gallery__overflow [data-slot="button"] { background: var(--fiori-media-gallery-overflow-btn-background); color: var(--fiori-media-gallery-overflow-btn-color); border: var(--fiori-media-gallery-overflow-btn-border); }
+.fiori-media-gallery__thumbnail, .fiori-media-gallery__overflow { margin: 0 0 0 1rem; }
+.fiori-media-gallery[data-menu-vertical-align="Top"] .fiori-media-gallery__thumbnail,
+.fiori-media-gallery[data-menu-vertical-align="Top"] .fiori-media-gallery__overflow,
+.fiori-media-gallery[data-effective-layout="Horizontal"] .fiori-media-gallery__thumbnail,
+.fiori-media-gallery[data-effective-layout="Horizontal"] .fiori-media-gallery__overflow { margin: 1rem 0 0 1rem; }
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-menu-horizontal-align="Right"] .fiori-media-gallery__thumbnail,
+.fiori-media-gallery[data-effective-layout="Horizontal"][data-menu-horizontal-align="Right"] .fiori-media-gallery__overflow { margin: 1rem 1rem 0 0; }
+.fiori-media-gallery-item { width: 100%; height: 100%; position: relative; display: flex; }
+.fiori-media-gallery-item[hidden] { display: none; }
+.fiori-media-gallery-item[data-square] { height: 0; padding-top: 100%; }
+.fiori-media-gallery-item__root { width: 100%; height: 100%; display: flex; }
+.fiori-media-gallery-item[data-square] .fiori-media-gallery-item__root { position: absolute; top: 0; left: 0; }
+.fiori-media-gallery-item[data-layout="Wide"] .fiori-media-gallery-item__root { align-items: center; }
+.fiori-media-gallery-item[data-thumbnail-design] .fiori-media-gallery-item__root { border: var(--fiori-media-gallery-thumbnail-border); box-sizing: border-box; }
+.fiori-media-gallery-item[data-interactive] .fiori-media-gallery-item__root { cursor: pointer; }
+.fiori-media-gallery-item[data-thumbnail-design]:not([data-disabled]):not([data-selected]) .fiori-media-gallery-item__root:hover { border-color: var(--sapTile_Interactive_BorderColor); background: var(--sapList_Hover_Background); }
+/* Project rule: UI5's :focus ring is keyboard-only here. */
+.fiori-media-gallery-item__root:focus { outline: none; }
+.fiori-media-gallery-item__root:focus-visible { outline: var(--fiori-media-gallery-thumbnail-focus-outline); outline-offset: -1px; }
+.fiori-media-gallery-item[data-thumbnail-design][data-selected] .fiori-media-gallery-item__root { border: var(--fiori-media-gallery-thumbnail-selected-border); }
+.fiori-media-gallery-item[data-thumbnail-design][data-selected] .fiori-media-gallery-item__root:focus-visible { outline-offset: -3px; }
+.fiori-media-gallery-item__wrapper { width: 100%; height: 100%; display: flex; justify-content: center; }
+.fiori-media-gallery-item[data-layout="Wide"] .fiori-media-gallery-item__wrapper { z-index: 1; }
+.fiori-media-gallery-item[data-layout="Wide"]:not([data-thumbnail-design]) .fiori-media-gallery-item__wrapper { height: 56.25%; }
+.fiori-media-gallery-item__background-icon { position: absolute; width: 4.5rem; height: 4.55rem; align-self: center; }
+.fiori-media-gallery-item__mask { position: absolute; inset: 0; user-select: none; }
+.fiori-media-gallery-item:not([data-thumbnail-design]) .fiori-media-gallery-item__mask { z-index: 2; background: var(--sapBaseColor); mix-blend-mode: multiply; opacity: .2; box-shadow: var(--fiori-media-gallery-item-overlay-box-shadow); pointer-events: none; }
+.fiori-media-gallery-item:not([data-thumbnail-design])[data-layout="Wide"] .fiori-media-gallery-item__mask { z-index: 0; }
+.fiori-media-gallery-item[data-disabled] .fiori-media-gallery-item__mask { z-index: 2; background: var(--sapContent_ImagePlaceholderBackground); opacity: .5; cursor: default; }
+/* These wrappers replace shadow slots without changing the slotted content's flex geometry. */
+.fiori-media-gallery-item__content:not([hidden]) { display: contents; }
+.fiori-media-gallery-item__content > * { max-width: 100%; max-height: 100%; object-fit: contain; margin: auto; }
+.fiori-media-gallery-item__thumbnail > *,
+.fiori-media-gallery-item[data-layout="Wide"] .fiori-media-gallery-item__content > * { width: 100%; height: 100%; object-fit: cover; }
