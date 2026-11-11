@@ -311,8 +311,9 @@ for (const trigger of ["idle", "document scroll", "popup scroll"] as const) test
   await root.locator("#color-palette-popover-lifecycle-presence").click()
   await root.locator("#color-palette-popover-lifecycle-opener").click(); await expect(popup).toBeVisible()
   if (trigger === "popup scroll") {
-    await popup.evaluate((node) => { node.style.maxHeight = "32px"; node.style.overflow = "auto" })
-    await expect.poll(() => popup.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true)
+    const viewport = popup.locator(".fiori-popup__root")
+    await viewport.evaluate((node) => { node.style.height = "32px"; node.style.flex = "none"; node.style.overflow = "auto" })
+    await expect.poll(() => viewport.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true)
   }
   const before = (await popup.boundingBox())!
   const immediate = await popup.evaluate(async (node) => {
@@ -324,8 +325,9 @@ for (const trigger of ["idle", "document scroll", "popup scroll"] as const) test
   expect(immediate.box.x).toBeCloseTo(before.x, 4); expect(immediate.box.y).toBeCloseTo(before.y, 4)
   if (trigger === "document scroll") await page.evaluate(() => window.scrollBy(0, 20))
   else if (trigger === "popup scroll") {
-    await popup.evaluate((node) => { node.scrollTop = 8 })
-    await expect.poll(() => popup.evaluate((node) => node.scrollTop)).toBeGreaterThan(0)
+    const viewport = popup.locator(".fiori-popup__root")
+    await viewport.evaluate((node) => { node.scrollTop = 8 })
+    await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBeGreaterThan(0)
   }
   await expect(popup).toHaveAttribute("data-missing-opener-origin", "")
   const origin = (await popup.boundingBox())!
