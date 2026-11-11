@@ -1,0 +1,5 @@
+{
+  "title": "MediaGallery",
+  "description": "Fiori image and video gallery with measured thumbnail overflow, selectable items, keyboard navigation, responsive layouts, and a phone carousel (ui5-media-gallery).",
+  "registryDependencies": ["@fiori/button", "@fiori/carousel", "@fiori/icons"]
+}
