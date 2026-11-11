@@ -102,7 +102,7 @@ function ForceMountExample() {
   }, [])
   return <div id="color-palette-popover-force-example">
     <Button id="color-palette-popover-force-mount" onClick={() => setMounted(!mounted)}>Toggle retained surface</Button>
-    <Button id="color-palette-popover-force-opener" ref={opener} onClick={() => setOpen(true)}>Choose retained surface color</Button>
+    <Button id="color-palette-popover-force-opener" ref={opener} onClick={() => setOpen(true)}><span id="color-palette-popover-force-opener-label">Choose retained surface color</span></Button>
     <Button id="color-palette-popover-force-sample" onClick={sample}>Read retained refs</Button>
     {mounted && <ColorPalettePopover id="color-palette-popover-force-surface" portal={false} open={open} opener={opener} onOpenChange={setOpen}
       contentProps={{ forceMount: true, onOpenAutoFocus: () => setAutoFocus((history) => [...history, "open"]), onCloseAutoFocus: () => setAutoFocus((history) => [...history, "close"]) }}

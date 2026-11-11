@@ -32,6 +32,15 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
   const directionRef = React.useRef<HTMLDivElement | null>(null)
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null)
   const [observedAnchor, setObservedAnchor] = React.useState<HTMLElement | null>(null)
+  const openerPointerEvents = React.useRef(new WeakSet<Event>())
+  React.useLayoutEffect(() => {
+    if (!anchor) return
+    // Popover.js isOpenerClicked uses the original composed path. Radix defers outside pointerdown until click,
+    // when that path has expired, so retain only event identity captured on the actual opener (also in ShadowRoot).
+    const remember = (event: Event) => { openerPointerEvents.current.add(event) }
+    anchor.addEventListener("pointerdown", remember, true)
+    return () => anchor.removeEventListener("pointerdown", remember, true)
+  }, [anchor])
   const retainedOpenerRect = React.useRef<DOMRect | null>(null)
   const [anchorVisible, setAnchorVisible] = React.useState(false)
   const dismissedRequest = React.useRef(false)
@@ -64,6 +73,11 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
   const anchorRef = React.useMemo(() => ({ current: { getBoundingClientRect: () => missingActiveOpener
     ? missingOpenerOrigin ? new DOMRect() : retainedOpenerRect.current ?? new DOMRect()
     : resolveOpener()?.getBoundingClientRect() ?? new DOMRect() } }), [anchor, missingActiveOpener, missingOpenerOrigin])
+  const isOpenerPointerDown = (event: Event) => {
+    const node = resolveOpener()
+    return event.type === "pointerdown" && !!node && (openerPointerEvents.current.has(event)
+      || (event.target instanceof Node && node.contains(event.target)) || event.composedPath().includes(node))
+  }
   const changeOpen = React.useCallback((next: boolean) => {
     if (controlled === undefined) setUncontrolled(next)
     onOpenChange?.(next)
@@ -188,9 +202,10 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
         hideArrow aria-label={popoverLabel} className={cn("fiori-color-palette-popover", className, contentProps?.className)}
         hidden={!paintedOpen} style={paintedOpen ? contentProps?.style : { ...contentProps?.style, display: "none" }}
         data-missing-opener={missingActiveOpener ? "" : undefined} data-missing-opener-origin={missingOpenerOrigin ? "" : undefined}
-        onPointerDownOutside={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onPointerDownOutside?.(event) }}
+        // popup-utils/PopoverRegistry.js clickHandler excludes isOpenerClicked, including retained Content's opening pointerdown.
+        onPointerDownOutside={(event) => { if (!paintedOpen || isOpenerPointerDown(event.detail.originalEvent)) event.preventDefault(); else contentProps?.onPointerDownOutside?.(event) }}
         onFocusOutside={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onFocusOutside?.(event) }}
-        onInteractOutside={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onInteractOutside?.(event) }}
+        onInteractOutside={(event) => { if (!paintedOpen || isOpenerPointerDown(event.detail.originalEvent)) event.preventDefault(); else contentProps?.onInteractOutside?.(event) }}
         onEscapeKeyDown={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onEscapeKeyDown?.(event) }}
         onOpenAutoFocus={(event) => handleOpenFocus(event, false)}
         onCloseAutoFocus={handleCloseFocus}>
