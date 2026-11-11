@@ -105,14 +105,9 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
   const [thumbnailFailed, setThumbnailFailed] = React.useState(false), [contentFailed, setContentFailed] = React.useState(false)
   const thumbnailFailure = React.useRef(false), contentFailure = React.useRef(false)
   const monitoredThumbnail = React.useRef<Element | null>(null), monitoredContent = React.useRef<Element | null>(null)
-  const imageListeners = React.useRef<Array<() => void>>([])
   const thumb = firstNode(thumbnail), content = firstNode(children)
   const useThumbnail = thumbnailDesign && thumb !== null && !thumbnailFailed
   const useContent = !useThumbnail && content !== null && !contentFailed
-  React.useLayoutEffect(() => () => {
-    imageListeners.current.forEach((stop) => stop()); imageListeners.current = []
-    monitoredThumbnail.current = null; monitoredContent.current = null
-  }, [])
   // MediaGalleryItem.js _monitorLoadingError resets only a nonempty slot whose first
   // element differs from the monitored identity. Empty removal retains the failure
   // and placeholder; a new non-img resets the flag without becoming monitored.
@@ -130,7 +125,6 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
         update(failure.current)
       }
       changed(); image.addEventListener("load", changed); image.addEventListener("error", changed)
-      imageListeners.current.push(() => { image.removeEventListener("load", changed); image.removeEventListener("error", changed) })
       monitored.current = element
     }
     const thumbnailElement = thumbRef.current?.firstElementChild ?? null
