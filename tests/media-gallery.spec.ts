@@ -270,6 +270,44 @@ test("React 19 gallery and item callback refs invoke returned cleanup once on un
   await expect(page.locator("#media-gallery-demo #media-gallery-ref-cleanups")).toHaveText("Ref cleanups: 2")
 })
 
+const lowercaseAndroidUA = "Mozilla/5.0 (Linux; Android 11) applewebkit/537.36 Version/4.0 Mobile Safari/537.36"
+const cachedTabletAndroidUA = "Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Version/4.0 Mobile Safari/537.36"
+test.describe("native lowercase Android Device classifier", () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 800, height: 1280 }, screen: { width: 800, height: 1280 }, deviceScaleFactor: 2, userAgent: lowercaseAndroidUA })
+  test("non-Chrome lowercase WebKit uses the native DPR phone path and preserves Carousel callback behavior", async ({ page }) => {
+    const root = gallery(page), items = root.locator(".fiori-carousel__item")
+    await expect(root).toHaveAttribute("data-phone", "true")
+    await expect(root.getByRole("listbox")).toHaveCount(0)
+    await expect(items).toHaveCount(6)
+    await items.nth(0).focus()
+    await page.keyboard.press("ArrowRight")
+    await expect(items.nth(1)).toBeFocused()
+    await expect(root.locator("#media-gallery-item-0")).toHaveAttribute("data-selected", "true")
+    await expect(root.locator("#media-gallery-item-2")).not.toHaveAttribute("data-selected", "true")
+    await expect(page.locator("#media-gallery-demo #media-gallery-selection")).toHaveText("Selection: media-gallery-item-2:false; changes: 1")
+  })
+})
+
+test.describe("native module-lifetime tablet classification", () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 800, height: 1280 }, screen: { width: 800, height: 1280 }, deviceScaleFactor: 1, userAgent: cachedTabletAndroidUA })
+  test("a new gallery keeps the initial tablet thumbnail path after DPR changes in the same module", async ({ page }) => {
+    const root = gallery(page), additional = page.locator("#media-gallery-demo #media-gallery-additional")
+    await expect(root).not.toHaveAttribute("data-phone", "true")
+    await expect(root.getByRole("listbox", { name: "Product pictures" })).toBeVisible()
+    await expect(additional).toHaveCount(0)
+    await page.evaluate(() => Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: 2 }))
+    expect(await page.evaluate(() => Math.min(screen.width, screen.height) / devicePixelRatio)).toBe(400)
+    await page.locator("#media-gallery-demo #media-gallery-add-gallery").click()
+    await expect(additional).toBeVisible()
+    await expect(additional).not.toHaveAttribute("data-phone", "true")
+    await expect(additional.locator(".fiori-carousel")).toHaveCount(0)
+    await expect(additional.getByRole("listbox", { name: "Additional pictures" })).toBeVisible()
+    await expect(thumbnails(additional)).toHaveCount(2)
+    await thumbnails(additional).nth(1).click()
+    await expect(main(additional).getByAltText("Additional picture 1")).toBeVisible()
+  })
+})
+
 test.describe("native phone platform", () => {
   test.use({
     hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,

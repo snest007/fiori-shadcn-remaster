@@ -12,6 +12,7 @@ function MediaGalleryDemo() {
   const [layout, setLayout] = React.useState<MediaGalleryLayout>("Auto"), [count, setCount] = React.useState(7)
   const [mounted, setMounted] = React.useState(true), [refCleanups, setRefCleanups] = React.useState(0)
   const [contentlessSelection, setContentlessSelection] = React.useState("none"), [contentlessChanges, setContentlessChanges] = React.useState(0)
+  const [additionalGallery, setAdditionalGallery] = React.useState(false)
   const cleanupRef = React.useCallback((element: HTMLDivElement | null) => {
     if (element) return () => setRefCleanups((value) => value + 1)
   }, [])
@@ -55,6 +56,10 @@ function MediaGalleryDemo() {
           thumbnail={<img src={mediaImage(1, true)} alt="Empty wide item thumbnail" />} />
       </MediaGallery>
       <p id="media-gallery-contentless-selection">Selection: {contentlessSelection}; changes: {contentlessChanges}</p>
+      <Button id="media-gallery-add-gallery" onClick={() => setAdditionalGallery(true)}>Add gallery</Button>
+      {additionalGallery && <MediaGallery id="media-gallery-additional" accessibleName="Additional pictures" style={{ width: 640, height: 416 }}>
+        {[0, 1].map((index) => <MediaGalleryItem key={index}><img src={mediaImage(index)} alt={"Additional picture " + index} /></MediaGalleryItem>)}
+      </MediaGallery>}
       <Button id="media-gallery-ref-remove" onClick={() => setMounted(false)}>Remove ref example</Button>
       <p id="media-gallery-ref-cleanups">Ref cleanups: {refCleanups}</p>
       {mounted && <MediaGallery id="media-gallery-ref-example" accessibleName="Ref cleanup pictures" ref={cleanupRef} style={{ width: 320, height: 320 }}>

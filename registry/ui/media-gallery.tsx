@@ -35,19 +35,41 @@ const THUMBNAIL_MARGIN = 16
 // MediaRange.js getCurrentRange floors the component width before choosing RANGE_4STEPS.
 const mediaRange = (width: number) => Math.floor(width) < 600 ? "S" : Math.floor(width) < 1024 ? "M" : Math.floor(width) < 1440 ? "L" : "XL"
 
-// Device.js internals._isPhone/detectTablet: narrow desktop width alone never selects the phone path.
+// Device.js internals._isPhone/detectTablet cache tablet and version results for the
+// module lifetime; touch stays live. Preserve the 2.28 helper's exact UA semantics.
+let deviceTablet: boolean | undefined
+let deviceWindowsVersion: number | undefined
+let deviceWebkitVersion: number | undefined
 function isPhonePlatform() {
-  if (typeof window === "undefined") return false
+  if (typeof window === "undefined" || typeof document === "undefined") return false
   const ua = navigator.userAgent, touch = "ontouchstart" in window || navigator.maxTouchPoints > 0
-  if (!touch || /ipad/i.test(ua) || (/Macintosh/i.test(ua) && "ontouchend" in document)) return false
-  const windows = navigator.platform.includes("Win"), version = ua.match(/Windows NT (\d+)\.(\d+)/)
-  if (windows && version && Number(version[1] + "." + version[2]) >= 8) return false
-  const android = !windows && /Android/.test(ua)
-  if (/(Chrome|CriOS)/.test(ua) && android) return /Mobile Safari\/[.0-9]+/.test(ua)
-  let density = window.devicePixelRatio || 1
-  const webkit = ua.match(/webkit[ /]([\w.]+)/)
-  if (android && webkit && parseFloat(webkit[1]) >= 537.1) density = 1
-  return Math.min(window.screen.width / density, window.screen.height / density) < 600
+  if (deviceTablet === undefined) {
+    const windows = navigator.platform.indexOf("Win") !== -1, android = !windows && /Android/.test(ua)
+    if (/ipad/i.test(ua) || (/Macintosh/i.test(ua) && "ontouchend" in document)) deviceTablet = true
+    else if (touch) {
+      if (windows && deviceWindowsVersion === undefined) {
+        // Device.js isWindows8OrAbove uses a wildcard dot, one minor digit, and the major capture.
+        const matches = ua.match(/Windows NT (\d+).(\d)/)
+        deviceWindowsVersion = matches ? parseFloat(matches[1]) : 0
+      }
+      if (windows && deviceWindowsVersion! >= 8) deviceTablet = true
+      else if (/(Chrome|CriOS)/.test(ua) && android) deviceTablet = !/Mobile Safari\/[.0-9]+/.test(ua)
+      else {
+        let density = window.devicePixelRatio ? window.devicePixelRatio : 1
+        if (android && /webkit/.test(ua)) {
+          if (deviceWebkitVersion === undefined) {
+            // Device.js isWebkit537OrAbove parses capture 1 ("webkit"), yielding NaN.
+            // Keep that native result and its lowercase check, including the cached NaN.
+            const matches = ua.match(/(webkit)[ /]([\w.]+)/)
+            deviceWebkitVersion = matches ? parseFloat(matches[1]) : 0
+          }
+          if (deviceWebkitVersion >= 537.10) density = 1
+        }
+        deviceTablet = Math.min(window.screen.width / density, window.screen.height / density) >= 600
+      }
+    } else deviceTablet = ua.indexOf("Touch") !== -1 || (android && !/(?=android)(?=.*mobile)/i.test(ua))
+  }
+  return touch && !deviceTablet
 }
 const firstNode = (nodes: React.ReactNode) => React.Children.toArray(nodes)[0] ?? null
 const selectable = (props: MediaGalleryItemProps) => !props.disabled && !props.hidden
