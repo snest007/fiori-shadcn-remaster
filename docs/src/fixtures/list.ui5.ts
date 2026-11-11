@@ -30,6 +30,7 @@ function item(it: ItemSpec) {
     selected: it.selected,
     disabled: it.disabled,
     movable: it.movable,
+    active: it.active,
     // ListItem._ondragstart naturally sets this on the host, never the inner draggable li.
     "data-moving": it.moving,
   }

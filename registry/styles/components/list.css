@@ -211,13 +211,14 @@
   background-color: var(--sapList_Active_Background);
   border-bottom-color: var(--sapList_Active_Background);
 }
-.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__icon,
-.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__title,
-.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__desc,
-.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__additional-text {
+/* UI5 ListItem.css keeps active foreground/shadow during ListItem._ondragstart; only ListItemBase gates its background/focus. */
+.fiori-li[data-active][data-actionable] .fiori-li__icon,
+.fiori-li[data-active][data-actionable] .fiori-li__title,
+.fiori-li[data-active][data-actionable] .fiori-li__desc,
+.fiori-li[data-active][data-actionable] .fiori-li__additional-text {
   color: var(--sapList_Active_TextColor);
 }
-.fiori-li[data-active][data-actionable]:not([data-moving]) .fiori-li__additional-text {
+.fiori-li[data-active][data-actionable] .fiori-li__additional-text {
   text-shadow: none;
 }
 /* Focus: keyboard only (UI5 also shows it on mouse focus on desktop). */

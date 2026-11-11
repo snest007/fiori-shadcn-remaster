@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test"
+import { expect, test, type Locator, type Page } from "@playwright/test"
 
 test.beforeEach(async ({ page }) => {
   await page.goto(`/index.html`)
@@ -353,4 +353,47 @@ test("list: an accepted Table source drop focuses the previously unfocused nativ
   await expect(source).toBeFocused()
   await expect(list.locator('[data-slot="list-item"]')).toHaveCount(4)
   await source.dispatchEvent("dragend")
+})
+
+test("list: natural active drags retain native rich foreground and selected text shadow behavior", async ({ page, browser }) => {
+  // ListItem._onmousedown activates; _ondragstart retains active. ListItem.css keeps foreground and clears selected text shadow while moving.
+  const nativePage = await browser.newPage()
+  await nativePage.goto("/ui5.html?only=list-movable-rich")
+  await nativePage.waitForSelector("html[data-ready=true]")
+  await page.goto("/index.html?fixtures&only=list-movable-rich")
+  await page.waitForSelector("html[data-ready=true]")
+  const nativeSource = nativePage.locator('[data-fixture="list-movable-rich"] ui5-li')
+  const reactSource = page.locator('[data-fixture="list-movable-rich"] [data-slot="list-item"]')
+  const snapshot = (source: Locator, native: boolean) => source.evaluate((element, isNative) => {
+    const scope = isNative ? element.shadowRoot! : element
+    const prefix = isNative ? ".ui5-li-" : ".fiori-li__"
+    const foreground = Object.fromEntries(["icon", "title", "desc", "additional-text"].map((part) => [part, getComputedStyle(scope.querySelector(prefix + part)!).color]))
+    const nativeLi = isNative ? scope.querySelector("li")! : element
+    return { foreground, textShadow: getComputedStyle(scope.querySelector(prefix + "additional-text")!).textShadow, background: getComputedStyle(element).backgroundColor, opacity: getComputedStyle(element).opacity, cursor: getComputedStyle(nativeLi).cursor }
+  }, native)
+  const states = []
+  for (const { targetPage, source, native } of [{ targetPage: nativePage, source: nativeSource, native: true }, { targetPage: page, source: reactSource, native: false }]) {
+    const focusRoot = native ? source.locator("li") : source
+    await focusRoot.focus()
+    await expect(focusRoot).toBeFocused()
+    const box = (await focusRoot.boundingBox())!
+    await targetPage.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await targetPage.mouse.down()
+    await expect(source).toHaveAttribute(native ? "active" : "data-active", "")
+    const pressed = await snapshot(source, native)
+    await targetPage.mouse.move(box.x + box.width / 2 + 24, box.y + box.height / 2, { steps: 4 })
+    await expect(source).toHaveAttribute("data-moving", "")
+    await expect(source).toHaveAttribute(native ? "active" : "data-active", "")
+    if (native) await expect(focusRoot).not.toHaveAttribute("data-moving", /.*/)
+    const moving = await snapshot(source, native)
+    await targetPage.mouse.up()
+    await expect(source).not.toHaveAttribute("data-moving", /.*/)
+    states.push({ pressed, moving })
+  }
+  expect(states[0].moving.foreground).toEqual(states[0].pressed.foreground)
+  expect(states[0].moving.textShadow).toBe("none")
+  expect(states[0].moving.background).not.toBe(states[0].pressed.background)
+  expect(states[1]).toEqual(states[0])
+  await test.info().attach("native-active-moving-styles", { body: JSON.stringify(states, null, 2), contentType: "application/json" })
+  await nativePage.close()
 })
