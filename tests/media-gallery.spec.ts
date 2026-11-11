@@ -24,13 +24,17 @@ for (const slot of ["content", "thumbnail"] as const) {
   })
 }
 
-test("default slot paints every sibling in the thumbnail surface while the main display clones only the first child", async ({ page }) => {
+test("Fragment default slot paints every sibling in the thumbnail surface while the main display clones only the first child", async ({ page }) => {
   const root = page.locator("#media-gallery-demo #media-gallery-siblings"), display = main(root)
   const item = root.locator("#media-gallery-sibling-content")
   await expect(item.getByAltText("Default sibling image")).toBeVisible()
   await expect(item.getByLabel("Default sibling video")).toBeVisible()
   await expect(display.getByAltText("Default sibling image")).toBeVisible()
   await expect(display.locator("video")).toHaveCount(0)
+  await expect.poll(() => display.locator("img").evaluate((image) => {
+    const source = document.querySelector("#media-gallery-demo #media-gallery-sibling-content .fiori-media-gallery-item__content > img")
+    return { distinctClone: image !== source, sameSource: image.getAttribute("src") === source?.getAttribute("src") }
+  })).toEqual({ distinctClone: true, sameSource: true })
   await thumbnails(root).nth(1).click()
   await expect(display.getByAltText("Named-thumbnail default image")).toBeVisible()
   await expect(display.locator("video")).toHaveCount(0)
@@ -39,7 +43,7 @@ test("default slot paints every sibling in the thumbnail surface while the main 
   await expect(display.locator("img,video")).toHaveCount(1)
 })
 
-test("named thumbnail slot paints both sibling images and monitors only the first image", async ({ page }) => {
+test("Fragment named thumbnail slot paints both sibling images and monitors only the first image", async ({ page }) => {
   const root = page.locator("#media-gallery-demo #media-gallery-siblings")
   const item = root.locator("#media-gallery-sibling-thumbnail"), images = item.locator(".fiori-media-gallery-item__thumbnail > img")
   await expect(images).toHaveCount(2)
@@ -357,7 +361,7 @@ test.describe("native phone platform", () => {
     hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
     userAgent: "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
   })
-  test("phone Carousel paints all default-slot siblings and keeps every named thumbnail sibling hidden", async ({ page }) => {
+  test("phone Carousel paints all Fragment default-slot siblings and keeps every named thumbnail sibling hidden", async ({ page }) => {
     const root = page.locator("#media-gallery-demo #media-gallery-siblings"), slides = root.locator(".fiori-carousel__item")
     const first = root.locator("#media-gallery-sibling-content"), second = root.locator("#media-gallery-sibling-thumbnail")
     await expect(root).toHaveAttribute("data-phone", "true")

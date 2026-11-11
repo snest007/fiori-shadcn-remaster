@@ -71,7 +71,17 @@ function isPhonePlatform() {
   }
   return touch && !deviceTablet
 }
-const firstNode = (nodes: React.ReactNode) => React.Children.toArray(nodes)[0] ?? null
+// MediaGalleryItem.js displayedContent is the first slotted element. Fragments have
+// no DOM host, and text nodes are not members of UI5's HTMLElement content slot.
+function firstNode(nodes: React.ReactNode): React.ReactElement | null {
+  for (const node of React.Children.toArray(nodes)) {
+    if (!React.isValidElement<{ children?: React.ReactNode }>(node)) continue
+    if (node.type !== React.Fragment) return node
+    const first = firstNode(node.props.children)
+    if (first) return first
+  }
+  return null
+}
 const selectable = (props: MediaGalleryItemProps) => !props.disabled && !props.hidden
 const modified = (event: React.KeyboardEvent) => event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
 // React 19 callback refs may return their own cleanup instead of accepting a later null.

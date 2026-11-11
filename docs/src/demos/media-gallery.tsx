@@ -75,15 +75,15 @@ function MediaGalleryDemo() {
       </MediaGallery>
       <MediaGallery id="media-gallery-siblings" accessibleName="Slotted media siblings" layout="Horizontal" style={{ width: 640, height: 336 }}>
         <MediaGalleryItem id="media-gallery-sibling-content">
-          <img src={mediaImage(0)} alt="Default sibling image" />
-          <video poster={mediaImage(1)} preload="none" aria-label="Default sibling video" />
+          <><img src={mediaImage(0)} alt="Default sibling image" />
+            <video poster={mediaImage(1)} preload="none" aria-label="Default sibling video" /></>
         </MediaGalleryItem>
-        <MediaGalleryItem id="media-gallery-sibling-thumbnail" thumbnail={[
+        <MediaGalleryItem id="media-gallery-sibling-thumbnail" thumbnail={<>{[
           <img key="first" src={mediaImage(2, true)} alt="First sibling thumbnail" />,
           <img key="second" src={laterThumbnailFailed ? failedMediaImage : mediaImage(3, true)} alt="Later sibling thumbnail" />,
-        ]}>
-          <img src={mediaImage(2)} alt="Named-thumbnail default image" />
-          <video poster={mediaImage(3)} preload="none" aria-label="Named-thumbnail default video" />
+        ]}</>}>
+          <><img src={mediaImage(2)} alt="Named-thumbnail default image" />
+            <video poster={mediaImage(3)} preload="none" aria-label="Named-thumbnail default video" /></>
         </MediaGalleryItem>
       </MediaGallery>
       <Button id="media-gallery-sibling-thumbnail-fail-later" onClick={() => setLaterThumbnailFailed(true)}>Fail later thumbnail</Button>
