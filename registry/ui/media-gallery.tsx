@@ -103,23 +103,41 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
   }, [ref])
   const thumbRef = React.useRef<HTMLDivElement | null>(null), contentRef = React.useRef<HTMLDivElement | null>(null)
   const [thumbnailFailed, setThumbnailFailed] = React.useState(false), [contentFailed, setContentFailed] = React.useState(false)
+  const thumbnailFailure = React.useRef(false), contentFailure = React.useRef(false)
+  const monitoredThumbnail = React.useRef<Element | null>(null), monitoredContent = React.useRef<Element | null>(null)
+  const imageListeners = React.useRef<Array<() => void>>([])
   const thumb = firstNode(thumbnail), content = firstNode(children)
   const useThumbnail = thumbnailDesign && thumb !== null && !thumbnailFailed
   const useContent = !useThumbnail && content !== null && !contentFailed
-  // MediaGalleryItem.js _monitorLoadingError/_attachListeners: first IMG (possibly nested),
-  // thumbnail-to-content fallback, and recovery when the actual image finishes loading.
+  React.useLayoutEffect(() => () => {
+    imageListeners.current.forEach((stop) => stop()); imageListeners.current = []
+    monitoredThumbnail.current = null; monitoredContent.current = null
+  }, [])
+  // MediaGalleryItem.js _monitorLoadingError resets only a nonempty slot whose first
+  // element differs from the monitored identity. Empty removal retains the failure
+  // and placeholder; a new non-img resets the flag without becoming monitored.
+  // _attachListeners retains the first IMG's listeners, guarded by item.contains(img).
+  // A nested IMG replacement under the same slot element is not a new monitored slot.
   React.useLayoutEffect(() => {
-    const watch = (wrapper: HTMLDivElement | null, update: (failed: boolean) => void) => {
-      const image = wrapper?.querySelector("img")
-      if (!image) { update(false); return () => {} }
-      const changed = () => update(image.naturalHeight === 0 && image.naturalWidth === 0)
+    const watch = (element: Element | null, monitored: React.RefObject<Element | null>, failure: React.RefObject<boolean>, update: (failed: boolean) => void) => {
+      if (!element || element === monitored.current) return
+      failure.current = false; update(false)
+      const image = element.tagName === "IMG" ? element as HTMLImageElement : element.querySelector<HTMLImageElement>("img")
+      if (!image) return
+      const changed = () => {
+        if (!hostRef.current?.contains(image)) return
+        failure.current = image.naturalHeight === 0 && image.naturalWidth === 0
+        update(failure.current)
+      }
       changed(); image.addEventListener("load", changed); image.addEventListener("error", changed)
-      return () => { image.removeEventListener("load", changed); image.removeEventListener("error", changed) }
+      imageListeners.current.push(() => { image.removeEventListener("load", changed); image.removeEventListener("error", changed) })
+      monitored.current = element
     }
-    const stopThumb = thumbnailDesign ? watch(thumbRef.current, setThumbnailFailed) : () => {}
-    const stopContent = !useThumbnail ? watch(contentRef.current, setContentFailed) : () => {}
-    return () => { stopThumb(); stopContent() }
-  }, [children, thumbnail, thumbnailDesign, useThumbnail])
+    const thumbnailElement = thumbRef.current?.firstElementChild ?? null
+    if (thumbnailDesign) watch(thumbnailElement, monitoredThumbnail, thumbnailFailure, setThumbnailFailed)
+    if (!(thumbnailDesign && thumbnailElement && !thumbnailFailure.current))
+      watch(contentRef.current?.firstElementChild ?? null, monitoredContent, contentFailure, setContentFailed)
+  })
   React.useLayoutEffect(() => {
     if (hostRef.current) Object.assign(hostRef.current, { selected, disabled, layout })
     register?.(hostRef.current, focusRef.current)

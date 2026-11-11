@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { MediaGallery, MediaGalleryItem, type MediaGalleryLayout } from "@/components/ui/media-gallery"
-import { mediaImage } from "../fixtures/media-gallery"
+import { failedMediaImage, mediaImage } from "../fixtures/media-gallery"
 import { defineDemo } from "./types"
 
 function MediaGalleryDemo() {
@@ -13,6 +13,8 @@ function MediaGalleryDemo() {
   const [mounted, setMounted] = React.useState(true), [refCleanups, setRefCleanups] = React.useState(0)
   const [contentlessSelection, setContentlessSelection] = React.useState("none"), [contentlessChanges, setContentlessChanges] = React.useState(0)
   const [additionalGallery, setAdditionalGallery] = React.useState(false)
+  const [failedContent, setFailedContent] = React.useState<"failed" | "empty" | "replacement">("failed")
+  const [failedThumbnail, setFailedThumbnail] = React.useState<"failed" | "empty" | "replacement">("failed")
   const cleanupRef = React.useCallback((element: HTMLDivElement | null) => {
     if (element) return () => setRefCleanups((value) => value + 1)
   }, [])
@@ -56,6 +58,20 @@ function MediaGalleryDemo() {
           thumbnail={<img src={mediaImage(1, true)} alt="Empty wide item thumbnail" />} />
       </MediaGallery>
       <p id="media-gallery-contentless-selection">Selection: {contentlessSelection}; changes: {contentlessChanges}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button id="media-gallery-failed-content-remove" onClick={() => setFailedContent("empty")}>Remove failed content</Button>
+        <Button id="media-gallery-failed-content-replace" onClick={() => setFailedContent("replacement")}>Replace content</Button>
+        <Button id="media-gallery-failed-thumbnail-remove" onClick={() => setFailedThumbnail("empty")}>Remove failed thumbnail</Button>
+        <Button id="media-gallery-failed-thumbnail-replace" onClick={() => setFailedThumbnail("replacement")}>Replace thumbnail</Button>
+      </div>
+      <MediaGallery id="media-gallery-failures" accessibleName="Media recovery" layout="Horizontal" style={{ width: 640, height: 336 }}>
+        <MediaGalleryItem><img src={mediaImage(0)} alt="Recovery example picture" /></MediaGalleryItem>
+        <MediaGalleryItem id="media-gallery-failed-content" aria-label="Default media">
+          {failedContent === "failed" ? <img src={failedMediaImage} alt="Failed default media" /> : failedContent === "replacement" ? <span>Content replacement</span> : undefined}
+        </MediaGalleryItem>
+        <MediaGalleryItem id="media-gallery-failed-thumbnail" aria-label="Thumbnail media"
+          thumbnail={failedThumbnail === "failed" ? <img src={failedMediaImage} alt="Failed thumbnail media" /> : failedThumbnail === "replacement" ? <span>Thumbnail replacement</span> : undefined} />
+      </MediaGallery>
       <Button id="media-gallery-add-gallery" onClick={() => setAdditionalGallery(true)}>Add gallery</Button>
       {additionalGallery && <MediaGallery id="media-gallery-additional" accessibleName="Additional pictures" style={{ width: 640, height: 416 }}>
         {[0, 1].map((index) => <MediaGalleryItem key={index}><img src={mediaImage(index)} alt={"Additional picture " + index} /></MediaGalleryItem>)}

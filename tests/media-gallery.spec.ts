@@ -9,6 +9,21 @@ const thumbnails = (root: Locator) => root.locator(".fiori-media-gallery__thumbn
 const focusItems = (root: Locator) => thumbnails(root).locator(".fiori-media-gallery-item__root")
 const main = (root: Locator) => root.locator(".fiori-media-gallery__display > [data-slot=media-gallery-item]")
 
+for (const slot of ["content", "thumbnail"] as const) {
+  test("failed " + slot + " removal retains its placeholder until a different non-image slot replaces it", async ({ page }) => {
+    const item = page.locator("#media-gallery-demo #media-gallery-failed-" + slot)
+    const icon = item.locator(".fiori-media-gallery-item__background-icon")
+    await expect.poll(() => item.locator("img").evaluate((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth === 0)).toBe(true)
+    await expect(icon).toBeVisible()
+    await page.locator("#media-gallery-demo #media-gallery-failed-" + slot + "-remove").click()
+    await expect(item.locator("img")).toHaveCount(0)
+    await expect(icon).toBeVisible()
+    await page.locator("#media-gallery-demo #media-gallery-failed-" + slot + "-replace").click()
+    await expect(icon).toHaveCount(0)
+    await expect(item.getByText(slot === "content" ? "Content replacement" : "Thumbnail replacement", { exact: true })).toBeVisible()
+  })
+}
+
 test("media gallery selects by click, ignores disabled and duplicate selections, and suppresses the initial callback", async ({ page }) => {
   const root = gallery(page)
   await expect(root.getByRole("listbox", { name: "Product pictures" })).toBeVisible()

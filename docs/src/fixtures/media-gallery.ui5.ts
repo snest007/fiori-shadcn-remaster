@@ -11,9 +11,9 @@ import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 import type Ui5MediaGallery from "@ui5/webcomponents-fiori/dist/MediaGallery.js"
 import type Ui5MediaGalleryItem from "@ui5/webcomponents-fiori/dist/MediaGalleryItem.js"
 import { defineUi5, h } from "../fixture-types"
-import set, { mediaImage } from "./media-gallery"
+import set, { failedMediaImage, mediaImage } from "./media-gallery"
 
-export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, wideIndex, contentless, thumbnail, rtl, video, activate, clearAfterActivate, ...props }) => {
+export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, wideIndex, contentless, thumbnail, rtl, video, activate, clearAfterActivate, failureSlot, removeFailure, ...props }) => {
   const gallery = h("ui5-media-gallery", {
     layout: props.layout, "show-all-thumbnails": props.showAllThumbnails, "interactive-display-area": props.interactiveDisplayArea,
     "menu-horizontal-align": props.menuHorizontalAlign, "menu-vertical-align": props.menuVerticalAlign, dir: rtl ? "rtl" : undefined,
@@ -21,11 +21,27 @@ export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected 
     const image = video ? h("video", { poster: mediaImage(index), preload: "none", "aria-label": "Video " + (index + 1) })
       : h("img", { src: mediaImage(index), alt: "Picture " + (index + 1) })
     const item = h("ui5-media-gallery-item", { selected: index === selected, disabled: index === disabled, hidden: index === hidden, layout: wide || index === wideIndex ? "Wide" : "Square" })
-    if (index !== contentless) item.append(image)
-    if (thumbnail) item.append(h("img", { slot: "thumbnail", src: mediaImage(index, true), alt: "Thumbnail " + (index + 1) }))
+    if (index === 1 && failureSlot) {
+      item.append(h("img", { slot: failureSlot === "thumbnail" ? "thumbnail" : undefined, src: failedMediaImage, alt: "Failed media" }))
+    } else {
+      if (index !== contentless) item.append(image)
+      if (thumbnail) item.append(h("img", { slot: "thumbnail", src: mediaImage(index, true), alt: "Thumbnail " + (index + 1) }))
+    }
     return item
   }))
   gallery.style.cssText = "width:" + width + "px;height:" + height + "px"
+  if (failureSlot && removeFailure) Object.assign(gallery, { fixtureReady: (async () => {
+    const target = gallery.children[1] as Ui5MediaGalleryItem
+    const failed = target.querySelector<HTMLImageElement>("img")!
+    const placeholder = () => target.shadowRoot?.querySelector("ui5-icon[name=background]")
+    while (!gallery.isConnected || !failed.complete || !placeholder())
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+    await renderFinished()
+    failed.remove()
+    while (target.content.length || target.thumbnail.length || !placeholder())
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+    await renderFinished()
+  })() })
   if (activate !== undefined) Object.assign(gallery, { fixtureReady: (async () => {
     const native = gallery as Ui5MediaGallery
     const main = () => native.shadowRoot?.querySelector<Ui5MediaGalleryItem>("ui5-media-gallery-item")
