@@ -390,6 +390,22 @@ test.describe("MultiComboBox grouped ranges", () => {
     expect(errors).toEqual([])
   })
 
+  for (const modifier of ["Control", "Meta", "Alt"]) test(`${modifier}+Shift arrows leave grouped headers and selection unchanged`, async ({ page }) => {
+    const errors = await observeRange(page)
+    await openRangeList(page)
+    const vegetables = rangeList(page).getByRole("group", { name: "Vegetables", exact: true })
+    await vegetables.focus()
+    await expect(vegetables).toBeFocused()
+    for (const direction of ["Down", "Up"]) {
+      await page.keyboard.press(`${modifier}+Shift+Arrow${direction}`)
+      await expect(vegetables).toBeFocused()
+      await expect(rangeInput(page)).toHaveAttribute("aria-expanded", "true")
+      await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+      await expectRangeEvents(page, 0)
+    }
+    expect(errors).toEqual([])
+  })
+
   test("headers keep successful native mappings and guard readonly destinations", async ({ page }) => {
     const errors = await observeRange(page)
     await openRangeList(page)

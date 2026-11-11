@@ -447,6 +447,12 @@ function MultiComboBox({
     const onSelectAll = (e.target as HTMLElement).dataset.slot === "multi-combobox-select-all"
     const { key, altKey: alt, shiftKey: shift } = e
     const ctrl = e.ctrlKey || e.metaKey
+    // UI5 Keys.js/isDownShift and isUpShift require Shift without Ctrl/Meta/Alt.
+    // In grouped lists these modified arrows neither range-select nor toggle.
+    if (shift && (ctrl || alt) && (key === "ArrowDown" || key === "ArrowUp") && entries.some(isGroup)) {
+      e.preventDefault()
+      return
+    }
     if (key === "Tab") {
       inputRef.current?.focus()
       setOpen(false)
