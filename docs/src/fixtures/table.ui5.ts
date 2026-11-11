@@ -1,3 +1,4 @@
+import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 import "@ui5/webcomponents/dist/Table.js"
 import "@ui5/webcomponents/dist/TableHeaderRow.js"
 import "@ui5/webcomponents/dist/TableHeaderCell.js"
@@ -15,10 +16,10 @@ import "@ui5/webcomponents-icons/dist/navigation-right-arrow.js"
 import "@ui5/webcomponents-icons/dist/sort-ascending.js"
 import "@ui5/webcomponents-icons/dist/sort-descending.js"
 
-import { defineUi5, h } from "../fixture-types"
+import { defineUi5, h, type Ui5FixtureElement } from "../fixture-types"
 import set, { TABLE_COLUMNS, TABLE_POPIN_WIDTH, TABLE_ROWS, TABLE_WIDTH } from "./table"
 
-export default defineUi5(set, ({ selection, selected, actions, navigated, group, noData, popin, growing, sort, alternate }) => {
+export default defineUi5(set, ({ selection, selected, actions, navigated, group, noData, popin, growing, sort, alternate, dropPlacement }) => {
   const rows = noData ? [] : TABLE_ROWS
   const row = (r: (typeof TABLE_ROWS)[number], i: number) =>
     h(
@@ -73,5 +74,17 @@ export default defineUi5(set, ({ selection, selected, actions, navigated, group,
     ...body
   )
   table.style.width = popin ? TABLE_POPIN_WIDTH : TABLE_WIDTH
+  if (dropPlacement) {
+    ;(table as Ui5FixtureElement).fixtureReady = (async () => {
+      while (!table.isConnected || !table.shadowRoot?.querySelector("ui5-drop-indicator")) await new Promise(requestAnimationFrame)
+      await renderFinished()
+      await document.fonts.ready
+      const indicator = table.shadowRoot!.querySelector("ui5-drop-indicator") as HTMLElement & { targetReference: HTMLElement; placement: string }
+      indicator.targetReference = table.querySelectorAll<HTMLElement>("ui5-table-row")[1]
+      indicator.placement = dropPlacement
+      await renderFinished()
+      await new Promise(requestAnimationFrame)
+    })()
+  }
   return table
 })

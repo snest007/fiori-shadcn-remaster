@@ -1,5 +1,7 @@
 import * as React from "react"
 
+import { useFioriDragAndDrop, type FioriMoveHandlers } from "@/lib/fiori-drag-and-drop"
+
 import { accept, decline, edit, slimArrowRight } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { BusyIndicator } from "@/components/ui/busy-indicator"
@@ -261,7 +263,7 @@ function handleNavigationKey(e: React.KeyboardEvent, core: ListCore, opts?: { gr
 // ---------------------------------------------------------------------------------------------
 // List
 
-type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
+type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & FioriMoveHandlers & {
   selectionMode?: ListSelectionMode
   /** Values of the selected items (controlled). Every mode uses an array; single modes hold at most one. */
   value?: string[]
@@ -307,6 +309,8 @@ function List({
   onValueChange,
   onItemClick,
   onItemDelete,
+  onMoveOver,
+  onMove,
   headerText,
   header,
   footerText,
@@ -327,6 +331,12 @@ function List({
   children,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
+  onDragStart,
+  onDragEnd,
+  onDragEnter,
+  onDragLeave,
+  onDragOver,
+  onDrop,
   ...props
 }: ListProps) {
   const id = React.useId()
@@ -344,6 +354,15 @@ function List({
     selectedText,
     notSelectedText,
     growingButtonRef: growing === "button" ? growingRef : undefined,
+  })
+  const dragAndDrop = useFioriDragAndDrop({
+    rootRef: core.rootRef,
+    kind: "list",
+    // List._dragAndDropHandler uses top-level List.items; grouped children are represented by their group.
+    getItems: () => [...(core.rootRef.current?.querySelectorAll<HTMLElement>('[data-slot="list-item"], [data-slot="list-item-group"], [data-slot="list-item-group-header"]') ?? [])].filter((item) => item.closest('[data-slot="list"]') === core.rootRef.current && !item.parentElement?.closest('[data-slot="list-item-group"]')),
+    onMoveOver,
+    onMove,
+    dragHandlers: { onDragStart, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDrop },
   })
   const hasData = React.Children.toArray(children).length > 0
   const headerId = `${id}-header`
@@ -402,7 +421,7 @@ function List({
           aria-multiselectable={accessibleRole === "listbox" && selectionMode === "multiple" ? true : undefined}
           className="fiori-list__ul"
           onKeyDown={(e) => {
-            if (!e.defaultPrevented) handleNavigationKey(e, core, { growingButton: growingRef.current })
+            if (!e.defaultPrevented && !dragAndDrop.handleKeyDown(e)) handleNavigationKey(e, core, { growingButton: growingRef.current })
           }}
         >
           {children}
@@ -472,6 +491,7 @@ function List({
         data-sticky-header={stickyHeader ? "" : undefined}
         data-growing={growing}
         className={cn("fiori-list", className)}
+        {...dragAndDrop.handlers}
         {...props}
       >
         {loading && growing !== "button" ? (
@@ -481,6 +501,7 @@ function List({
         ) : (
           body
         )}
+        {dragAndDrop.indicator}
       </div>
     </ListCoreContext.Provider>
   )
@@ -679,6 +700,8 @@ type ListItemBaseProps = Omit<React.ComponentProps<"li">, "value" | "type" | "co
   /** Shows the navigation indicator at the end of the item. */
   navigated?: boolean
   disabled?: boolean
+  /** Allows mouse dragging and Ctrl/Cmd+Arrow or Home/End move requests. */
+  movable?: boolean
   /** Fired by the edit button of `type="detail"` items. */
   onDetailClick?: () => void
   /** Tooltip / accessible description of the detail button (default "Edit"). */
@@ -703,6 +726,7 @@ function ListItemRoot({
   highlight = "none",
   navigated,
   disabled,
+  movable = false,
   onDetailClick,
   detailText = "Edit",
   flags,
@@ -738,6 +762,9 @@ function ListItemRoot({
   return (
     <li
       data-slot="list-item"
+      // UI5 ListItemTemplate uses movable independently of disabled; List._moveItem accepts programmatic focus moves.
+      data-movable={movable ? "" : undefined}
+      draggable={movable}
       data-nav-key={value}
       data-li-row=""
       data-selected={selected ? "" : undefined}

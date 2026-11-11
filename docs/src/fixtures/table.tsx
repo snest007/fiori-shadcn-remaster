@@ -1,3 +1,5 @@
+import * as React from "react"
+import { FioriDropIndicator } from "@/lib/fiori-drag-and-drop"
 import {
   Table,
   TableCell,
@@ -25,6 +27,7 @@ export type TableFixtureProps = {
   growing?: boolean
   sort?: boolean
   alternate?: boolean
+  dropPlacement?: "Before" | "After" | "On"
 }
 
 // Deterministic data shared with table.ui5.ts.
@@ -43,10 +46,24 @@ export const TABLE_HIGHLIGHTS: TableRowHighlight[] = ["negative", "critical", "p
 export const TABLE_WIDTH = "32rem"
 export const TABLE_POPIN_WIDTH = "16rem"
 
+function StaticTableDrop({ children, placement }: { children: React.ReactNode; placement?: "Before" | "After" | "On" }) {
+  const ref = React.useRef<HTMLDivElement>(null)
+  const [elements, setElements] = React.useState<{ owner: HTMLElement; target: HTMLElement } | null>(null)
+  React.useLayoutEffect(() => {
+    if (!placement || !ref.current) return
+    const owner = ref.current.querySelector<HTMLElement>('[data-slot="table"]')!
+    setElements({ owner, target: owner.querySelectorAll<HTMLElement>('[data-slot="table-row"]')[1] })
+  }, [placement])
+  return <div ref={ref} style={{ position: "relative" }}>{children}{elements && <FioriDropIndicator ownerReference={elements.owner} targetReference={elements.target} placement={placement} />}</div>
+}
+
 export default defineFixtures<TableFixtureProps>({
   name: "table",
   cases: [
     { id: "table", props: {} },
+    { id: "table-drop-indicator-before", props: { dropPlacement: "Before" } },
+    { id: "table-drop-indicator-after", props: { dropPlacement: "After" } },
+    { id: "table-drop-indicator-on", props: { dropPlacement: "On" } },
     { id: "table-sorted", props: { sort: true } },
     { id: "table-multi", props: { selection: "multi", selected: ["p1", "p3"] } },
     { id: "table-multi-all", props: { selection: "multi", selected: ["p1", "p2", "p3", "p4"] } },
@@ -62,7 +79,7 @@ export default defineFixtures<TableFixtureProps>({
   // ui5-table 2.28 has no row highlight (sap.m.Table's status bar); our highlight follows ui5-li's,
   // so there's nothing to compare it with. Checked by screenshot only.
   skipCompare: ["table-highlight"],
-  react: ({ selection, selected, highlight, actions, navigated, group, noData, popin, growing, sort, alternate }) => {
+  react: ({ selection, selected, highlight, actions, navigated, group, noData, popin, growing, sort, alternate, dropPlacement }) => {
     const rows = noData ? [] : TABLE_ROWS
     const renderRow = (r: (typeof TABLE_ROWS)[number], i: number) => (
       <TableRow
@@ -86,6 +103,7 @@ export default defineFixtures<TableFixtureProps>({
       </TableRow>
     )
     return (
+      <StaticTableDrop placement={dropPlacement}>
       <Table
         aria-label="Products"
         style={{ width: popin ? TABLE_POPIN_WIDTH : TABLE_WIDTH }}
@@ -120,6 +138,7 @@ export default defineFixtures<TableFixtureProps>({
           rows.map(renderRow)
         )}
       </Table>
+      </StaticTableDrop>
     )
   },
 })

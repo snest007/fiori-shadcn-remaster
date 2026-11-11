@@ -1,3 +1,5 @@
+import * as React from "react"
+import { FioriDropIndicator } from "@/lib/fiori-drag-and-drop"
 import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,6 +32,8 @@ export type ItemSpec = {
   avatar?: string
   navigated?: boolean
   disabled?: boolean
+  movable?: boolean
+  moving?: boolean
   /** ListItemCustom with a text and a button. */
   custom?: boolean
 }
@@ -42,6 +46,7 @@ export type Props = {
   noDataText?: string
   separators?: ListSeparators
   growing?: ListGrowing
+  dropPlacement?: "Before" | "After" | "On"
 }
 
 export const LIST_WIDTH = "20rem"
@@ -55,6 +60,11 @@ const sel = (mode: ListSelectionMode, items: ItemSpec[] = three): Props => ({
 const states = ["none", "negative", "critical", "positive", "information"] as const
 
 const cases: { id: string; props: Props }[] = [
+  { id: "list-drop-indicator-before", props: { items: three, dropPlacement: "Before" } },
+  { id: "list-drop-indicator-after", props: { items: three, dropPlacement: "After" } },
+  { id: "list-drop-indicator-on", props: { items: three, dropPlacement: "On" } },
+  { id: "list-movable-disabled", props: { items: three.map((it, i) => ({ ...it, movable: true, disabled: i === 1 })) } },
+  { id: "list-movable-moving", props: { items: three.map((it, i) => ({ ...it, movable: true, moving: i === 1 })) } },
   { id: "list-basic", props: { items: three } },
   { id: "list-header-footer", props: { items: three, headerText: "Fruits", footerText: "3 items" } },
   {
@@ -132,7 +142,7 @@ const cases: { id: string; props: Props }[] = [
 function renderItem(it: ItemSpec, i: number) {
   if (it.custom) {
     return (
-      <ListItemCustom key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled}>
+      <ListItemCustom key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled} movable={it.movable} data-moving={it.moving ? "" : undefined}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <span>{it.text}</span>
           <Button>Edit</Button>
@@ -154,6 +164,8 @@ function renderItem(it: ItemSpec, i: number) {
       highlight={it.highlight}
       navigated={it.navigated}
       disabled={it.disabled}
+      movable={it.movable}
+      data-moving={it.moving ? "" : undefined}
       image={it.avatar ? <Avatar initials={it.avatar} size="S" /> : undefined}
     />
   )
@@ -166,13 +178,24 @@ export const selectedValues = (items: Props["items"]) => {
   return out
 }
 
+function StaticListDrop({ children, placement }: { children: React.ReactNode; placement?: "Before" | "After" | "On" }) {
+  const ref = React.useRef<HTMLDivElement>(null)
+  const [elements, setElements] = React.useState<{ owner: HTMLElement; target: HTMLElement } | null>(null)
+  React.useLayoutEffect(() => {
+    if (!placement || !ref.current) return
+    const owner = ref.current.querySelector<HTMLElement>('[data-slot="list"]')!
+    setElements({ owner, target: owner.querySelectorAll<HTMLElement>('[data-slot="list-item"]')[1] })
+  }, [placement])
+  return <div ref={ref} style={{ width: LIST_WIDTH, position: "relative" }}>{children}{elements && <FioriDropIndicator ownerReference={elements.owner} targetReference={elements.target} placement={placement} />}</div>
+}
+
 export default defineFixtures<Props>({
   name: "list",
   cases,
-  react: ({ items, mode, headerText, footerText, noDataText, separators, growing }) => {
+  react: ({ items, mode, headerText, footerText, noDataText, separators, growing, dropPlacement }) => {
     let n = 0
     return (
-      <div style={{ width: LIST_WIDTH }}>
+      <StaticListDrop placement={dropPlacement}>
         <List
           aria-label="List"
           selectionMode={mode}
@@ -193,7 +216,7 @@ export default defineFixtures<Props>({
             )
           )}
         </List>
-      </div>
+      </StaticListDrop>
     )
   },
 })
