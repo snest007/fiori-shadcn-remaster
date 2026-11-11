@@ -34,6 +34,7 @@ export type ItemSpec = {
   disabled?: boolean
   movable?: boolean
   moving?: boolean
+  active?: boolean
   /** ListItemCustom with a text and a button. */
   custom?: boolean
 }
@@ -58,6 +59,7 @@ const sel = (mode: ListSelectionMode, items: ItemSpec[] = three): Props => ({
   items: items.map((it, i) => ({ ...it, selected: i === 1 })),
 })
 const states = ["none", "negative", "critical", "positive", "information"] as const
+const richMovable: ItemSpec = { text: "Laptop", description: "Dell XPS 15", icon: "product", additionalText: "In stock", selected: true, movable: true }
 
 const cases: { id: string; props: Props }[] = [
   { id: "list-drop-indicator-before", props: { items: three, dropPlacement: "Before" } },
@@ -65,6 +67,9 @@ const cases: { id: string; props: Props }[] = [
   { id: "list-drop-indicator-on", props: { items: three, dropPlacement: "On" } },
   { id: "list-movable-disabled", props: { items: three.map((it, i) => ({ ...it, movable: true, disabled: i === 1 })) } },
   { id: "list-movable-moving", props: { items: three.map((it, i) => ({ ...it, movable: true, moving: i === 1 })) } },
+  { id: "list-movable-rich", props: { items: [richMovable] } },
+  { id: "list-movable-active-rich", props: { items: [{ ...richMovable, active: true }] } },
+  { id: "list-movable-active-moving-rich", props: { items: [{ ...richMovable, active: true, moving: true }] } },
   { id: "list-basic", props: { items: three } },
   { id: "list-header-footer", props: { items: three, headerText: "Fruits", footerText: "3 items" } },
   {
@@ -142,7 +147,7 @@ const cases: { id: string; props: Props }[] = [
 function renderItem(it: ItemSpec, i: number) {
   if (it.custom) {
     return (
-      <ListItemCustom key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled} movable={it.movable} data-moving={it.moving ? "" : undefined}>
+      <ListItemCustom key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled} movable={it.movable} data-moving={it.moving ? "" : undefined} {...(it.active === undefined ? {} : { "data-active": it.active ? "" : undefined })}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <span>{it.text}</span>
           <Button>Edit</Button>
@@ -166,6 +171,7 @@ function renderItem(it: ItemSpec, i: number) {
       disabled={it.disabled}
       movable={it.movable}
       data-moving={it.moving ? "" : undefined}
+      {...(it.active === undefined ? {} : { "data-active": it.active ? "" : undefined })}
       image={it.avatar ? <Avatar initials={it.avatar} size="S" /> : undefined}
     />
   )
