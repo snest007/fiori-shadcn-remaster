@@ -81,9 +81,17 @@ function ManagedPaletteItem({ navigationRefs, navigationIndex, ref, ...props }: 
   navigationRefs: React.RefObject<(HTMLDivElement | null)[]>
   navigationIndex: number
 }) {
-  // One component per stable item identity keeps caller/navigation refs attached across ordinary renders.
+  const nodeRef = React.useRef<HTMLDivElement | null>(null)
   // ColorPaletteItemTemplate.js focuses the inner button; public refs retain that same inner target.
-  const composedRef = React.useMemo(() => composeRef(ref, (node) => { navigationRefs.current[navigationIndex] = node }), [ref, navigationRefs, navigationIndex])
+  // Caller ref ownership follows keyed item identity, independently of the item's current navigation index.
+  const composedRef = React.useMemo(() => composeRef(ref, (node) => { nodeRef.current = node }), [ref])
+  React.useLayoutEffect(() => {
+    const node = nodeRef.current
+    navigationRefs.current[navigationIndex] = node
+    return () => {
+      if (navigationRefs.current[navigationIndex] === node) navigationRefs.current[navigationIndex] = null
+    }
+  }, [navigationRefs, navigationIndex])
   return <ColorPaletteItem {...props} ref={composedRef} />
 }
 
@@ -319,12 +327,13 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
         <div className="fiori-color-palette__items" role="group" aria-label={`${containerLabel}${name ? ` ${name}` : ""}`}>
           {displayed.map(({ item, key }, index) => {
             const handlers = swatchProps("main", index)
+            // ColorPaletteItem.js _onClick emits a bubbling host click; stopped caller events never reach ColorPalette.js ancestor handlers.
             return <ManagedPaletteItem {...item.props} {...handlers} key={key} ref={item.props.ref} navigationRefs={mainRefs} navigationIndex={index} index={index + 1}
               colorLabel={item.props.colorLabel ?? colorLabel} selected={selected?.area === "main" && selected.key === key}
-              onClick={(event) => { item.props.onClick?.(event); handlers.onClick(event) }}
-              onMouseDown={(event) => { item.props.onMouseDown?.(event); handlers.onMouseDown() }}
-              onKeyDown={(event) => { item.props.onKeyDown?.(event); if (!event.defaultPrevented) handlers.onKeyDown(event) }}
-              onKeyUp={(event) => { item.props.onKeyUp?.(event); if (!event.defaultPrevented) handlers.onKeyUp(event) }} />
+              onClick={(event) => { item.props.onClick?.(event); if (!event.isPropagationStopped()) handlers.onClick(event) }}
+              onMouseDown={(event) => { item.props.onMouseDown?.(event); if (!event.isPropagationStopped()) handlers.onMouseDown() }}
+              onKeyDown={(event) => { item.props.onKeyDown?.(event); if (!event.defaultPrevented && !event.isPropagationStopped()) handlers.onKeyDown(event) }}
+              onKeyUp={(event) => { item.props.onKeyUp?.(event); if (!event.defaultPrevented && !event.isPropagationStopped()) handlers.onKeyUp(event) }} />
           })}
         </div>
         {showRecentColors && <div className="fiori-color-palette__recent-wrapper">

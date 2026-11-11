@@ -375,3 +375,108 @@ test("color-palette: a main selected declaration wins after the recent row commi
   await expect(root.locator('[aria-pressed="true"]')).toHaveCount(1)
   await expect(events).toHaveText('["red","red"]')
 })
+
+test("color-palette: keyed reordering, filtering and hiding preserve stable caller refs and navigation", async ({ page }) => {
+  const root = page.locator("#color-palette-demo #color-palette-ref-examples"), state = root.locator("#color-palette-ref-state")
+  const main = root.locator("#color-palette-ref-control [data-color-palette-area=main]"), callback = root.locator("#color-palette-ref-callback-item")
+  const sample = async () => {
+    await root.locator("#color-palette-ref-sample").click()
+    return JSON.parse((await state.textContent())!)
+  }
+  const before = await sample(), element = await callback.elementHandle()
+  await root.locator("#color-palette-ref-reorder").click()
+  await expect(main.nth(0)).toHaveAttribute("id", "color-palette-ref-callback-item")
+  expect(await callback.evaluate((node, previous) => node === previous, element)).toBe(true)
+  expect(await sample()).toEqual(before)
+  await root.locator("#color-palette-ref-callback-focus").click()
+  await expect(callback).toBeFocused()
+  await pressTo(page, "ArrowRight", main.nth(1))
+  await root.locator("#color-palette-ref-filter").click()
+  await expect(main).toHaveCount(1)
+  expect(await sample()).toEqual({ ...before, object: null })
+  expect(await callback.evaluate((node, previous) => node === previous, element)).toBe(true)
+  await focusSwatch(callback)
+  await pressTo(page, "ArrowRight", callback)
+  await root.locator("#color-palette-ref-hidden").click()
+  await expect(callback.locator("..")).toBeHidden()
+  expect(await sample()).toEqual({ ...before, object: null })
+  await root.locator("#color-palette-ref-hidden").click()
+  await expect(callback).toBeVisible()
+  await root.locator("#color-palette-ref-filter").click()
+  await expect(main).toHaveCount(2)
+  expect(await sample()).toEqual(before)
+  await root.locator("#color-palette-ref-reorder").click()
+  await expect(main.nth(1)).toHaveAttribute("id", "color-palette-ref-callback-item")
+  expect(await sample()).toEqual(before)
+  expect(await callback.evaluate((node, previous) => node === previous, element)).toBe(true)
+  await focusSwatch(callback)
+  await pressTo(page, "ArrowLeft", main.nth(0))
+})
+
+test("color-palette: changing a caller callback ref cleans the prior ref once and retains the DOM", async ({ page }) => {
+  const root = page.locator("#color-palette-demo #color-palette-ref-examples"), state = root.locator("#color-palette-ref-state")
+  const callback = root.locator("#color-palette-ref-callback-item"), element = await callback.elementHandle()
+  const sample = async () => { await root.locator("#color-palette-ref-sample").click(); return JSON.parse((await state.textContent())!) }
+  const before = await sample()
+  for (let changes = 1; changes <= 2; changes++) {
+    await root.locator("#color-palette-ref-prop").click()
+    expect(await sample()).toEqual({ ...before, mounts: before.mounts + changes, cleanups: before.cleanups + changes })
+    expect(await callback.evaluate((node, previous) => node === previous, element)).toBe(true)
+    await root.locator("#color-palette-ref-callback-focus").click()
+    await expect(callback).toBeFocused()
+  }
+})
+
+test("color-palette: replacing a keyed item cleans its ref once and attaches the new identity", async ({ page }) => {
+  const root = page.locator("#color-palette-demo #color-palette-ref-examples"), state = root.locator("#color-palette-ref-state")
+  const callback = root.locator("#color-palette-ref-callback-item"), element = await callback.elementHandle()
+  const sample = async () => { await root.locator("#color-palette-ref-sample").click(); return JSON.parse((await state.textContent())!) }
+  const before = await sample()
+  await root.locator("#color-palette-ref-identity").click()
+  expect(await sample()).toEqual({ ...before, mounts: before.mounts + 1, cleanups: before.cleanups + 1 })
+  expect(await callback.evaluate((node, previous) => node === previous, element)).toBe(false)
+  expect(await element!.evaluate((node) => node.isConnected)).toBe(false)
+  await root.locator("#color-palette-ref-callback-focus").click()
+  await expect(callback).toBeFocused()
+})
+
+test("color-palette: stopped caller clicks block ancestor selection for inner and direct host targets", async ({ page }) => {
+  const demo = page.locator("#color-palette-demo #color-palette-propagation-example"), root = demo.locator("#color-palette-propagation-control")
+  const main = swatches(root)
+  await main.nth(1).click()
+  await expect(demo.locator("#color-palette-propagation-calls")).toHaveText('{"click":1,"mousedown":1,"keydown":0,"keyup":0,"root":0}')
+  await expect(demo.locator("#color-palette-propagation-events")).toHaveText("[]")
+  await expect(root.locator('[aria-pressed="true"]')).toHaveCount(0)
+  await main.nth(2).locator("..").dispatchEvent("click")
+  await expect(demo.locator("#color-palette-propagation-calls")).toHaveText('{"click":2,"mousedown":1,"keydown":0,"keyup":0,"root":0}')
+  await expect(demo.locator("#color-palette-propagation-events")).toHaveText("[]")
+  await expect(root.locator('[aria-pressed="true"]')).toHaveCount(0)
+})
+
+test("color-palette: stopped caller key phases block ancestor navigation and selection", async ({ page }) => {
+  const demo = page.locator("#color-palette-demo #color-palette-propagation-example"), root = demo.locator("#color-palette-propagation-control")
+  const main = swatches(root)
+  await main.nth(0).focus(); await expect(main.nth(0)).toBeFocused()
+  for (const key of ["ArrowRight", "Enter", " "]) {
+    await page.keyboard.press(key)
+    await expect(main.nth(0)).toBeFocused()
+  }
+  await expect(demo.locator("#color-palette-propagation-calls")).toHaveText('{"click":0,"mousedown":0,"keydown":3,"keyup":3,"root":0}')
+  await expect(demo.locator("#color-palette-propagation-events")).toHaveText("[]")
+  await expect(main.nth(0)).toHaveAttribute("tabindex", "0")
+  await expect(main.nth(1)).toHaveAttribute("tabindex", "-1")
+  await expect(root.locator('[aria-pressed="true"]')).toHaveCount(0)
+})
+
+test("color-palette: stopped caller mousedown preserves ancestor navigation index", async ({ page }) => {
+  const demo = page.locator("#color-palette-demo #color-palette-propagation-example"), root = demo.locator("#color-palette-propagation-control")
+  const main = swatches(root)
+  await main.nth(1).dispatchEvent("mousedown")
+  await expect(main.nth(0)).toHaveAttribute("tabindex", "0")
+  await expect(main.nth(1)).toHaveAttribute("tabindex", "-1")
+  await main.nth(2).locator("..").dispatchEvent("mousedown")
+  await expect(main.nth(0)).toHaveAttribute("tabindex", "0")
+  await expect(main.nth(2)).toHaveAttribute("tabindex", "-1")
+  await expect(demo.locator("#color-palette-propagation-calls")).toHaveText('{"click":0,"mousedown":2,"keydown":0,"keyup":0,"root":0}')
+  await expect(demo.locator("#color-palette-propagation-events")).toHaveText("[]")
+})

@@ -203,3 +203,78 @@ test("color-palette-popover: Left and Right aliases remain physical in both dire
     await expect(popup).toBeHidden()
   }
 })
+
+test("color-palette-popover: a missing opener keeps requested open without painting or closing", async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-lifecycle-example"), popup = page.locator("#color-palette-popover-lifecycle-surface")
+  await root.locator("#color-palette-popover-lifecycle-request").click()
+  await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":true,"changes":[],"events":[]}')
+  await expect(popup).toHaveCount(0)
+  await root.locator("#color-palette-popover-lifecycle-presence").click()
+  await expect(popup).toBeVisible()
+  await page.keyboard.press("Escape")
+  await expect(popup).toBeHidden()
+  await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":false,"changes":[false],"events":[]}')
+})
+
+test("color-palette-popover: an initially offviewport opener closes once per open request", async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-lifecycle-example"), popup = page.locator("#color-palette-popover-lifecycle-surface")
+  await root.locator("#color-palette-popover-lifecycle-presence").click()
+  await root.locator("#color-palette-popover-lifecycle-opener").evaluate((node) => Object.assign(node.style, { position: "fixed", left: "-1000px", top: "0" }))
+  for (const changes of ["[false]", "[false,false]"]) {
+    await root.locator("#color-palette-popover-lifecycle-request").click()
+    await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText(`{"open":false,"changes":${changes},"events":[]}`)
+    await expect(popup).toHaveCount(0)
+  }
+})
+
+test("color-palette-popover: clipping the actual opener closes without selecting", async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-lifecycle-example"), popup = page.locator("#color-palette-popover-lifecycle-surface")
+  await root.locator("#color-palette-popover-lifecycle-presence").click()
+  const clip = root.locator("#color-palette-popover-lifecycle-scroll")
+  await clip.evaluate((node) => Object.assign(node.style, { width: "240px", height: "60px", overflow: "auto" }))
+  await root.locator("#color-palette-popover-lifecycle-spacer").evaluate((node) => { node.style.height = "400px" })
+  await root.locator("#color-palette-popover-lifecycle-opener").click()
+  await expect(popup).toBeVisible()
+  const stillInsideViewport = await clip.evaluate((node) => {
+    node.scrollTop = 100
+    const rect = node.querySelector("button")!.getBoundingClientRect()
+    return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth
+  })
+  expect(stillInsideViewport).toBe(true)
+  await expect(popup).toBeHidden()
+  await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":false,"changes":[false],"events":[]}')
+})
+
+for (const disappearance of ["hidden", "unmounted"] as const) test(`color-palette-popover: an ${disappearance} opener closes the surface`, async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-lifecycle-example"), popup = page.locator("#color-palette-popover-lifecycle-surface")
+  await root.locator("#color-palette-popover-lifecycle-presence").click()
+  const button = root.locator("#color-palette-popover-lifecycle-opener")
+  await button.click(); await expect(popup).toBeVisible()
+  if (disappearance === "hidden") await button.evaluate((node) => { node.setAttribute("hidden", "") })
+  else await root.locator("#color-palette-popover-lifecycle-presence").dispatchEvent("click")
+  await expect(popup).toBeHidden()
+  await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":false,"changes":[false],"events":[]}')
+})
+
+test("color-palette-popover: closed commits reconcile removed recent selection before a new main declaration", async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-closed-example"), popup = page.locator("#color-palette-popover-closed-surface")
+  const button = root.locator("#color-palette-popover-closed-opener"), palette = root.locator('[data-slot="color-palette"]')
+  await button.click(); await expect(popup).toBeVisible()
+  let main = popup.locator("[data-color-palette-area=main]")
+  await main.nth(0).click(); await expect(popup).toBeHidden()
+  await button.click(); await expect(popup).toBeVisible()
+  await popup.locator("[data-color-palette-area=recent]").nth(0).click(); await expect(popup).toBeHidden()
+  await expect(palette).toBeHidden()
+  await expect(palette.locator("[data-color-palette-area=recent]").nth(0)).toHaveAttribute("aria-pressed", "true")
+  await root.locator("#color-palette-popover-closed-recent").click()
+  await expect(palette.locator(".fiori-color-palette__recent")).toHaveCount(0)
+  await root.locator("#color-palette-popover-closed-selected").click()
+  await expect(palette.locator("[data-color-palette-area=main]").nth(1)).toHaveAttribute("aria-pressed", "true")
+  await expect(root.locator("#color-palette-popover-closed-events")).toHaveText('["red","red"]')
+  await button.click(); await expect(popup).toBeVisible()
+  main = popup.locator("[data-color-palette-area=main]")
+  await expect(main.nth(1)).toHaveAttribute("aria-pressed", "true")
+  await expect(main.nth(0)).toHaveAttribute("aria-pressed", "false")
+  await expect(root.locator("#color-palette-popover-closed-events")).toHaveText('["red","red"]')
+  await page.keyboard.press("Escape"); await expect(popup).toBeHidden()
+})

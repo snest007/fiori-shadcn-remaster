@@ -42,6 +42,46 @@ function LogicalPlacementExample() {
   </div>
 }
 
+function OpenerLifecycleExample() {
+  const [open, setOpen] = React.useState(false)
+  const [present, setPresent] = React.useState(false)
+  const [changes, setChanges] = React.useState<boolean[]>([])
+  const [events, setEvents] = React.useState<string[]>([])
+  const opener = React.useRef<HTMLButtonElement | null>(null)
+  const changeOpen = React.useCallback((next: boolean) => { setOpen(next); setChanges((history) => [...history, next]) }, [])
+  return <div id="color-palette-popover-lifecycle-example">
+    <Button id="color-palette-popover-lifecycle-request" onClick={() => setOpen(true)}>Request palette</Button>
+    <Button id="color-palette-popover-lifecycle-presence" onClick={() => setPresent(!present)}>Toggle opener</Button>
+    <div id="color-palette-popover-lifecycle-scroll">
+      {present && <Button id="color-palette-popover-lifecycle-opener" ref={opener} onClick={() => setOpen(true)}>Choose lifecycle color</Button>}
+      <div id="color-palette-popover-lifecycle-spacer" />
+    </div>
+    <ColorPalettePopover id="color-palette-popover-lifecycle-surface" opener={opener} open={open} onOpenChange={changeOpen}
+      onItemClick={({ color }) => setEvents((history) => [...history, color])}>
+      <ColorPaletteItem value="red" /><ColorPaletteItem value="blue" />
+    </ColorPalettePopover>
+    <output id="color-palette-popover-lifecycle-state">{JSON.stringify({ open, changes, events })}</output>
+  </div>
+}
+
+function ClosedCommitExample() {
+  const [open, setOpen] = React.useState(false)
+  const [recent, setRecent] = React.useState(true)
+  const [selected, setSelected] = React.useState(false)
+  const [events, setEvents] = React.useState<string[]>([])
+  const opener = React.useRef<HTMLButtonElement | null>(null)
+  return <div id="color-palette-popover-closed-example">
+    <Button id="color-palette-popover-closed-opener" ref={opener} onClick={() => setOpen(true)}>Choose retained color</Button>
+    <Button id="color-palette-popover-closed-recent" onClick={() => setRecent(!recent)}>Toggle closed recent row</Button>
+    <Button id="color-palette-popover-closed-selected" onClick={() => setSelected(!selected)}>Toggle closed main declaration</Button>
+    <ColorPalettePopover id="color-palette-popover-closed-surface" open={open} opener={opener} onOpenChange={setOpen} showRecentColors={recent}
+      onItemClick={({ color }) => setEvents((history) => [...history, color])}>
+      <ColorPaletteItem value="red" /><ColorPaletteItem value="blue" selected={selected} />
+    </ColorPalettePopover>
+    <output id="color-palette-popover-closed-events">{JSON.stringify(events)}</output>
+  </div>
+}
+
 function ColorPalettePopoverDemo() {
   const [open, setOpen] = React.useState(false)
   const [events, setEvents] = React.useState<string[]>([])
@@ -61,7 +101,7 @@ function ColorPalettePopoverDemo() {
     </ColorPalettePopover>
     <span id="color-palette-popover-name-label">{" Popup target "}</span><span id="color-palette-popover-empty-label" />
     <output id="color-palette-popover-events">{JSON.stringify(events)}</output>
-    <ShadowOpenerExample /><LogicalPlacementExample />
+    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample />
   </div>
 }
 

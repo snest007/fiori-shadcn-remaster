@@ -44,6 +44,11 @@ function NameExamples() {
 
 function ItemRefExamples() {
   const [mounted, setMounted] = React.useState(true)
+  const [reversed, setReversed] = React.useState(false)
+  const [emptyObject, setEmptyObject] = React.useState(false)
+  const [hiddenCallback, setHiddenCallback] = React.useState(false)
+  const [alternate, setAlternate] = React.useState(false)
+  const [identity, setIdentity] = React.useState(0)
   const [, rerender] = React.useReducer((value) => value + 1, 0)
   const objectRef = React.useRef<HTMLDivElement | null>(null)
   const callbackNode = React.useRef<HTMLDivElement | null>(null)
@@ -54,15 +59,24 @@ function ItemRefExamples() {
     counts.current.mounts++
     return () => { counts.current.cleanups++; callbackNode.current = null }
   }, [])
+  const alternateRef = React.useCallback((node: HTMLDivElement | null) => callbackRef(node), [callbackRef])
+  const refItems = [
+    <ColorPaletteItem key="object" id="color-palette-ref-object-item" ref={objectRef} value={emptyObject ? "" : "red"} />,
+    <ColorPaletteItem key={`callback:${identity}`} id="color-palette-ref-callback-item" ref={alternate ? alternateRef : callbackRef} value="blue" hidden={hiddenCallback} />,
+  ]
   const snapshot = { object: objectRef.current?.id ?? null, callback: callbackNode.current?.id ?? null, ...counts.current }
   return <div id="color-palette-ref-examples">
     <Button id="color-palette-ref-sample" onClick={rerender}>Read item refs</Button>
     <Button id="color-palette-ref-object-focus" onClick={() => objectRef.current?.focus()}>Focus object ref</Button>
     <Button id="color-palette-ref-callback-focus" onClick={() => callbackNode.current?.focus()}>Focus callback ref</Button>
     <Button id="color-palette-ref-toggle" onClick={() => setMounted(!mounted)}>Toggle ref palette</Button>
+    <Button id="color-palette-ref-reorder" onClick={() => setReversed(!reversed)}>Reorder keyed items</Button>
+    <Button id="color-palette-ref-filter" onClick={() => setEmptyObject(!emptyObject)}>Toggle empty object item</Button>
+    <Button id="color-palette-ref-hidden" onClick={() => setHiddenCallback(!hiddenCallback)}>Toggle hidden callback item</Button>
+    <Button id="color-palette-ref-prop" onClick={() => setAlternate(!alternate)}>Change callback ref</Button>
+    <Button id="color-palette-ref-identity" onClick={() => setIdentity((value) => value + 1)}>Replace callback item</Button>
     {mounted && <ColorPalette id="color-palette-ref-control" onItemClick={rerender}>
-      <ColorPaletteItem id="color-palette-ref-object-item" ref={objectRef} value="red" />
-      <ColorPaletteItem id="color-palette-ref-callback-item" ref={callbackRef} value="blue" />
+      {reversed ? [...refItems].reverse() : refItems}
     </ColorPalette>}
     <output id="color-palette-ref-state">{JSON.stringify(snapshot)}</output>
   </div>
@@ -79,6 +93,26 @@ function RecentDeclarationExample() {
       <ColorPaletteItem value="red" /><ColorPaletteItem value="blue" selected={selected} />
     </ColorPalette>
     <output id="color-palette-reconcile-events">{JSON.stringify(events)}</output>
+  </div>
+}
+
+function StoppedPropagationExample() {
+  const [events, setEvents] = React.useState<string[]>([])
+  const [calls, setCalls] = React.useState({ click: 0, mousedown: 0, keydown: 0, keyup: 0, root: 0 })
+  const stop = (name: "click" | "mousedown" | "keydown" | "keyup", event: React.SyntheticEvent) => {
+    event.stopPropagation()
+    setCalls((counts) => ({ ...counts, [name]: counts[name] + 1 }))
+  }
+  const rootCall = () => setCalls((counts) => ({ ...counts, root: counts.root + 1 }))
+  return <div id="color-palette-propagation-example">
+    <ColorPalette id="color-palette-propagation-control" onItemClick={({ color }) => setEvents((history) => [...history, color])}
+      onClick={rootCall} onMouseDown={rootCall} onKeyDown={rootCall} onKeyUp={rootCall}>
+      {["red", "blue", "green"].map((value) => <ColorPaletteItem key={value} value={value}
+        onClick={(event) => stop("click", event)} onMouseDown={(event) => stop("mousedown", event)}
+        onKeyDown={(event) => stop("keydown", event)} onKeyUp={(event) => stop("keyup", event)} />)}
+    </ColorPalette>
+    <output id="color-palette-propagation-events">{JSON.stringify(events)}</output>
+    <output id="color-palette-propagation-calls">{JSON.stringify(calls)}</output>
   </div>
 }
 
@@ -129,7 +163,7 @@ function ColorPaletteDemo() {
       <ColorPaletteItem value="blue" selected hidden={hidden} />
       <ColorPaletteItem value="green" />
     </ColorPalette>
-    <NameExamples /><ItemRefExamples /><RecentDeclarationExample />
+    <NameExamples /><ItemRefExamples /><RecentDeclarationExample /><StoppedPropagationExample />
   </div>
 }
 
