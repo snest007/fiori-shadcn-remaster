@@ -105,6 +105,8 @@ function SelectTrigger({
   readOnly,
   disabled,
   onKeyDown,
+  onPointerDown,
+  onClick,
   ...props
 }: SelectTriggerProps) {
   const items = React.useContext(SelectContext)
@@ -151,6 +153,20 @@ function SelectTrigger({
             const next = items.step(state.value, e.key)
             if (next !== undefined && next !== state.value) state.setValue(next)
           }
+        }}
+        onPointerDown={(e) => {
+          onPointerDown?.(e)
+          if (e.defaultPrevented || e.button !== 0 || e.ctrlKey || disabled || readOnly) return
+          // Select.js/_onclick opens on the completed click. Radix opens on mouse-down,
+          // which paints the open field while the pointer is still held; defer its handler.
+          e.preventDefault()
+        }}
+        onClick={(e) => {
+          onClick?.(e)
+          if (e.defaultPrevented || disabled || readOnly) return
+          e.currentTarget.focus()
+          state?.setOpen(!state.open)
+          e.preventDefault()
         }}
         {...props}
       >
