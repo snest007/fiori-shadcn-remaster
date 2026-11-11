@@ -21,6 +21,12 @@ export type FioriMoveHandlers = {
 // UI5 base/util/dragAndDrop/DragRegistry.js: one registry permits cross-container moves.
 let draggedElement: HTMLElement | null = null
 
+function focusDraggedElement(source: HTMLElement) {
+  // UI5 handleDrop calls the actual source's focus; TableRowBase.focus supplies tabindex even for drops into List.
+  if (source.hasAttribute("data-table-nav-row")) source.setAttribute("tabindex", "-1")
+  source.focus()
+}
+
 function moveOver(detail: FioriMoveDetail, handler: FioriMoveHandlers["onMoveOver"]) {
   let accepted = false
   handler?.({ ...detail, destination: { ...detail.destination }, get defaultPrevented() { return accepted }, preventDefault: () => { accepted = true } })
@@ -75,7 +81,7 @@ export function useFioriDragAndDrop({ rootRef, getItems, kind, onMoveOver, onMov
     // React commits caller-owned reordering after the event; match UI5 handleDrop/List._moveItem focus after that commit.
     if (pendingFocus.current?.isConnected) {
       if (focusSource) focusSource(pendingFocus.current)
-      else pendingFocus.current.focus()
+      else focusDraggedElement(pendingFocus.current)
     }
     pendingFocus.current = null
   })
@@ -87,7 +93,7 @@ export function useFioriDragAndDrop({ rootRef, getItems, kind, onMoveOver, onMov
     onMove?.({ source: { element: source }, destination: target, ...(kind === "list" || originalEvent.type === "keydown" ? { originalEvent: originalEvent.nativeEvent } : {}) })
     if (source) {
       if (focusSource) focusSource(source)
-      else source.focus()
+      else focusDraggedElement(source)
     }
   }
   return {

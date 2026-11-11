@@ -36,12 +36,13 @@ function MovableList() {
       if (allow && !(rejectApples && event.destination.element.dataset.navKey === "Apples") && (on || event.destination.placement !== "On")) event.preventDefault()
     }} onMove={(event) => {
       setNativeMove(event.originalEvent === nativeEvent.current)
-      const source = event.source.element?.dataset.navKey
+      const source = event.source.element?.dataset.navKey ?? event.source.element?.dataset.rowKey ?? event.source.element?.id
       const target = event.destination.element.dataset.navKey
       const placement = event.destination.placement
       setLog(`${source} ${placement} ${target}`)
       if (!reorder || !source || !target || source === target || placement === "On") return
       setItems((current) => {
+        if (!current.includes(source)) return current
         const next = current.filter((item) => item !== source)
         next.splice(next.indexOf(target) + (placement === "After" ? 1 : 0), 0, source)
         return next
