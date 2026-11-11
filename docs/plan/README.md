@@ -39,7 +39,7 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 
 ## Wave B — feature gaps in existing components (independent)
 
-- [ ] [B1 Dialog draggable / resizable](tasks/B1-dialog-drag-resize.md) — M
+- [x] [B1 Dialog draggable / resizable](tasks/B1-dialog-drag-resize.md) — M
 - [x] [B2 Menu checkable items and groups](tasks/B2-menu-check-mode.md) — S
 - [ ] [B3 ComboBox / MultiComboBox item groups](tasks/B3-combobox-groups.md) — M
 - [ ] [B4 Table and List drag & drop reordering](tasks/B4-drag-and-drop.md) — L

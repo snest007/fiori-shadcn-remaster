@@ -40,3 +40,30 @@
   background-color: var(--fiori-popup-block-layer-background);
   opacity: var(--fiori-popup-block-layer-opacity);
 }
+/* Dialog.css.js (2.28): only the header bar itself advertises mouse dragging. */
+.fiori-dialog[data-draggable] .fiori-popup__header { cursor: move; }
+.fiori-dialog[data-draggable] .fiori-popup__header * { cursor: auto; }
+.fiori-dialog__resize-handle {
+  position: absolute;
+  bottom: -0.5rem;
+  inset-inline-end: -0.5rem;
+  cursor: var(--fiori-dialog-resize-cursor);
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+}
+.fiori-dialog__resize-handle [data-slot="icon"] { color: var(--sapButton_Lite_TextColor); }
+.fiori-dialog__movement-handle:focus-visible { outline: none; }
+/* UI5's hidden keyboard handle draws the focus outline around the whole surface. */
+.fiori-dialog .fiori-popup__root:has(.fiori-dialog__movement-handle:focus-visible)::before {
+  content: "";
+  position: absolute;
+  inset: var(--fiori-dialog-focus-outline-offset);
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+  border-radius: var(--sapElement_BorderCornerRadius);
+  pointer-events: none;
+  z-index: 5;
+}
+.fiori-dialog[data-resizable] .fiori-popup__root:has(.fiori-dialog__movement-handle:focus-visible)::before {
+  border-end-end-radius: var(--fiori-dialog-resizable-bottom-right-radius);
+}
