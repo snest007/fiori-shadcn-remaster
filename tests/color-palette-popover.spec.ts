@@ -429,6 +429,10 @@ async function prepareBoundary(page: Page, retained: boolean, portal = false) {
   const root = boundary(page)
   if (retained) await root.locator("#color-palette-popover-boundary-retained").check()
   if (portal) await root.locator("#color-palette-popover-boundary-portal").check()
+  // Outside focus may scroll the docs. Keep these real openers intersecting so focus tests isolate the registry route.
+  for (const [id, left] of [["opener", "500px"], ["second-opener", "700px"], ["popover-opener", "700px"]]) {
+    await root.locator(`#color-palette-popover-boundary-${id}`).evaluate((node, left) => Object.assign(node.style, { position: "fixed", left, top: "150px", width: "100px", height: "36px" }), left)
+  }
   return { root, popup: boundarySurface(page), button: root.locator("#color-palette-popover-boundary-opener") }
 }
 for (const retained of [false, true]) {
