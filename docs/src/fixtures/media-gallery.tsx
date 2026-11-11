@@ -1,14 +1,29 @@
+import * as React from "react"
 import { MediaGallery, MediaGalleryItem, type MediaGalleryProps } from "@/components/ui/media-gallery"
 import { defineFixtures } from "../fixture-types"
 
 type Props = Pick<MediaGalleryProps, "showAllThumbnails" | "interactiveDisplayArea" | "layout" | "menuHorizontalAlign" | "menuVerticalAlign"> & {
-  width?: number; height?: number; count?: number; selected?: number; disabled?: number; hidden?: number; wide?: boolean; thumbnail?: boolean; rtl?: boolean; video?: boolean
+  width?: number; height?: number; count?: number; selected?: number; disabled?: number; hidden?: number; wide?: boolean; thumbnail?: boolean; rtl?: boolean; video?: boolean; activate?: number
 }
 // Deliberately simple local SVGs: intrinsic aspect ratio and thumbnail substitution are tested without network media.
 export function mediaImage(index: number, thumbnail = false) {
   const color = ["#c6def1", "#fae0b9", "#bddfc7", "#e0c7ec"][index % 4]
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + (thumbnail ? 120 : 320) + '" height="' + (thumbnail ? 120 : 240) + '" viewBox="0 0 320 240"><rect width="320" height="240" fill="' + color + '"/><circle cx="238" cy="60" r="28" fill="#fff" opacity=".7"/><path d="M0 240 100 100 175 170 235 115 320 240Z" fill="#45647d"/><rect x="20" y="20" width="' + (20 + index * 12) + '" height="10" fill="#45647d"/></svg>'
   return "data:image/svg+xml," + encodeURIComponent(svg)
+}
+function GalleryFixture({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, thumbnail, rtl, video, activate, ...props }: Props) {
+  const ref = React.useRef<HTMLDivElement | null>(null)
+  React.useLayoutEffect(() => {
+    if (activate !== undefined) ref.current?.querySelectorAll<HTMLElement>(".fiori-media-gallery__thumbnail")[activate]?.click()
+  }, [activate])
+  return <MediaGallery ref={ref} {...props} accessibleName="Pictures" dir={rtl ? "rtl" : undefined} style={{ width, height }}>
+    {Array.from({ length: count }, (_, index) => (
+      <MediaGalleryItem key={index} selected={index === selected} disabled={index === disabled} hidden={index === hidden}
+        layout={wide ? "Wide" : "Square"} thumbnail={thumbnail ? <img src={mediaImage(index, true)} alt={"Thumbnail " + (index + 1)} /> : undefined}>
+        {video ? <video poster={mediaImage(index)} preload="none" aria-label={"Video " + (index + 1)} /> : <img src={mediaImage(index)} alt={"Picture " + (index + 1)} />}
+      </MediaGalleryItem>
+    ))}
+  </MediaGallery>
 }
 export default defineFixtures<Props>({
   name: "media-gallery",
@@ -25,6 +40,9 @@ export default defineFixtures<Props>({
     { id: "media-gallery-wide-square", props: { layout: "Horizontal", wide: true } },
     { id: "media-gallery-wide-display", props: { layout: "Horizontal", showAllThumbnails: true, wide: true, width: 720 } },
     { id: "media-gallery-video-display", props: { layout: "Horizontal", showAllThumbnails: true, wide: true, video: true, thumbnail: true, width: 720 } },
+    { id: "media-gallery-selected-display", props: { layout: "Horizontal", activate: 2 } },
+    { id: "media-gallery-selected-wide-square", props: { layout: "Horizontal", wide: true, activate: 2 } },
+    { id: "media-gallery-selected-wide-display", props: { layout: "Horizontal", showAllThumbnails: true, wide: true, activate: 2, width: 720 } },
     { id: "media-gallery-show-all-s", props: { layout: "Horizontal", showAllThumbnails: true, count: 9, width: 500 } },
     { id: "media-gallery-show-all-m", props: { layout: "Horizontal", showAllThumbnails: true, count: 9, width: 720 } },
     { id: "media-gallery-show-all-l", props: { layout: "Horizontal", showAllThumbnails: true, count: 9, width: 1024 } },
@@ -35,14 +53,5 @@ export default defineFixtures<Props>({
     { id: "media-gallery-rtl", props: { layout: "Horizontal", rtl: true } },
     { id: "media-gallery-empty", props: { count: 0 } },
   ],
-  react: ({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, thumbnail, rtl, video, ...props }) => (
-    <MediaGallery {...props} accessibleName="Pictures" dir={rtl ? "rtl" : undefined} style={{ width, height }}>
-      {Array.from({ length: count }, (_, index) => (
-        <MediaGalleryItem key={index} selected={index === selected} disabled={index === disabled} hidden={index === hidden}
-          layout={wide ? "Wide" : "Square"} thumbnail={thumbnail ? <img src={mediaImage(index, true)} alt={"Thumbnail " + (index + 1)} /> : undefined}>
-          {video ? <video poster={mediaImage(index)} preload="none" aria-label={"Video " + (index + 1)} /> : <img src={mediaImage(index)} alt={"Picture " + (index + 1)} />}
-        </MediaGalleryItem>
-      ))}
-    </MediaGallery>
-  ),
+  react: (props) => <GalleryFixture {...props} />,
 })

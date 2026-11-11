@@ -14,12 +14,14 @@ test("media gallery selects by click, ignores disabled and duplicate selections,
   await expect(root.getByRole("listbox", { name: "Product pictures" })).toBeVisible()
   await expect(thumbnails(root)).toHaveCount(4)
   await expect(thumbnails(root).nth(0)).toHaveAttribute("aria-checked", "true")
+  await expect(main(root)).toHaveAttribute("data-thumbnail-design", "true")
   await expect(page.locator("#media-gallery-demo #media-gallery-selection")).toHaveText("Selection: none; changes: 0")
   await thumbnails(root).nth(1).click()
   await expect(thumbnails(root).nth(0)).toHaveAttribute("aria-checked", "true")
   await thumbnails(root).nth(2).click()
   await expect(thumbnails(root).nth(2)).toHaveAttribute("aria-checked", "true")
   await expect(main(root).getByAltText("Product picture 2")).toBeVisible()
+  await expect(main(root)).not.toHaveAttribute("data-thumbnail-design", "true")
   await expect(page.locator("#media-gallery-demo #media-gallery-selection")).toHaveText("Selection: media-gallery-item-2:true; changes: 1")
   await thumbnails(root).nth(2).click()
   await expect(page.locator("#media-gallery-demo #media-gallery-selection")).toHaveText("Selection: media-gallery-item-2:true; changes: 1")
@@ -85,10 +87,22 @@ test("display click is emitted only when interactive; the display receives a key
   await expect(display).toHaveAttribute("tabindex", "0")
   await display.click()
   await expect(page.locator("#media-gallery-demo #media-gallery-events")).toHaveText("Overflow: 0; display: 1")
+  await display.focus()
+  await page.keyboard.down("Enter")
+  await expect(page.locator("#media-gallery-demo #media-gallery-events")).toHaveText("Overflow: 0; display: 2")
+  await page.keyboard.up("Enter")
+  await page.keyboard.down("Space")
+  await expect(page.locator("#media-gallery-demo #media-gallery-events")).toHaveText("Overflow: 0; display: 2")
+  await page.keyboard.up("Space")
+  await expect(page.locator("#media-gallery-demo #media-gallery-events")).toHaveText("Overflow: 0; display: 3")
   await page.locator("#media-gallery-demo #media-gallery-interactive").click()
   await expect(display).not.toHaveAttribute("tabindex", "0")
   await display.click()
-  await expect(page.locator("#media-gallery-demo #media-gallery-events")).toHaveText("Overflow: 0; display: 1")
+  await display.evaluate((element) => {
+    element.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }))
+    element.dispatchEvent(new KeyboardEvent("keyup", { key: " ", bubbles: true }))
+  })
+  await expect(page.locator("#media-gallery-demo #media-gallery-events")).toHaveText("Overflow: 0; display: 3")
 })
 
 test("Auto follows actual component width at 599/600 and uses the desktop thumbnail path even in a narrow viewport", async ({ page }) => {
@@ -192,6 +206,13 @@ test("mouse selection has no focus ring and keyboard focus has the native ring",
   expect(await items.nth(2).evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none")
 })
 
+test("React 19 gallery and item callback refs invoke returned cleanup once on unmount", async ({ page }) => {
+  await expect(page.locator("#media-gallery-demo #media-gallery-ref-cleanups")).toHaveText("Ref cleanups: 0")
+  await page.locator("#media-gallery-demo #media-gallery-ref-remove").click()
+  await expect(page.locator("#media-gallery-demo #media-gallery-ref-example")).toHaveCount(0)
+  await expect(page.locator("#media-gallery-demo #media-gallery-ref-cleanups")).toHaveText("Ref cleanups: 2")
+})
+
 test.describe("native phone platform", () => {
   test.use({
     hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
@@ -210,7 +231,12 @@ test.describe("native phone platform", () => {
     await expect(root.locator("#media-gallery-item-2")).not.toHaveAttribute("data-selected", "true")
     await expect(root.locator("#media-gallery-item-0")).toHaveAttribute("data-selected", "true")
     await expect(page.locator("#media-gallery-demo #media-gallery-selection")).toHaveText("Selection: media-gallery-item-2:false; changes: 1")
-    await page.locator("#media-gallery-demo #media-gallery-select-last").click()
+    // The docs page's sticky header overlaps the mobile click coordinate after Carousel
+    // focus scrolls this long page. Activate the real external control through its keyboard path.
+    const selectLast = page.locator("#media-gallery-demo #media-gallery-select-last")
+    await selectLast.focus()
+    await expect(selectLast).toBeFocused()
+    await page.keyboard.press("Enter")
     await expect(root.locator("#media-gallery-item-6")).toHaveAttribute("data-selected", "true")
     await expect(items.nth(5)).toHaveAttribute("aria-hidden", "false")
     await expect(page.locator("#media-gallery-demo #media-gallery-selection")).toHaveText("Selection: media-gallery-item-2:false; changes: 1")

@@ -7,10 +7,12 @@ import "@ui5/webcomponents/dist/Icon.js"
 import "@ui5/webcomponents-icons/dist/background.js"
 import "@ui5/webcomponents-icons/dist/slim-arrow-left.js"
 import "@ui5/webcomponents-icons/dist/slim-arrow-right.js"
+import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
+import type Ui5MediaGallery from "@ui5/webcomponents-fiori/dist/MediaGallery.js"
 import { defineUi5, h } from "../fixture-types"
 import set, { mediaImage } from "./media-gallery"
 
-export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, thumbnail, rtl, video, ...props }) => {
+export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, thumbnail, rtl, video, activate, ...props }) => {
   const gallery = h("ui5-media-gallery", {
     layout: props.layout, "show-all-thumbnails": props.showAllThumbnails, "interactive-display-area": props.interactiveDisplayArea,
     "menu-horizontal-align": props.menuHorizontalAlign, "menu-vertical-align": props.menuVerticalAlign, dir: rtl ? "rtl" : undefined,
@@ -22,5 +24,12 @@ export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected 
     return item
   }))
   gallery.style.cssText = "width:" + width + "px;height:" + height + "px"
+  if (activate !== undefined) Object.assign(gallery, { fixtureReady: (async () => {
+    while (!gallery.isConnected) await new Promise((resolve) => requestAnimationFrame(resolve))
+    await renderFinished()
+    // Trigger the real thumbnail click after the main item's onEnterDOM lifecycle has completed.
+    ;(gallery as Ui5MediaGallery).items[activate].click()
+    await renderFinished()
+  })() })
   return gallery
 })

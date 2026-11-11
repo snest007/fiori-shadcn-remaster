@@ -52,6 +52,15 @@ function isPhonePlatform() {
 const firstNode = (nodes: React.ReactNode) => React.Children.toArray(nodes)[0] ?? null
 const selectable = (props: MediaGalleryItemProps) => !props.disabled && !props.hidden
 const modified = (event: React.KeyboardEvent) => event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
+// React 19 callback refs may return their own cleanup instead of accepting a later null.
+function attachRef<T>(ref: React.Ref<T> | undefined, node: T) {
+  if (typeof ref === "function") {
+    const cleanup = ref(node)
+    return typeof cleanup === "function" ? cleanup : () => { ref(null) }
+  }
+  if (ref) ref.current = node
+  return () => { if (ref) ref.current = null }
+}
 type Presentation = {
   thumbnailDesign?: boolean; square?: boolean; interactive?: boolean; tabIndex?: number
   selected?: boolean; activate?: () => void
@@ -62,6 +71,13 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
   const { selected: selectedProp = false, disabled = false, layout = "Square", thumbnail, children, className, ref, tabIndex, ...props } = item
   const { thumbnailDesign = false, square = true, interactive = false, selected = selectedProp, activate, register } = presentation
   const hostRef = React.useRef<MediaGalleryItemElement | null>(null), focusRef = React.useRef<HTMLDivElement | null>(null)
+  const registerRef = React.useRef(register); registerRef.current = register
+  const setHost = React.useCallback((host: HTMLDivElement | null) => {
+    if (!host) return
+    hostRef.current = host as MediaGalleryItemElement
+    const cleanup = attachRef(ref, host)
+    return () => { cleanup(); hostRef.current = null; registerRef.current?.(null, null) }
+  }, [ref])
   const thumbRef = React.useRef<HTMLDivElement | null>(null), contentRef = React.useRef<HTMLDivElement | null>(null)
   const [thumbnailFailed, setThumbnailFailed] = React.useState(false), [contentFailed, setContentFailed] = React.useState(false)
   const thumb = firstNode(thumbnail), content = firstNode(children)
@@ -87,10 +103,7 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
     return () => register?.(null, null)
   }, [selected, disabled, layout, register])
   return (
-    <div {...props} ref={(host) => {
-      hostRef.current = host as MediaGalleryItemElement | null
-      if (typeof ref === "function") ref(host); else if (ref) ref.current = host
-    }} data-slot="media-gallery-item" data-layout={layout} data-square={square || undefined}
+    <div {...props} ref={setHost} data-slot="media-gallery-item" data-layout={layout} data-square={square || undefined}
       data-thumbnail-design={thumbnailDesign || undefined} data-interactive={interactive || undefined}
       data-selected={selected || undefined} data-disabled={disabled || undefined}
       className={cn("fiori-media-gallery-item", className)}>
@@ -134,6 +147,11 @@ function MediaGallery({
     return first && selectable(first.props) ? first : firstSelectable()
   }
   const [selection, setSelection] = React.useState(() => requestedSelection() ?? null)
+  // MediaGalleryItem.js onEnterDOM runs after the initial MediaGallery._displayContent:
+  // the newly mounted main item starts with _thumbnailDesign=true (also for Wide).
+  // A later _displayContent explicitly clears it. Preserve this native initial border/crop,
+  // rather than applying the later display mask to an untouched gallery.
+  const [mainThumbnailDesign, setMainThumbnailDesign] = React.useState(true)
   const selectionRef = React.useRef(selection); selectionRef.current = selection
   const selectedKey = selection?.key
   const propSelection = new Map(items.map((item) => [item.key, !!item.props.selected]))
@@ -141,6 +159,12 @@ function MediaGallery({
   const [phone, setPhone] = React.useState(isPhonePlatform), [phonePage, setPhonePage] = React.useState(0)
   const [size, setSize] = React.useState({ width: 0, height: 0 })
   const hostRef = React.useRef<HTMLDivElement | null>(null), displayRef = React.useRef<HTMLDivElement | null>(null)
+  const setHost = React.useCallback((host: HTMLDivElement | null) => {
+    if (!host) return
+    hostRef.current = host
+    const cleanup = attachRef(ref, host)
+    return () => { cleanup(); hostRef.current = null }
+  }, [ref])
   const mainRef = React.useRef<MediaGalleryItemElement | null>(null), overflowRef = React.useRef<HTMLButtonElement | null>(null)
   const hosts = React.useRef(new Map<string, MediaGalleryItemElement>()), focuses = React.useRef(new Map<string, HTMLDivElement>())
   const [currentIndex, setCurrentIndex] = React.useState(() => Math.max(0, items.filter((item) => !item.props.disabled).findIndex((item) => item.key === selectedKey)))
@@ -184,6 +208,7 @@ function MediaGallery({
     previousPropSelection.current = propSelection
     if (next?.key !== selectionRef.current?.key) {
       selectionRef.current = next; setSelection(next)
+      if (next) setMainThumbnailDesign(false)
       const index = navigation.indexOf(next?.key ?? "")
       if (index !== -1) setCurrentIndex(index)
       if (phone) setPhonePage(Math.max(0, selectableItems.findIndex((item) => item.key === next?.key)))
@@ -215,6 +240,7 @@ function MediaGallery({
     const item = items.find((candidate) => candidate.key === key)
     if (!item || item.props.disabled || selectionRef.current?.key === key) return
     selectionRef.current = item; setSelection(item)
+    setMainThumbnailDesign(false)
     const index = navigation.indexOf(key)
     if (index !== -1) setCurrentIndex(index)
     // _updateSelectedFlag is synchronous before the selection-change callback.
@@ -238,10 +264,7 @@ function MediaGallery({
     currentRef.current = next; setCurrentIndex(next); focusNode(next)?.focus()
   }
   return (
-    <div {...props} ref={(host) => {
-      hostRef.current = host
-      if (typeof ref === "function") ref(host); else if (ref) ref.current = host
-    }} data-slot="media-gallery" data-effective-layout={effectiveLayout} data-media-range={range}
+    <div {...props} ref={setHost} data-slot="media-gallery" data-effective-layout={effectiveLayout} data-media-range={range}
       data-show-all-thumbnails={showAllThumbnails || undefined} data-menu-horizontal-align={menuHorizontalAlign}
       data-menu-vertical-align={menuVerticalAlign} data-phone={phone || undefined}
       className={cn("fiori-media-gallery", className)} onKeyDown={handleKeyDown}>
@@ -259,7 +282,8 @@ function MediaGallery({
                   presentation={{ selected: item.key === selectedKey, register: register(item.key) }} />)}
               </Carousel>
             ) : <ItemSurface item={{ children: selection?.props.children, layout: selection?.props.layout }}
-              presentation={{ square: !wide, interactive: interactiveDisplayArea, tabIndex: interactiveDisplayArea ? 0 : undefined,
+              presentation={{ thumbnailDesign: mainThumbnailDesign, square: !wide, interactive: interactiveDisplayArea, tabIndex: interactiveDisplayArea ? 0 : undefined,
+                activate: () => { if (interactiveDisplayArea) onDisplayAreaClick?.() },
                 register: (host) => { mainRef.current = host } }} />}
           </div>
         </div>

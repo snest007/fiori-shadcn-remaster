@@ -10,6 +10,10 @@ function MediaGalleryDemo() {
   const [overflow, setOverflow] = React.useState(0), [displayClicks, setDisplayClicks] = React.useState(0)
   const [all, setAll] = React.useState(false), [interactive, setInteractive] = React.useState(true)
   const [layout, setLayout] = React.useState<MediaGalleryLayout>("Auto"), [count, setCount] = React.useState(7)
+  const [mounted, setMounted] = React.useState(true), [refCleanups, setRefCleanups] = React.useState(0)
+  const cleanupRef = React.useCallback((element: HTMLDivElement | null) => {
+    if (element) return () => setRefCleanups((value) => value + 1)
+  }, [])
   return (
     <div id="media-gallery-demo" className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
@@ -43,6 +47,11 @@ function MediaGalleryDemo() {
       <MediaGallery id="media-gallery-disabled" accessibleName="Unavailable pictures" style={{ width: 320, height: 320 }}>
         <MediaGalleryItem disabled><img src={mediaImage(0)} alt="Unavailable picture" /></MediaGalleryItem>
       </MediaGallery>
+      <Button id="media-gallery-ref-remove" onClick={() => setMounted(false)}>Remove ref example</Button>
+      <p id="media-gallery-ref-cleanups">Ref cleanups: {refCleanups}</p>
+      {mounted && <MediaGallery id="media-gallery-ref-example" ref={cleanupRef} style={{ width: 320, height: 320 }}>
+        <MediaGalleryItem ref={cleanupRef}><img src={mediaImage(0)} alt="Ref example" /></MediaGalleryItem>
+      </MediaGallery>}
     </div>
   )
 }
