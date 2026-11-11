@@ -210,7 +210,9 @@ function MediaGallery({
   const propSelection = new Map(items.map((item) => [item.key, !!item.props.selected]))
   const previousPropSelection = React.useRef(propSelection)
   const [phone, setPhone] = React.useState(isPhonePlatform), [phonePage, setPhonePage] = React.useState(0)
-  const [size, setSize] = React.useState({ width: 0, height: 0 })
+  const [size, setSize] = React.useState<{ width: number; height: number; effectiveLayout: "Horizontal" | "Vertical"; overflow: number }>({
+    width: 0, height: 0, effectiveLayout: "Vertical", overflow: 0,
+  })
   const hostRef = React.useRef<HTMLDivElement | null>(null), displayRef = React.useRef<HTMLDivElement | null>(null)
   const setHost = React.useCallback((host: HTMLDivElement | null) => {
     if (!host) return
@@ -223,35 +225,47 @@ function MediaGallery({
   const [currentIndex, setCurrentIndex] = React.useState(() => Math.max(0, items.filter((item) => !item.props.disabled).findIndex((item) => item.key === selectedKey)))
   const currentRef = React.useRef(currentIndex)
   const range = mediaRange(size.width)
-  const effectiveLayout = phone || !size.width || !size.height ? "Vertical" : layout === "Auto" ? range === "S" ? "Vertical" : "Horizontal" : layout
-  // _calculateOverflowSize/_getOverflowSize: original slot count, maximum five measuring
-  // units, and one EXTRA hidden item to reserve a button unless overflow is zero or all items.
-  const available = effectiveLayout === "Horizontal" ? size.height - THUMBNAIL_MARGIN : size.width - 2 * THUMBNAIL_MARGIN
-  const capacity = Math.min(Math.floor(available / THUMBNAIL_HEIGHT), 5)
-  const rawOverflow = Math.max(0, items.length - capacity)
-  const overflow = showAllThumbnails || !size.width || !size.height || phone ? 0
-    : rawOverflow === 0 || rawOverflow === items.length ? rawOverflow : rawOverflow + 1
+  const effectiveLayout = size.effectiveLayout, overflow = size.overflow
   const visibleItems = items.slice(0, items.length - overflow), selectableItems = items.filter((item) => selectable(item.props))
   // _getFocusableItems filters disabled ONLY: a hidden host consumes the navigation slot.
   // Its focus() is a no-op, after which _canNavigate prevents further movement from the old focus.
   const navigation = visibleItems.filter((item) => !item.props.disabled).map((item) => item.key)
   if (overflow > 0) navigation.push("__overflow")
   const normalizedIndex = Math.max(0, Math.min(currentIndex, navigation.length - 1)); currentRef.current = normalizedIndex
+  // _shouldHaveWideDisplay/_shouldHaveSquareDisplay remain live predicates, while
+  // _visibleItems slices the current slots with the cached _overflowSize.
   const wide = mainLayout === "Wide" && showAllThumbnails && effectiveLayout === "Horizontal"
+  const measureLayout = React.useRef<() => void>(() => {}), zeroDimensions = React.useRef(false)
+  measureLayout.current = () => {
+    const host = hostRef.current
+    if (!host || isPhonePlatform()) return
+    const width = host.offsetWidth, height = host.offsetHeight
+    // MediaGallery.js _updateLayout returns before every cached output and geometry
+    // writer when either real dimension is zero, even if props or slots have changed.
+    if (!width || !height) { zeroDimensions.current = true; return }
+    const nextRange = mediaRange(width), nextLayout = layout === "Auto" ? nextRange === "S" ? "Vertical" : "Horizontal" : layout
+    // _calculateOverflowSize/_getOverflowSize: original slot count, at most five
+    // measuring units, and an extra hidden item unless overflow is zero or all items.
+    const available = nextLayout === "Horizontal" ? height - THUMBNAIL_MARGIN : width - 2 * THUMBNAIL_MARGIN
+    const capacity = Math.min(Math.floor(available / THUMBNAIL_HEIGHT), 5), rawOverflow = Math.max(0, items.length - capacity)
+    const nextOverflow = showAllThumbnails ? 0 : rawOverflow === 0 || rawOverflow === items.length ? rawOverflow : rawOverflow + 1
+    // Restoration must also rerun the inline writers when the positive snapshot is
+    // unchanged: live Wide/Square inputs may have changed while layout was gated.
+    const restored = zeroDimensions.current; zeroDimensions.current = false
+    setSize((old) => !restored && old.width === width && old.height === height && old.effectiveLayout === nextLayout && old.overflow === nextOverflow
+      ? old : { width, height, effectiveLayout: nextLayout, overflow: nextOverflow })
+  }
   React.useLayoutEffect(() => {
     const host = hostRef.current
     if (!host) return
     const platformPhone = isPhonePlatform(); setPhone(platformPhone)
     if (platformPhone) return
-    const measure = () => {
-      // _updateLayout leaves state unchanged when either real dimension is zero.
-      const width = host.offsetWidth, height = host.offsetHeight
-      if (width && height) setSize((old) => old.width === width && old.height === height ? old : { width, height })
-    }
-    measure()
-    const observer = new ResizeObserver(measure); observer.observe(host)
+    const observer = new ResizeObserver(() => measureLayout.current()); observer.observe(host)
     return () => observer.disconnect()
   }, [])
+  // Native onAfterRendering invokes _updateLayout after every own commit, not only
+  // a ResizeHandler notification, so new layout/showAll/item inputs are measured too.
+  React.useLayoutEffect(() => { measureLayout.current() })
   React.useLayoutEffect(() => {
     let next = selectionRef.current
     if (!items.length) next = null
@@ -282,7 +296,7 @@ function MediaGallery({
   }, [selection, phone])
   React.useLayoutEffect(() => {
     const display = displayRef.current, host = hostRef.current
-    if (!display || !host || phone || !size.width || !size.height) return
+    if (!display || !host || phone || !host.offsetWidth || !host.offsetHeight) return
     // MediaGallery.js _toggleDisplaySquareSize restores width before measuring actual flex geometry.
     display.style.width = ""
     if (!wide) {
@@ -293,7 +307,7 @@ function MediaGallery({
     // _toggleMainItem9x16size uses the main item's actual width, not the gallery's width.
     const wrapper = mainRef.current?.querySelector<HTMLElement>(".fiori-media-gallery-item__wrapper")
     if (wrapper) wrapper.style.height = wide ? mainRef.current!.offsetWidth / 16 * 9 + "px" : ""
-  }, [size, effectiveLayout, wide, selection, phone])
+  })
   const register = (key: string) => (host: MediaGalleryItemElement | null, focus: HTMLDivElement | null) => {
     if (host) hosts.current.set(key, host); else hosts.current.delete(key)
     if (focus) focuses.current.set(key, focus); else focuses.current.delete(key)

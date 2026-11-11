@@ -16,6 +16,7 @@ function MediaGalleryDemo() {
   const [failedContent, setFailedContent] = React.useState<"failed" | "empty" | "replacement">("failed")
   const [failedThumbnail, setFailedThumbnail] = React.useState<"failed" | "empty" | "replacement">("failed")
   const [laterThumbnailFailed, setLaterThumbnailFailed] = React.useState(false)
+  const [resizeExample, setResizeExample] = React.useState<{ layout: MediaGalleryLayout; all: boolean; count: number }>({ layout: "Horizontal", all: false, count: 8 })
   const cleanupRef = React.useCallback((element: HTMLDivElement | null) => {
     if (element) return () => setRefCleanups((value) => value + 1)
   }, [])
@@ -87,6 +88,18 @@ function MediaGalleryDemo() {
         </MediaGalleryItem>
       </MediaGallery>
       <Button id="media-gallery-sibling-thumbnail-fail-later" onClick={() => setLaterThumbnailFailed(true)}>Fail later thumbnail</Button>
+      <div className="flex flex-wrap gap-2">
+        <Button id="media-gallery-zero-change" onClick={() => setResizeExample((value) => ({ layout: value.layout === "Horizontal" ? "Vertical" : "Horizontal", all: !value.all, count: 10 }))}>Change layout and items</Button>
+        <Button id="media-gallery-zero-wide" onClick={() => setResizeExample({ layout: "Horizontal", all: true, count: 8 })}>Wide example</Button>
+        <Button id="media-gallery-zero-compact-wide" onClick={() => setResizeExample({ layout: "Horizontal", all: true, count: 3 })}>Small wide example</Button>
+        <Button id="media-gallery-zero-all-only" onClick={() => setResizeExample((value) => ({ ...value, all: !value.all }))}>Toggle all thumbnails</Button>
+      </div>
+      <MediaGallery id="media-gallery-zero-cache" accessibleName="Resize layout example" layout={resizeExample.layout} showAllThumbnails={resizeExample.all}
+        style={{ width: 640, height: 336 }}>
+        {Array.from({ length: resizeExample.count }, (_, index) => <MediaGalleryItem key={index} layout="Wide">
+          <img src={mediaImage(index)} alt={"Resize example picture " + index} />
+        </MediaGalleryItem>)}
+      </MediaGallery>
       <Button id="media-gallery-add-gallery" onClick={() => setAdditionalGallery(true)}>Add gallery</Button>
       {additionalGallery && <MediaGallery id="media-gallery-additional" accessibleName="Additional pictures" style={{ width: 640, height: 416 }}>
         {[0, 1].map((index) => <MediaGalleryItem key={index}><img src={mediaImage(index)} alt={"Additional picture " + index} /></MediaGalleryItem>)}
