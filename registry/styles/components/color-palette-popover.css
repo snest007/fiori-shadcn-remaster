@@ -1,0 +1,3 @@
+/* ColorPalettePopoverTemplate.js hides the arrow/header/footer on desktop and removes content padding. */
+.fiori-color-palette-popover { min-width: 0; }
+.fiori-color-palette-popover .fiori-popup__root { overflow: visible; }
