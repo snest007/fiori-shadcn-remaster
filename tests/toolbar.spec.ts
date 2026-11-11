@@ -129,7 +129,7 @@ test.describe("Toolbar overflow", () => {
         return add.call(this, type, listener, options)
       }
     })
-    for (const key of ["Enter", "Space"]) {
+    for (const [closeIndex, key] of ["Enter", "Space"].entries()) {
       await page.keyboard.press(key)
       await expect(trigger).toHaveAttribute("aria-expanded", "true")
       const popover = page.getByRole("dialog", { name: "Available Values" })
@@ -138,6 +138,9 @@ test.describe("Toolbar overflow", () => {
       await expect(popover).toBeHidden()
       await expect(trigger).toBeFocused()
       await expect(trigger).toHaveAttribute("aria-expanded", "false")
+      // Radix react-focus-scope/FocusScope attaches unmount autofocus in its cleanup timer.
+      // Await that real listener before reopening or replaying the older closing scope.
+      await expect.poll(() => page.evaluate(() => (window as any).__toolbarCloseListeners.length)).toBe(closeIndex + 1)
     }
     await page.keyboard.press("ArrowLeft")
     await expect(keep).toBeFocused()
