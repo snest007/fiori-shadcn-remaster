@@ -22,7 +22,7 @@
 }
 .fiori-color-palette__separator { width: 100%; height: .0625rem; background: var(--sapToolbar_SeparatorColor); }
 .fiori-color-palette__recent-wrapper { width: 100%; display: flex; align-items: center; flex-direction: column; gap: .25rem; }
-.fiori-color-palette-item {
+.fiori-color-palette-item:not([hidden]) {
   height: var(--fiori-color-palette-item-height);
   width: var(--fiori-color-palette-item-height);
   border: .0625rem solid var(--sapContent_ForegroundBorderColor);
@@ -32,6 +32,8 @@
   box-sizing: border-box;
   background-color: var(--fiori-x-color-palette-item-background-color);
 }
+/* ColorPaletteItem.css.js excludes [hidden] from host display. Author display utilities must not paint it. */
+.fiori-color-palette-item[hidden] { display: none !important; }
 .fiori-color-palette-item:not([data-disabled]):hover,
 .fiori-color-palette-item[data-selected] {
   height: var(--fiori-color-palette-item-hover-height);

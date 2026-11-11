@@ -36,10 +36,11 @@ type ColorPaletteItemProps = Omit<React.ComponentProps<"div">, "children"> & {
   index?: number
 }
 
-function ColorPaletteItem({ value = "", selected = false, tooltip, colorLabel = "Color", index, className, style, ...props }: ColorPaletteItemProps) {
+function ColorPaletteItem({ value = "", selected = false, tooltip, colorLabel = "Color", index, className, style, hidden, ...props }: ColorPaletteItemProps) {
   const label = `${colorLabel} - ${index}: ${tooltip || value}`
   return (
-    <span data-slot="color-palette-item" data-selected={selected ? "" : undefined} data-disabled={!value ? "" : undefined}
+    // ColorPaletteItem.css.js :host(:not([hidden])) applies visibility to the colored host, not its inner button.
+    <span hidden={hidden} data-slot="color-palette-item" data-selected={selected ? "" : undefined} data-disabled={!value ? "" : undefined}
       className={cn("fiori-color-palette-item", className)} style={{ ...(value ? { "--fiori-x-color-palette-item-background-color": value } : {}), ...style } as React.CSSProperties}>
       <div role="button" aria-label={label} aria-pressed={selected} title={label} tabIndex={-1} className="fiori-color-palette-item__inner" {...props} />
     </span>

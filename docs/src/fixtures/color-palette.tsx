@@ -4,10 +4,14 @@ import { ColorPalette, ColorPaletteItem, ColorPaletteStateContext, ColorPaletteS
 import { defineFixtures } from "../fixture-types"
 
 export const paletteColors = ["#000000", "#993300", "#333300", "#003300", "#003366", "#000080", "#333399", "#333333", "#800000", "#ff6600", "#808000", "#008000", "#008080", "#0000ff", "#666699"]
-export type PaletteFixtureProps = { count?: number; selected?: number[]; defaultButton?: boolean; recent?: boolean; populate?: boolean; emptySelected?: boolean; tooltip?: boolean }
+export type PaletteFixtureProps = { count?: number; selected?: number[]; defaultButton?: boolean; recent?: boolean; populate?: boolean; emptySelected?: boolean; tooltip?: boolean; hidden?: number[]; toggledHidden?: number[] }
 
-function PaletteFixture({ count = 15, selected = [], defaultButton, recent, populate, emptySelected, tooltip }: PaletteFixtureProps) {
+function PaletteFixture({ count = 15, selected = [], defaultButton, recent, populate, emptySelected, tooltip, hidden = [], toggledHidden }: PaletteFixtureProps) {
   const state = React.useContext(ColorPaletteStateContext)
+  const [hiddenItems, setHiddenItems] = React.useState(hidden)
+  React.useLayoutEffect(() => {
+    if (toggledHidden?.length) setHiddenItems(toggledHidden)
+  }, [toggledHidden])
   React.useLayoutEffect(() => {
     if (!populate) return
     // Seed rendered local history without taking focus from another shared-page popup fixture.
@@ -16,7 +20,7 @@ function PaletteFixture({ count = 15, selected = [], defaultButton, recent, popu
   }, [populate])
   // UI5's reference page retains the browser's 1rem ambient font. The recent-row baseline inherits it.
   return <ColorPalette style={{ fontSize: "1rem" }} showDefaultColor={defaultButton} defaultColor="#003366" showRecentColors={recent}>
-    {Array.from({ length: count }, (_, index) => <ColorPaletteItem key={index} value={paletteColors[index % 15]} selected={selected.includes(index)} tooltip={tooltip && index === 0 ? "Black" : undefined} />)}
+    {Array.from({ length: count }, (_, index) => <ColorPaletteItem key={index} value={paletteColors[index % 15]} selected={selected.includes(index)} hidden={hiddenItems.includes(index)} tooltip={tooltip && index === 0 ? "Black" : undefined} />)}
     {emptySelected && <ColorPaletteItem value="" selected />}
   </ColorPalette>
 }
@@ -33,6 +37,8 @@ export default defineFixtures<PaletteFixtureProps>({
     { id: "color-palette-limit-hidden-selection", props: { count: 17, selected: [1, 16] } },
     { id: "color-palette-empty-selected", props: { emptySelected: true, selected: [1] } },
     { id: "color-palette-tooltip", props: { tooltip: true } },
+    { id: "color-palette-hidden", props: { count: 6, hidden: [1], selected: [0, 1] } },
+    { id: "color-palette-toggled-hidden", props: { count: 6, toggledHidden: [1], selected: [0, 1] } },
   ],
   react: (props) => props.populate ? <ColorPaletteStateProvider><PaletteFixture {...props} /></ColorPaletteStateProvider> : <PaletteFixture {...props} />,
 })

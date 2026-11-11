@@ -11,6 +11,7 @@ function ColorPaletteDemo() {
   const [showDefault, setShowDefault] = React.useState(true)
   const [mounted, setMounted] = React.useState(true)
   const [external, setExternal] = React.useState(false)
+  const [hidden, setHidden] = React.useState(true)
   return <div id="color-palette-demo" className="flex flex-col items-start gap-4">
     <div className="flex gap-2">
       <Button id="color-palette-count" onClick={() => setCount(count === 15 ? 12 : count === 12 ? 3 : 15)}>Change color count</Button>
@@ -34,6 +35,12 @@ function ColorPaletteDemo() {
       <React.Fragment key="second">
         <ColorPaletteItem value="red" selected /><ColorPaletteItem value="blue" />
       </React.Fragment>
+    </ColorPalette>
+    <Button id="color-palette-hidden-toggle" onClick={() => setHidden(!hidden)}>Toggle hidden color</Button>
+    <ColorPalette id="color-palette-hidden" onItemClick={({ color }) => setEvents((history) => [...history, color])}>
+      <ColorPaletteItem value="red" selected />
+      <ColorPaletteItem value="blue" selected hidden={hidden} className="inline-block" style={{ display: "inline-block" }} />
+      <ColorPaletteItem value="green" />
     </ColorPalette>
   </div>
 }
