@@ -338,7 +338,7 @@ const rangeList = (page: Page, mixed = false) => page.locator(`[id="${rangeId(mi
 const rangeOption = (page: Page, name: string, mixed = false) => rangeList(page, mixed).getByRole("option", { name, exact: true })
 const rangeSelected = (page: Page, mixed = false) => page.locator(`#multi-combobox-demo [data-testid="${rangeId(mixed)}-selected"]`)
 const rangeEvents = (page: Page, mixed = false) => page.locator(`#multi-combobox-demo [data-testid="${rangeId(mixed)}-events"]`)
-const rangeField = (page: Page, mixed = false) => page.locator('#multi-combobox-demo [data-slot="multi-combobox"]').filter({ has: rangeInput(page, mixed) })
+const rangeField = (page: Page, mixed = false) => page.locator('#multi-combobox-demo [data-slot="multi-combobox"]').filter({ has: page.locator(`#${rangeId(mixed)}`) })
 
 async function observeRange(page: Page, mixed = false) {
   const errors: string[] = []
