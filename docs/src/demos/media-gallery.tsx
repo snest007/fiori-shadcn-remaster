@@ -11,6 +11,7 @@ function MediaGalleryDemo() {
   const [all, setAll] = React.useState(false), [interactive, setInteractive] = React.useState(true)
   const [layout, setLayout] = React.useState<MediaGalleryLayout>("Auto"), [count, setCount] = React.useState(7)
   const [mounted, setMounted] = React.useState(true), [refCleanups, setRefCleanups] = React.useState(0)
+  const [contentlessSelection, setContentlessSelection] = React.useState("none"), [contentlessChanges, setContentlessChanges] = React.useState(0)
   const cleanupRef = React.useCallback((element: HTMLDivElement | null) => {
     if (element) return () => setRefCleanups((value) => value + 1)
   }, [])
@@ -47,6 +48,13 @@ function MediaGalleryDemo() {
       <MediaGallery id="media-gallery-disabled" accessibleName="Unavailable pictures" style={{ width: 320, height: 320 }}>
         <MediaGalleryItem disabled><img src={mediaImage(0)} alt="Unavailable picture" /></MediaGalleryItem>
       </MediaGallery>
+      <MediaGallery id="media-gallery-contentless" accessibleName="Contentless item layout" layout="Horizontal" showAllThumbnails style={{ width: 720, height: 416 }}
+        onSelectionChange={(item) => { setContentlessSelection(item.id + ":" + String(item.selected) + ":" + item.layout); setContentlessChanges((value) => value + 1) }}>
+        <MediaGalleryItem id="media-gallery-contentless-square"><img src={mediaImage(0)} alt="Square picture" /></MediaGalleryItem>
+        <MediaGalleryItem id="media-gallery-contentless-wide" layout="Wide" aria-label="Empty wide item"
+          thumbnail={<img src={mediaImage(1, true)} alt="Empty wide item thumbnail" />} />
+      </MediaGallery>
+      <p id="media-gallery-contentless-selection">Selection: {contentlessSelection}; changes: {contentlessChanges}</p>
       <Button id="media-gallery-ref-remove" onClick={() => setMounted(false)}>Remove ref example</Button>
       <p id="media-gallery-ref-cleanups">Ref cleanups: {refCleanups}</p>
       {mounted && <MediaGallery id="media-gallery-ref-example" accessibleName="Ref cleanup pictures" ref={cleanupRef} style={{ width: 320, height: 320 }}>

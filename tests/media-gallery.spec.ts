@@ -178,6 +178,55 @@ test("Wide video uses a 16:9 wrapper and gains a wide display only in show-all H
   await expect.poll(() => main(root).evaluate((element) => (element as HTMLElement).offsetWidth)).toBe(288)
 })
 
+test("selecting a contentless Wide item removes the old content but retains the Square main layout and source callback identity", async ({ page }) => {
+  const root = page.locator("#media-gallery-demo #media-gallery-contentless"), display = main(root)
+  await expect(display.getByAltText("Square picture")).toBeVisible()
+  await expect(display).toHaveAttribute("data-layout", "Square")
+  await expect(display).toHaveAttribute("data-square", "true")
+  const emptyWide = root.getByRole("option", { name: "Empty wide item", exact: true })
+  await emptyWide.click()
+  await expect(emptyWide).toHaveAttribute("aria-checked", "true")
+  await expect(display.locator("img,video")).toHaveCount(0)
+  await expect(display).toHaveAttribute("data-layout", "Square")
+  await expect(display).toHaveAttribute("data-square", "true")
+  await expect(display).not.toHaveAttribute("data-thumbnail-design", "true")
+  await expect.poll(() => display.locator(".fiori-media-gallery-item__wrapper").evaluate((element) => {
+    const rect = element.getBoundingClientRect(); return rect.height / rect.width
+  })).toBeCloseTo(1, 2)
+  await expect(page.locator("#media-gallery-demo #media-gallery-contentless-selection"))
+    .toHaveText("Selection: media-gallery-contentless-wide:true:Wide; changes: 1")
+  await emptyWide.click()
+  await expect(page.locator("#media-gallery-demo #media-gallery-contentless-selection"))
+    .toHaveText("Selection: media-gallery-contentless-wide:true:Wide; changes: 1")
+})
+
+test("clearing a Wide selection retains its main layout and 16:9 display geometry in show-all Horizontal", async ({ page }) => {
+  const root = gallery(page), display = main(root), wrapper = display.locator(".fiori-media-gallery-item__wrapper")
+  await thumbnails(root).nth(3).click()
+  await expect(display.locator("video")).toBeVisible()
+  await page.locator("#media-gallery-demo #media-gallery-show-all").click()
+  await expect(root).toHaveAttribute("data-effective-layout", "Horizontal")
+  await expect(display).toHaveAttribute("data-layout", "Wide")
+  await expect(display).not.toHaveAttribute("data-square", "true")
+  await expect.poll(() => wrapper.evaluate((element) => {
+    const rect = element.getBoundingClientRect(); return rect.height / rect.width
+  })).toBeCloseTo(9 / 16, 2)
+  const before = await wrapper.evaluate((element) => {
+    const rect = element.getBoundingClientRect(); return { width: rect.width, height: rect.height }
+  })
+  await page.locator("#media-gallery-demo #media-gallery-clear").click()
+  await expect(thumbnails(root)).toHaveCount(0)
+  await expect(display.locator("img,video")).toHaveCount(0)
+  await expect(display).toHaveAttribute("data-layout", "Wide")
+  await expect(display).not.toHaveAttribute("data-square", "true")
+  await expect(display).not.toHaveAttribute("data-thumbnail-design", "true")
+  await expect.poll(() => wrapper.evaluate((element) => {
+    const rect = element.getBoundingClientRect(); return { width: rect.width, height: rect.height }
+  })).toEqual(before)
+  await expect(page.locator("#media-gallery-demo #media-gallery-selection"))
+    .toHaveText("Selection: media-gallery-item-3:true; changes: 1")
+})
+
 test("invalid first selected falls back to first selectable; hidden focus consumes its native slot and becomes a no-op", async ({ page }) => {
   const invalid = page.locator("#media-gallery-demo #media-gallery-invalid")
   await expect(focusItems(invalid).nth(0)).toHaveAttribute("aria-checked", "true")

@@ -156,6 +156,7 @@ function MediaGallery({
   // A later _displayContent explicitly clears it. Preserve this native initial border/crop,
   // rather than applying the later display mask to an untouched gallery.
   const [mainThumbnailDesign, setMainThumbnailDesign] = React.useState(true)
+  const [mainLayout, setMainLayout] = React.useState<MediaGalleryItemLayout>("Square")
   const selectionRef = React.useRef(selection); selectionRef.current = selection
   const selectedKey = selection?.key
   const propSelection = new Map(items.map((item) => [item.key, !!item.props.selected]))
@@ -188,7 +189,7 @@ function MediaGallery({
   const navigation = visibleItems.filter((item) => !item.props.disabled).map((item) => item.key)
   if (overflow > 0) navigation.push("__overflow")
   const normalizedIndex = Math.max(0, Math.min(currentIndex, navigation.length - 1)); currentRef.current = normalizedIndex
-  const wide = selection?.props.layout === "Wide" && showAllThumbnails && effectiveLayout === "Horizontal"
+  const wide = mainLayout === "Wide" && showAllThumbnails && effectiveLayout === "Horizontal"
   React.useLayoutEffect(() => {
     const host = hostRef.current
     if (!host) return
@@ -222,6 +223,15 @@ function MediaGallery({
     // _selectItemOnPhone calls Carousel.navigateTo without a user event, including initialization.
     if (phone) setPhonePage(Math.max(0, selectableItems.findIndex((item) => item.key === selectedKey)))
   }, [phone, selectedKey])
+  React.useLayoutEffect(() => {
+    if (phone) return
+    // MediaGalleryItem.js displayedContent reads the first default-slot HTMLElement.
+    // MediaGallery.js _displayContent changes mainItem.layout only when that content exists;
+    // a thumbnail or failed image does not change the criterion. _updateSelection removes
+    // old content for an empty gallery without resetting the main item's previous layout.
+    if (mainRef.current?.querySelector(".fiori-media-gallery-item__content")?.firstElementChild)
+      setMainLayout(selection?.props.layout ?? "Square")
+  }, [selection, phone])
   React.useLayoutEffect(() => {
     const display = displayRef.current, host = hostRef.current
     if (!display || !host || phone || !size.width || !size.height) return
@@ -285,7 +295,7 @@ function MediaGallery({
                 {selectableItems.map((item) => <ItemSurface key={item.key} item={item.props}
                   presentation={{ selected: item.key === selectedKey, register: register(item.key) }} />)}
               </Carousel>
-            ) : <ItemSurface item={{ children: selection?.props.children, layout: selection?.props.layout }}
+            ) : <ItemSurface item={{ children: selection?.props.children, layout: mainLayout }}
               presentation={{ thumbnailDesign: mainThumbnailDesign, square: !wide, interactive: interactiveDisplayArea, tabIndex: interactiveDisplayArea ? 0 : undefined,
                 activate: () => { if (interactiveDisplayArea) onDisplayAreaClick?.() },
                 register: (host) => { mainRef.current = host } }} />}

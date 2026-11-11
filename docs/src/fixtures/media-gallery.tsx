@@ -3,7 +3,7 @@ import { MediaGallery, MediaGalleryItem, type MediaGalleryProps } from "@/compon
 import { defineFixtures } from "../fixture-types"
 
 type Props = Pick<MediaGalleryProps, "showAllThumbnails" | "interactiveDisplayArea" | "layout" | "menuHorizontalAlign" | "menuVerticalAlign"> & {
-  width?: number; height?: number; count?: number; selected?: number; disabled?: number; hidden?: number; wide?: boolean; thumbnail?: boolean; rtl?: boolean; video?: boolean; activate?: number
+  width?: number; height?: number; count?: number; selected?: number; disabled?: number; hidden?: number; wide?: boolean; wideIndex?: number; contentless?: number; thumbnail?: boolean; rtl?: boolean; video?: boolean; activate?: number; clearAfterActivate?: boolean
 }
 // Deliberately simple local SVGs: intrinsic aspect ratio and thumbnail substitution are tested without network media.
 export function mediaImage(index: number, thumbnail = false) {
@@ -11,16 +11,22 @@ export function mediaImage(index: number, thumbnail = false) {
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + (thumbnail ? 120 : 320) + '" height="' + (thumbnail ? 120 : 240) + '" viewBox="0 0 320 240"><rect width="320" height="240" fill="' + color + '"/><circle cx="238" cy="60" r="28" fill="#fff" opacity=".7"/><path d="M0 240 100 100 175 170 235 115 320 240Z" fill="#45647d"/><rect x="20" y="20" width="' + (20 + index * 12) + '" height="10" fill="#45647d"/></svg>'
   return "data:image/svg+xml," + encodeURIComponent(svg)
 }
-function GalleryFixture({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, thumbnail, rtl, video, activate, ...props }: Props) {
+function GalleryFixture({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, wideIndex, contentless, thumbnail, rtl, video, activate, clearAfterActivate, ...props }: Props) {
   const ref = React.useRef<HTMLDivElement | null>(null)
+  const [activated, setActivated] = React.useState(false), [removed, setRemoved] = React.useState(false)
   React.useLayoutEffect(() => {
-    if (activate !== undefined) ref.current?.querySelectorAll<HTMLElement>(".fiori-media-gallery__thumbnail")[activate]?.click()
+    if (activate !== undefined) {
+      ref.current?.querySelectorAll<HTMLElement>(".fiori-media-gallery__thumbnail")[activate]?.click()
+      setActivated(true)
+    }
   }, [activate])
+  React.useLayoutEffect(() => { if (clearAfterActivate && activated) setRemoved(true) }, [clearAfterActivate, activated])
   return <MediaGallery ref={ref} {...props} accessibleName="Pictures" dir={rtl ? "rtl" : undefined} style={{ width, height }}>
-    {Array.from({ length: count }, (_, index) => (
+    {Array.from({ length: removed ? 0 : count }, (_, index) => (
       <MediaGalleryItem key={index} selected={index === selected} disabled={index === disabled} hidden={index === hidden}
-        layout={wide ? "Wide" : "Square"} thumbnail={thumbnail ? <img src={mediaImage(index, true)} alt={"Thumbnail " + (index + 1)} /> : undefined}>
-        {video ? <video poster={mediaImage(index)} preload="none" aria-label={"Video " + (index + 1)} /> : <img src={mediaImage(index)} alt={"Picture " + (index + 1)} />}
+        aria-label={index === contentless ? "Empty picture " + (index + 1) : undefined}
+        layout={wide || index === wideIndex ? "Wide" : "Square"} thumbnail={thumbnail ? <img src={mediaImage(index, true)} alt={"Thumbnail " + (index + 1)} /> : undefined}>
+        {index === contentless ? undefined : video ? <video poster={mediaImage(index)} preload="none" aria-label={"Video " + (index + 1)} /> : <img src={mediaImage(index)} alt={"Picture " + (index + 1)} />}
       </MediaGalleryItem>
     ))}
   </MediaGallery>
@@ -43,6 +49,8 @@ export default defineFixtures<Props>({
     { id: "media-gallery-selected-display", props: { layout: "Horizontal", activate: 2 } },
     { id: "media-gallery-selected-wide-square", props: { layout: "Horizontal", wide: true, activate: 2 } },
     { id: "media-gallery-selected-wide-display", props: { layout: "Horizontal", showAllThumbnails: true, wide: true, activate: 2, width: 720 } },
+    { id: "media-gallery-contentless-wide-after-square", props: { layout: "Horizontal", showAllThumbnails: true, count: 2, wideIndex: 1, contentless: 1, thumbnail: true, activate: 1, width: 720 } },
+    { id: "media-gallery-clear-after-wide-display", props: { layout: "Horizontal", showAllThumbnails: true, wide: true, activate: 2, clearAfterActivate: true, width: 720 } },
     { id: "media-gallery-show-all-s", props: { layout: "Horizontal", showAllThumbnails: true, count: 9, width: 500 } },
     { id: "media-gallery-show-all-m", props: { layout: "Horizontal", showAllThumbnails: true, count: 9, width: 720 } },
     { id: "media-gallery-show-all-l", props: { layout: "Horizontal", showAllThumbnails: true, count: 9, width: 1024 } },
