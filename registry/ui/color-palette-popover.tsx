@@ -1,8 +1,9 @@
 import * as React from "react"
 import { Slot } from "radix-ui"
+import { createPortal } from "react-dom"
 
 import { ColorPalette, ColorPaletteStateContext, ColorPaletteStateProvider, type ColorPaletteProps } from "@/components/ui/color-palette"
-import { Popover, PopoverAnchor, PopoverContent, type PopoverContentProps } from "@/components/ui/popover"
+import { type PopoverContentProps } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
 type ColorPalettePopoverProps = Omit<ColorPaletteProps, "ref" | "popupMode"> & {
@@ -16,49 +17,116 @@ type ColorPalettePopoverProps = Omit<ColorPaletteProps, "ref" | "popupMode"> & {
   contentProps?: Omit<PopoverContentProps, "children" | "side" | "hideArrow" | "portal">
 }
 
-// popup-utils/PopoverRegistry.js shares one 300ms update interval and captured document scroll across open popovers.
-const openPalettePositions = new Set<() => void>()
+type PalettePopup = {
+  node: HTMLElement
+  reposition: () => void
+  isOpener: (event: Event) => boolean
+  pointerOutside: (event: MouseEvent | PointerEvent) => boolean
+  focusOutside: (event: FocusEvent) => void
+  escape: (event: KeyboardEvent) => boolean
+  iframeFocus: (element: HTMLElement) => void
+}
+const openedPalettes: PalettePopup[] = []
 let positionInterval: number | undefined
-const repositionOpenPalettes = () => { openPalettePositions.forEach((reposition) => reposition()) }
-function registerPalettePosition(reposition: () => void) {
-  openPalettePositions.add(reposition)
-  if (openPalettePositions.size === 1) {
+let originalPointer: PointerEvent | undefined
+const repositionOpenPalettes = () => { [...openedPalettes].forEach((popup) => popup.reposition()) }
+const updateOpenPalettes = () => {
+  // PopoverRegistry.js:29-33 repositions first, then checks only deep IFRAME focus on its shared 300ms tick.
+  repositionOpenPalettes()
+  const focused = getFocusedElement()
+  if (focused?.tagName === "IFRAME") [...openedPalettes].reverse().forEach((popup) => popup.iframeFocus(focused))
+}
+const rememberPointer = (event: PointerEvent) => { originalPointer = event }
+const dismissOnMouseDown = (event: MouseEvent) => {
+  // PopoverRegistry.clickHandler and Popover.isClicked use the actual painted rectangle, not DOM ancestry.
+  const original = originalPointer && originalPointer.target === event.target && originalPointer.clientX === event.clientX && originalPointer.clientY === event.clientY ? originalPointer : event
+  originalPointer = undefined
+  for (const popup of [...openedPalettes].reverse()) {
+    const rect = popup.node.getBoundingClientRect()
+    if (popup.isOpener(event) || event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom) return
+    if (!popup.pointerOutside(original)) return
+  }
+}
+const notifyOutsideFocus = (event: FocusEvent) => {
+  [...openedPalettes].forEach((popup) => { if (!event.composedPath().includes(popup.node)) popup.focusOutside(event) })
+}
+const dismissOnEscape = (event: KeyboardEvent) => {
+  // OpenedPopupsRegistry.js:42-56 handles only the topmost unmarked, modifier-free Escape at document bubble.
+  // Unlike target stopPropagation, target preventDefault does not suppress UI5's Escape close.
+  if (!(event.key ? event.key === "Escape" || event.key === "Esc" : event.keyCode === 27)
+    || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || (event as KeyboardEvent & { _sapui_handledByControl?: boolean })._sapui_handledByControl) return
+  const popup = openedPalettes.at(-1)
+  if (popup?.escape(event)) event.stopImmediatePropagation()
+}
+function registerPalettePopup(popup: PalettePopup) {
+  openedPalettes.push(popup)
+  popup.node.addEventListener("scroll", repositionOpenPalettes, true)
+  if (openedPalettes.length === 1) {
     document.addEventListener("scroll", repositionOpenPalettes, true)
-    positionInterval = window.setInterval(repositionOpenPalettes, 300)
+    document.addEventListener("pointerdown", rememberPointer, true)
+    document.addEventListener("mousedown", dismissOnMouseDown, true)
+    document.addEventListener("focusin", notifyOutsideFocus, true)
+    document.addEventListener("keydown", dismissOnEscape)
+    positionInterval = window.setInterval(updateOpenPalettes, 300)
   }
   return () => {
-    openPalettePositions.delete(reposition)
-    if (!openPalettePositions.size) {
+    const index = openedPalettes.indexOf(popup)
+    if (index !== -1) openedPalettes.splice(index, 1)
+    popup.node.removeEventListener("scroll", repositionOpenPalettes, true)
+    if (!openedPalettes.length) {
       document.removeEventListener("scroll", repositionOpenPalettes, true)
+      document.removeEventListener("pointerdown", rememberPointer, true)
+      document.removeEventListener("mousedown", dismissOnMouseDown, true)
+      document.removeEventListener("focusin", notifyOutsideFocus, true)
+      document.removeEventListener("keydown", dismissOnEscape)
       window.clearInterval(positionInterval)
       positionInterval = undefined
+      originalPointer = undefined
     }
   }
 }
-
 function getFocusedElement() {
   // PopupUtils.js getFocusedElement -> getActiveElement.js follows every open ShadowRoot.
   let element = document.activeElement
   while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement
   return element && "focus" in element && typeof element.focus === "function" ? element as HTMLElement : null
 }
-
-type RetainedPaletteContentProps = PopoverContentProps & {
-  active: boolean
-  getAnchorRect: () => DOMRect
-  onDismiss: () => void
+function dispatchOutsideEvent(type: "pointerDownOutside" | "focusOutside", originalEvent: MouseEvent | PointerEvent | FocusEvent,
+  specific: PopoverContentProps["onPointerDownOutside"] | PopoverContentProps["onFocusOutside"], interact: PopoverContentProps["onInteractOutside"]) {
+  const event = new CustomEvent(`dismissableLayer.${type}`, { cancelable: true, detail: { originalEvent } })
+  const call = () => { specific?.(event as never); interact?.(event as never) }
+  if (originalEvent.target) {
+    originalEvent.target.addEventListener(event.type, call, { once: true })
+    originalEvent.target.dispatchEvent(event)
+  } else call()
+  return event.defaultPrevented
+}
+function dispatchFocusEvent(node: HTMLElement, type: "autoFocusOnMount" | "autoFocusOnUnmount", handler: PopoverContentProps["onOpenAutoFocus"]) {
+  const event = new Event(`focusScope.${type}`, { cancelable: true })
+  if (handler) node.addEventListener(event.type, handler, { once: true })
+  node.dispatchEvent(event)
 }
 
-/** Popup.js keeps native manual-popover DOM while registering interactions only while open. */
-function RetainedPaletteContent({ active, getAnchorRect, onDismiss, children, className, ref, side = "bottom", align = "center", sideOffset = 0, alignOffset = 0,
-  collisionPadding, collisionBoundary, avoidCollisions = true, arrowPadding: _arrowPadding, sticky = "partial", hideWhenDetached: _hideDetached,
-  updatePositionStrategy = "optimized", asChild, portal: _portal, hideArrow: _arrow, forceMount: _force,
-  onOpenAutoFocus: _openFocus, onCloseAutoFocus: _closeFocus, onPointerDownOutside, onFocusOutside, onInteractOutside,
-  onEscapeKeyDown, onKeyDown, ...props }: RetainedPaletteContentProps) {
+type NativePaletteContentProps = PopoverContentProps & {
+  active: boolean
+  getAnchorRect: () => DOMRect
+  isOpener: (event: Event) => boolean
+  onDismiss: (preserveFocus?: boolean) => void
+  onBeforeOpen: () => void
+  reposition: () => void
+}
+/** Popup.js owns one native manual-popover surface; only painted popups join the interaction registry. */
+function NativePaletteContent({ active, getAnchorRect, isOpener, onDismiss, onBeforeOpen, reposition, children, className, ref,
+  side = "bottom", align = "center", sideOffset = 0, alignOffset = 0, collisionPadding, collisionBoundary, avoidCollisions = true,
+  arrowPadding: _arrowPadding, sticky: _sticky, hideWhenDetached, updatePositionStrategy = "optimized", asChild, portal = true,
+  hideArrow: _arrow, forceMount: _force, onOpenAutoFocus, onCloseAutoFocus, onPointerDownOutside, onFocusOutside, onInteractOutside,
+  onEscapeKeyDown, onKeyDown, style, ...props }: NativePaletteContentProps) {
   const root = React.useRef<HTMLDivElement | null>(null)
+  const content = React.useRef<HTMLDivElement | null>(null)
   const place = React.useRef<() => void>(() => {})
-  const handlers = React.useRef({ onDismiss, onPointerDownOutside, onFocusOutside, onInteractOutside, onEscapeKeyDown })
-  React.useLayoutEffect(() => { handlers.current = { onDismiss, onPointerDownOutside, onFocusOutside, onInteractOutside, onEscapeKeyDown } })
+  const wasActive = React.useRef(false)
+  const handlers = React.useRef({ isOpener, onDismiss, onBeforeOpen, reposition, onPointerDownOutside, onFocusOutside, onInteractOutside, onEscapeKeyDown, onOpenAutoFocus, onCloseAutoFocus })
+  React.useLayoutEffect(() => { handlers.current = { isOpener, onDismiss, onBeforeOpen, reposition, onPointerDownOutside, onFocusOutside, onInteractOutside, onEscapeKeyDown, onOpenAutoFocus, onCloseAutoFocus } })
   const mount = React.useCallback((node: HTMLDivElement | null) => {
     root.current = node
     if (typeof ref === "function") {
@@ -71,110 +139,153 @@ function RetainedPaletteContent({ active, getAnchorRect, onDismiss, children, cl
   React.useLayoutEffect(() => {
     place.current = () => {
       const node = root.current
-      if (!node) return
-      // Popup.js _show/hide uses the browser's manual popover; hidden DOM owns no keyboard/pointer layer.
-      if (!active) { if (node.matches(":popover-open")) node.hidePopover(); return }
-      if (!node.matches(":popover-open")) node.showPopover()
+      if (!node || !active || !node.matches(":popover-open")) return
+      if (node.hasAttribute("data-missing-opener-origin")) { node.style.left = "0px"; node.style.top = "0px"; return }
       const rect = getAnchorRect()
-      const box = node.getBoundingClientRect()
       const tokenMargin = parseFloat(getComputedStyle(node).getPropertyValue("--fiori-popup-viewport-margin"))
       const padding = (edge: "left" | "top" | "right" | "bottom") => typeof collisionPadding === "number" ? collisionPadding : collisionPadding?.[edge] ?? tokenMargin
       const boundaries = (Array.isArray(collisionBoundary) ? collisionBoundary : [collisionBoundary]).filter((boundary): boundary is Element => !!boundary)
       const limit = boundaries.reduce((limits, boundary) => {
         const box = boundary.getBoundingClientRect()
         return { left: Math.max(limits.left, box.left), top: Math.max(limits.top, box.top), right: Math.min(limits.right, box.right), bottom: Math.min(limits.bottom, box.bottom) }
-      }, { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight })
+      }, { left: 0, top: 0, right: document.documentElement.clientWidth, bottom: document.documentElement.clientHeight })
+      const viewportWidth = limit.right - limit.left, viewportHeight = limit.bottom - limit.top
+      node.style.setProperty("--radix-popover-content-available-width", `${Math.max(0, viewportWidth - padding("right"))}px`)
+      node.style.setProperty("--radix-popover-content-available-height", `${Math.max(0, viewportHeight - padding("bottom"))}px`)
+      const box = node.getBoundingClientRect()
+      // Popover.getPopoverSize(true) uses the scrolling content's complete height when choosing placement.
+      const width = box.width, height = Math.max(box.height, content.current?.scrollHeight ?? 0)
+      const topSpace = rect.top - limit.top, bottomSpace = limit.bottom - padding("bottom") - rect.bottom
+      const leftSpace = rect.left - limit.left, rightSpace = limit.right - rect.right
       let actualSide = side
-      const rtl = node.matches(":dir(rtl)")
-      const position = (placement: typeof side) => {
-        const vertical = placement === "bottom" || placement === "top"
-        const start = vertical ? rtl ? rect.right - box.width : rect.left : rect.top
-        const end = vertical ? rtl ? rect.left : rect.right - box.width : rect.bottom - box.height
-        const offset = alignOffset * (align === "end" ? -1 : 1) * (vertical && rtl ? -1 : 1)
-        const cross = (align === "start" ? start : align === "end" ? end : vertical ? rect.left + (rect.width - box.width) / 2 : rect.top + (rect.height - box.height) / 2) + offset
-        return vertical ? { x: cross, y: placement === "bottom" ? rect.bottom + sideOffset : rect.top - box.height - sideOffset }
-          : { x: placement === "right" ? rect.right + sideOffset : rect.left - box.width - sideOffset, y: cross }
-      }
-      let next = position(actualSide)
-      // Popover.calcPlacement tries the requested/opposite placement, then limits the cross axis to the viewport.
       if (avoidCollisions) {
-        const opposite = { bottom: "top", top: "bottom", left: "right", right: "left" } as const
-        const outside = side === "bottom" ? next.y + box.height > limit.bottom - padding("bottom") : side === "top" ? next.y < limit.top + padding("top")
-          : side === "right" ? next.x + box.width > limit.right - padding("right") : next.x < limit.left + padding("left")
-        if (outside) { actualSide = opposite[side]; next = position(actualSide) }
-        if (sticky === "partial") {
-          if (actualSide === "top" || actualSide === "bottom") next.x = Math.max(rect.left - box.width, Math.min(next.x, rect.right))
-          else next.y = Math.max(rect.top - box.height, Math.min(next.y, rect.bottom))
+        // Popover.getActualPlacement/fallbackPlacement: flip vertical only for more room; horizontal fallback tries L/R/B/T.
+        if (side === "top" && topSpace < height + sideOffset && topSpace < bottomSpace) actualSide = "bottom"
+        else if (side === "bottom" && bottomSpace < height + sideOffset && bottomSpace < topSpace) actualSide = "top"
+        else if (side === "left" && leftSpace < width + sideOffset || side === "right" && rightSpace < width + sideOffset) {
+          if (leftSpace > width + sideOffset) actualSide = "left"
+          else if (rightSpace > leftSpace) actualSide = "right"
+          else if (bottomSpace > height + sideOffset) actualSide = "bottom"
+          else if (bottomSpace < topSpace) actualSide = "top"
         }
-        next.x = Math.max(limit.left + padding("left"), Math.min(next.x, limit.right - box.width - padding("right")))
-        next.y = Math.max(limit.top + padding("top"), Math.min(next.y, limit.bottom - box.height - padding("bottom")))
       }
-      if (node.hasAttribute("data-missing-opener-origin")) next = { x: 0, y: 0 }
+      const vertical = actualSide === "top" || actualSide === "bottom", rtl = node.matches(":dir(rtl)")
+      const start = vertical ? rtl ? rect.right - width : rect.left : rect.top
+      const end = vertical ? rtl ? rect.left : rect.right - width : rect.bottom - height
+      const offset = alignOffset * (align === "end" ? -1 : 1) * (vertical && rtl ? -1 : 1)
+      const cross = (align === "start" ? start : align === "end" ? end : vertical ? rect.left + (rect.width - width) / 2 : rect.top + (rect.height - height) / 2) + offset
+      let x = vertical ? cross : actualSide === "right" ? rect.right + sideOffset : Math.max(rect.left - width - sideOffset, limit.left)
+      let y = vertical ? actualSide === "bottom" ? rect.bottom + sideOffset : Math.max(rect.top - height - sideOffset, limit.top) : cross
+      let availableHeight = viewportHeight - padding("bottom"), availableWidth = viewportWidth - padding("right")
+      if (avoidCollisions) {
+        // Popover.calcPlacement:488-542 limits the root on the main axis instead of moving its full box across the opener.
+        if (actualSide === "top") availableHeight = topSpace - sideOffset - padding("top")
+        else if (actualSide === "bottom") availableHeight = limit.bottom - rect.bottom - sideOffset - padding("bottom")
+        else if (actualSide === "left") availableWidth = leftSpace - sideOffset - padding("left")
+        else availableWidth = rightSpace - sideOffset - padding("right")
+        if (vertical) {
+          if (width > viewportWidth || x < limit.left + padding("left")) x = limit.left + padding("left")
+          else if (x + width > limit.right - padding("right")) x = limit.right - padding("right") - width
+        } else {
+          if (height > viewportHeight || y < limit.top + padding("top")) y = limit.top + padding("top")
+          else if (y + height > limit.bottom - padding("bottom")) y = limit.bottom - padding("bottom") - height
+        }
+      }
+      node.style.setProperty("--radix-popover-content-available-width", `${Math.max(0, Math.round(availableWidth))}px`)
+      node.style.setProperty("--radix-popover-content-available-height", `${Math.max(0, Math.round(availableHeight))}px`)
+      node.style.setProperty("--radix-popover-trigger-width", `${rect.width}px`)
+      node.style.setProperty("--radix-popover-trigger-height", `${rect.height}px`)
+      node.style.setProperty("--radix-popover-content-transform-origin", vertical ? `50% ${actualSide === "top" ? "100%" : "0%"}` : `${actualSide === "left" ? "100%" : "0%"} 50%`)
       node.dataset.side = actualSide
-      node.style.left = `${next.x}px`; node.style.top = `${next.y}px`
-      node.dataset.mediaRange = box.width < 600 ? "S" : box.width < 1024 ? "M" : box.width < 1440 ? "L" : "XL"
+      // Popover.calcPlacement keeps a 1.5px dead band and rounds coordinates after applying placement.
+      if (!node.style.left || Math.abs(parseFloat(node.style.left) - x) > 1.5) node.style.left = `${Math.round(x)}px`
+      if (!node.style.top || Math.abs(parseFloat(node.style.top) - y) > 1.5) node.style.top = `${Math.round(y)}px`
+      const detached = rect.bottom < limit.top || rect.top > limit.bottom || rect.right < limit.left || rect.left > limit.right
+      node.style.visibility = hideWhenDetached && detached ? "hidden" : style?.visibility ?? ""
+      node.dataset.mediaRange = width < 600 ? "S" : width < 1024 ? "M" : width < 1440 ? "L" : "XL"
     }
-    place.current()
+    const node = root.current
+    if (!node) return
+    if (active && !wasActive.current) {
+      handlers.current.onBeforeOpen()
+      node.showPopover()
+      wasActive.current = true
+      place.current()
+      dispatchFocusEvent(node, "autoFocusOnMount", handlers.current.onOpenAutoFocus)
+    } else if (!active && wasActive.current) {
+      node.hidePopover()
+      wasActive.current = false
+      dispatchFocusEvent(node, "autoFocusOnUnmount", handlers.current.onCloseAutoFocus)
+    } else place.current()
   })
-  React.useLayoutEffect(() => {
-    if (!active || updatePositionStrategy !== "always") return
-    // Only the caller's explicit public "always" strategy adds animation-frame positioning; native default remains 300ms.
-    let frame: number
-    const tick = () => { place.current(); frame = requestAnimationFrame(tick) }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [active, updatePositionStrategy])
-  // ColorPalettePopover has no arrow; its native opener IntersectionObserver already governs detachment.
+  React.useLayoutEffect(() => () => {
+    const node = root.current
+    if (node && wasActive.current) {
+      node.hidePopover()
+      wasActive.current = false
+      dispatchFocusEvent(node, "autoFocusOnUnmount", handlers.current.onCloseAutoFocus)
+    }
+  }, [])
   React.useLayoutEffect(() => {
     const node = root.current
     if (!active || !node) return
     let pointerTarget: EventTarget | null = null
-    const inside = (event: Event) => event.composedPath().includes(node)
-    const pointer = (event: PointerEvent) => {
-      if (inside(event)) return
-      pointerTarget = event.target
-      const outside = new CustomEvent("dismissableLayer.pointerDownOutside", { cancelable: true, detail: { originalEvent: event } })
-      const call = () => { handlers.current.onPointerDownOutside?.(outside); handlers.current.onInteractOutside?.(outside) }
-      if (event.target) { event.target.addEventListener(outside.type, call, { once: true }); event.target.dispatchEvent(outside) }
-      else call()
-      if (!outside.defaultPrevented) handlers.current.onDismiss()
-    }
-    const focus = (event: FocusEvent) => {
-      if (inside(event) || event.target === pointerTarget) return
-      const outside = new CustomEvent("dismissableLayer.focusOutside", { cancelable: true, detail: { originalEvent: event } })
-      const call = () => { handlers.current.onFocusOutside?.(outside); handlers.current.onInteractOutside?.(outside) }
-      if (event.target) { event.target.addEventListener(outside.type, call, { once: true }); event.target.dispatchEvent(outside) }
-      else call()
-      if (!outside.defaultPrevented) handlers.current.onDismiss()
-    }
+    let canceledFocus: HTMLElement | null = null
+    const unregister = registerPalettePopup({ node, reposition: () => handlers.current.reposition(), isOpener: (event) => handlers.current.isOpener(event),
+      pointerOutside: (event) => {
+        pointerTarget = event.target
+        const canceled = dispatchOutsideEvent("pointerDownOutside", event, handlers.current.onPointerDownOutside, handlers.current.onInteractOutside)
+        if (!canceled) handlers.current.onDismiss()
+        return !canceled
+      }, focusOutside: (event) => {
+        if (event.target === pointerTarget) return
+        // Popup._onfocusout records focus; ordinary outside focus never dismisses. React callbacks remain observable/cancelable.
+        const canceled = dispatchOutsideEvent("focusOutside", event, handlers.current.onFocusOutside, handlers.current.onInteractOutside)
+        canceledFocus = canceled ? getFocusedElement() : null
+      }, escape: (event) => {
+        // UI5 ignores an Item's preventDefault. Track only this caller's cancellation without resetting the original event.
+        let callerCanceled = false
+        const callerEvent = new Proxy(event, { get(target, property) {
+          if (property === "preventDefault") return () => { callerCanceled = true; target.preventDefault() }
+          const value = Reflect.get(target, property, target)
+          return typeof value === "function" ? value.bind(target) : value
+        } })
+        handlers.current.onEscapeKeyDown?.(callerEvent)
+        if (callerCanceled || event.cancelBubble) return false
+        handlers.current.onDismiss()
+        return true
+      }, iframeFocus: (element) => {
+        if (element === canceledFocus) return
+        let current: Node | null = element
+        while (current) {
+          if (handlers.current.isOpener(new CustomEvent("iframeFocus", { detail: { element: current } }))) return
+          current = current.parentNode ?? (current.getRootNode() instanceof ShadowRoot ? (current.getRootNode() as ShadowRoot).host : null)
+        }
+        handlers.current.onDismiss(true)
+      } })
     const click = () => { pointerTarget = null }
-    const key = (event: KeyboardEvent) => {
-      if (event.key !== "Escape" || event.defaultPrevented) return
-      handlers.current.onEscapeKeyDown?.(event)
-      if (!event.defaultPrevented) { event.preventDefault(); handlers.current.onDismiss() }
-    }
-    document.addEventListener("pointerdown", pointer, true)
-    document.addEventListener("focusin", focus, true)
     document.addEventListener("click", click, true)
-    document.addEventListener("keydown", key, true)
-    return () => {
-      document.removeEventListener("pointerdown", pointer, true)
-      document.removeEventListener("focusin", focus, true)
-      document.removeEventListener("click", click, true)
-      document.removeEventListener("keydown", key, true)
+    let frame = 0
+    if (updatePositionStrategy === "always") {
+      // Only the caller's explicit "always" strategy adds RAF updates; UI5's default remains the shared 300ms registry.
+      const tick = () => { place.current(); frame = requestAnimationFrame(tick) }
+      frame = requestAnimationFrame(tick)
     }
-  }, [active])
+    return () => { unregister(); document.removeEventListener("click", click, true); cancelAnimationFrame(frame) }
+  }, [active, updatePositionStrategy])
   const Root = asChild ? Slot.Root : "div"
-  return <Root {...props} ref={mount} popover="manual" role={props.role ?? "dialog"} tabIndex={props.tabIndex ?? -1} data-retained="" data-state={active ? "open" : "closed"}
-    data-align={align} data-hide-arrow="" data-media-range="S" className={cn("fiori-popup fiori-popover-surface z-50 outline-none", className)}
+  const surface = <Root {...props} ref={mount} popover="manual" role={props.role ?? "dialog"} tabIndex={props.tabIndex ?? -1}
+    data-native-palette="" data-state={active ? "open" : "closed"} data-align={align} data-hide-arrow="" data-media-range="S"
+    className={cn("fiori-popup fiori-popover-surface z-50 outline-none", className)} style={style}
     onKeyDown={(event) => {
       onKeyDown?.(event)
       if (event.defaultPrevented || event.key !== "Tab") return
-      // Popup.forwardToFirst/forwardToLast only wraps the boundary; palette Tab selection handles its own rows first.
+      // Popup.forwardToFirst/forwardToLast wraps the boundary after the palette handles its own row Tab selection.
       const buttons = [...(root.current?.querySelectorAll<HTMLElement>("button:not([disabled]),[data-color-palette-area]:not([data-disabled])") ?? [])].filter((button) => !button.closest("[hidden]"))
       const target = event.shiftKey ? buttons.at(-1) : buttons[0]
       if (target && event.target === (event.shiftKey ? buttons[0] : buttons.at(-1))) { event.preventDefault(); target.focus() }
-    }}><div className="fiori-popup__root">{children}</div></Root>
+    }}><div className="fiori-popup__root"><div ref={content} className="fiori-color-palette-popover__content">{children}</div></div></Root>
+  return portal ? createPortal(surface, document.body) : surface
 }
 
 function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, onOpenChange, placement = "Bottom", popoverLabel = "Color Palette",
@@ -187,15 +298,6 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
   const directionRef = React.useRef<HTMLDivElement | null>(null)
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null)
   const [observedAnchor, setObservedAnchor] = React.useState<HTMLElement | null>(null)
-  const openerPointerPaths = React.useRef(new WeakMap<Event, EventTarget[]>())
-  React.useLayoutEffect(() => {
-    if (!anchor) return
-    // Popover.js isOpenerClicked uses the original composed path. Radix defers outside pointerdown until click,
-    // when that path has expired, so capture its path on the actual opener (also in ShadowRoot).
-    const remember = (event: Event) => { openerPointerPaths.current.set(event, event.composedPath()) }
-    anchor.addEventListener("pointerdown", remember, true)
-    return () => anchor.removeEventListener("pointerdown", remember, true)
-  }, [anchor])
   const retainedOpenerRect = React.useRef<DOMRect | null>(null)
   const [anchorVisible, setAnchorVisible] = React.useState(false)
   const dismissedRequest = React.useRef(false)
@@ -211,8 +313,8 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     missingOpenerRef.current = missingActiveOpener
     if (!missingActiveOpener && missingOpenerOrigin) setMissingOpenerOrigin(false)
   }, [missingActiveOpener, missingOpenerOrigin])
-  // The shared Popover's Portal has its own open Presence; only the in-place forceMount path retains content while closed.
-  const forceMount = contentProps?.forceMount === true && !portal
+  const forceMount = contentProps?.forceMount === true
+  const preserveCloseFocus = React.useRef(false)
   const focusedRequest = React.useRef(false)
   const [rtl, setRtl] = React.useState(paletteProps.dir === "rtl")
   React.useLayoutEffect(() => {
@@ -235,10 +337,10 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     if (node) retainedOpenerRect.current = rect
     return rect
   } } }), [anchor, missingActiveOpener, missingOpenerOrigin, positionVersion])
-  const isOpenerPointerDown = (event: Event) => {
+  const isOpenerEvent = (event: Event) => {
     const node = resolveOpener()
-    return event.type === "pointerdown" && !!node && (openerPointerPaths.current.get(event)?.includes(node)
-      || (event.target instanceof Node && node.contains(event.target)) || event.composedPath().includes(node))
+    if (event instanceof CustomEvent && event.type === "iframeFocus") return event.detail.element === node
+    return !!node && (event.composedPath().includes(node) || event.target instanceof Node && node.contains(event.target))
   }
   const changeOpen = React.useCallback((next: boolean) => {
     if (controlled === undefined) setUncontrolled(next)
@@ -301,16 +403,6 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     if (!paintedOpen) return
     const root = contentNode.current?.closest<HTMLElement>("[data-slot=color-palette-popover]")
     if (!root) return
-    const reposition = () => repositionRequest.current()
-    const unregister = registerPalettePosition(reposition)
-    // PopoverRegistry.attachScrollHandler also captures scroll within the popup's own root.
-    root.addEventListener("scroll", reposition, true)
-    return () => { root.removeEventListener("scroll", reposition, true); unregister() }
-  }, [paintedOpen, contentMounted])
-  React.useLayoutEffect(() => {
-    if (!paintedOpen) return
-    const root = contentNode.current?.closest<HTMLElement>("[data-slot=color-palette-popover]")
-    if (!root) return
     // Popup.js _registerResizeHandler -> ResizeHandler.js observes getDomRef and repositions on the next frame.
     // Size registration alone must not move an active missing opener; actual resize joins the registry's idle/scroll triggers.
     let previous = root.getBoundingClientRect()
@@ -338,8 +430,6 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     focusedRequest.current = true
     contentProps?.onOpenAutoFocus?.(event)
     if (event.defaultPrevented) return
-    // Popup.js openPopup/resetFocus retains the deep focused element before opening.
-    previousFocus.current = getFocusedElement() ?? resolveOpener()
     const hint = state.reopenTarget.current
     const buttons = [...(paletteRef.current?.querySelectorAll<HTMLElement>("[data-color-palette-area]") ?? [])]
     const target = hint ? buttons.find((button) => button.dataset.colorPaletteArea === hint.area && button.dataset.colorPaletteKey === hint.key)
@@ -356,46 +446,38 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     if (!focusedRequest.current) { event.preventDefault(); return }
     focusedRequest.current = false
     contentProps?.onCloseAutoFocus?.(event)
-    if (event.defaultPrevented) return
-    event.preventDefault()
-    const target = previousFocus.current?.isConnected ? previousFocus.current : resolveOpener()
-    target?.focus()
+    if (!event.defaultPrevented && !preserveCloseFocus.current) {
+      event.preventDefault()
+      const target = previousFocus.current?.isConnected ? previousFocus.current : resolveOpener()
+      target?.focus()
+    }
+    preserveCloseFocus.current = false
     previousFocus.current = null
   }
-  React.useLayoutEffect(() => {
-    // Presence(forceMount || open) retains one palette owner; focus events follow actual open/close transitions.
-    if (!forceMount) return
-    if (paintedOpen && !focusedRequest.current) handleOpenFocus(new Event("focusScope.autoFocusOnMount", { cancelable: true }), true)
-    else if (!paintedOpen && focusedRequest.current) handleCloseFocus(new Event("focusScope.autoFocusOnUnmount", { cancelable: true }))
-  }, [forceMount, paintedOpen])
-  // Popover.js _show uses physical top/left 0 after a missing opener is recomputed by real resize, scroll or the registry's idle tick.
-  const surface = (
-      <PopoverContent {...contentProps} id={id} data-slot="color-palette-popover" portal={portal} side={missingOpenerOrigin ? "bottom" : side} align={missingOpenerOrigin ? rtl ? "end" : "start" : contentProps?.align}
-        avoidCollisions={missingOpenerOrigin ? false : contentProps?.avoidCollisions} dir={rtl ? "rtl" : "ltr"}
-        hideArrow aria-label={popoverLabel} className={cn("fiori-color-palette-popover", className, contentProps?.className)}
-        hidden={!paintedOpen} style={paintedOpen ? contentProps?.style : { ...contentProps?.style, display: "none" }}
-        data-missing-opener={missingActiveOpener ? "" : undefined} data-missing-opener-origin={missingOpenerOrigin ? "" : undefined}
-        // popup-utils/PopoverRegistry.js clickHandler excludes isOpenerClicked, including retained Content's opening pointerdown.
-        onPointerDownOutside={(event) => { if (!paintedOpen || isOpenerPointerDown(event.detail.originalEvent)) event.preventDefault(); else contentProps?.onPointerDownOutside?.(event) }}
-        onFocusOutside={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onFocusOutside?.(event) }}
-        onInteractOutside={(event) => { if (!paintedOpen || isOpenerPointerDown(event.detail.originalEvent)) event.preventDefault(); else contentProps?.onInteractOutside?.(event) }}
-        onEscapeKeyDown={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onEscapeKeyDown?.(event) }}
-        onOpenAutoFocus={(event) => handleOpenFocus(event, false)}
-        onCloseAutoFocus={handleCloseFocus}>
-        {/* ColorPalettePopoverTemplate.js wraps the inline-block palette in an ordinary div. */}
-        {renderPalette(true)}
-      </PopoverContent>
-  )
-  return (
-    <><div hidden ref={directionRef} dir={paletteProps.dir}>
-      {/* Popup.js hide keeps palette commits active while closed; this dormant instance shares its state with the live surface. */}
-      {!paintedOpen && !forceMount && !contentMounted && renderPalette(false)}
-    </div>
-    <Popover open={paintedOpen} onOpenChange={changeOpen}>
-      <PopoverAnchor virtualRef={anchorRef} />
-      {forceMount ? <RetainedPaletteContent {...surface.props} active={paintedOpen} getAnchorRect={anchorRef.current.getBoundingClientRect} onDismiss={() => changeOpen(false)} /> : surface}
-    </Popover></>
-  )
+  const contentRef = contentProps?.ref
+  const surfaceRef = React.useCallback((node: HTMLDivElement | null) => {
+    if (typeof contentRef === "function") return contentRef(node)
+    if (contentRef) contentRef.current = node
+  }, [contentRef])
+  return <><div hidden ref={directionRef} dir={paletteProps.dir}>
+    {/* Popup.js hide keeps palette commits active while closed; this dormant instance shares state with the live surface. */}
+    {!paintedOpen && !forceMount && !contentMounted && renderPalette(false)}
+  </div>
+  {(paintedOpen || forceMount) && <NativePaletteContent {...contentProps} ref={surfaceRef} id={id} data-slot="color-palette-popover"
+    active={paintedOpen} portal={portal} side={side} dir={rtl ? "rtl" : "ltr"} hideArrow aria-label={popoverLabel}
+    className={cn("fiori-color-palette-popover", className, contentProps?.className)} hidden={!paintedOpen}
+    style={paintedOpen ? contentProps?.style : { ...contentProps?.style, display: "none" }}
+    data-missing-opener={missingActiveOpener ? "" : undefined} data-missing-opener-origin={missingOpenerOrigin ? "" : undefined}
+    getAnchorRect={anchorRef.current.getBoundingClientRect} isOpener={isOpenerEvent}
+    reposition={() => repositionRequest.current()}
+    onDismiss={(preserveFocus) => { preserveCloseFocus.current = !!preserveFocus; changeOpen(false) }}
+    // Popup.openPopup:186 saves deep prior focus BEFORE _show and caller-cancelable initial focus.
+    onBeforeOpen={() => { previousFocus.current = getFocusedElement() ?? resolveOpener(); preserveCloseFocus.current = false }}
+    onOpenAutoFocus={(event) => handleOpenFocus(event, true)} onCloseAutoFocus={handleCloseFocus}>
+    {/* ColorPalettePopoverTemplate.js wraps the inline-block palette in an ordinary div. */}
+    {renderPalette(true)}
+  </NativePaletteContent>}</>
+
 }
 
 /** Desktop ui5-color-palette-popover: content-only ResponsivePopover with no arrow. */

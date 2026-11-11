@@ -417,3 +417,143 @@ test("color-palette-popover: closed retained content leaves independent Escape h
   await expect(root.locator("#color-palette-popover-force-shadow-escape-state")).toHaveText("false")
   await expect(root.locator("#color-palette-popover-force-shadow-state")).toHaveText('{"open":false,"changes":[],"outside":[]}')
 })
+
+const boundary = (page: Page) => demo(page).locator("#color-palette-popover-boundary-example")
+const boundarySurface = (page: Page) => page.locator("#color-palette-popover-boundary-surface")
+async function prepareBoundary(page: Page, retained: boolean, portal = false) {
+  const root = boundary(page)
+  if (retained) await root.locator("#color-palette-popover-boundary-retained").check()
+  if (portal) await root.locator("#color-palette-popover-boundary-portal").check()
+  return { root, popup: boundarySurface(page), button: root.locator("#color-palette-popover-boundary-opener") }
+}
+for (const retained of [false, true]) {
+  const mode = retained ? "retained" : "normal"
+  test(`color-palette-popover: ${mode} ordinary focus stays open and iframe tick preserves frame focus`, async ({ page }) => {
+    const { root, popup, button } = await prepareBoundary(page, retained)
+    await button.click(); await expect(popup).toBeVisible()
+    await root.locator("#color-palette-popover-boundary-outside").focus()
+    await expect(root.locator("#color-palette-popover-boundary-outside")).toBeFocused()
+    await expect(popup).toBeVisible()
+    await expect(root.locator("#color-palette-popover-boundary-state")).toContainText('"outside:focus:false","outside:interact:false"')
+    const frame = page.frameLocator("#color-palette-popover-boundary-frame").locator("#frame-focus")
+    await frame.focus(); await expect(frame).toBeFocused()
+    await expect(popup).toBeHidden(); await expect(frame).toBeFocused()
+  })
+  test(`color-palette-popover: ${mode} canceled open autofocus still restores deep prior focus`, async ({ page }) => {
+    const { root, popup, button } = await prepareBoundary(page, retained, true)
+    await root.locator("#color-palette-popover-boundary-cancel-open-focus").check()
+    const prior = root.locator("#color-palette-popover-boundary-prior")
+    await prior.focus(); await expect(prior).toBeFocused()
+    await button.evaluate((node) => (node as HTMLElement).click())
+    await expect(popup).toBeVisible(); await expect(prior).toBeFocused()
+    await root.locator("#color-palette-popover-boundary-outside").focus(); await expect(popup).toBeVisible()
+    await page.keyboard.press("Escape"); await expect(popup).toBeHidden(); await expect(prior).toBeFocused()
+  })
+  test(`color-palette-popover: ${mode} canceled outside focus callback remains observable without dismissal`, async ({ page }) => {
+    const { root, popup, button } = await prepareBoundary(page, retained)
+    await root.locator("#color-palette-popover-boundary-cancel-outside-focus").check()
+    await button.click(); await expect(popup).toBeVisible()
+    await root.locator("#color-palette-popover-boundary-outside").focus()
+    await expect(root.locator("#color-palette-popover-boundary-state")).toContainText('"outside:focus:true","outside:interact:true"')
+    await expect(popup).toBeVisible()
+    await page.keyboard.press("Escape"); await expect(popup).toBeHidden()
+  })
+  test(`color-palette-popover: ${mode} Escape follows Item propagation and Content cancellation`, async ({ page }) => {
+    for (const handler of ["none", "itemPrevent", "itemStop", "contentPrevent", "contentStop", "marked"]) {
+      await page.goto("/index.html"); await page.waitForSelector("html[data-ready=true]")
+      const { root, popup, button } = await prepareBoundary(page, retained)
+      await root.locator("#color-palette-popover-boundary-escape").selectOption(handler)
+      await button.click(); await expect(popup).toBeVisible()
+      const item = popup.locator("#color-palette-popover-boundary-item-0")
+      await item.focus(); await expect(item).toBeFocused()
+      await page.keyboard.press("Escape")
+      const closes = handler === "none" || handler === "itemPrevent"
+      if (closes) await expect(popup).toBeHidden()
+      else await expect(popup).toBeVisible()
+      const state = root.locator("#color-palette-popover-boundary-state")
+      await expect(state).toContainText('"item:false"')
+      if (handler === "itemStop" || handler === "marked") await expect(state).not.toContainText('"escape:')
+      else await expect(state).toContainText(`"escape:${handler === "itemPrevent"}:color-palette-popover-boundary-item-0"`)
+    }
+  })
+  test(`color-palette-popover: ${mode} modifier Escape does not consume the open palette`, async ({ page }) => {
+    const { root, popup, button } = await prepareBoundary(page, retained)
+    await button.click(); await expect(popup).toBeVisible()
+    const item = popup.locator("#color-palette-popover-boundary-item-0")
+    await item.focus(); await expect(item).toBeFocused()
+    for (const key of ["Shift+Escape", "Alt+Escape", "Control+Escape", "Meta+Escape"]) {
+      await page.keyboard.press(key); await expect(popup).toBeVisible()
+    }
+    await expect(root.locator("#color-palette-popover-boundary-state")).not.toContainText('"escape:')
+    await page.keyboard.press("Escape"); await expect(popup).toBeHidden()
+  })
+  test(`color-palette-popover: ${mode} only the newest palette closes on bubble Escape`, async ({ page }) => {
+    const { root, popup, button } = await prepareBoundary(page, retained, true)
+    await button.click(); await expect(popup).toBeVisible()
+    await root.locator("#color-palette-popover-boundary-second-opener").evaluate((node) => (node as HTMLElement).click())
+    const second = page.locator("#color-palette-popover-boundary-second")
+    await expect(second).toBeVisible(); await expect(second.locator("[data-color-palette-area=main]").nth(0)).toBeFocused()
+    await page.keyboard.press("Escape"); await expect(second).toBeHidden(); await expect(popup).toBeVisible()
+    await page.keyboard.press("Escape"); await expect(popup).toBeHidden()
+  })
+  for (const foreign of ["dialog", "popover"] as const) for (const newer of ["foreign", "palette"] as const) {
+    test(`color-palette-popover: ${mode} ${newer} is topmost with existing ${foreign}`, async ({ page }) => {
+      const { root, popup, button } = await prepareBoundary(page, retained, true)
+      const foreignOpener = root.locator(`#color-palette-popover-boundary-${foreign}-opener`)
+      const foreignSurface = page.locator(`#color-palette-popover-boundary-${foreign}`)
+      if (newer === "foreign") {
+        await button.click(); await expect(popup).toBeVisible()
+        await foreignOpener.evaluate((node) => (node as HTMLElement).click()); await expect(foreignSurface).toBeVisible()
+        await page.keyboard.press("Escape"); await expect(foreignSurface).toBeHidden(); await expect(popup).toBeVisible()
+      } else {
+        await foreignOpener.click(); await expect(foreignSurface).toBeVisible()
+        await button.evaluate((node) => (node as HTMLElement).click()); await expect(popup).toBeVisible()
+        await expect(popup.getByRole("button", { name: "Default Color", exact: true })).toBeFocused()
+        await page.keyboard.press("Escape"); await expect(popup).toBeHidden(); await expect(foreignSurface).toBeVisible()
+      }
+    })
+  }
+  for (const placement of ["Bottom", "Top", "Start", "End"] as const) {
+    test(`color-palette-popover: ${mode} constrained ${placement} uses native more-room fallback and root limits`, async ({ page }) => {
+      await page.setViewportSize({ width: 400, height: 420 })
+      const { root, popup, button } = await prepareBoundary(page, retained)
+      await root.locator("#color-palette-popover-boundary-geometry").check()
+      await root.locator("#color-palette-popover-boundary-placement").selectOption(placement)
+      const top = placement === "Top" ? 260 : placement === "Bottom" ? 100 : 170
+      await button.evaluate((node, top) => Object.assign(node.style, { position: "fixed", left: "150px", top: `${top}px`, width: "100px", height: "36px" }), top)
+      await button.click(); await expect(popup).toBeVisible()
+      await expect(popup).toHaveAttribute("data-side", placement.toLowerCase().replace("start", "left").replace("end", "right"))
+      const sizes = await popup.evaluate((node) => {
+        const root = node.querySelector<HTMLElement>(".fiori-popup__root")!, content = node.querySelector<HTMLElement>(".fiori-color-palette-popover__content")!
+        return { rect: node.getBoundingClientRect().toJSON(), root: root.getBoundingClientRect().toJSON(), width: parseFloat(node.style.getPropertyValue("--radix-popover-content-available-width")), height: parseFloat(node.style.getPropertyValue("--radix-popover-content-available-height")), scrollWidth: content.scrollWidth, clientWidth: content.clientWidth }
+      })
+      if (placement === "Bottom") { expect(sizes.rect.y).toBe(136); expect(sizes.height).toBe(274); expect(sizes.root.height).toBeLessThanOrEqual(274) }
+      if (placement === "Top") { expect(sizes.rect.y).toBe(0); expect(sizes.height).toBe(250); expect(sizes.root.height).toBeLessThanOrEqual(250) }
+      if (placement === "Start" || placement === "End") { expect(sizes.width).toBe(140); expect(sizes.root.width).toBeLessThanOrEqual(140); expect(sizes.scrollWidth).toBeGreaterThan(sizes.clientWidth) }
+    })
+  }
+  test(`color-palette-popover: ${mode} caller boundary and edge padding publish compatible available size`, async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 420 })
+    const { root, popup, button } = await prepareBoundary(page, retained)
+    await root.locator("#color-palette-popover-boundary-geometry").check()
+    await root.locator("#color-palette-popover-boundary-collision-box").evaluate((node) => Object.assign(node.style, { position: "fixed", left: "100px", top: "50px", width: "300px", height: "250px" }))
+    await root.locator("#color-palette-popover-boundary-collision").check()
+    await button.evaluate((node) => Object.assign(node.style, { position: "fixed", left: "180px", top: "80px", width: "120px", height: "36px" }))
+    await button.click(); await expect(popup).toBeVisible(); await expect(popup).toHaveAttribute("data-side", "bottom")
+    const size = await popup.evaluate((node) => ({ height: node.style.getPropertyValue("--radix-popover-content-available-height"), width: node.style.getPropertyValue("--radix-popover-content-available-width"), rect: node.getBoundingClientRect().toJSON() }))
+    expect(size.height).toBe("166px"); expect(size.width).toBe("284px"); expect(size.rect.y).toBe(116); expect(size.rect.x).toBe(114)
+  })
+  test(`color-palette-popover: ${mode} an external target over the painted rectangle counts as inside`, async ({ page }) => {
+    const { popup, button } = await prepareBoundary(page, retained)
+    await button.click(); await expect(popup).toBeVisible()
+    await popup.evaluate((node) => {
+      const rect = node.getBoundingClientRect(), cover = document.createElement("div")
+      cover.id = "color-palette-popover-boundary-external-cover"; cover.popover = "manual"; cover.textContent = "External rectangle target"
+      Object.assign(cover.style, { position: "fixed", inset: "auto", margin: "0", border: "0", padding: "0", left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px`, background: "white" })
+      document.body.append(cover); cover.showPopover()
+    })
+    await page.locator("#color-palette-popover-boundary-external-cover").click(); await expect(popup).toBeVisible()
+    await page.locator("#color-palette-popover-boundary-external-cover").evaluate((node) => { (node as HTMLElement).hidePopover(); node.remove() })
+    await page.keyboard.press("Escape"); await expect(popup).toBeHidden()
+  })
+}
