@@ -36,7 +36,8 @@
 }
 .fiori-combobox__item {
   height: auto;
-  min-height: var(--fiori-list-item-base-height);
+  /* UI5 ComboBoxItem.css.js: inner root min-height plus ListItemBase host border. */
+  min-height: calc(var(--fiori-list-item-base-height) + 0.0625rem);
   gap: 1rem;
 }
 .fiori-combobox__item-text {
@@ -55,4 +56,39 @@
   flex-shrink: 0;
   color: var(--sapContent_LabelColor);
   font-size: var(--sapFontSize);
+}
+
+/* UI5 ListItemGroupHeader.css.js + ListItemBase.css.js: fixed nonselectable group header. */
+.fiori-combobox__group-header {
+  position: relative;
+  outline: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  height: var(--fiori-group-header-list-item-height);
+  padding: var(--fiori-list-item-base-padding);
+  padding-top: 0.5rem;
+  border-bottom: 0.0625rem solid transparent;
+  background: var(--fiori-x-group-header-listitem-background-color);
+  color: var(--sapList_TableGroupHeaderTextColor);
+  font-family: var(--sapFontHeaderFamily);
+  font-size: var(--sapFontHeader6Size);
+  font-weight: 700;
+  line-height: 2rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fiori-combobox__group-header > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.fiori-combobox__group-header[data-highlighted]::after {
+  content: "";
+  position: absolute;
+  inset: 0.125rem;
+  pointer-events: none;
+  border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
 }

@@ -186,3 +186,325 @@ test.describe("MultiComboBox (Fiori model)", () => {
     await expect(selected(page)).toHaveText("DE")
   })
 })
+
+const groupInput = (page: Page) => page.locator("#multi-combobox-demo #multi-combobox-groups")
+const groupList = (page: Page) => page.locator('[id="multi-combobox-groups-list"]')
+const groupOption = (page: Page, name: string) => groupList(page).getByRole("option", { name })
+const groupSelected = (page: Page) => page.locator('#multi-combobox-demo [data-testid="multi-combobox-groups-selected"]')
+const groupField = (page: Page) => page.locator('#multi-combobox-demo [data-slot="multi-combobox"]').filter({ has: page.locator("#multi-combobox-groups") })
+const groupSelectAll = (page: Page) => page.locator('[data-slot="multi-combobox-popover"]').filter({ has: groupList(page) }).locator('[data-slot="multi-combobox-select-all"]')
+
+async function openGroupList(page: Page) {
+  await groupInput(page).focus()
+  await page.keyboard.press("F4")
+  await expect(groupOption(page, "Argentina")).toBeFocused()
+}
+
+test.describe("MultiComboBox item groups", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+  })
+
+  test("ARIA groups and Select All count only selectable items", async ({ page }) => {
+    await openGroupList(page)
+    await expect(groupList(page)).toHaveAttribute("aria-multiselectable", "true")
+    await expect(groupList(page).locator('[data-slot="multi-combobox-item-group"]')).toHaveCount(2)
+    await expect(groupList(page).locator('[data-slot="multi-combobox-item-group"]').filter({ has: page.getByRole("group", { name: "Americas", exact: true }) }).getByRole("option")).toHaveCount(3)
+    await expect(groupList(page).getByRole("option")).toHaveCount(7)
+    await expect(groupSelectAll(page)).toHaveText("Select All (0 of 7)")
+    await expect(groupList(page).getByRole("group", { name: "Empty" })).toHaveCount(0)
+    for (const header of await groupList(page).locator('[data-slot="multi-combobox-group-header"]').all()) {
+      await expect(header).toHaveAttribute("tabindex", /^(0|-1)$/)
+      await expect(header).not.toHaveAttribute("aria-selected")
+      await expect(header).toHaveAttribute("role", "group")
+    }
+    await groupSelectAll(page).click()
+    await expect(groupSelectAll(page)).toHaveText("Select All (7 of 7)")
+    await expect(groupSelected(page)).toHaveText("Argentina, Brazil, Canada, Denmark, Estonia, France, Japan")
+    await expect(groupField(page).locator('[data-slot="token"]')).toHaveCount(7)
+    await expect(groupList(page).getByRole("option", { selected: true })).toHaveCount(7)
+  })
+
+  test("filtering retains matching groups and never autocompletes a header", async ({ page }) => {
+    await groupInput(page).focus()
+    await page.keyboard.type("ca")
+    await expect(groupInput(page)).toHaveValue("Canada")
+    await expect(groupList(page).locator('[data-slot="multi-combobox-item-group"]')).toHaveCount(1)
+    await expect(groupList(page).locator('[data-slot="multi-combobox-item-group"]').filter({ has: page.getByRole("group", { name: "Americas", exact: true }) }).getByRole("option")).toHaveText("Canada")
+    await page.keyboard.press("Enter")
+    await expect(groupSelected(page)).toHaveText("Canada")
+    await expect(groupInput(page)).toHaveValue("")
+    await page.keyboard.type("Europe")
+    await expect(groupInput(page)).toHaveValue("Europe")
+    await expect(groupList(page)).toHaveCount(0)
+    await expect(groupField(page)).toHaveAttribute("data-value-state", "negative")
+  })
+
+  test("open navigation focuses nonselectable headers; item selection uses the event bridge", async ({ page }) => {
+    await groupField(page).evaluate((el) => {
+      el.addEventListener("fiori-control-selection-change", () => el.setAttribute("data-selections", String(Number(el.getAttribute("data-selections") ?? "0") + 1)))
+    })
+    await openGroupList(page)
+    for (const name of ["Brazil", "Canada"]) {
+      await page.keyboard.press("ArrowDown")
+      await expect(groupOption(page, name)).toBeFocused()
+    }
+    await page.keyboard.press("ArrowDown")
+    await expect(groupList(page).getByRole("group", { name: "Europe", exact: true })).toBeFocused()
+    await page.keyboard.press("Enter")
+    await expect(groupList(page)).toBeVisible()
+    await expect(groupSelected(page)).toHaveText("—")
+    await page.keyboard.press("Space")
+    await expect(groupSelected(page)).toHaveText("—")
+    await page.keyboard.press("ArrowDown")
+    await expect(groupOption(page, "Denmark")).toBeFocused()
+    await page.keyboard.press("PageDown")
+    await expect(groupOption(page, "Japan")).toBeFocused()
+    await page.keyboard.press("PageUp")
+    await expect(groupList(page).getByRole("group", { name: "Americas", exact: true })).toBeFocused()
+    await page.keyboard.press("ArrowDown")
+    await expect(groupOption(page, "Argentina")).toBeFocused()
+    await page.keyboard.press("Space")
+    await expect(groupSelected(page)).toHaveText("Argentina")
+    await expect(groupField(page)).toHaveAttribute("data-selections", "1")
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(groupOption(page, "Argentina")).toBeFocused()
+    await expect(groupSelected(page)).toHaveText("Argentina")
+    await expect(groupField(page)).toHaveAttribute("data-selections", "1")
+  })
+
+  test("Ctrl+A and filtered Select All toggle only items", async ({ page }) => {
+    await openGroupList(page)
+    await page.keyboard.press("ControlOrMeta+a")
+    await expect(groupList(page).getByRole("option", { selected: true })).toHaveCount(7)
+    await expect(groupSelectAll(page)).toHaveText("Select All (7 of 7)")
+    await page.keyboard.press("ControlOrMeta+a")
+    await expect(groupSelected(page)).toHaveText("—")
+    await page.keyboard.press("Escape")
+    await expect(groupInput(page)).toBeFocused()
+    await page.keyboard.type("ca")
+    await expect(groupList(page).getByRole("option")).toHaveCount(1)
+    await page.keyboard.press("ArrowDown")
+    await expect(groupSelectAll(page)).toBeFocused()
+    await page.keyboard.press("Space")
+    await expect(groupSelected(page)).toHaveText("Canada")
+    await expect(groupSelectAll(page)).toHaveText("Select All (1 of 7)")
+    await page.keyboard.press("ArrowDown")
+    await expect(groupList(page).getByRole("group", { name: "Americas", exact: true })).toBeFocused()
+    await page.keyboard.press("ArrowDown")
+    await expect(groupOption(page, "Canada")).toBeFocused()
+    await page.keyboard.press("ControlOrMeta+a")
+    await expect(groupSelected(page)).toHaveText("—")
+  })
+
+  test("selected-items view keeps only groups containing selected items", async ({ page }) => {
+    await openGroupList(page)
+    for (const name of ["Argentina", "Brazil", "Canada"]) {
+      await groupOption(page, name).locator('[data-slot="checkbox"]').click()
+      await expect(groupOption(page, name)).toHaveAttribute("aria-selected", "true")
+    }
+    await page.keyboard.press("Escape")
+    // Narrow this real field so three tokens overflow and expose the selected-items picker.
+    await groupField(page).evaluate((el) => { el.style.width = "15rem" })
+    await page.locator("body").click({ position: { x: 5, y: 5 } })
+    await expect(groupField(page).locator(".fiori-tokenizer__more")).toBeVisible()
+    await groupField(page).locator(".fiori-tokenizer__more").click()
+    await expect(groupList(page).locator('[data-slot="multi-combobox-item-group"]')).toHaveCount(1)
+    await expect(groupList(page).locator('[data-slot="multi-combobox-item-group"]').filter({ has: page.getByRole("group", { name: "Americas", exact: true }) }).getByRole("option")).toHaveCount(3)
+    await expect(groupList(page).getByRole("option", { selected: false })).toHaveCount(0)
+  })
+
+  test("closed navigation skips headers and selected grouped items", async ({ page }) => {
+    await groupInput(page).focus()
+    for (const value of ["Argentina", "Brazil", "Canada", "Denmark"]) {
+      await page.keyboard.press("ArrowDown")
+      await expect(groupInput(page)).toHaveValue(value)
+      await expect(groupList(page)).toHaveCount(0)
+    }
+    await page.keyboard.press("ArrowUp")
+    await expect(groupInput(page)).toHaveValue("Canada")
+    await page.keyboard.press("Enter")
+    await expect(groupSelected(page)).toHaveText("Canada")
+    await page.keyboard.press("ArrowDown")
+    await expect(groupInput(page)).toHaveValue("Argentina")
+  })
+
+})
+
+const rangeId = (mixed: boolean) => mixed ? "multi-combobox-mixed-ranges" : "multi-combobox-ranges"
+const rangeInput = (page: Page, mixed = false) => page.locator(`#multi-combobox-demo #${rangeId(mixed)}`)
+const rangeList = (page: Page, mixed = false) => page.locator(`[id="${rangeId(mixed)}-list"]`)
+const rangeOption = (page: Page, name: string, mixed = false) => rangeList(page, mixed).getByRole("option", { name, exact: true })
+const rangeSelected = (page: Page, mixed = false) => page.locator(`#multi-combobox-demo [data-testid="${rangeId(mixed)}-selected"]`)
+const rangeEvents = (page: Page, mixed = false) => page.locator(`#multi-combobox-demo [data-testid="${rangeId(mixed)}-events"]`)
+const rangeField = (page: Page, mixed = false) => page.locator('#multi-combobox-demo [data-slot="multi-combobox"]').filter({ has: page.locator(`#${rangeId(mixed)}`) })
+
+async function observeRange(page: Page, mixed = false) {
+  const errors: string[] = []
+  page.on("pageerror", (error) => errors.push(error.message))
+  await rangeField(page, mixed).evaluate((el) => {
+    el.setAttribute("data-selection-bridges", "0")
+    el.addEventListener("fiori-control-selection-change", () => el.setAttribute("data-selection-bridges", String(Number(el.getAttribute("data-selection-bridges")) + 1)))
+  })
+  return errors
+}
+
+async function expectRangeEvents(page: Page, count: number, mixed = false) {
+  await expect(rangeEvents(page, mixed)).toHaveText(String(count))
+  await expect(rangeField(page, mixed)).toHaveAttribute("data-selection-bridges", String(count))
+}
+
+async function openRangeList(page: Page, mixed = false) {
+  await rangeInput(page, mixed).focus()
+  await page.keyboard.press("F4")
+  await expect(rangeOption(page, "Apricot", mixed)).toBeFocused()
+}
+
+// UI5 2.28 MultiComboBox.js/_handleItemRangeSelection mixes top-level slot
+// indices and full flattened entries. Live native probes establish these focus,
+// selection and callback outcomes; the React guards avoid the native exceptions.
+test.describe("MultiComboBox grouped ranges", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+  })
+
+  for (const filtered of [false, true]) test(`grouped Shift keeps native focus and callbacks${filtered ? " while filtered" : ""}`, async ({ page }) => {
+    const errors = await observeRange(page)
+    if (filtered) {
+      await rangeInput(page).fill("a")
+      await expect(rangeList(page).getByRole("option")).toHaveText(["Apple", "Apricot", "Avocado", "Asparagus"])
+      await expect(rangeOption(page, "Broccoli")).toHaveCount(0)
+    } else await openRangeList(page)
+    await rangeOption(page, "Avocado").focus()
+    await expect(rangeOption(page, "Avocado")).toBeFocused()
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(rangeOption(page, "Avocado")).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+    await expectRangeEvents(page, 0)
+    await page.keyboard.press("Shift+ArrowUp")
+    await expect(rangeOption(page, "Avocado")).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+    await expectRangeEvents(page, 1)
+    expect(errors).toEqual([])
+  })
+
+  for (const modifier of ["Control", "Meta", "Alt"]) test(`${modifier}+Shift arrows leave grouped headers and selection unchanged`, async ({ page }) => {
+    const errors = await observeRange(page)
+    await openRangeList(page)
+    const vegetables = rangeList(page).getByRole("group", { name: "Vegetables", exact: true })
+    await vegetables.focus()
+    await expect(vegetables).toBeFocused()
+    for (const direction of ["Down", "Up"]) {
+      await page.keyboard.press(`${modifier}+Shift+Arrow${direction}`)
+      await expect(vegetables).toBeFocused()
+      await expect(rangeInput(page)).toHaveAttribute("aria-expanded", "true")
+      await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+      await expectRangeEvents(page, 0)
+    }
+    expect(errors).toEqual([])
+  })
+
+  test("headers keep successful native mappings and guard readonly destinations", async ({ page }) => {
+    const errors = await observeRange(page)
+    await openRangeList(page)
+    const fruit = rangeList(page).getByRole("group", { name: "Fruit", exact: true })
+    const vegetables = rangeList(page).getByRole("group", { name: "Vegetables", exact: true })
+    await fruit.focus()
+    await expect(fruit).toBeFocused()
+    await page.keyboard.press("Shift+ArrowUp")
+    await expect(fruit).toBeFocused()
+    await expectRangeEvents(page, 1)
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(rangeOption(page, "Apple")).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+    await expectRangeEvents(page, 2)
+    await vegetables.focus()
+    await expect(vegetables).toBeFocused()
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(rangeOption(page, "Apricot")).toBeFocused()
+    await expect(rangeSelected(page)).toHaveText("Asparagus, Broccoli")
+    await expectRangeEvents(page, 3)
+    await vegetables.focus()
+    await expect(vegetables).toBeFocused()
+    await page.keyboard.press("Shift+ArrowUp")
+    await expect(vegetables).toBeFocused()
+    await expect(fruit).not.toHaveAttribute("aria-selected")
+    await expect(rangeSelected(page)).toHaveText("Asparagus, Broccoli")
+    await expectRangeEvents(page, 3)
+    expect(errors).toEqual([])
+  })
+
+  test("a hidden native range destination updates selection while keeping focus", async ({ page }) => {
+    const errors = await observeRange(page)
+    await openRangeList(page)
+    await rangeOption(page, "Apple").locator('[data-slot="checkbox"]').click()
+    await expect(rangeSelected(page)).toHaveText("Apple, Apricot, Asparagus, Broccoli")
+    await expectRangeEvents(page, 1)
+    await page.keyboard.press("Escape")
+    await expect(rangeInput(page)).toBeFocused()
+    await rangeInput(page).fill("as")
+    await expect(rangeList(page).getByRole("option")).toHaveText("Asparagus")
+    const vegetables = rangeList(page).getByRole("group", { name: "Vegetables", exact: true })
+    await vegetables.focus()
+    await expect(vegetables).toBeFocused()
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(vegetables).toBeFocused()
+    await expect(rangeOption(page, "Apple")).toHaveCount(0)
+    await expect(rangeSelected(page)).toHaveText("Apricot, Asparagus, Broccoli")
+    await expectRangeEvents(page, 2)
+    expect(errors).toEqual([])
+  })
+
+  for (const direction of ["Down", "Up"]) test(`standalone Shift+Arrow${direction} preserves the successful native grouped mapping`, async ({ page }) => {
+    const errors = await observeRange(page, true)
+    await openRangeList(page, true)
+    await rangeOption(page, "Radish", true).focus()
+    await expect(rangeOption(page, "Radish", true)).toBeFocused()
+    await page.keyboard.press(`Shift+Arrow${direction}`)
+    const destination = direction === "Down" ? "Avocado" : "Apple"
+    await expect(rangeOption(page, destination, true)).toBeFocused()
+    await expect(rangeSelected(page, true)).toHaveText(direction === "Down" ? "Apricot, Avocado, Asparagus, Broccoli" : "Apple, Apricot, Asparagus, Broccoli")
+    await expectRangeEvents(page, 1, true)
+    expect(errors).toEqual([])
+  })
+
+  test("filtered standalone ranges use native slot indices and retain hidden selections", async ({ page }) => {
+    const errors = await observeRange(page, true)
+    await rangeInput(page, true).fill("a")
+    await expect(rangeOption(page, "Plum", true)).toHaveCount(0)
+    await expect(rangeOption(page, "Broccoli", true)).toHaveCount(0)
+    const radish = rangeOption(page, "Radish", true)
+    await radish.focus()
+    await expect(radish).toBeFocused()
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(rangeOption(page, "Apricot", true)).toBeFocused()
+    await expect(rangeSelected(page, true)).toHaveText("Asparagus, Broccoli")
+    await expectRangeEvents(page, 1, true)
+    await radish.focus()
+    await expect(radish).toBeFocused()
+    await page.keyboard.press("Shift+ArrowUp")
+    await expect(radish).toBeFocused()
+    await expect(rangeSelected(page, true)).toHaveText("Asparagus, Broccoli")
+    await expectRangeEvents(page, 1, true)
+    expect(errors).toEqual([])
+  })
+
+  test("leading standalone ranges guard group writes and preserve boundary callbacks", async ({ page }) => {
+    const errors = await observeRange(page, true)
+    await openRangeList(page, true)
+    const plum = rangeOption(page, "Plum", true)
+    await plum.focus()
+    await expect(plum).toBeFocused()
+    await page.keyboard.press("Shift+ArrowDown")
+    await expect(plum).toBeFocused()
+    await expect(rangeSelected(page, true)).toHaveText("Apricot, Asparagus, Broccoli")
+    await expectRangeEvents(page, 0, true)
+    await page.keyboard.press("Shift+ArrowUp")
+    await expect(plum).toBeFocused()
+    await expect(rangeSelected(page, true)).toHaveText("Apricot, Asparagus, Broccoli")
+    await expectRangeEvents(page, 1, true)
+    expect(errors).toEqual([])
+  })
+})

@@ -20,8 +20,20 @@ function ComboBoxItem(_props: ComboBoxItemProps): React.ReactNode {
   return null
 }
 
-type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
+type ComboBoxItemGroupProps = {
+  /** Text of the nonselectable group header. An empty string omits the header. */
+  headerText: string
   /** <ComboBoxItem> elements (fragments and arrays are fine). */
+  children?: React.ReactNode
+}
+
+/** Declares a group of items, rendered by the ComboBox. */
+function ComboBoxItemGroup(_props: ComboBoxItemGroupProps): React.ReactNode {
+  return null
+}
+
+type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
+  /** <ComboBoxItem> and <ComboBoxItemGroup> elements (fragments and arrays are fine). */
   children?: React.ReactNode
   /** The field's text. Free text: like UI5, it is not forced to match an item. */
   value?: string
@@ -46,6 +58,8 @@ type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue
   arrowLabel?: string
   /** Accessible name of the list. */
   listLabel?: string
+  /** Render the list in place instead of in a portal on document.body. */
+  portal?: boolean
   wrapperClassName?: string
 }
 
@@ -65,11 +79,23 @@ const filters: Record<ComboBoxFilter, (value: string, text: string) => boolean> 
   none: () => true,
 }
 
-function collectItems(children: React.ReactNode, out: ComboBoxItemProps[] = []) {
+type Entry = ComboBoxItemProps | { headerText: string; items: ComboBoxItemProps[] }
+const isGroup = (entry: Entry): entry is { headerText: string; items: ComboBoxItemProps[] } => "items" in entry
+
+// UI5 ComboBox.js/_filterItems and _startsWithMatchingItems filter only children,
+// while ComboBoxItemGroupTemplate.js retains groups with visible children.
+// Native open navigation includes headers; closed navigation skips them (despite
+// the B3 card saying to skip headers in every state). Headers never select items.
+function collectEntries(children: React.ReactNode, out: Entry[] = []) {
   React.Children.forEach(children, (child) => {
     if (!React.isValidElement(child)) return
-    if (child.type === ComboBoxItem) out.push(child.props as ComboBoxItemProps)
-    else if (child.type === React.Fragment) collectItems((child.props as { children?: React.ReactNode }).children, out)
+    if (child.type === ComboBoxItem) {
+      out.push(child.props as ComboBoxItemProps)
+    } else if (child.type === ComboBoxItemGroup) {
+      const p = child.props as ComboBoxItemGroupProps
+      const nested = collectEntries(p.children).flatMap((entry) => isGroup(entry) ? entry.items : [entry])
+      out.push({ headerText: p.headerText, items: nested })
+    } else if (child.type === React.Fragment) collectEntries((child.props as { children?: React.ReactNode }).children, out)
   })
   return out
 }
@@ -111,6 +137,7 @@ function ComboBox({
   valueStateMessage,
   arrowLabel = "Select Options",
   listLabel = "Available Options",
+  portal = true,
   disabled,
   readOnly,
   id,
@@ -122,7 +149,8 @@ function ComboBox({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: ComboBoxProps) {
-  const items = collectItems(children)
+  const entries = collectEntries(children)
+  const items = entries.flatMap((entry) => isGroup(entry) ? entry.items : [entry])
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolledValue
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
@@ -144,8 +172,16 @@ function ComboBox({
   const optionId = (i: number) => `${baseId}-option-${i}`
   const messageId = `${baseId}-vsm`
 
-  const visible = open ? items.filter((i) => filters[filter](filterValue, i.text)) : items
-  const selected = visible.findIndex((i) => i.text.toLowerCase() === value.toLowerCase())
+  const visibleItems = open ? items.filter((i) => filters[filter](filterValue, i.text)) : items
+  // UI5 ComboBox.js/_filterItems places matching groups before standalone items.
+  const orderedEntries = open ? [...entries.filter(isGroup), ...entries.filter((entry) => !isGroup(entry))] : entries
+  const rowsFor = (shown: ComboBoxItemProps[], opened = open) => (opened ? [...entries.filter(isGroup), ...entries.filter((entry) => !isGroup(entry))] : entries).flatMap((entry): Entry[] => {
+    if (!isGroup(entry)) return shown.includes(entry) ? [entry] : []
+    const groupItems = entry.items.filter((item) => shown.includes(item))
+    return groupItems.length ? [...(entry.headerText ? [entry] : []), ...groupItems] : []
+  })
+  const visible = rowsFor(visibleItems)
+  const selected = visible.findIndex((i) => !isGroup(i) && i.text.toLowerCase() === value.toLowerCase())
 
   const setValue = (v: string) => {
     if (valueProp === undefined) setUncontrolledValue(v)
@@ -198,9 +234,21 @@ function ComboBox({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, active])
 
-  const navigate = (index: number) => {
-    const item = visible[index]
+  const navigate = (index: number, forward = true) => {
+    let item = visible[index]
     if (!item) return
+    // UI5 ComboBox.js/_handleItemNavigation: open header focus clears the text
+    // and selection, returns before autocomplete/input, and leaves Enter open.
+    if (isGroup(item)) {
+      if (open) {
+        setActive(index)
+        pendingSelection.current = [0, 0]
+        setValue("")
+        return
+      }
+      item = visible[index + (forward ? 1 : -1)]
+      if (!item || isGroup(item)) return
+    }
     setActive(open ? index : -1)
     applyText(item.text, open ? userTyped.current : "")
   }
@@ -216,12 +264,12 @@ function ComboBox({
     switch (e.key) {
       case "ArrowDown":
         if (visible.length && index === last && (!open || active === index)) return
-        if (!open && index === -1) return navigate(0)
+        if (!open && index === -1) return navigate(visible.findIndex((item) => !isGroup(item)))
         return navigate(index === last ? index : index + 1)
       case "ArrowUp":
         if (!open && index === -1) return navigate(last)
         if (index === 0) return setActive(-1)
-        return navigate(index - 1)
+        return navigate(index - 1, false)
       case "PageUp":
         return navigate(Math.max(index - SKIP_ITEMS, 0))
       case "PageDown":
@@ -239,17 +287,23 @@ function ComboBox({
     userTyped.current = ""
     pendingSelection.current = [0, value.length]
     setOpen(true)
-    const sel = items.findIndex((i) => i.text.toLowerCase() === value.toLowerCase())
+    const allRows = rowsFor(items, true)
+    const sel = allRows.findIndex((i) => !isGroup(i) && i.text.toLowerCase() === value.toLowerCase())
     if (sel >= 0) setActive(sel)
     else if (!value && items.length) {
-      setActive(0)
-      applyText(items[0].text, "")
+      // UI5 ComboBox.js/_resetFilter + _keydown select the first non-group
+      // item after _filterItems has moved groups ahead of standalone items.
+      const first = allRows.find((item): item is ComboBoxItemProps => !isGroup(item))
+      if (first) {
+        setActive(allRows.indexOf(first))
+        applyText(first.text, "")
+      }
     }
   }
 
   const choose = (index: number) => {
     const item = visible[index]
-    if (!item) return
+    if (!item || isGroup(item)) return
     pendingSelection.current = [item.text.length, item.text.length]
     setValue(item.text)
     commit(item.text)
@@ -260,6 +314,75 @@ function ComboBox({
   const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
   const showHeader = open && showMessage && valueState !== "positive"
+
+  const renderItem = (item: ComboBoxItemProps, i: number) => (
+    <div
+      key={`${item.text}-${i}`}
+      id={optionId(i)}
+      role="option"
+      aria-selected={i === selected}
+      data-state={i === selected ? "checked" : undefined}
+      data-highlighted={i === active ? "" : undefined}
+      className="fiori-list-item fiori-combobox__item"
+      onClick={() => choose(i)}
+    >
+      <span className="fiori-combobox__item-text">{highlight(item.text, filterValue)}</span>
+      {item.additionalText && <span className="fiori-combobox__item-additional">{item.additionalText}</span>}
+    </div>
+  )
+
+  const listContent = (
+    <PopoverPrimitive.Content
+      data-slot="combobox-popover"
+      align="start"
+      sideOffset={4}
+      aria-label={listLabel}
+      onOpenAutoFocus={(e) => e.preventDefault()}
+      onCloseAutoFocus={(e) => e.preventDefault()}
+      onInteractOutside={(e) => {
+        if (inputRef.current?.parentElement?.contains(e.target as Node)) e.preventDefault()
+      }}
+      className={cn(
+        "fiori-popover fiori-combobox__popover z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col",
+        !visible.length && !showHeader && "hidden"
+      )}
+    >
+      {showHeader && (
+        <div data-value-state={valueState} className="fiori-value-state-message fiori-combobox__header">
+          <Icon icon={valueStateIcons[valueState]} />
+          {message}
+        </div>
+      )}
+      {visible.length > 0 && (
+        <div
+          ref={listRef}
+          id={listId}
+          data-slot="combobox-list"
+          role="listbox"
+          aria-label={listLabel}
+          className="overflow-y-auto"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          {orderedEntries.map((entry, index) => {
+            if (!isGroup(entry)) return visible.includes(entry) ? renderItem(entry, visible.indexOf(entry)) : null
+            const groupItems = entry.items.filter((item) => visible.includes(item))
+            if (!groupItems.length) return null
+            return (
+              <div key={`group-${index}`} data-slot="combobox-item-group" role="group">
+                {entry.headerText && (
+                  <div id={optionId(visible.indexOf(entry))} data-slot="combobox-group-header" role="group" aria-label={entry.headerText}
+                    data-highlighted={active === visible.indexOf(entry) ? "" : undefined} className="fiori-combobox__group-header">
+                    <span>{entry.headerText}</span>
+                  </div>
+                )}
+                {groupItems.map((item) => renderItem(item, visible.indexOf(item)))}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </PopoverPrimitive.Content>
+  )
 
   return (
     <PopoverPrimitive.Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
@@ -299,7 +422,7 @@ function ComboBox({
               const matches = items.filter((i) => filters[filter](typed, i.text))
               const composing = (e.nativeEvent as InputEvent).isComposing
               if (!noTypeahead && !composing && typed && !NO_AUTOCOMPLETE.has(inputType)) {
-                const starts = matches.filter((i) => i.text.toLowerCase().startsWith(typed.toLowerCase()))
+                const starts = rowsFor(matches, true).filter((i): i is ComboBoxItemProps => !isGroup(i) && i.text.toLowerCase().startsWith(typed.toLowerCase()))
                 const item = starts.find((i) => i.text.toLowerCase() === typed.toLowerCase()) ?? starts[0]
                 if (item) {
                   next = item.text
@@ -317,7 +440,7 @@ function ComboBox({
               if (NAV_KEYS.has(key) && !alt && !ctrl && !shift && !meta && !readOnly) handleNavKey(e)
               if (key === "Enter") {
                 commit()
-                if (open) {
+                if (open && !(active >= 0 && isGroup(visible[active]))) {
                   pendingSelection.current = [value.length, value.length]
                   setOpen(false)
                 }
@@ -388,58 +511,9 @@ function ComboBox({
           )}
         </div>
       </PopoverPrimitive.Anchor>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
-          align="start"
-          sideOffset={4}
-          aria-label={listLabel}
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          onInteractOutside={(e) => {
-            if (inputRef.current?.parentElement?.contains(e.target as Node)) e.preventDefault()
-          }}
-          className={cn(
-            "fiori-popover fiori-combobox__popover z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col",
-            !visible.length && !showHeader && "hidden"
-          )}
-        >
-          {showHeader && (
-            <div data-value-state={valueState} className="fiori-value-state-message fiori-combobox__header">
-              <Icon icon={valueStateIcons[valueState]} />
-              {message}
-            </div>
-          )}
-          {visible.length > 0 && (
-            <div
-              ref={listRef}
-              id={listId}
-              data-slot="combobox-list"
-              role="listbox"
-              aria-label={listLabel}
-              className="overflow-y-auto"
-              onMouseDown={(e) => e.preventDefault()}
-            >
-              {visible.map((item, i) => (
-                <div
-                  key={`${item.text}-${i}`}
-                  id={optionId(i)}
-                  role="option"
-                  aria-selected={i === selected}
-                  data-state={i === selected ? "checked" : undefined}
-                  data-highlighted={i === active ? "" : undefined}
-                  className="fiori-list-item fiori-combobox__item"
-                  onClick={() => choose(i)}
-                >
-                  <span className="fiori-combobox__item-text">{highlight(item.text, filterValue)}</span>
-                  {item.additionalText && <span className="fiori-combobox__item-additional">{item.additionalText}</span>}
-                </div>
-              ))}
-            </div>
-          )}
-        </PopoverPrimitive.Content>
-      </PopoverPrimitive.Portal>
+      {portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
     </PopoverPrimitive.Root>
   )
 }
 
-export { ComboBox, ComboBoxItem, type ComboBoxFilter, type ComboBoxItemProps, type ComboBoxProps }
+export { ComboBox, ComboBoxItem, ComboBoxItemGroup, type ComboBoxItemGroupProps, type ComboBoxFilter, type ComboBoxItemProps, type ComboBoxProps }
