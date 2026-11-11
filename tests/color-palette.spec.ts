@@ -190,7 +190,7 @@ test("color-palette: sibling Fragments keep equal colors as separate selectable 
   await expect(main.nth(2)).toHaveAttribute("aria-pressed", "true")
 })
 
-test("color-palette: hidden colored host is absent from paint and layout despite display utilities", async ({ page }) => {
+test("color-palette: hidden colored host is absent from paint and layout", async ({ page }) => {
   const root = page.locator("#color-palette-demo #color-palette-hidden")
   const hosts = root.locator('[data-slot="color-palette-item"]'), main = swatches(root)
   await expect(hosts).toHaveCount(3)

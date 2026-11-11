@@ -32,8 +32,6 @@
   box-sizing: border-box;
   background-color: var(--fiori-x-color-palette-item-background-color);
 }
-/* ColorPaletteItem.css.js excludes [hidden] from host display. Author display utilities must not paint it. */
-.fiori-color-palette-item[hidden] { display: none !important; }
 .fiori-color-palette-item:not([data-disabled]):hover,
 .fiori-color-palette-item[data-selected] {
   height: var(--fiori-color-palette-item-hover-height);

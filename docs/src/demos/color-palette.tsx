@@ -39,7 +39,7 @@ function ColorPaletteDemo() {
     <Button id="color-palette-hidden-toggle" onClick={() => setHidden(!hidden)}>Toggle hidden color</Button>
     <ColorPalette id="color-palette-hidden" onItemClick={({ color }) => setEvents((history) => [...history, color])}>
       <ColorPaletteItem value="red" selected />
-      <ColorPaletteItem value="blue" selected hidden={hidden} className="inline-block" style={{ display: "inline-block" }} />
+      <ColorPaletteItem value="blue" selected hidden={hidden} />
       <ColorPaletteItem value="green" />
     </ColorPalette>
   </div>
