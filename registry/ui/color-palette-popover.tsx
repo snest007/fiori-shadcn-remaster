@@ -32,12 +32,12 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
   const directionRef = React.useRef<HTMLDivElement | null>(null)
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null)
   const [observedAnchor, setObservedAnchor] = React.useState<HTMLElement | null>(null)
-  const openerPointerEvents = React.useRef(new WeakSet<Event>())
+  const openerPointerPaths = React.useRef(new WeakMap<Event, EventTarget[]>())
   React.useLayoutEffect(() => {
     if (!anchor) return
     // Popover.js isOpenerClicked uses the original composed path. Radix defers outside pointerdown until click,
-    // when that path has expired, so retain only event identity captured on the actual opener (also in ShadowRoot).
-    const remember = (event: Event) => { openerPointerEvents.current.add(event) }
+    // when that path has expired, so capture its path on the actual opener (also in ShadowRoot).
+    const remember = (event: Event) => { openerPointerPaths.current.set(event, event.composedPath()) }
     anchor.addEventListener("pointerdown", remember, true)
     return () => anchor.removeEventListener("pointerdown", remember, true)
   }, [anchor])
@@ -75,7 +75,7 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     : resolveOpener()?.getBoundingClientRect() ?? new DOMRect() } }), [anchor, missingActiveOpener, missingOpenerOrigin])
   const isOpenerPointerDown = (event: Event) => {
     const node = resolveOpener()
-    return event.type === "pointerdown" && !!node && (openerPointerEvents.current.has(event)
+    return event.type === "pointerdown" && !!node && (openerPointerPaths.current.get(event)?.includes(node)
       || (event.target instanceof Node && node.contains(event.target)) || event.composedPath().includes(node))
   }
   const changeOpen = React.useCallback((next: boolean) => {

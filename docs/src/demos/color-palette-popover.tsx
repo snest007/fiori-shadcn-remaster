@@ -114,6 +114,35 @@ function ForceMountExample() {
   </div>
 }
 
+function RetainedShadowOpenerExample() {
+  const [root, setRoot] = React.useState<ShadowRoot | null>(null)
+  const [open, setOpen] = React.useState(false)
+  const [preventOutside, setPreventOutside] = React.useState(true)
+  const [changes, setChanges] = React.useState<boolean[]>([])
+  const [outside, setOutside] = React.useState<{ phase: string; defaultPrevented: boolean }[]>([])
+  const opener = React.useRef<HTMLButtonElement | null>(null)
+  const mount = React.useCallback((node: HTMLDivElement | null) => {
+    if (node) setRoot(node.shadowRoot ?? node.attachShadow({ mode: "open" }))
+  }, [])
+  return <div id="color-palette-popover-force-shadow-example">
+    <div id="color-palette-popover-force-shadow-host" ref={mount} />
+    {root && createPortal(<button id="color-palette-popover-force-shadow-opener" ref={opener} onClick={() => setOpen(true)}>
+      <span id="color-palette-popover-force-shadow-label">Choose retained shadow color</span>
+    </button>, root)}
+    <Button id="color-palette-popover-force-shadow-guard" onClick={() => setPreventOutside(!preventOutside)}>Toggle outside prevention</Button>
+    <Button id="color-palette-popover-force-shadow-outside">Outside retained shadow surface</Button>
+    <ColorPalettePopover id="color-palette-popover-force-shadow-surface" portal={false} opener={opener} open={open}
+      onOpenChange={(next) => { setOpen(next); setChanges((history) => [...history, next]) }}
+      contentProps={{ forceMount: true, onPointerDownOutside: (event) => {
+        if (preventOutside) event.preventDefault()
+        setOutside((history) => [...history, { phase: "pointerdown", defaultPrevented: event.defaultPrevented }])
+      }, onInteractOutside: (event) => setOutside((history) => [...history, { phase: "interact", defaultPrevented: event.defaultPrevented }]) }}>
+      <ColorPaletteItem value="red" /><ColorPaletteItem value="blue" />
+    </ColorPalettePopover>
+    <output id="color-palette-popover-force-shadow-state">{JSON.stringify({ open, changes, outside })}</output>
+  </div>
+}
+
 function ColorPalettePopoverDemo() {
   const [open, setOpen] = React.useState(false)
   const [events, setEvents] = React.useState<string[]>([])
@@ -133,7 +162,7 @@ function ColorPalettePopoverDemo() {
     </ColorPalettePopover>
     <span id="color-palette-popover-name-label">{" Popup target "}</span><span id="color-palette-popover-empty-label" />
     <output id="color-palette-popover-events">{JSON.stringify(events)}</output>
-    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample /><ForceMountExample />
+    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample /><ForceMountExample /><RetainedShadowOpenerExample />
   </div>
 }
 
