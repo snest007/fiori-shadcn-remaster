@@ -1,10 +1,21 @@
+import * as React from "react"
 import { Menu, MenuContent, MenuGroup, MenuItem, MenuSeparator, MenuSub, MenuSubContent, MenuSubTrigger } from "@/components/ui/menu"
 import { copy, deleteIcon, paste } from "@/lib/fiori-icons"
 
 import { defineFixtures } from "../fixture-types"
 import { inPlace } from "./popover"
 
-type Props = { icons?: boolean; checkMode?: "single" | "multiple"; disabledSubmenu?: boolean }
+type Props = { icons?: boolean; checkMode?: "single" | "multiple"; disabledSubmenu?: boolean; interaction?: boolean }
+
+function MenuFrame({ interaction, children }: { interaction?: boolean; children: React.ReactNode }) {
+  const ref = React.useRef<HTMLDivElement>(null)
+  React.useLayoutEffect(() => {
+    // The static open-surface fixture suppresses initial focus. Retain the first item's
+    // tab stop, as Menu.js/_afterPopoverOpen does, without painting an initial focus ring.
+    if (interaction) ref.current!.querySelector<HTMLElement>('[role="menuitem"]')!.tabIndex = 0
+  }, [interaction])
+  return <div ref={ref} className={inPlace}>{children}</div>
+}
 
 // The menu surface is rendered open, in place (non-modal, no portal) with a fixed width (content-sized
 // widths are fractional and would shift later cells off whole pixels). UI5's side shows ui5-menu's
@@ -13,6 +24,7 @@ export default defineFixtures<Props>({
   name: "menu",
   cases: [
     { id: "menu", props: {} },
+    { id: "menu-interaction", props: { interaction: true }, interact: { selector: '[role="menuitem"]', ui5Selector: "ui5-menu-item" } },
     { id: "menu-icons", props: { icons: true } },
     { id: "menu-check-single", props: { checkMode: "single" } },
     { id: "menu-check-single-icons", props: { checkMode: "single", icons: true } },
@@ -21,8 +33,8 @@ export default defineFixtures<Props>({
     { id: "menu-check-single-disabled-submenu", props: { checkMode: "single", disabledSubmenu: true, icons: true } },
     { id: "menu-check-multiple-disabled-submenu", props: { checkMode: "multiple", disabledSubmenu: true } },
   ],
-  react: ({ icons, checkMode, disabledSubmenu }) => checkMode ? (
-    <div className={inPlace}>
+  react: ({ icons, checkMode, disabledSubmenu, interaction }) => checkMode ? (
+    <MenuFrame interaction={interaction}>
       <Menu open modal={false}>
         <MenuContent portal={false} aria-label="Options" preventInitialFocus className="w-40">
           <MenuItem icon={icons ? copy : undefined}>Options</MenuItem>
@@ -36,11 +48,12 @@ export default defineFixtures<Props>({
           <MenuGroup><MenuItem defaultChecked>Ordinary</MenuItem></MenuGroup>
         </MenuContent>
       </Menu>
-    </div>
+    </MenuFrame>
   ) : (
-    <div className={inPlace}>
+    <MenuFrame interaction={interaction}>
       <Menu open modal={false}>
         <MenuContent portal={false} aria-label="Actions" preventInitialFocus className="w-40">
+          {/* Menu.js/_afterPopoverOpen makes the first item the open surface's keyboard stop. */}
           <MenuItem icon={icons ? copy : undefined} additionalText="Ctrl+C">Copy</MenuItem>
           <MenuItem icon={icons ? paste : undefined} disabled>Paste</MenuItem>
           <MenuSeparator />
@@ -53,6 +66,6 @@ export default defineFixtures<Props>({
           <MenuItem icon={icons ? deleteIcon : undefined}>Delete</MenuItem>
         </MenuContent>
       </Menu>
-    </div>
+    </MenuFrame>
   ),
 })

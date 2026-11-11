@@ -41,6 +41,7 @@ const itemIcons = { help: sysHelp, expense: travelExpense }
 export default defineFixtures<ShellBarFixtureProps>({
   name: "shell-bar",
   cases: [
+    { id: "shell-bar-interaction", props: { width: "40rem", items: [{ icon: "help", text: "Help" }] }, interact: { selector: '[data-slot="shell-bar-item"]', ui5Selector: "ui5-shellbar-item" } },
     {
       id: "shell-bar-xl",
       props: {

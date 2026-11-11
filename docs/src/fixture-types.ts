@@ -6,7 +6,12 @@
 // [data-fixture] cell on both pages and diffs them pixel by pixel.
 import type * as React from "react"
 
-export type FixtureCase<P = any> = { id: string; props: P }
+export type FixtureCase<P = any> = {
+  id: string
+  props: P
+  /** Interaction target relative to the cell; otherwise use its first focusable element. */
+  interact?: { selector?: string; ui5Selector?: string }
+}
 
 export type FixtureSet<P = any> = {
   /** Component name, also the prefix of every case id ("button" -> "button-emphasized"). */

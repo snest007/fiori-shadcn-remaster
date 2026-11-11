@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 // Every value comes from --sapButton_* tokens or --fiori-button-* parameters (density aware).
 const buttonVariants = cva(
   [
-    "relative inline-flex shrink-0 items-center justify-center whitespace-nowrap select-none align-middle",
+    "fiori-button relative inline-flex shrink-0 items-center justify-center whitespace-nowrap select-none align-middle",
     "h-(--fiori-button-base-height) min-w-(--fiori-button-base-min-width) px-(--fiori-button-base-padding)",
     "rounded-(--fiori-button-border-radius) border-(length:--sapButton_BorderWidth) border-solid",
     "font-(family-name:--fiori-button-fontfamily) text-(length:--sapFontSize) leading-[normal]",
@@ -16,8 +16,7 @@ const buttonVariants = cva(
     "gap-(--fiori-button-base-icon-margin) [&_svg]:shrink-0",
     // Keyboard focus: 2px inner ring inset by 1px (UI5 draws it with ::after).
     "focus-visible:after:pointer-events-none focus-visible:after:absolute focus-visible:after:inset-px focus-visible:after:box-border",
-    "focus-visible:after:rounded-(--fiori-button-focused-border-radius) focus-visible:after:content-[''] focus-visible:after:[border:var(--fiori-button-focused-border)]",
-    "active:focus-visible:after:border-(--fiori-button-pressed-focused-border-color)",
+    "focus-visible:after:rounded-(--fiori-button-focused-border-radius) focus-visible:after:content-['']",
     "disabled:cursor-default disabled:opacity-(--sapContent_DisabledOpacity) disabled:pointer-events-none",
   ],
   {
@@ -36,8 +35,6 @@ const buttonVariants = cva(
           "hover:bg-(--sapButton_Emphasized_Hover_Background) hover:border-(--sapButton_Emphasized_Hover_BorderColor) hover:text-(--sapButton_Emphasized_Hover_TextColor)",
           "active:bg-(--sapButton_Emphasized_Active_Background) active:border-(--sapButton_Emphasized_Active_BorderColor) active:text-(--sapButton_Emphasized_Active_TextColor)",
           // Emphasized focus: contrast ring (::after) over a focus-colored ring (::before).
-          "focus-visible:after:border-(--fiori-button-emphasized-focused-border-color)",
-          "active:focus-visible:after:border-(--fiori-button-emphasized-focused-active-border-color)",
           "focus-visible:before:pointer-events-none focus-visible:before:absolute focus-visible:before:inset-px focus-visible:before:box-border focus-visible:before:content-['']",
           "focus-visible:before:rounded-(--fiori-button-focused-border-radius) focus-visible:before:[border:var(--fiori-button-emphasized-focused-border-before)]",
         ],

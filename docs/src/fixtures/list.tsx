@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/list"
 import { calendar, email, employee, folder, history, product, settings, type FioriIconData } from "@/lib/fiori-icons"
 
-import { defineFixtures } from "../fixture-types"
+import { defineFixtures, type FixtureCase } from "../fixture-types"
 
 // Data-driven so list.ui5.ts renders exactly the same lists.
 export type ItemSpec = {
@@ -61,7 +61,7 @@ const sel = (mode: ListSelectionMode, items: ItemSpec[] = three): Props => ({
 const states = ["none", "negative", "critical", "positive", "information"] as const
 const richMovable: ItemSpec = { text: "Laptop", description: "Dell XPS 15", icon: "product", additionalText: "In stock", selected: true, movable: true }
 
-const cases: { id: string; props: Props }[] = [
+const cases: FixtureCase<Props>[] = [
   { id: "list-drop-indicator-before", props: { items: three, dropPlacement: "Before" } },
   { id: "list-drop-indicator-after", props: { items: three, dropPlacement: "After" } },
   { id: "list-drop-indicator-on", props: { items: three, dropPlacement: "On" } },
@@ -70,7 +70,7 @@ const cases: { id: string; props: Props }[] = [
   { id: "list-movable-rich", props: { items: [richMovable] } },
   { id: "list-movable-active-rich", props: { items: [{ ...richMovable, active: true }] } },
   { id: "list-movable-active-moving-rich", props: { items: [{ ...richMovable, active: true, moving: true }] } },
-  { id: "list-basic", props: { items: three } },
+  { id: "list-basic", props: { items: three }, interact: { selector: '[data-slot="list-item"]', ui5Selector: "ui5-li" } },
   { id: "list-header-footer", props: { items: three, headerText: "Fruits", footerText: "3 items" } },
   {
     id: "list-icons",

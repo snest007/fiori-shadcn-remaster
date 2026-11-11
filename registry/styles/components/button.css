@@ -1,0 +1,14 @@
+/* Button.css.js: Emphasized focus draws the contrast-colored ::after above ::before.
+   Keep these colors after the base border shorthand, which otherwise resets border-color. */
+.fiori-button:focus-visible::after {
+  border: var(--fiori-button-focused-border);
+}
+.fiori-button:active:focus-visible::after {
+  border-color: var(--fiori-button-pressed-focused-border-color);
+}
+.fiori-button[data-variant="emphasized"]:focus-visible::after {
+  border-color: var(--fiori-button-emphasized-focused-border-color);
+}
+.fiori-button[data-variant="emphasized"]:active:focus-visible::after {
+  border-color: var(--fiori-button-emphasized-focused-active-border-color);
+}

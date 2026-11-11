@@ -23,7 +23,7 @@ for (const set of fixtureSets) {
   const render = rendererFor(set.name)
   if (!render) continue
   for (const c of set.cases) {
-    if (opts.only && !c.id.startsWith(opts.only)) continue
+    if (opts.only && c.id !== opts.only) continue
     if (set.skipCompare?.includes(c.id)) continue
     const cell = document.createElement("div")
     cell.dataset.fixture = c.id

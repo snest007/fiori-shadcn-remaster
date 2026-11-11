@@ -56,7 +56,7 @@ export default defineFixtures<Props>({
     { id: "tabs-overflow-start-end", props: { selected: 5, width: "30rem", tabs: overflowTextTabs, overflowMode: "startAndEnd" } },
     { id: "tabs-overflow-icons", props: { selected: 2, width: "30rem", tabs: overflowIconTabs } },
     { id: "tabs-overflow-open", props: { selected: 0, width: "10rem", tabs: popupTabs, list: true } },
-    { id: "tabs-text", props: { selected: 1, tabs: [{ text: "Info" }, { text: "Attachments" }, { text: "Notes" }, { text: "People" }] } },
+    { id: "tabs-text", props: { selected: 1, tabs: [{ text: "Info" }, { text: "Attachments" }, { text: "Notes" }, { text: "People" }] }, interact: { selector: '[role="tab"][aria-selected="true"]', ui5Selector: '[role="tab"][aria-selected="true"]' } },
     { id: "tabs-text-disabled", props: { selected: 0, tabs: [{ text: "Info" }, { text: "Attachments", disabled: true }, { text: "Notes" }] } },
     { id: "tabs-text-counts", props: { selected: 0, tabs: [{ text: "Info", count: "12" }, { text: "Attachments", count: "3" }, { text: "Notes" }] } },
     { id: "tabs-text-designs", props: { selected: 1, tabs: [{ text: "Default" }, ...designs.map((d) => ({ text: d[0].toUpperCase() + d.slice(1), design: d }))] } },

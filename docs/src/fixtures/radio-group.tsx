@@ -11,7 +11,7 @@ export default defineFixtures<Props>({
   cases: [
     { id: "radio-group", props: {} },
     { id: "radio-group-checked", props: { checked: true } },
-    { id: "radio-group-text", props: { text: "Option A" } },
+    { id: "radio-group-text", props: { text: "Option A" }, interact: { selector: '[data-slot="radio-group-item"]', ui5Selector: "ui5-radio-button" } },
     { id: "radio-group-text-checked", props: { text: "Option A", checked: true } },
     { id: "radio-group-disabled", props: { text: "Disabled", disabled: true } },
     { id: "radio-group-disabled-checked", props: { text: "Disabled", disabled: true, checked: true } },
