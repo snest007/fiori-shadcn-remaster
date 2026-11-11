@@ -260,8 +260,14 @@ function MediaGallery({
     if (!host) return
     const platformPhone = isPhonePlatform(); setPhone(platformPhone)
     if (platformPhone) return
-    const observer = new ResizeObserver(() => measureLayout.current()); observer.observe(host)
-    return () => observer.disconnect()
+    // ResizeHandler.js getResizeObserver queues callbacks in requestAnimationFrame:
+    // re-read live geometry then, rather than consuming a zero-size notification now.
+    const frames = new Set<number>()
+    const observer = new ResizeObserver(() => {
+      const frame = requestAnimationFrame(() => { frames.delete(frame); measureLayout.current() })
+      frames.add(frame)
+    }); observer.observe(host)
+    return () => { observer.disconnect(); frames.forEach((frame) => cancelAnimationFrame(frame)) }
   }, [])
   // Native onAfterRendering invokes _updateLayout after every own commit, not only
   // a ResizeHandler notification, so new layout/showAll/item inputs are measured too.
