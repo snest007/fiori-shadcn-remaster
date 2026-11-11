@@ -506,12 +506,12 @@ test.describe("Toolbar review regressions", () => {
   })
 
   test("top placement follows the installed UI5 effective order and first focus on reopen", async ({ page, context }) => {
-    await page.goto("/index.html?fixtures&only=toolbar")
+    await page.goto("/index.html?fixtures&only=toolbar-overflow")
     await page.waitForSelector("html[data-ready=true]")
     const ours = page.locator('[data-fixture="toolbar-overflow"] [data-slot="toolbar"]')
     await ours.evaluate((element) => { Object.assign(element.style, { position: "fixed", bottom: "0", left: "20px", width: "8rem" }) })
     const referencePage = await context.newPage()
-    await referencePage.goto("/ui5.html?only=toolbar")
+    await referencePage.goto("/ui5.html?only=toolbar-overflow")
     await referencePage.waitForSelector("html[data-ready=true]")
     const reference = referencePage.locator('[data-fixture="toolbar-overflow"] ui5-toolbar')
     await reference.evaluate((element) => { Object.assign((element as HTMLElement).style, { position: "fixed", bottom: "0", left: "20px", width: "8rem" }) })

@@ -84,7 +84,7 @@ export default defineFixtures<Props>({
   cases: [
     { id: "side-navigation-expanded", props: { entries: main, fixed, selected: "team" } },
     { id: "side-navigation-collapsed", props: { entries: main, fixed, collapsed: true, selected: "team" } },
-    { id: "side-navigation-flat", props: { entries: flat, selected: "products", height: "22rem" } },
+    { id: "side-navigation-flat", props: { entries: flat, selected: "products", height: "22rem" }, interact: { selector: '[data-slot="side-navigation-item"][aria-current="page"]', ui5Selector: 'ui5-side-navigation-item[selected]' } },
     { id: "side-navigation-parent-selected", props: { entries: flat, selected: "archived", height: "22rem" } },
     { id: "side-navigation-collapsed-flat", props: { entries: flat, collapsed: true, selected: "archived", height: "22rem" } },
     { id: "side-navigation-collapsed-overflow", props: { entries: overflowEntries, collapsed: true, selected: "page-1", height: "18rem" } },

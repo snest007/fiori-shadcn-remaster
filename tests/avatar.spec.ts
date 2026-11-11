@@ -132,7 +132,7 @@ for (const custom of [false, true]) {
       }
     }
 
-    await page.goto("/ui5.html?only=avatar")
+    await page.goto(`/ui5.html?only=avatar-group-overflow-${custom ? "custom" : "individual-s"}`)
     await page.waitForSelector("html[data-ready=true]")
     const oracle = page.locator(`[data-fixture="avatar-group-overflow-${custom ? "custom" : "individual-s"}"] ui5-avatar-group`)
     await oracle.evaluate((element) => {
@@ -163,7 +163,7 @@ for (const custom of [false, true]) {
 
   test(`${custom ? "custom" : "default"} overflow retains UI5 Button native behavior for other modifiers`, async ({ page }) => {
     const combinations = ["Shift+Enter", "Control+Enter", "Control+Space", "Alt+Enter", "Alt+Space", "Meta+Enter", "Meta+Space"]
-    await page.goto("/ui5.html?only=avatar")
+    await page.goto(`/ui5.html?only=avatar-group-overflow-${custom ? "custom" : "individual-s"}`)
     await page.waitForSelector("html[data-ready=true]")
     const oracle = page.locator(`[data-fixture="avatar-group-overflow-${custom ? "custom" : "individual-s"}"] ui5-avatar-group`)
     await oracle.evaluate((element) => {
@@ -220,7 +220,7 @@ test("group root retains its distinct UI5 Space path when Escape interrupts a he
   await expect(page.locator("#avatar-demo #avatar-group-events")).toHaveText("Group activated 1 times")
   await expect(page.locator("#avatar-demo #avatar-overflow-events")).toHaveText("Overflow activated 0 times")
 
-  await page.goto("/ui5.html?only=avatar")
+  await page.goto("/ui5.html?only=avatar-group-overflow-group-s")
   await page.waitForSelector("html[data-ready=true]")
   const oracle = page.locator('[data-fixture="avatar-group-overflow-group-s"] ui5-avatar-group')
   await oracle.evaluate((element) => {
@@ -277,7 +277,7 @@ test("resizing a focused avatar or overflow releases focus to body, matching UI5
   await expect(page.locator("body")).toBeFocused()
   await expect(group.locator("[tabindex='0']")).toHaveCount(1)
 
-  await page.goto("/ui5.html?only=avatar")
+  await page.goto("/ui5.html?only=avatar-group-overflow-individual-s")
   await page.waitForSelector("html[data-ready=true]")
   const oracle = page.locator('[data-fixture="avatar-group-overflow-individual-s"] ui5-avatar-group')
   await oracle.evaluate((element) => { element.style.width = "24rem" })
@@ -336,7 +336,7 @@ test("custom overflow preserves its click handler and receives Tab keyboard acti
 })
 
 test("UI5 oracle uses a neutral first-avatar-sized overflow, caps +N at 99, and retains custom slots", async ({ page }) => {
-  await page.goto("/ui5.html?only=avatar")
+  await page.goto("/ui5.html?only=avatar-group-overflow-group-l")
   await page.waitForSelector("html[data-ready=true]")
   const large = page.locator('[data-fixture="avatar-group-overflow-group-l"] ui5-avatar-group')
   await expect.poll(() => large.evaluate((group: any) => group.hiddenItems.length)).toBe(2)
@@ -345,8 +345,12 @@ test("UI5 oracle uses a neutral first-avatar-sized overflow, caps +N at 99, and 
     return { text: button.textContent, design: button.design, width: button.offsetWidth, size: group.firstAvatarSize }
   })
   expect(oracle).toEqual({ text: "+2", design: "Default", width: 80, size: "L" })
+  await page.goto("/ui5.html?only=avatar-group-overflow-cap")
+  await page.waitForSelector("html[data-ready=true]")
   const capped = page.locator('[data-fixture="avatar-group-overflow-cap"] ui5-avatar-group')
   await expect.poll(() => capped.evaluate((group: any) => group.shadowRoot.querySelector(".ui5-avatar-group-overflow-btn").textContent)).toBe("+99")
+  await page.goto("/ui5.html?only=avatar-group-overflow-custom-fitting")
+  await page.waitForSelector("html[data-ready=true]")
   const custom = page.locator('[data-fixture="avatar-group-overflow-custom-fitting"] ui5-avatar-group')
   await expect.poll(() => custom.evaluate((group: any) => group.hiddenItems.length)).toBe(0)
   await expect(custom.locator('ui5-button[slot="overflowButton"]')).toBeVisible()
@@ -391,7 +395,7 @@ test("group activation ignores modified Enter and Space, matching UI5 Keys", asy
   await page.keyboard.press("Space")
   await expect(events).toHaveText("Group activated 2 times")
 
-  await page.goto("/ui5.html?only=avatar")
+  await page.goto("/ui5.html?only=avatar-group")
   await page.waitForSelector("html[data-ready=true]")
   const oracle = page.locator('[data-fixture="avatar-group"] ui5-avatar-group')
   await oracle.evaluate((element) => {
@@ -450,7 +454,7 @@ test("individual avatars reject modified activation and navigation, matching UI5
   await page.keyboard.press("Space")
   await expect(page.locator("#avatar-group-events")).toHaveText("Group activated 2 times")
 
-  await page.goto("/ui5.html?only=avatar")
+  await page.goto("/ui5.html?only=avatar-group-individual")
   await page.waitForSelector("html[data-ready=true]")
   const oracle = page.locator('[data-fixture="avatar-group-individual"] ui5-avatar-group')
   await oracle.evaluate((element) => {
@@ -491,7 +495,7 @@ test("individual avatars reject modified activation and navigation, matching UI5
 })
 
 test("ultra-narrow groups retain the first avatar through sequential width reservation, matching UI5", async ({ page }) => {
-  await page.goto("/index.html?fixtures&only=avatar")
+  await page.goto("/index.html?fixtures&only=avatar-group-overflow-ultra-narrow-56")
   await page.waitForSelector("html[data-ready=true]")
   const host = page.locator('[data-fixture="avatar-group-overflow-ultra-narrow-56"] [data-slot="avatar-group"]')
   for (const width of [56, 64, 72, 80, 120, 56]) {
@@ -502,7 +506,7 @@ test("ultra-narrow groups retain the first avatar through sequential width reser
     await expect(host.locator("[data-text]")).toHaveAttribute("data-text", `+${4 - shown}`)
   }
 
-  await page.goto("/ui5.html?only=avatar")
+  await page.goto("/ui5.html?only=avatar-group-overflow-ultra-narrow-56")
   await page.waitForSelector("html[data-ready=true]")
   const oracle = page.locator('[data-fixture="avatar-group-overflow-ultra-narrow-56"] ui5-avatar-group')
   for (const width of [56, 64, 72, 80, 120, 56]) {

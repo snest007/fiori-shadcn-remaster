@@ -360,7 +360,7 @@ test("dialog: touch Windows capability matches installed UI5 for NT 6.2, 6.3, 8.
     try {
       await context.addInitScript(() => Object.defineProperty(navigator, "platform", { get: () => "Win32" }))
       const devicePage = await context.newPage()
-      await devicePage.goto(new URL("/ui5.html?only=dialog", page.url()).href)
+      await devicePage.goto(new URL("/ui5.html?only=dialog-draggable", page.url()).href)
       await devicePage.waitForSelector("html[data-ready=true]")
       const native = await devicePage.locator("ui5-dialog[draggable]").first().evaluate(node => {
         const dialog = node as HTMLElement & { onDesktop: boolean; _movable: boolean }

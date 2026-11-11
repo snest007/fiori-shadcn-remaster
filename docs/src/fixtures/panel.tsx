@@ -14,7 +14,7 @@ export const PANEL_WIDTH = "20rem"
 export default defineFixtures<Props>({
   name: "panel",
   cases: [
-    { id: "panel-expanded", props: {} },
+    { id: "panel-expanded", props: {}, interact: { selector: '.fiori-panel__header', ui5Selector: ".ui5-panel-header" } },
     { id: "panel-collapsed", props: { collapsed: true } },
     { id: "panel-fixed", props: { fixed: true } },
     { id: "panel-long-header", props: { long: true, collapsed: true } },

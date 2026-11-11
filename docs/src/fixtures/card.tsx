@@ -32,7 +32,7 @@ export default defineFixtures<Props>({
     { id: "card-avatar", props: { subtitle: true, avatar: "avatar" } },
     { id: "card-icon", props: { subtitle: true, avatar: "icon", status: true } },
     { id: "card-action", props: { subtitle: true, action: true } },
-    { id: "card-interactive", props: { subtitle: true, interactive: true } },
+    { id: "card-interactive", props: { subtitle: true, interactive: true }, interact: { selector: '[data-slot="card-header"]', ui5Selector: "ui5-card-header" } },
     { id: "card-content", props: { subtitle: true, status: true, avatar: "icon", content: true } },
     { id: "card-no-header", props: { noHeader: true, content: true } },
     { id: "card-long-title", props: { long: true, subtitle: true } },

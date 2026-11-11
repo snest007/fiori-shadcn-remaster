@@ -39,7 +39,7 @@ function FixtureGrid() {
     <div className="flex flex-wrap items-start gap-4" style={{ "--w": FIELD_WIDTH } as React.CSSProperties}>
       {activeFixtureSets.flatMap((set) =>
         set.cases
-          .filter((c) => !opts.only || c.id.startsWith(opts.only))
+          .filter((c) => !opts.only || c.id === opts.only)
           .map((c) => (
             // Each cell sits in a slot rounded up to whole pixels so one fractional-width cell can't shift
             // every following cell onto sub-pixel positions (which changes anti-aliasing).
@@ -143,7 +143,7 @@ function Docs() {
 // Expose case ids and tolerances for tests/visual.spec.ts. Anti-aliasing and sub-pixel text layout
 // differ slightly between shadow DOM and light DOM, hence the default 2% tolerance.
 ;(window as any).__fixtures = activeFixtureSets.flatMap((set) =>
-  set.cases.filter((c) => (!opts.only || c.id.startsWith(opts.only)) && !set.skipCompare?.includes(c.id)).map((c) => ({ id: c.id, tolerance: set.tolerance ?? 0.02 }))
+  set.cases.filter((c) => (!opts.only || c.id === opts.only) && !set.skipCompare?.includes(c.id)).map((c) => ({ id: c.id, tolerance: set.tolerance ?? 0.02, interact: c.interact }))
 )
 
 const fixtureMode = query.has("fixtures") || query.has("fixtures-sapui5")

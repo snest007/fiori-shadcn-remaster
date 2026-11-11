@@ -16,6 +16,7 @@ import { deleteIcon, edit } from "@/lib/fiori-icons"
 import { defineFixtures } from "../fixture-types"
 
 export type TableFixtureProps = {
+  interactive?: boolean
   selection?: "single" | "multi"
   selected?: string[]
   highlight?: boolean
@@ -61,6 +62,7 @@ export default defineFixtures<TableFixtureProps>({
   name: "table",
   cases: [
     { id: "table", props: {} },
+    { id: "table-interactive", props: { interactive: true }, interact: { selector: '[data-slot="table-row"]', ui5Selector: "ui5-table-row" } },
     { id: "table-drop-indicator-before", props: { dropPlacement: "Before" } },
     { id: "table-drop-indicator-after", props: { dropPlacement: "After" } },
     { id: "table-drop-indicator-on", props: { dropPlacement: "On" } },
@@ -79,12 +81,13 @@ export default defineFixtures<TableFixtureProps>({
   // ui5-table 2.28 has no row highlight (sap.m.Table's status bar); our highlight follows ui5-li's,
   // so there's nothing to compare it with. Checked by screenshot only.
   skipCompare: ["table-highlight"],
-  react: ({ selection, selected, highlight, actions, navigated, group, noData, popin, growing, sort, alternate, dropPlacement }) => {
+  react: ({ selection, selected, highlight, actions, navigated, group, noData, popin, growing, sort, alternate, dropPlacement, interactive }) => {
     const rows = noData ? [] : TABLE_ROWS
     const renderRow = (r: (typeof TABLE_ROWS)[number], i: number) => (
       <TableRow
         key={r.key}
         rowKey={r.key}
+        interactive={interactive}
         navigated={navigated && i === 1}
         highlight={highlight ? TABLE_HIGHLIGHTS[i] : undefined}
         actions={

@@ -11,7 +11,7 @@ const icons = { "text-align-left": textAlignLeft, "text-align-center": textAlign
 export default defineFixtures<Props>({
   name: "segmented-button",
   cases: [
-    { id: "segmented-button", props: { items: [{ text: "Map", selected: true }, { text: "Satellite" }, { text: "Terrain" }] } },
+    { id: "segmented-button", props: { items: [{ text: "Map", selected: true }, { text: "Satellite" }, { text: "Terrain" }] }, interact: { selector: '[data-slot="segmented-button-item"][aria-selected="true"]', ui5Selector: "ui5-segmented-button-item[selected]" } },
     { id: "segmented-button-middle", props: { items: [{ text: "Day" }, { text: "Week", selected: true }, { text: "Month" }] } },
     { id: "segmented-button-disabled-item", props: { items: [{ text: "One", selected: true }, { text: "Two", disabled: true }, { text: "Three" }] } },
     {
