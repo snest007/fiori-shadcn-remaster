@@ -25,10 +25,17 @@ export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected 
   }))
   gallery.style.cssText = "width:" + width + "px;height:" + height + "px"
   if (activate !== undefined) Object.assign(gallery, { fixtureReady: (async () => {
-    while (!gallery.isConnected) await new Promise((resolve) => requestAnimationFrame(resolve))
+    const native = gallery as Ui5MediaGallery
+    const main = () => native.shadowRoot?.querySelector("ui5-media-gallery-item")
+    // Connected alone is insufficient: UI5 boot/lifecycle work may follow renderFinished.
+    // Await the actual initial cloned content and onEnterDOM thumbnail state before clicking.
+    while (!gallery.isConnected || !main()?.firstElementChild || !main()?.hasAttribute("_thumbnail-design"))
+      await new Promise((resolve) => requestAnimationFrame(resolve))
     await renderFinished()
-    // Trigger the real thumbnail click after the main item's onEnterDOM lifecycle has completed.
-    ;(gallery as Ui5MediaGallery).items[activate].click()
+    native.items[activate].click()
+    while (!native.items[activate].selected || main()?.hasAttribute("_thumbnail-design")
+      || main()?.firstElementChild?.getAttribute(video ? "poster" : "src") !== mediaImage(activate))
+      await new Promise((resolve) => requestAnimationFrame(resolve))
     await renderFinished()
   })() })
   return gallery

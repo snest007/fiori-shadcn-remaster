@@ -295,7 +295,13 @@ function MediaGallery({
                 tabIndex: navigation[normalizedIndex] === item.key ? 0 : -1, activate: () => selectItem(item.key), register: register(item.key) }} />
             </li>)}
             {overflow > 0 && <li className="fiori-media-gallery__overflow" role="option" aria-checked="false">
-              <Button ref={overflowRef} tabIndex={navigation[normalizedIndex] === "__overflow" ? 0 : -1} onClick={onOverflowClick}>{overflowText(overflow)}</Button>
+              {/* MediaGallery.css.js styles the ui5-button host at 4rem in both densities.
+                  Inline host overrides also preserve those styles against Button's utility layer. */}
+              <Button ref={overflowRef} tabIndex={navigation[normalizedIndex] === "__overflow" ? 0 : -1} onClick={onOverflowClick}
+                style={{ width: "4rem", height: "4rem", background: "var(--fiori-media-gallery-overflow-btn-background)",
+                  color: "var(--fiori-media-gallery-overflow-btn-color)", border: "var(--fiori-media-gallery-overflow-btn-border)" }}>
+                {overflowText(overflow)}
+              </Button>
             </li>}
           </ul>
         </div>}

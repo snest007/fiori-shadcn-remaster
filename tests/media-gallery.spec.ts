@@ -120,6 +120,10 @@ test("Auto follows actual component width at 599/600 and uses the desktop thumbn
 
 test("overflow measures actual height and width, reserves a button, counts disabled items, and caps capacity at five", async ({ page }) => {
   const root = gallery(page), overflow = root.locator(".fiori-media-gallery__overflow button")
+  expect(await overflow.evaluate((element) => [element.getBoundingClientRect().width, element.getBoundingClientRect().height])).toEqual([64, 64])
+  await root.evaluate((element) => element.setAttribute("data-density", "compact"))
+  expect(await overflow.evaluate((element) => [element.getBoundingClientRect().width, element.getBoundingClientRect().height])).toEqual([64, 64])
+  await root.evaluate((element) => element.removeAttribute("data-density"))
   await expect(overflow).toHaveText("+3")
   await root.evaluate((element) => { (element as HTMLElement).style.height = "336px" })
   await expect(thumbnails(root)).toHaveCount(3)
