@@ -31,11 +31,20 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
   const previousFocus = React.useRef<HTMLElement | null>(null)
   const directionRef = React.useRef<HTMLDivElement | null>(null)
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null)
+  const [observedAnchor, setObservedAnchor] = React.useState<HTMLElement | null>(null)
+  const retainedOpenerRect = React.useRef<DOMRect | null>(null)
   const [anchorVisible, setAnchorVisible] = React.useState(false)
   const dismissedRequest = React.useRef(false)
   const [missingActiveOpener, setMissingActiveOpener] = React.useState(false)
   const [contentMounted, setContentMounted] = React.useState(false)
-  const mountContent = React.useCallback((node: HTMLDivElement | null) => { setContentMounted(!!node) }, [])
+  const contentNode = React.useRef<HTMLDivElement | null>(null)
+  const mountContent = React.useCallback((node: HTMLDivElement | null) => { contentNode.current = node; setContentMounted(!!node) }, [])
+  const [missingOpenerOrigin, setMissingOpenerOrigin] = React.useState(false)
+  const missingOpenerRef = React.useRef(false)
+  React.useLayoutEffect(() => {
+    missingOpenerRef.current = missingActiveOpener
+    if (!missingActiveOpener && missingOpenerOrigin) setMissingOpenerOrigin(false)
+  }, [missingActiveOpener, missingOpenerOrigin])
   // The shared Popover's Portal has its own open Presence; only the in-place forceMount path retains content while closed.
   const forceMount = contentProps?.forceMount === true && !portal
   const focusedRequest = React.useRef(false)
@@ -52,7 +61,9 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     const root = directionRef.current?.getRootNode() as Document | ShadowRoot | undefined
     return root?.getElementById(opener) ?? document.getElementById(opener)
   }
-  const anchorRef = React.useMemo(() => ({ current: { getBoundingClientRect: () => resolveOpener()?.getBoundingClientRect() ?? new DOMRect() } }), [anchor, missingActiveOpener])
+  const anchorRef = React.useMemo(() => ({ current: { getBoundingClientRect: () => missingActiveOpener
+    ? missingOpenerOrigin ? new DOMRect() : retainedOpenerRect.current ?? new DOMRect()
+    : resolveOpener()?.getBoundingClientRect() ?? new DOMRect() } }), [anchor, missingActiveOpener, missingOpenerOrigin])
   const changeOpen = React.useCallback((next: boolean) => {
     if (controlled === undefined) setUncontrolled(next)
     onOpenChange?.(next)
@@ -62,29 +73,34 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     if (!open) {
       dismissedRequest.current = false
       if (next !== anchor) setAnchor(next)
+      if (observedAnchor) setObservedAnchor(null)
       if (anchorVisible) setAnchorVisible(false)
       if (missingActiveOpener) setMissingActiveOpener(false)
       return
     }
     // Popover.js opener setter preserves an already-open popup and its old observer when the reference is cleared.
     if (!next) {
-      if (anchorVisible && anchor?.isConnected) { if (!missingActiveOpener) setMissingActiveOpener(true); return }
+      if (anchorVisible && observedAnchor?.isConnected) { if (!missingActiveOpener) setMissingActiveOpener(true); return }
       if (anchorVisible) setAnchorVisible(false)
-      if (anchor && !anchor.isConnected && !dismissedRequest.current) { dismissedRequest.current = true; changeOpen(false) }
+      if (observedAnchor && !observedAnchor.isConnected && !dismissedRequest.current) { dismissedRequest.current = true; changeOpen(false) }
       return // Initial missing opener keeps requested open without painting or firing close.
     }
     if (next !== anchor) setAnchor(next)
     if (missingActiveOpener) setMissingActiveOpener(false)
     const rect = next.getBoundingClientRect()
+    retainedOpenerRect.current = rect
     // isOpenerOutsideViewport uses strict edges; an initially offviewport opener closes after the own commit.
     const outside = rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth
     if (outside) {
       if (anchorVisible) setAnchorVisible(false)
       if (!dismissedRequest.current) { dismissedRequest.current = true; changeOpen(false) }
-    } else if (!dismissedRequest.current && !anchorVisible) setAnchorVisible(true)
+    } else if (!dismissedRequest.current) {
+      if (!observedAnchor) setObservedAnchor(next) // openPopup observes its initial actual opener only once per open lifecycle.
+      if (!anchorVisible) setAnchorVisible(true)
+    }
   })
   React.useLayoutEffect(() => {
-    if (!open || !anchor || dismissedRequest.current) return
+    if (!open || !observedAnchor || dismissedRequest.current) return
     // Popover.js _observeOpenerVisibility/_onOpenerIntersection observes actual clipping, hiding and removal.
     let active = true
     const observer = new IntersectionObserver(([entry]) => {
@@ -94,10 +110,32 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
         changeOpen(false)
       }
     })
-    observer.observe(anchor)
+    observer.observe(observedAnchor)
     return () => { active = false; observer.disconnect() }
-  }, [open, anchor, changeOpen])
+  }, [open, observedAnchor, changeOpen])
   const paintedOpen = open && anchorVisible
+  React.useLayoutEffect(() => {
+    if (!paintedOpen) return
+    const root = contentNode.current?.closest<HTMLElement>("[data-slot=color-palette-popover]")
+    if (!root) return
+    // Popup.js _registerResizeHandler -> ResizeHandler.js observes getDomRef and repositions on the next frame.
+    // An active missing opener keeps its prior box until that real size change; registration alone must not move it.
+    let previous = root.getBoundingClientRect()
+    let active = true
+    const frames = new Set<number>()
+    const observer = new ResizeObserver(() => {
+      const frame = requestAnimationFrame(() => {
+        frames.delete(frame)
+        if (!active) return
+        const next = root.getBoundingClientRect()
+        if (missingOpenerRef.current && (next.width !== previous.width || next.height !== previous.height)) setMissingOpenerOrigin(true)
+        previous = next
+      })
+      frames.add(frame)
+    })
+    observer.observe(root)
+    return () => { active = false; observer.disconnect(); frames.forEach(cancelAnimationFrame) }
+  }, [paintedOpen, contentMounted])
   const renderPalette = (live: boolean) => <div ref={live ? mountContent : undefined}><ColorPalette {...paletteProps} ref={live ? paletteRef : undefined} popupMode onItemClick={(detail) => {
     changeOpen(false)
     paletteProps.onItemClick?.(detail)
@@ -144,12 +182,12 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
     </div>
     <Popover open={paintedOpen} onOpenChange={changeOpen}>
       <PopoverAnchor virtualRef={anchorRef} />
-      {/* Popover.js _show uses physical top/left 0 when an active opener is cleared; disable target collision mapping for that origin. */}
-      <PopoverContent {...contentProps} id={id} data-slot="color-palette-popover" portal={portal} side={missingActiveOpener ? "bottom" : side} align={missingActiveOpener ? rtl ? "end" : "start" : contentProps?.align}
-        avoidCollisions={missingActiveOpener ? false : contentProps?.avoidCollisions} dir={rtl ? "rtl" : "ltr"}
+      {/* Popover.js _show uses physical top/left 0 after an active missing opener is recomputed; keep its prior placement before the real resize trigger. */}
+      <PopoverContent {...contentProps} id={id} data-slot="color-palette-popover" portal={portal} side={missingOpenerOrigin ? "bottom" : side} align={missingOpenerOrigin ? rtl ? "end" : "start" : contentProps?.align}
+        avoidCollisions={missingOpenerOrigin ? false : contentProps?.avoidCollisions} dir={rtl ? "rtl" : "ltr"}
         hideArrow aria-label={popoverLabel} className={cn("fiori-color-palette-popover", className, contentProps?.className)}
         hidden={!paintedOpen} style={paintedOpen ? contentProps?.style : { ...contentProps?.style, display: "none" }}
-        data-missing-opener={missingActiveOpener ? "" : undefined}
+        data-missing-opener={missingActiveOpener ? "" : undefined} data-missing-opener-origin={missingOpenerOrigin ? "" : undefined}
         onPointerDownOutside={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onPointerDownOutside?.(event) }}
         onFocusOutside={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onFocusOutside?.(event) }}
         onInteractOutside={(event) => { if (!paintedOpen) event.preventDefault(); else contentProps?.onInteractOutside?.(event) }}

@@ -264,7 +264,8 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
     if (!popupMode && (key === "Home" || key === "End")) {
       event.preventDefault(); event.stopPropagation(); return
     }
-    if (key === "Enter") { event.preventDefault(); select(area, index); return }
+    // ColorPalette.js _onkeydown handles Enter without preventing its original default.
+    if (key === "Enter") { select(area, index); return }
     if (key === " " || key === "Spacebar") { event.preventDefault(); return }
     if (popupMode && area === "main" && key === "Tab") { event.preventDefault(); select(area, index, false); return }
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(key)) return
@@ -332,8 +333,8 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
               colorLabel={item.props.colorLabel ?? colorLabel} selected={selected?.area === "main" && selected.key === key}
               onClick={(event) => { item.props.onClick?.(event); if (!event.isPropagationStopped()) handlers.onClick(event) }}
               onMouseDown={(event) => { item.props.onMouseDown?.(event); if (!event.isPropagationStopped()) handlers.onMouseDown() }}
-              onKeyDown={(event) => { item.props.onKeyDown?.(event); if (!event.defaultPrevented && !event.isPropagationStopped()) handlers.onKeyDown(event) }}
-              onKeyUp={(event) => { item.props.onKeyUp?.(event); if (!event.defaultPrevented && !event.isPropagationStopped()) handlers.onKeyUp(event) }} />
+              onKeyDown={(event) => { item.props.onKeyDown?.(event); if (!event.isPropagationStopped()) handlers.onKeyDown(event) }}
+              onKeyUp={(event) => { item.props.onKeyUp?.(event); if (!event.isPropagationStopped()) handlers.onKeyUp(event) }} />
           })}
         </div>
         {showRecentColors && <div className="fiori-color-palette__recent-wrapper">

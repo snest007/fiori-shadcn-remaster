@@ -284,11 +284,18 @@ for (const mode of ["null", "missing ID"] as const) test(`color-palette-popover:
   await root.locator("#color-palette-popover-lifecycle-presence").click()
   const button = root.locator("#color-palette-popover-lifecycle-opener")
   await button.click(); await expect(popup).toBeVisible()
+  const original = (await popup.boundingBox())!
   await root.locator("#color-palette-popover-lifecycle-clear").dispatchEvent("click")
   if (mode === "missing ID") await root.locator("#color-palette-popover-lifecycle-clear").dispatchEvent("click")
   await expect(popup).toBeVisible()
   await expect(popup).toHaveAttribute("data-missing-opener", "")
   await expect(root.locator("#color-palette-popover-lifecycle-state")).toHaveText('{"open":true,"changes":[],"events":[]}')
+  const retained = (await popup.boundingBox())!
+  expect(retained.x).toBeCloseTo(original.x, 4); expect(retained.y).toBeCloseTo(original.y, 4)
+  await expect(popup).not.toHaveAttribute("data-missing-opener-origin", "")
+  await root.locator("#color-palette-popover-lifecycle-count").dispatchEvent("click")
+  await expect(popup.locator("[data-color-palette-area=main]")).toHaveCount(7)
+  await expect(popup).toHaveAttribute("data-missing-opener-origin", "")
   const box = (await popup.boundingBox())!
   expect(Math.abs(box.x)).toBeLessThanOrEqual(1); expect(Math.abs(box.y)).toBeLessThanOrEqual(1)
   await button.evaluate((node) => { node.setAttribute("hidden", "") })

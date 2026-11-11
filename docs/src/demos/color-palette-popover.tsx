@@ -46,6 +46,7 @@ function OpenerLifecycleExample() {
   const [open, setOpen] = React.useState(false)
   const [present, setPresent] = React.useState(false)
   const [openerMode, setOpenerMode] = React.useState(0)
+  const [count, setCount] = React.useState(2)
   const [changes, setChanges] = React.useState<boolean[]>([])
   const [events, setEvents] = React.useState<string[]>([])
   const opener = React.useRef<HTMLButtonElement | null>(null)
@@ -54,13 +55,14 @@ function OpenerLifecycleExample() {
     <Button id="color-palette-popover-lifecycle-request" onClick={() => setOpen(true)}>Request palette</Button>
     <Button id="color-palette-popover-lifecycle-presence" onClick={() => setPresent(!present)}>Toggle opener</Button>
     <Button id="color-palette-popover-lifecycle-clear" onClick={() => setOpenerMode((value) => (value + 1) % 3)}>Change opener reference</Button>
+    <Button id="color-palette-popover-lifecycle-count" onClick={() => setCount(count === 2 ? 7 : 2)}>Resize active palette</Button>
     <div id="color-palette-popover-lifecycle-scroll">
       {present && <Button id="color-palette-popover-lifecycle-opener" ref={opener} onClick={() => setOpen(true)}>Choose lifecycle color</Button>}
       <div id="color-palette-popover-lifecycle-spacer" />
     </div>
     <ColorPalettePopover id="color-palette-popover-lifecycle-surface" opener={openerMode === 1 ? null : openerMode === 2 ? "color-palette-popover-lifecycle-missing" : opener} open={open} onOpenChange={changeOpen}
       onItemClick={({ color }) => setEvents((history) => [...history, color])}>
-      <ColorPaletteItem value="red" /><ColorPaletteItem value="blue" />
+      {["red", "blue", "green", "black", "yellow", "orange", "purple"].slice(0, count).map((value) => <ColorPaletteItem key={value} value={value} />)}
     </ColorPalettePopover>
     <output id="color-palette-popover-lifecycle-state">{JSON.stringify({ open, changes, events })}</output>
   </div>

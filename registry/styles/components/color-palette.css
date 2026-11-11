@@ -1,6 +1,7 @@
 /* Port of UI5 2.28 ColorPalette.css.js and ColorPaletteItem.css.js. */
-.fiori-color-palette { display: inline-block; }
-.fiori-color-palette[data-popup-mode] { width: 100%; overflow: hidden; }
+/* ColorPalette.css.js excludes hidden hosts so caller display overrides keep native cascade behavior. */
+.fiori-color-palette:not([hidden]) { display: inline-block; }
+.fiori-color-palette:not([hidden])[data-popup-mode] { width: 100%; overflow: hidden; }
 .fiori-color-palette__root { display: flex; flex-direction: column; }
 .fiori-color-palette__items {
   display: flex;

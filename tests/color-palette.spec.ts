@@ -480,3 +480,60 @@ test("color-palette: stopped caller mousedown preserves ancestor navigation inde
   await expect(demo.locator("#color-palette-propagation-calls")).toHaveText('{"click":0,"mousedown":2,"keydown":0,"keyup":0,"root":0}')
   await expect(demo.locator("#color-palette-propagation-events")).toHaveText("[]")
 })
+
+test("color-palette: caller keydown preventDefault retains arrow navigation and Enter selection", async ({ page }) => {
+  const demo = page.locator("#color-palette-demo #color-palette-key-default-examples"), root = demo.locator("#color-palette-key-default-keydown"), main = swatches(root)
+  await focusSwatch(main.nth(0))
+  await pressTo(page, "ArrowRight", main.nth(1))
+  await page.keyboard.press("Enter")
+  await expect(main.nth(1)).toHaveAttribute("aria-pressed", "true")
+  await expect(demo.locator("#color-palette-key-default-events")).toHaveText('{"keydown":["blue"],"keyup":[],"none":[]}')
+})
+
+test("color-palette: caller keyup preventDefault retains Space selection", async ({ page }) => {
+  const demo = page.locator("#color-palette-demo #color-palette-key-default-examples"), main = swatches(demo.locator("#color-palette-key-default-keyup"))
+  await focusSwatch(main.nth(2))
+  await page.keyboard.down(" ")
+  await expect(main.nth(2)).toHaveAttribute("aria-pressed", "false")
+  await page.keyboard.up(" ")
+  await expect(main.nth(2)).toHaveAttribute("aria-pressed", "true")
+  await expect(demo.locator("#color-palette-key-default-events")).toHaveText('{"keydown":[],"keyup":["green"],"none":[]}')
+})
+
+test("color-palette: ordinary Enter selection leaves the original keydown default unprevented", async ({ page }) => {
+  const demo = page.locator("#color-palette-demo #color-palette-key-default-examples"), main = swatches(demo.locator("#color-palette-key-default-none"))
+  await focusSwatch(main.nth(0))
+  await page.keyboard.press("Enter")
+  await expect(main.nth(0)).toHaveAttribute("aria-pressed", "true")
+  await expect(demo.locator("#color-palette-key-default-keys")).toHaveText('[{"key":"Enter","defaultPrevented":false}]')
+  await expect(demo.locator("#color-palette-key-default-events")).toHaveText('{"keydown":[],"keyup":[],"none":["red"]}')
+})
+
+test("color-palette: hidden root uses the actual reset and native caller display cascade", async ({ page }) => {
+  const root = page.locator("#color-palette-demo #color-palette-root-hidden")
+  await expect(root).toBeHidden()
+  await expect.poll(() => root.evaluate((node) => ({ display: getComputedStyle(node).display, width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height }))).toEqual({ display: "none", width: 0, height: 0 })
+  const reset = await root.evaluate((host) => {
+    const removed: { selector: string; layers: string[] }[] = []
+    const walk = (rules: CSSRuleList, layers: string[] = []) => {
+      for (const rule of rules) {
+        if (rule instanceof CSSStyleRule && rule.selectorText.includes("[hidden]") && host.matches(rule.selectorText)
+          && rule.style.getPropertyValue("display") === "none" && rule.style.getPropertyPriority("display") === "important") {
+          removed.push({ selector: rule.selectorText, layers })
+          rule.style.removeProperty("display")
+        }
+        if ("cssRules" in rule) walk((rule as CSSGroupingRule).cssRules,
+          rule.constructor.name === "CSSLayerBlockRule" ? [...layers, (rule as CSSLayerBlockRule).name] : layers)
+      }
+    }
+    for (const sheet of document.styleSheets) walk(sheet.cssRules)
+    return removed
+  })
+  expect(reset.length).toBeGreaterThan(0)
+  expect(reset.every((rule) => rule.layers.includes("base"))).toBe(true)
+  await expect(root).toBeHidden()
+  await root.evaluate((node) => { node.style.display = "inline-block" })
+  await expect(root).toBeVisible()
+  await root.evaluate((node) => { node.style.removeProperty("display") })
+  await expect(root).toBeHidden()
+})

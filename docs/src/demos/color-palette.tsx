@@ -33,6 +33,7 @@ function NameExamples() {
     <ColorPalette id="color-palette-name-spaces" accessibleName="Direct palette" accessibleNameRef="color-palette-leading-label color-palette-absent-label color-palette-trailing-label color-palette-absent-last"><ColorPaletteItem value="red" /></ColorPalette>
     <ColorPalette id="color-palette-name-whitespace-ref" accessibleName="Direct palette" accessibleNameRef=" "><ColorPaletteItem value="red" /></ColorPalette>
     <ColorPalette id="color-palette-name-root-aria" role="region" aria-label="Host label"><ColorPaletteItem value="red" /></ColorPalette>
+    <ColorPalette id="color-palette-root-hidden" hidden><ColorPaletteItem value="red" /><ColorPaletteItem value="blue" /></ColorPalette>
     <ColorPalette id="color-palette-name-tab" accessibleName="Direct palette" accessibleNameRef={"color-palette-tab-first\tcolor-palette-tab-second"}><ColorPaletteItem value="red" /></ColorPalette>
     <span id="color-palette-name-label">Referenced palette</span><span id="color-palette-empty-label" />
     <span id="color-palette-leading-label">{" A "}</span><span id="color-palette-trailing-label">{"B  "}</span>
@@ -116,6 +117,22 @@ function StoppedPropagationExample() {
   </div>
 }
 
+function KeyboardDefaultExamples() {
+  const [events, setEvents] = React.useState<Record<string, string[]>>({ keydown: [], keyup: [], none: [] })
+  const [keys, setKeys] = React.useState<{ key: string; defaultPrevented: boolean }[]>([])
+  return <div id="color-palette-key-default-examples">
+    {(["keydown", "keyup", "none"] as const).map((mode) => <ColorPalette key={mode} id={`color-palette-key-default-${mode}`}
+      onItemClick={({ color }) => setEvents((history) => ({ ...history, [mode]: [...history[mode], color] }))}
+      onKeyDown={mode === "none" ? (event) => setKeys((history) => [...history, { key: event.key, defaultPrevented: event.defaultPrevented }]) : undefined}>
+      {["red", "blue", "green"].map((value) => <ColorPaletteItem key={value} value={value}
+        onKeyDown={mode === "keydown" ? (event) => event.preventDefault() : undefined}
+        onKeyUp={mode === "keyup" ? (event) => event.preventDefault() : undefined} />)}
+    </ColorPalette>)}
+    <output id="color-palette-key-default-events">{JSON.stringify(events)}</output>
+    <output id="color-palette-key-default-keys">{JSON.stringify(keys)}</output>
+  </div>
+}
+
 function ColorPaletteDemo() {
   const [events, setEvents] = React.useState<string[]>([])
   const [count, setCount] = React.useState(15)
@@ -163,7 +180,7 @@ function ColorPaletteDemo() {
       <ColorPaletteItem value="blue" selected hidden={hidden} />
       <ColorPaletteItem value="green" />
     </ColorPalette>
-    <NameExamples /><ItemRefExamples /><RecentDeclarationExample /><StoppedPropagationExample />
+    <NameExamples /><ItemRefExamples /><RecentDeclarationExample /><StoppedPropagationExample /><KeyboardDefaultExamples />
   </div>
 }
 
