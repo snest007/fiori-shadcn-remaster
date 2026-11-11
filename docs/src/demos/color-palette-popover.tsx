@@ -45,6 +45,7 @@ function LogicalPlacementExample() {
 function OpenerLifecycleExample() {
   const [open, setOpen] = React.useState(false)
   const [present, setPresent] = React.useState(false)
+  const [openerMode, setOpenerMode] = React.useState(0)
   const [changes, setChanges] = React.useState<boolean[]>([])
   const [events, setEvents] = React.useState<string[]>([])
   const opener = React.useRef<HTMLButtonElement | null>(null)
@@ -52,11 +53,12 @@ function OpenerLifecycleExample() {
   return <div id="color-palette-popover-lifecycle-example">
     <Button id="color-palette-popover-lifecycle-request" onClick={() => setOpen(true)}>Request palette</Button>
     <Button id="color-palette-popover-lifecycle-presence" onClick={() => setPresent(!present)}>Toggle opener</Button>
+    <Button id="color-palette-popover-lifecycle-clear" onClick={() => setOpenerMode((value) => (value + 1) % 3)}>Change opener reference</Button>
     <div id="color-palette-popover-lifecycle-scroll">
       {present && <Button id="color-palette-popover-lifecycle-opener" ref={opener} onClick={() => setOpen(true)}>Choose lifecycle color</Button>}
       <div id="color-palette-popover-lifecycle-spacer" />
     </div>
-    <ColorPalettePopover id="color-palette-popover-lifecycle-surface" opener={opener} open={open} onOpenChange={changeOpen}
+    <ColorPalettePopover id="color-palette-popover-lifecycle-surface" opener={openerMode === 1 ? null : openerMode === 2 ? "color-palette-popover-lifecycle-missing" : opener} open={open} onOpenChange={changeOpen}
       onItemClick={({ color }) => setEvents((history) => [...history, color])}>
       <ColorPaletteItem value="red" /><ColorPaletteItem value="blue" />
     </ColorPalettePopover>
@@ -82,6 +84,34 @@ function ClosedCommitExample() {
   </div>
 }
 
+function ForceMountExample() {
+  const [mounted, setMounted] = React.useState(false)
+  const [open, setOpen] = React.useState(false)
+  const [events, setEvents] = React.useState<string[]>([])
+  const [autoFocus, setAutoFocus] = React.useState<string[]>([])
+  const [, sample] = React.useReducer((value) => value + 1, 0)
+  const opener = React.useRef<HTMLButtonElement | null>(null)
+  const objectRef = React.useRef<HTMLDivElement | null>(null)
+  const callbackNode = React.useRef<HTMLDivElement | null>(null)
+  const counts = React.useRef({ mounts: 0, cleanups: 0 })
+  const callbackRef = React.useCallback((node: HTMLDivElement | null) => {
+    callbackNode.current = node
+    if (node) { counts.current.mounts++; return () => { counts.current.cleanups++; callbackNode.current = null } }
+  }, [])
+  return <div id="color-palette-popover-force-example">
+    <Button id="color-palette-popover-force-mount" onClick={() => setMounted(!mounted)}>Toggle retained surface</Button>
+    <Button id="color-palette-popover-force-opener" ref={opener} onClick={() => setOpen(true)}>Choose retained surface color</Button>
+    <Button id="color-palette-popover-force-sample" onClick={sample}>Read retained refs</Button>
+    {mounted && <ColorPalettePopover id="color-palette-popover-force-surface" portal={false} open={open} opener={opener} onOpenChange={setOpen}
+      contentProps={{ forceMount: true, onOpenAutoFocus: () => setAutoFocus((history) => [...history, "open"]), onCloseAutoFocus: () => setAutoFocus((history) => [...history, "close"]) }}
+      onItemClick={({ color }) => setEvents((history) => [...history, color])}>
+      <ColorPaletteItem id="color-palette-popover-force-object" ref={objectRef} value="red" />
+      <ColorPaletteItem id="color-palette-popover-force-callback" ref={callbackRef} value="blue" />
+    </ColorPalettePopover>}
+    <output id="color-palette-popover-force-state">{JSON.stringify({ object: objectRef.current?.id ?? null, callback: callbackNode.current?.id ?? null, ...counts.current, events, autoFocus })}</output>
+  </div>
+}
+
 function ColorPalettePopoverDemo() {
   const [open, setOpen] = React.useState(false)
   const [events, setEvents] = React.useState<string[]>([])
@@ -101,7 +131,7 @@ function ColorPalettePopoverDemo() {
     </ColorPalettePopover>
     <span id="color-palette-popover-name-label">{" Popup target "}</span><span id="color-palette-popover-empty-label" />
     <output id="color-palette-popover-events">{JSON.stringify(events)}</output>
-    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample />
+    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample /><ForceMountExample />
   </div>
 }
 
