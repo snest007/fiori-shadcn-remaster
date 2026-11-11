@@ -272,9 +272,18 @@ test("color-palette: direct host targets select one raw color and retain physica
 test("color-palette: painted border clicks invoke caller and selection callbacks once", async ({ page }) => {
   const root = control(page), host = root.locator('[data-slot="color-palette-item"]').nth(7)
   await host.hover()
-  const position = await host.evaluate((node) => ({ x: parseFloat(getComputedStyle(node).borderLeftWidth) / 2, y: node.getBoundingClientRect().height / 2 }))
-  expect(position.x).toBeGreaterThan(0)
-  await host.click({ position })
+  const point = await host.evaluate((node) => {
+    const rect = node.getBoundingClientRect(), border = parseFloat(getComputedStyle(node).borderLeftWidth)
+    return { x: rect.x + border / 2, y: rect.y + rect.height / 2, border }
+  })
+  expect(point.border).toBeGreaterThan(0)
+  expect(await host.evaluate((node, point) => document.elementFromPoint(point.x, point.y) === node, point)).toBe(true)
+  await page.mouse.move(point.x, point.y)
+  await page.mouse.down()
+  await expect(swatches(root).nth(7)).toHaveAttribute("tabindex", "0")
+  await expect(events(page)).toHaveText("[]")
+  await expect(page.locator("#color-palette-demo #color-palette-click-events")).toHaveText('{"palette":[],"item":[]}')
+  await page.mouse.up()
   await expect(events(page)).toHaveText('["#333333"]')
   await expect(page.locator("#color-palette-demo #color-palette-click-events")).toHaveText('{"palette":["host"],"item":["7:host"]}')
   await expect(swatches(root).nth(7)).toHaveAttribute("aria-pressed", "true")

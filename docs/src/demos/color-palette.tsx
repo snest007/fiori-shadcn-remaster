@@ -32,7 +32,7 @@ function NameExamples() {
     <ColorPalette id="color-palette-name-empty-ref" accessibleName="Direct palette" accessibleNameRef=""><ColorPaletteItem value="red" /></ColorPalette>
     <ColorPalette id="color-palette-name-spaces" accessibleName="Direct palette" accessibleNameRef="color-palette-leading-label color-palette-absent-label color-palette-trailing-label color-palette-absent-last"><ColorPaletteItem value="red" /></ColorPalette>
     <ColorPalette id="color-palette-name-whitespace-ref" accessibleName="Direct palette" accessibleNameRef=" "><ColorPaletteItem value="red" /></ColorPalette>
-    <ColorPalette id="color-palette-name-root-aria" aria-label="Host label"><ColorPaletteItem value="red" /></ColorPalette>
+    <ColorPalette id="color-palette-name-root-aria" role="region" aria-label="Host label"><ColorPaletteItem value="red" /></ColorPalette>
     <ColorPalette id="color-palette-name-tab" accessibleName="Direct palette" accessibleNameRef={"color-palette-tab-first\tcolor-palette-tab-second"}><ColorPaletteItem value="red" /></ColorPalette>
     <span id="color-palette-name-label">Referenced palette</span><span id="color-palette-empty-label" />
     <span id="color-palette-leading-label">{" A "}</span><span id="color-palette-trailing-label">{"B  "}</span>
