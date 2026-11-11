@@ -235,3 +235,66 @@ test("color-palette: hidden items keep native keyboard indices instead of being 
   await pressTo(page, "ArrowRight", main.nth(2))
   await expect(events(page)).toHaveText("[]")
 })
+
+test("color-palette: mounted sibling refs override direct names even when missing or empty", async ({ page }) => {
+  const prefix = "Color Palette - Predefined Colors"
+  for (const [id, name] of [["both", `${prefix} Referenced palette`], ["missing", prefix], ["empty", prefix],
+    ["empty-ref", `${prefix} Direct palette`], ["whitespace-ref", prefix], ["root-aria", prefix]]) {
+    await expect(page.locator(`#color-palette-demo #color-palette-name-${id}`).getByRole("group")).toHaveAttribute("aria-label", name)
+  }
+  await expect(page.locator("#color-palette-demo #color-palette-name-root-aria")).toHaveAttribute("aria-label", "Host label")
+})
+
+test("color-palette: reference tokens use literal spaces and retain raw text and trailing spacing", async ({ page }) => {
+  await expect(page.locator("#color-palette-demo #color-palette-name-spaces").getByRole("group"))
+    .toHaveAttribute("aria-label", "Color Palette - Predefined Colors  A  B   ")
+  await expect(page.locator("#color-palette-demo #color-palette-name-tab").getByRole("group"))
+    .toHaveAttribute("aria-label", "Color Palette - Predefined Colors Tab target")
+})
+
+test("color-palette: mounted ShadowRoot refs win locally and fall back to document on own commits", async ({ page }) => {
+  const root = page.locator("#color-palette-demo #color-palette-name-shadow"), group = root.getByRole("group")
+  await expect(group).toHaveAttribute("aria-label", "Color Palette - Predefined Colors Shadow label Document fallback")
+  await root.evaluate((node) => { (node.getRootNode() as ShadowRoot).getElementById("color-palette-root-label")!.textContent = "Changed shadow" })
+  await root.locator("[data-color-palette-area=main]").nth(1).dispatchEvent("click")
+  await expect(group).toHaveAttribute("aria-label", "Color Palette - Predefined Colors Changed shadow Document fallback")
+})
+
+test("color-palette: direct host targets select one raw color and retain physical item identity", async ({ page }) => {
+  const root = page.locator("#color-palette-demo #color-palette-identity"), main = swatches(root)
+  await root.locator('[data-slot="color-palette-item"]').nth(0).dispatchEvent("click")
+  await expect(events(page)).toHaveText('["red"]')
+  await expect(main.nth(0)).toHaveAttribute("aria-pressed", "true")
+  await expect(main.nth(1)).toHaveAttribute("aria-pressed", "false")
+  await expect(root.locator('[aria-pressed="true"]')).toHaveCount(1)
+})
+
+test("color-palette: painted border clicks invoke caller and selection callbacks once", async ({ page }) => {
+  const root = control(page), host = root.locator('[data-slot="color-palette-item"]').nth(7)
+  await host.hover()
+  const position = await host.evaluate((node) => ({ x: parseFloat(getComputedStyle(node).borderLeftWidth) / 2, y: node.getBoundingClientRect().height / 2 }))
+  expect(position.x).toBeGreaterThan(0)
+  await host.click({ position })
+  await expect(events(page)).toHaveText('["#333333"]')
+  await expect(page.locator("#color-palette-demo #color-palette-click-events")).toHaveText('{"palette":["host"],"item":["7:host"]}')
+  await expect(swatches(root).nth(7)).toHaveAttribute("aria-pressed", "true")
+})
+
+test("color-palette: empty item and recent inner clicks prevent the original event and caller bubbling", async ({ page }) => {
+  const root = control(page)
+  const empty = page.locator('#color-palette-demo #color-palette-empty-item [role="button"]')
+  const dispatch = (node: Element) => {
+    const event = new MouseEvent("click", { bubbles: true, cancelable: true })
+    return { accepted: node.dispatchEvent(event), prevented: event.defaultPrevented }
+  }
+  expect(await empty.evaluate(dispatch)).toEqual({ accepted: false, prevented: true })
+  const recent = root.locator('.fiori-color-palette__recent [role="button"]')
+  await expect(recent).toHaveCount(5)
+  for (let index = 0; index < 5; index++) expect(await recent.nth(index).evaluate(dispatch)).toEqual({ accepted: false, prevented: true })
+  await expect(events(page)).toHaveText("[]")
+  await expect(page.locator("#color-palette-demo #color-palette-empty-click-events")).toHaveText('{"item":0,"parent":0}')
+  await expect(page.locator("#color-palette-demo #color-palette-click-events")).toHaveText('{"palette":[],"item":[]}')
+  await swatches(root).nth(2).click()
+  await expect(events(page)).toHaveText('["#333300"]')
+  await expect(page.locator("#color-palette-demo #color-palette-click-events")).toHaveText('{"palette":["inner"],"item":["2:inner"]}')
+})

@@ -116,3 +116,26 @@ test("color-palette-popover: outside pointer dismisses without selection", async
   await expect(surface(page)).toBeHidden(); await expect(opener(page)).toBeFocused()
   await expect(events(page)).toHaveText("[]")
 })
+
+test("color-palette-popover: forwards both naming props with native ref priority and a separate dialog label", async ({ page }) => {
+  for (const name of ["Color Palette - Predefined Colors  Popup target ", "Color Palette - Predefined Colors", "Color Palette - Predefined Colors", "Color Palette - Predefined Colors Direct popup"]) {
+    await open(page)
+    await expect(surface(page)).toHaveAttribute("aria-label", "Color Palette")
+    await expect(surface(page).getByRole("group")).toHaveAttribute("aria-label", name)
+    await page.keyboard.press("Escape")
+    await expect(surface(page)).toBeHidden()
+    await demo(page).locator("#color-palette-popover-name-case").click()
+  }
+  await expect(events(page)).toHaveText("[]")
+})
+
+test("color-palette-popover: host click closes with one raw callback and restores selection on reopening", async ({ page }) => {
+  await open(page)
+  await surface(page).locator('[data-color-palette-area=main]').nth(2).locator("..").dispatchEvent("click")
+  await expect(surface(page)).toBeHidden()
+  await expect(opener(page)).toBeFocused()
+  await expect(events(page)).toHaveText('["#333300"]')
+  await open(page)
+  await expect(main(page).nth(2)).toHaveAttribute("aria-pressed", "true")
+  await expect(main(page).nth(2)).toBeFocused()
+})

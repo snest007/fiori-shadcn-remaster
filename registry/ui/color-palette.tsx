@@ -36,13 +36,27 @@ type ColorPaletteItemProps = Omit<React.ComponentProps<"div">, "children"> & {
   index?: number
 }
 
-function ColorPaletteItem({ value = "", selected = false, tooltip, colorLabel = "Color", index, className, style, hidden, ...props }: ColorPaletteItemProps) {
+function ColorPaletteItem({ value = "", selected = false, tooltip, colorLabel = "Color", index, className, style, hidden, onClick, onMouseDown, ...props }: ColorPaletteItemProps) {
   const label = `${colorLabel} - ${index}: ${tooltip || value}`
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    // ColorPaletteItem.js onBeforeRendering/_onClick: _disabled = !value prevents and stops original inner clicks before any semantic callback.
+    if (!value) { event.preventDefault(); event.stopPropagation(); return }
+    onClick?.(event)
+  }
   return (
     // ColorPaletteItem.css.js :host(:not([hidden])) applies visibility to the colored host, not its inner button.
     <span hidden={hidden} data-slot="color-palette-item" data-selected={selected ? "" : undefined} data-disabled={!value ? "" : undefined}
-      className={cn("fiori-color-palette-item", className)} style={{ ...(value ? { "--fiori-x-color-palette-item-background-color": value } : {}), ...style } as React.CSSProperties}>
-      <div role="button" aria-label={label} aria-pressed={selected} title={label} tabIndex={-1} className="fiori-color-palette-item__inner" {...props} />
+      className={cn("fiori-color-palette-item", className)} style={{ ...(value ? { "--fiori-x-color-palette-item-background-color": value } : {}), ...style } as React.CSSProperties}
+      onClick={(event) => {
+        // ColorPalette.js _onclick/handleSelection also accepts the item host (its painted border) as target.
+        // Inner clicks already ran their handler; direct host clicks are forwarded exactly once.
+        if (event.target === event.currentTarget) onClick?.(event as unknown as React.MouseEvent<HTMLDivElement>)
+      }}
+      onMouseDown={(event) => {
+        // ColorPalette.js _onmousedown sets the navigation index for host-target pointer events.
+        if (event.target === event.currentTarget) onMouseDown?.(event as unknown as React.MouseEvent<HTMLDivElement>)
+      }}>
+      <div role="button" aria-label={label} aria-pressed={selected} title={label} tabIndex={-1} className="fiori-color-palette-item__inner" {...props} onClick={handleClick} onMouseDown={onMouseDown} />
     </span>
   )
 }
@@ -95,6 +109,23 @@ function gridIndex(index: number, count: number, key: string, rtl: boolean): num
   return index
 }
 
+function referencedName(root: HTMLDivElement, reference: string) {
+  // AccessibilityTextsHelper.js getAllAccessibleNameRefTexts/_getReferencedElementById:
+  // literal spaces delimit IDs, raw text is retained, and the mounted root wins over the document.
+  const ids = reference.split(" ")
+  const scope = root.getRootNode() as ParentNode
+  let text = ""
+  ids.forEach((id, index) => {
+    const element = scope.querySelector(`[id='${id}']`) || document.getElementById(id)
+    const part = element?.textContent || ""
+    if (part) {
+      text += part
+      if (index < ids.length - 1) text += " "
+    }
+  })
+  return text
+}
+
 function ColorPalette({ children, className, showDefaultColor = false, defaultColor = "", showRecentColors = false,
   showMoreColors: _showMoreColors, defaultColorText = "Default Color", containerLabel = "Color Palette - Predefined Colors",
   colorLabel = "Color", accessibleName, accessibleNameRef, onItemClick, popupMode = false, ref, ...props }: ColorPaletteProps) {
@@ -102,6 +133,14 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
   const shared = React.useContext(StateContext)
   const state = shared ?? local
   const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const [name, setName] = React.useState(accessibleNameRef ? "" : accessibleName || "")
+  React.useLayoutEffect(() => {
+    // getEffectiveAriaLabelText gives every nonempty ref priority, including refs that resolve to no text.
+    // Resolve after the commit so same-commit sibling labels and the actual ShadowRoot are available.
+    // ColorPalette does not register AccessibilityTextsHelper observers; reread only on its own commits.
+    const next = accessibleNameRef ? rootRef.current ? referencedName(rootRef.current, accessibleNameRef) : "" : accessibleName || ""
+    if (next !== name) setName(next)
+  })
   const defaultRef = React.useRef<HTMLButtonElement | null>(null)
   const mainRefs = React.useRef<(HTMLDivElement | null)[]>([])
   const recentRefs = React.useRef<(HTMLDivElement | null)[]>([])
@@ -233,7 +272,6 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
       if (isPlain(event) && (event.key === " " || event.key === "Spacebar")) { event.preventDefault(); select(area, index) }
     },
   })
-  const name = accessibleName ?? props["aria-label"] ?? (accessibleNameRef && typeof document !== "undefined" ? accessibleNameRef.split(/\s+/).map((id) => document.getElementById(id)?.textContent ?? "").join(" ").trim() : "")
   return (
     <div data-slot="color-palette" data-popup-mode={popupMode ? "" : undefined} ref={setRoot} className={cn("fiori-color-palette", className)} {...props}>
       <div className="fiori-color-palette__root">
