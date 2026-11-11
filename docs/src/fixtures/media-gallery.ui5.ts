@@ -13,7 +13,7 @@ import type Ui5MediaGalleryItem from "@ui5/webcomponents-fiori/dist/MediaGallery
 import { defineUi5, h } from "../fixture-types"
 import set, { failedMediaImage, mediaImage } from "./media-gallery"
 
-export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, wideIndex, contentless, thumbnail, rtl, video, activate, clearAfterActivate, failureSlot, removeFailure, ...props }) => {
+export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected = 0, disabled, hidden, wide, wideIndex, contentless, thumbnail, rtl, video, activate, clearAfterActivate, failureSlot, removeFailure, siblings, ...props }) => {
   const gallery = h("ui5-media-gallery", {
     layout: props.layout, "show-all-thumbnails": props.showAllThumbnails, "interactive-display-area": props.interactiveDisplayArea,
     "menu-horizontal-align": props.menuHorizontalAlign, "menu-vertical-align": props.menuVerticalAlign, dir: rtl ? "rtl" : undefined,
@@ -25,7 +25,9 @@ export default defineUi5(set, ({ width = 640, height = 416, count = 4, selected 
       item.append(h("img", { slot: failureSlot === "thumbnail" ? "thumbnail" : undefined, src: failedMediaImage, alt: "Failed media" }))
     } else {
       if (index !== contentless) item.append(image)
-      if (thumbnail) item.append(h("img", { slot: "thumbnail", src: mediaImage(index, true), alt: "Thumbnail " + (index + 1) }))
+      if (siblings === "content") item.append(h("video", { poster: mediaImage(index + 1), preload: "none", "aria-label": "Later video " + (index + 1) }))
+      if (thumbnail || siblings === "thumbnail") item.append(h("img", { slot: "thumbnail", src: mediaImage(index, true), alt: "Thumbnail " + (index + 1) }))
+      if (siblings === "thumbnail") item.append(h("img", { slot: "thumbnail", src: mediaImage(index + 1, true), alt: "Later thumbnail " + (index + 1) }))
     }
     return item
   }))

@@ -160,9 +160,10 @@ function ItemSurface({ item, presentation }: { item: MediaGalleryItemProps; pres
         <div className="fiori-media-gallery-item__mask" />
         <div className="fiori-media-gallery-item__wrapper">
           {(thumbnailFailed || contentFailed) && <Icon icon={background} className="fiori-media-gallery-item__background-icon" />}
-          {/* Keep the monitored nodes mounted while the native image fallback is painted. */}
-          <div ref={contentRef} className="fiori-media-gallery-item__content" hidden={!useContent}>{content}</div>
-          <div ref={thumbRef} className="fiori-media-gallery-item__content fiori-media-gallery-item__thumbnail" hidden={!useThumbnail}>{thumb}</div>
+          {/* MediaGalleryItemTemplate.js paints the entire chosen slot; MediaGalleryItem.js
+              monitors only its first element. Keep every node mounted during fallback. */}
+          <div ref={contentRef} className="fiori-media-gallery-item__content" hidden={!useContent}>{children}</div>
+          <div ref={thumbRef} className="fiori-media-gallery-item__content fiori-media-gallery-item__thumbnail" hidden={!useThumbnail}>{thumbnail}</div>
         </div>
       </div>
     </div>
@@ -332,7 +333,9 @@ function MediaGallery({
                 {selectableItems.map((item) => <ItemSurface key={item.key} item={item.props}
                   presentation={{ selected: item.key === selectedKey, register: register(item.key) }} />)}
               </Carousel>
-            ) : <ItemSurface item={{ children: selection?.props.children, layout: mainLayout }}
+            // MediaGallery.js _displayContent clones displayedContent (the first default
+            // slot element) into the main item, rather than the whole source slot.
+            ) : <ItemSurface item={{ children: firstNode(selection?.props.children), layout: mainLayout }}
               presentation={{ thumbnailDesign: mainThumbnailDesign, square: !wide, interactive: interactiveDisplayArea, tabIndex: interactiveDisplayArea ? 0 : undefined,
                 activate: () => { if (interactiveDisplayArea) onDisplayAreaClick?.() },
                 register: (host) => { mainRef.current = host } }} />}

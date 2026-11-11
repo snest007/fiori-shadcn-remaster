@@ -15,6 +15,7 @@ function MediaGalleryDemo() {
   const [additionalGallery, setAdditionalGallery] = React.useState(false)
   const [failedContent, setFailedContent] = React.useState<"failed" | "empty" | "replacement">("failed")
   const [failedThumbnail, setFailedThumbnail] = React.useState<"failed" | "empty" | "replacement">("failed")
+  const [laterThumbnailFailed, setLaterThumbnailFailed] = React.useState(false)
   const cleanupRef = React.useCallback((element: HTMLDivElement | null) => {
     if (element) return () => setRefCleanups((value) => value + 1)
   }, [])
@@ -72,6 +73,20 @@ function MediaGalleryDemo() {
         <MediaGalleryItem id="media-gallery-failed-thumbnail" aria-label="Thumbnail media"
           thumbnail={failedThumbnail === "failed" ? <img src={failedMediaImage} alt="Failed thumbnail media" /> : failedThumbnail === "replacement" ? <span>Thumbnail replacement</span> : undefined} />
       </MediaGallery>
+      <MediaGallery id="media-gallery-siblings" accessibleName="Slotted media siblings" layout="Horizontal" style={{ width: 640, height: 336 }}>
+        <MediaGalleryItem id="media-gallery-sibling-content">
+          <img src={mediaImage(0)} alt="Default sibling image" />
+          <video poster={mediaImage(1)} preload="none" aria-label="Default sibling video" />
+        </MediaGalleryItem>
+        <MediaGalleryItem id="media-gallery-sibling-thumbnail" thumbnail={[
+          <img key="first" src={mediaImage(2, true)} alt="First sibling thumbnail" />,
+          <img key="second" src={laterThumbnailFailed ? failedMediaImage : mediaImage(3, true)} alt="Later sibling thumbnail" />,
+        ]}>
+          <img src={mediaImage(2)} alt="Named-thumbnail default image" />
+          <video poster={mediaImage(3)} preload="none" aria-label="Named-thumbnail default video" />
+        </MediaGalleryItem>
+      </MediaGallery>
+      <Button id="media-gallery-sibling-thumbnail-fail-later" onClick={() => setLaterThumbnailFailed(true)}>Fail later thumbnail</Button>
       <Button id="media-gallery-add-gallery" onClick={() => setAdditionalGallery(true)}>Add gallery</Button>
       {additionalGallery && <MediaGallery id="media-gallery-additional" accessibleName="Additional pictures" style={{ width: 640, height: 416 }}>
         {[0, 1].map((index) => <MediaGalleryItem key={index}><img src={mediaImage(index)} alt={"Additional picture " + index} /></MediaGalleryItem>)}

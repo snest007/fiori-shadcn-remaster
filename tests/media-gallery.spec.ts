@@ -24,6 +24,35 @@ for (const slot of ["content", "thumbnail"] as const) {
   })
 }
 
+test("default slot paints every sibling in the thumbnail surface while the main display clones only the first child", async ({ page }) => {
+  const root = page.locator("#media-gallery-demo #media-gallery-siblings"), display = main(root)
+  const item = root.locator("#media-gallery-sibling-content")
+  await expect(item.getByAltText("Default sibling image")).toBeVisible()
+  await expect(item.getByLabel("Default sibling video")).toBeVisible()
+  await expect(display.getByAltText("Default sibling image")).toBeVisible()
+  await expect(display.locator("video")).toHaveCount(0)
+  await thumbnails(root).nth(1).click()
+  await expect(display.getByAltText("Named-thumbnail default image")).toBeVisible()
+  await expect(display.locator("video")).toHaveCount(0)
+  await thumbnails(root).nth(0).click()
+  await expect(display.getByAltText("Default sibling image")).toBeVisible()
+  await expect(display.locator("img,video")).toHaveCount(1)
+})
+
+test("named thumbnail slot paints both sibling images and monitors only the first image", async ({ page }) => {
+  const root = page.locator("#media-gallery-demo #media-gallery-siblings")
+  const item = root.locator("#media-gallery-sibling-thumbnail"), images = item.locator(".fiori-media-gallery-item__thumbnail > img")
+  await expect(images).toHaveCount(2)
+  await expect(images.nth(0)).toBeVisible()
+  await expect(images.nth(1)).toBeVisible()
+  await expect(item.getByAltText("Named-thumbnail default image")).toBeHidden()
+  await page.locator("#media-gallery-demo #media-gallery-sibling-thumbnail-fail-later").click()
+  await expect.poll(() => images.nth(1).evaluate((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth === 0)).toBe(true)
+  await expect.poll(() => images.nth(0).evaluate((image) => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true)
+  await expect(item.locator(".fiori-media-gallery-item__background-icon")).toHaveCount(0)
+  await expect(images.nth(0)).toBeVisible()
+})
+
 test("media gallery selects by click, ignores disabled and duplicate selections, and suppresses the initial callback", async ({ page }) => {
   const root = gallery(page)
   await expect(root.getByRole("listbox", { name: "Product pictures" })).toBeVisible()
@@ -327,6 +356,24 @@ test.describe("native phone platform", () => {
   test.use({
     hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
     userAgent: "Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+  })
+  test("phone Carousel paints all default-slot siblings and keeps every named thumbnail sibling hidden", async ({ page }) => {
+    const root = page.locator("#media-gallery-demo #media-gallery-siblings"), slides = root.locator(".fiori-carousel__item")
+    const first = root.locator("#media-gallery-sibling-content"), second = root.locator("#media-gallery-sibling-thumbnail")
+    await expect(root).toHaveAttribute("data-phone", "true")
+    await expect(slides).toHaveCount(2)
+    await expect(first.getByAltText("Default sibling image")).toBeVisible()
+    await expect(first.getByLabel("Default sibling video")).toBeVisible()
+    await slides.nth(0).focus()
+    await page.keyboard.press("ArrowRight")
+    await expect(slides.nth(1)).toBeFocused()
+    await expect(slides.nth(1)).toHaveAttribute("aria-hidden", "false")
+    await expect(second.getByAltText("Named-thumbnail default image")).toBeVisible()
+    await expect(second.getByLabel("Named-thumbnail default video")).toBeVisible()
+    const thumbnails = second.locator(".fiori-media-gallery-item__thumbnail > img")
+    await expect(thumbnails).toHaveCount(2)
+    await expect(thumbnails.nth(0)).toBeHidden()
+    await expect(thumbnails.nth(1)).toBeHidden()
   })
   test("phone reuses Carousel, hides thumbnails and disabled items, and reports navigation without changing gallery selected flags", async ({ page }) => {
     const root = gallery(page), items = root.locator(".fiori-carousel__item")
