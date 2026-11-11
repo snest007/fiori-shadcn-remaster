@@ -391,3 +391,31 @@ test("color-palette-popover: shared positioning flips at a viewport edge and lim
   await expect.poll(() => content.evaluate((node) => node.clientHeight)).toBeLessThanOrEqual(790 - geometry.margin)
   await page.keyboard.press("Escape"); await expect(surface(page)).toHaveCount(0)
 })
+
+
+for (const mode of ["empty", "empty-value", "hidden", "hidden-before-visible"] as const) {
+  test(`color-palette-popover: ${mode} without a visible tab stop initially focuses the shared dialog surface`, async ({ page }) => {
+    const root = demo(page).locator("#color-palette-popover-empty-example"), popup = page.locator("#color-palette-popover-empty-surface")
+    const button = root.locator("#color-palette-popover-empty-opener"), state = root.locator("#color-palette-popover-empty-state")
+    await root.locator("#color-palette-popover-empty-mode").selectOption(mode)
+    await button.click(); await expect(popup).toBeVisible(); await expect(state).toContainText('"autoFocus":["open"]')
+    await expect(popup).toHaveAttribute("role", "dialog"); await expect(popup).toHaveAttribute("tabindex", "-1"); await expect(popup).toBeFocused()
+    await expect(state).toContainText('"surface":"color-palette-popover-empty-surface"')
+    if (mode === "hidden-before-visible") {
+      // Native initial focus requires a visible nonnegative tab stop; the hidden first item still owns index zero.
+      await expect(popup.locator("[data-color-palette-area=main]").nth(1)).toBeVisible()
+      await expect(popup.locator("[data-color-palette-area=main]").nth(1)).toHaveAttribute("tabindex", "-1")
+    }
+    await page.keyboard.press("Escape"); await expect(popup).toHaveCount(0); await expect(button).toBeFocused()
+    await expect(state).toContainText('"autoFocus":["open","close"]')
+  })
+}
+
+test("color-palette-popover: caller cancellation preserves opener focus even when no visible target exists", async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-empty-example"), popup = page.locator("#color-palette-popover-empty-surface")
+  const button = root.locator("#color-palette-popover-empty-opener"), state = root.locator("#color-palette-popover-empty-state")
+  await root.locator("#color-palette-popover-empty-cancel-focus").check()
+  await button.click(); await expect(popup).toBeVisible(); await expect(state).toContainText('"autoFocus":["open"]')
+  await expect(button).toBeFocused(); await expect(state).toContainText('"surface":"color-palette-popover-empty-surface"')
+  await page.keyboard.press("Escape"); await expect(popup).toHaveCount(0); await expect(button).toBeFocused()
+})

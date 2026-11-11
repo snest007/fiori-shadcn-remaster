@@ -6,7 +6,9 @@ import { ColorPalettePopover } from "@/components/ui/color-palette-popover"
 import { defineFixtures } from "../fixture-types"
 import { paletteColors } from "./color-palette"
 
-function PalettePopoverFixture({ recent, defaultButton }: { recent?: boolean; defaultButton?: boolean }) {
+export type PalettePopoverFixtureProps = { recent?: boolean; defaultButton?: boolean; empty?: "empty" | "empty-value" | "hidden" | "hidden-before-visible" }
+
+function PalettePopoverFixture({ recent, defaultButton, empty }: PalettePopoverFixtureProps) {
   const opener = React.useRef<HTMLSpanElement | null>(null)
   const contentRef = React.useCallback((node: HTMLDivElement | null) => {
     if (!node) return
@@ -18,16 +20,23 @@ function PalettePopoverFixture({ recent, defaultButton }: { recent?: boolean; de
     <span ref={opener} aria-hidden style={{ position: "fixed", top: 0, left: 0, width: "var(--sapContent_FocusWidth)", height: "var(--sapContent_FocusWidth)", opacity: 0, pointerEvents: "none" }} />
     <ColorPalettePopover opener={opener} portal={false} open showRecentColors={recent} showDefaultColor={defaultButton} defaultColor="#003366"
       contentProps={{ ref: contentRef, onOpenAutoFocus: (event) => event.preventDefault(), onCloseAutoFocus: (event) => event.preventDefault() }}>
-      {paletteColors.map((value) => <ColorPaletteItem key={value} value={value} />)}
+      {!empty && paletteColors.map((value) => <ColorPaletteItem key={value} value={value} />)}
+      {empty === "empty-value" && <ColorPaletteItem value="" />}
+      {(empty === "hidden" || empty === "hidden-before-visible") && <ColorPaletteItem value="red" hidden />}
+      {empty === "hidden-before-visible" && <ColorPaletteItem value="blue" />}
     </ColorPalettePopover>
   </div>
 }
 
-export default defineFixtures<{ recent?: boolean; defaultButton?: boolean }>({
+export default defineFixtures<PalettePopoverFixtureProps>({
   name: "color-palette-popover",
   cases: [
     { id: "color-palette-popover", props: {} },
     { id: "color-palette-popover-default-recent", props: { recent: true, defaultButton: true } },
+    { id: "color-palette-popover-empty", props: { empty: "empty" } },
+    { id: "color-palette-popover-empty-value", props: { empty: "empty-value" } },
+    { id: "color-palette-popover-hidden-only", props: { empty: "hidden" } },
+    { id: "color-palette-popover-hidden-before-visible", props: { empty: "hidden-before-visible" } },
   ],
   react: (props) => <PalettePopoverFixture {...props} />,
 })

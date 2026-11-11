@@ -7,9 +7,11 @@ import { paletteColors } from "./color-palette"
 import { placeInPlace } from "./ui5-popup-in-place"
 import set from "./color-palette-popover"
 
-export default defineUi5(set, ({ recent, defaultButton }) => {
+export default defineUi5(set, ({ recent, defaultButton, empty }) => {
   const host = h("ui5-color-palette-popover", { "show-recent-colors": recent, "show-default-color": defaultButton, "default-color": "#003366" },
-    ...paletteColors.map((value) => h("ui5-color-palette-item", { value })))
+    ...(!empty ? paletteColors.map((value) => h("ui5-color-palette-item", { value })) : empty === "empty" ? [] : empty === "empty-value"
+      ? [h("ui5-color-palette-item", { value: "" })] : [h("ui5-color-palette-item", { value: "red", hidden: true }),
+        ...(empty === "hidden-before-visible" ? [h("ui5-color-palette-item", { value: "blue" })] : [])]))
   const frame = document.createElement("div") as Ui5FixtureElement
   frame.style.cssText = "overflow:hidden;padding:.75rem"
   frame.append(host)

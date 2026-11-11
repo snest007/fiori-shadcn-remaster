@@ -192,6 +192,30 @@ function LayerExample() {
   </div>
 }
 
+function EmptyPaletteExample() {
+  const [mode, setMode] = React.useState("empty")
+  const [open, setOpen] = React.useState(false)
+  const [cancelFocus, setCancelFocus] = React.useState(false)
+  const [autoFocus, setAutoFocus] = React.useState<string[]>([])
+  const opener = React.useRef<HTMLButtonElement | null>(null)
+  const surface = React.useRef<HTMLDivElement | null>(null)
+  return <div id="color-palette-popover-empty-example">
+    <select id="color-palette-popover-empty-mode" aria-label="Available palette colors" value={mode} onChange={(event) => setMode(event.target.value)}>
+      <option value="empty">No colors</option><option value="empty-value">Empty color value</option><option value="hidden">Hidden color</option><option value="hidden-before-visible">Hidden first color</option>
+    </select>
+    <label><input id="color-palette-popover-empty-cancel-focus" type="checkbox" checked={cancelFocus} onChange={(event) => setCancelFocus(event.target.checked)} />Preserve opener focus</label>
+    <Button id="color-palette-popover-empty-opener" ref={opener} onClick={() => setOpen(true)}>Choose available color</Button>
+    <ColorPalettePopover id="color-palette-popover-empty-surface" opener={opener} open={open} onOpenChange={setOpen}
+      contentProps={{ ref: surface, onOpenAutoFocus: (event) => { setAutoFocus((events) => [...events, "open"]); if (cancelFocus) event.preventDefault() },
+        onCloseAutoFocus: () => setAutoFocus((events) => [...events, "close"]) }}>
+      {mode === "empty-value" && <ColorPaletteItem value="" />}
+      {(mode === "hidden" || mode === "hidden-before-visible") && <ColorPaletteItem value="red" hidden />}
+      {mode === "hidden-before-visible" && <ColorPaletteItem value="blue" />}
+    </ColorPalettePopover>
+    <output id="color-palette-popover-empty-state">{JSON.stringify({ open, autoFocus, surface: surface.current?.id ?? null })}</output>
+  </div>
+}
+
 function ColorPalettePopoverDemo() {
   const [open, setOpen] = React.useState(false)
   const [events, setEvents] = React.useState<string[]>([])
@@ -211,7 +235,7 @@ function ColorPalettePopoverDemo() {
     </ColorPalettePopover>
     <span id="color-palette-popover-name-label">{" Popup target "}</span><span id="color-palette-popover-empty-label" />
     <output id="color-palette-popover-events">{JSON.stringify(events)}</output>
-    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample /><ForceMountExample /><RetainedShadowOpenerExample /><LayerExample />
+    <ShadowOpenerExample /><LogicalPlacementExample /><OpenerLifecycleExample /><ClosedCommitExample /><ForceMountExample /><RetainedShadowOpenerExample /><LayerExample /><EmptyPaletteExample />
   </div>
 }
 

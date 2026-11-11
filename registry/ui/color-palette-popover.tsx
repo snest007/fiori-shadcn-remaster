@@ -133,12 +133,16 @@ function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, 
         onOpenAutoFocus?.(event)
         if (event.defaultPrevented) return
         // ColorPalettePopover.js onAfterOpen: selected/recent focus only on open, without late focus theft.
-        const buttons = [...(paletteRef.current?.querySelectorAll<HTMLElement>("[data-color-palette-area]") ?? [])]
+        // FocusableElements.js findFocusableElement/isElementHidden skips non-painted or visibility:hidden targets.
+        const visible = (node: HTMLElement) => (node.offsetWidth > 0 || node.offsetHeight > 0) && getComputedStyle(node).visibility !== "hidden"
+        const buttons = [...(paletteRef.current?.querySelectorAll<HTMLElement>("[data-color-palette-area]") ?? [])].filter(visible)
         const hint = state.reopenTarget.current
         const target = hint ? buttons.find((button) => button.dataset.colorPaletteArea === hint.area && button.dataset.colorPaletteKey === hint.key)
           : paletteProps.showRecentColors && state.recent.length ? buttons.find((button) => button.dataset.colorPaletteArea === "recent") : null
         event.preventDefault()
-        ;(target ?? paletteRef.current?.querySelector<HTMLElement>("button:not([disabled]),[data-color-palette-area][tabindex='0']") ?? paletteRef.current)?.focus()
+        const first = [...(paletteRef.current?.querySelectorAll<HTMLElement>("button:not([disabled]),[data-color-palette-area][tabindex='0']") ?? [])].find(visible)
+        // Popup.js applyFocus falls back to the popup root with tabindex=-1. Radix dispatches this event from shared Content.
+        ;(target ?? first ?? (event.target instanceof HTMLElement ? event.target : null))?.focus()
       }}
       onCloseAutoFocus={(event) => {
         onCloseAutoFocus?.(event)
