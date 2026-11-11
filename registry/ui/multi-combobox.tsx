@@ -253,7 +253,7 @@ function MultiComboBox({
     const ordered = items.map((i) => i.key).filter((k) => next.includes(k))
     if (selectedProp === undefined) setUncontrolledSelected(ordered)
     onSelectionChange?.(ordered)
-    // UI5 MultiComboBox.js/fireSelectionChange emits when selected items change.
+    // UI5 MultiComboBox.js/fireSelectionChange also emits for unchanged Shift ranges.
     fieldRef.current?.dispatchEvent(new Event("fiori-control-selection-change", { bubbles: true }))
   }
   const setOpen = (o: boolean) => {
@@ -474,12 +474,29 @@ function MultiComboBox({
     if (index === -1) return
     const item = visibleRows[index]
     if (shift && (key === "ArrowDown" || key === "ArrowUp")) {
+      // UI5 2.28 MultiComboBox.js/_handleItemRangeSelection indexes rendered
+      // top-level list slots against all flattened entries. Preserve its successful
+      // mappings and callbacks, but guard the missing source of grouped Shift+Down
+      // and writes to MultiComboBoxItemGroup.js's getter-only `selected` property.
       e.preventDefault()
-      const next = visibleRows[index + (key === "ArrowDown" ? 1 : -1)]
-      if (!next || readOnly) return
-      const wanted = !isGroup(item) && selectedSet.has(item.key)
-      if (!isGroup(next) && selectedSet.has(next.key) !== wanted) setSelected(wanted ? [...selectedValues, next.key] : selectedValues.filter((k) => k !== next.key))
-      focusOption(index + (key === "ArrowDown" ? 1 : -1))
+      if (readOnly) return
+      const slots = entries.filter((entry) => isGroup(entry) ? entry.items.some((child) => visible.includes(child)) : visible.includes(entry))
+      const all = entries.flatMap((entry) => isGroup(entry) ? [entry, ...entry.items] : [entry])
+      const currentIndex = slots.indexOf(item)
+      const source = all[currentIndex]
+      const next = all[currentIndex + (key === "ArrowDown" ? 1 : -1)]
+      let nextValues = selectedValues
+      if (next) {
+        if (!source || isGroup(next)) return
+        const wanted = !isGroup(source) && selectedSet.has(source.key)
+        nextValues = wanted ? [...selectedValues, next.key] : selectedValues.filter((k) => k !== next.key)
+        // A filtered-out destination has no rendered focus target; UI5 leaves
+        // focus where it is. Do not clamp its absent row index to the first row.
+        const target = els[visibleRows.indexOf(next)]
+        target?.focus()
+        target?.scrollIntoView({ block: "nearest" })
+      }
+      setSelected(nextValues)
       return
     }
     if (ctrl && key.toLowerCase() === "a") {
