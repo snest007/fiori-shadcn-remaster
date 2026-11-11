@@ -29,6 +29,9 @@ function item(it: ItemSpec) {
     highlight: cap(it.highlight),
     selected: it.selected,
     disabled: it.disabled,
+    movable: it.movable,
+    // ListItem._ondragstart naturally sets this on the host, never the inner draggable li.
+    "data-moving": it.moving,
   }
   if (it.custom) {
     const row = h("div", {}, h("span", {}, it.text), h("ui5-button", {}, "Edit"))

@@ -762,8 +762,9 @@ function ListItemRoot({
   return (
     <li
       data-slot="list-item"
-      data-movable={movable && !disabled ? "" : undefined}
-      draggable={movable && !disabled}
+      // UI5 ListItemTemplate uses movable independently of disabled; List._moveItem accepts programmatic focus moves.
+      data-movable={movable ? "" : undefined}
+      draggable={movable}
       data-nav-key={value}
       data-li-row=""
       data-selected={selected ? "" : undefined}

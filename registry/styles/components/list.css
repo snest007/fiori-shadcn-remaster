@@ -221,7 +221,7 @@
   text-shadow: none;
 }
 /* Focus: keyboard only (UI5 also shows it on mouse focus on desktop). */
-.fiori-li:focus-visible::after,
+.fiori-li:not([data-disabled]):focus-visible::after,
 [data-slot="tree-item"]:focus-visible > .fiori-li::after {
   content: "";
   border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
@@ -463,6 +463,6 @@
 
 /* UI5 DraggableElement.css / ListItemBase.css: hide the active/focus decoration while moving. */
 .fiori-list { position: relative; }
-.fiori-li[data-movable] { cursor: grab !important; }
-.fiori-li[data-moving] { cursor: grabbing !important; opacity: var(--sapContent_DisabledOpacity); }
+/* ListItem._ondragstart sets data-moving on its host; the shadow li keeps grab and its normal opacity. */
+.fiori-list .fiori-li[data-movable] { cursor: grab; }
 .fiori-li[data-moving]::after { content: none; }

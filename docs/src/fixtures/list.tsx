@@ -32,6 +32,8 @@ export type ItemSpec = {
   avatar?: string
   navigated?: boolean
   disabled?: boolean
+  movable?: boolean
+  moving?: boolean
   /** ListItemCustom with a text and a button. */
   custom?: boolean
 }
@@ -61,6 +63,8 @@ const cases: { id: string; props: Props }[] = [
   { id: "list-drop-indicator-before", props: { items: three, dropPlacement: "Before" } },
   { id: "list-drop-indicator-after", props: { items: three, dropPlacement: "After" } },
   { id: "list-drop-indicator-on", props: { items: three, dropPlacement: "On" } },
+  { id: "list-movable-disabled", props: { items: three.map((it, i) => ({ ...it, movable: true, disabled: i === 1 })) } },
+  { id: "list-movable-moving", props: { items: three.map((it, i) => ({ ...it, movable: true, moving: i === 1 })) } },
   { id: "list-basic", props: { items: three } },
   { id: "list-header-footer", props: { items: three, headerText: "Fruits", footerText: "3 items" } },
   {
@@ -138,7 +142,7 @@ const cases: { id: string; props: Props }[] = [
 function renderItem(it: ItemSpec, i: number) {
   if (it.custom) {
     return (
-      <ListItemCustom key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled}>
+      <ListItemCustom key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled} movable={it.movable} data-moving={it.moving ? "" : undefined}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <span>{it.text}</span>
           <Button>Edit</Button>
@@ -160,6 +164,8 @@ function renderItem(it: ItemSpec, i: number) {
       highlight={it.highlight}
       navigated={it.navigated}
       disabled={it.disabled}
+      movable={it.movable}
+      data-moving={it.moving ? "" : undefined}
       image={it.avatar ? <Avatar initials={it.avatar} size="S" /> : undefined}
     />
   )

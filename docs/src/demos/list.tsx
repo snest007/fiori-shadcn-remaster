@@ -15,6 +15,8 @@ function MovableList() {
   const [reorder, setReorder] = React.useState(true)
   const [on, setOn] = React.useState(false)
   const [rejectApples, setRejectApples] = React.useState(false)
+  const [disableBananas, setDisableBananas] = React.useState(false)
+  const [clicked, setClicked] = React.useState("")
   const [log, setLog] = React.useState("")
   const nativeEvent = React.useRef<Event | null>(null)
   const [nativeOver, setNativeOver] = React.useState(false)
@@ -26,8 +28,10 @@ function MovableList() {
       <Button id="list-move-reorder" aria-pressed={reorder} onClick={() => setReorder(!reorder)}>Reorder data</Button>
       <Button id="list-move-on" aria-pressed={on} onClick={() => setOn(!on)}>Accept On</Button>
       <Button id="list-move-reject-apples" aria-pressed={rejectApples} onClick={() => setRejectApples(!rejectApples)}>Reject Apples</Button>
+      <Button id="list-move-disable-bananas" aria-pressed={disableBananas} onClick={() => setDisableBananas(!disableBananas)}>Disable Bananas</Button>
     </div>
     <List id="list-movable" aria-label="Movable fruits"
+      onItemClick={setClicked}
       onKeyDownCapture={(event) => { nativeEvent.current = event.nativeEvent }}
       onDragOver={(event) => { nativeEvent.current = event.nativeEvent }}
       onDrop={(event) => { nativeEvent.current = event.nativeEvent }}
@@ -48,9 +52,9 @@ function MovableList() {
         return next
       })
     }}>
-      {items.map((item) => <ListItemStandard key={item} id={`list-movable-${item}`} value={item} text={item === "Dates" ? <span id="list-movable-nested-source" draggable>{item}</span> : item} movable={item !== "Dates"} />)}
+      {items.map((item) => <ListItemStandard key={item} id={`list-movable-${item}`} value={item} text={item === "Dates" ? <span id="list-movable-nested-source" draggable>{item}</span> : item} movable={item !== "Dates"} disabled={disableBananas && item === "Bananas"} />)}
     </List>
-    <span id="list-move-log" data-native-over={nativeOver} data-native-move={nativeMove}>{log}</span>
+    <span id="list-move-log" data-native-over={nativeOver} data-native-move={nativeMove} data-clicked={clicked}>{log}</span>
   </div>
 }
 
