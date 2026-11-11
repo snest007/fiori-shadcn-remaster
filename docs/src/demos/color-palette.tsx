@@ -42,6 +42,46 @@ function NameExamples() {
   </div>
 }
 
+function ItemRefExamples() {
+  const [mounted, setMounted] = React.useState(true)
+  const [, rerender] = React.useReducer((value) => value + 1, 0)
+  const objectRef = React.useRef<HTMLDivElement | null>(null)
+  const callbackNode = React.useRef<HTMLDivElement | null>(null)
+  const counts = React.useRef({ mounts: 0, cleanups: 0, nulls: 0 })
+  const callbackRef = React.useCallback((node: HTMLDivElement | null) => {
+    callbackNode.current = node
+    if (!node) { counts.current.nulls++; return }
+    counts.current.mounts++
+    return () => { counts.current.cleanups++; callbackNode.current = null }
+  }, [])
+  const snapshot = { object: objectRef.current?.id ?? null, callback: callbackNode.current?.id ?? null, ...counts.current }
+  return <div id="color-palette-ref-examples">
+    <Button id="color-palette-ref-sample" onClick={rerender}>Read item refs</Button>
+    <Button id="color-palette-ref-object-focus" onClick={() => objectRef.current?.focus()}>Focus object ref</Button>
+    <Button id="color-palette-ref-callback-focus" onClick={() => callbackNode.current?.focus()}>Focus callback ref</Button>
+    <Button id="color-palette-ref-toggle" onClick={() => setMounted(!mounted)}>Toggle ref palette</Button>
+    {mounted && <ColorPalette id="color-palette-ref-control" onItemClick={rerender}>
+      <ColorPaletteItem id="color-palette-ref-object-item" ref={objectRef} value="red" />
+      <ColorPaletteItem id="color-palette-ref-callback-item" ref={callbackRef} value="blue" />
+    </ColorPalette>}
+    <output id="color-palette-ref-state">{JSON.stringify(snapshot)}</output>
+  </div>
+}
+
+function RecentDeclarationExample() {
+  const [showRecent, setShowRecent] = React.useState(true)
+  const [selected, setSelected] = React.useState(false)
+  const [events, setEvents] = React.useState<string[]>([])
+  return <div id="color-palette-reconcile-example">
+    <Button id="color-palette-reconcile-recent" onClick={() => setShowRecent(!showRecent)}>Toggle recent row</Button>
+    <Button id="color-palette-reconcile-selected" onClick={() => setSelected(!selected)}>Toggle main declaration</Button>
+    <ColorPalette id="color-palette-reconcile-control" showRecentColors={showRecent} onItemClick={({ color }) => setEvents((history) => [...history, color])}>
+      <ColorPaletteItem value="red" /><ColorPaletteItem value="blue" selected={selected} />
+    </ColorPalette>
+    <output id="color-palette-reconcile-events">{JSON.stringify(events)}</output>
+  </div>
+}
+
 function ColorPaletteDemo() {
   const [events, setEvents] = React.useState<string[]>([])
   const [count, setCount] = React.useState(15)
@@ -89,7 +129,7 @@ function ColorPaletteDemo() {
       <ColorPaletteItem value="blue" selected hidden={hidden} />
       <ColorPaletteItem value="green" />
     </ColorPalette>
-    <NameExamples />
+    <NameExamples /><ItemRefExamples /><RecentDeclarationExample />
   </div>
 }
 

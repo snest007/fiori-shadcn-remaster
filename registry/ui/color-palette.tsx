@@ -61,6 +61,32 @@ function ColorPaletteItem({ value = "", selected = false, tooltip, colorLabel = 
   )
 }
 
+function composeRef<T>(ref: React.Ref<T> | undefined, assign: (node: T | null) => void): React.RefCallback<T> {
+  return (node) => {
+    assign(node)
+    const cleanup = typeof ref === "function" ? ref(node) : undefined
+    if (ref && typeof ref !== "function") ref.current = node
+    if (!node) return
+    // React 19 callback refs return cleanup instead of receiving null; compose both ownership paths.
+    return () => {
+      assign(null)
+      if (typeof cleanup === "function") cleanup()
+      else if (typeof ref === "function") ref(null)
+      else if (ref) ref.current = null
+    }
+  }
+}
+
+function ManagedPaletteItem({ navigationRefs, navigationIndex, ref, ...props }: ColorPaletteItemProps & {
+  navigationRefs: React.RefObject<(HTMLDivElement | null)[]>
+  navigationIndex: number
+}) {
+  // One component per stable item identity keeps caller/navigation refs attached across ordinary renders.
+  // ColorPaletteItemTemplate.js focuses the inner button; public refs retain that same inner target.
+  const composedRef = React.useMemo(() => composeRef(ref, (node) => { navigationRefs.current[navigationIndex] = node }), [ref, navigationRefs, navigationIndex])
+  return <ColorPaletteItem {...props} ref={composedRef} />
+}
+
 type ColorPaletteProps = React.ComponentProps<"div"> & {
   showDefaultColor?: boolean
   defaultColor?: string
@@ -156,6 +182,10 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
     const key = [...keys].reverse().find((key) => declarations.get(key))
     selected = key === undefined ? null : { area: "main", key }
   } else {
+    // ColorPalette.js recentColorsElements reads the previously committed DOM in onBeforeRendering.
+    // After a recent row has actually unmounted, its old marker cannot override a new main declaration.
+    // A remounting popover has no root yet and keeps its separately retained reopen selection.
+    if (selected?.area === "recent" && rootRef.current && !rootRef.current.querySelector("[data-color-palette-area=recent]")) selected = null
     if (selected?.area === "main" && (!declarations.has(selected.key) || (previous.get(selected.key) && !declarations.get(selected.key)))) selected = null
     const newlySelected = keys.filter((key) => declarations.get(key) && !previous.get(key))
     if (selected?.area !== "recent" && newlySelected.length) {
@@ -174,11 +204,7 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
       state.focusRecent.current = false
     }
   })
-  const setRoot = (node: HTMLDivElement | null) => {
-    rootRef.current = node
-    if (typeof ref === "function") return ref(node)
-    if (ref) ref.current = node
-  }
+  const setRoot = React.useMemo(() => composeRef(ref, (node) => { rootRef.current = node }), [ref])
   const focus = (area: Area, index: number): boolean => {
     const target = (area === "main" ? mainRefs : recentRefs).current[index]
     if (!target || (area === "recent" && (!showRecentColors || !state.recent[index]))) return false
@@ -261,7 +287,6 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
     focus(area, gridIndex(index, count, key, rtl))
   }
   const swatchProps = (area: Area, index: number) => ({
-    ref: (node: HTMLDivElement | null) => { (area === "main" ? mainRefs : recentRefs).current[index] = node },
     "data-color-palette-area": area,
     "data-color-palette-key": area === "main" ? displayed[index].key : String(index),
     tabIndex: (area === "main" ? state.mainIndex : state.recentIndex) === index ? 0 : -1,
@@ -294,19 +319,18 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
         <div className="fiori-color-palette__items" role="group" aria-label={`${containerLabel}${name ? ` ${name}` : ""}`}>
           {displayed.map(({ item, key }, index) => {
             const handlers = swatchProps("main", index)
-            return React.cloneElement(item, { ...handlers, key, index: index + 1,
-              colorLabel: item.props.colorLabel ?? colorLabel, selected: selected?.area === "main" && selected.key === key,
-              onClick: (event) => { item.props.onClick?.(event); handlers.onClick(event) },
-              onMouseDown: (event) => { item.props.onMouseDown?.(event); handlers.onMouseDown() },
-              onKeyDown: (event) => { item.props.onKeyDown?.(event); if (!event.defaultPrevented) handlers.onKeyDown(event) },
-              onKeyUp: (event) => { item.props.onKeyUp?.(event); if (!event.defaultPrevented) handlers.onKeyUp(event) },
-            })
+            return <ManagedPaletteItem {...item.props} {...handlers} key={key} ref={item.props.ref} navigationRefs={mainRefs} navigationIndex={index} index={index + 1}
+              colorLabel={item.props.colorLabel ?? colorLabel} selected={selected?.area === "main" && selected.key === key}
+              onClick={(event) => { item.props.onClick?.(event); handlers.onClick(event) }}
+              onMouseDown={(event) => { item.props.onMouseDown?.(event); handlers.onMouseDown() }}
+              onKeyDown={(event) => { item.props.onKeyDown?.(event); if (!event.defaultPrevented) handlers.onKeyDown(event) }}
+              onKeyUp={(event) => { item.props.onKeyUp?.(event); if (!event.defaultPrevented) handlers.onKeyUp(event) }} />
           })}
         </div>
         {showRecentColors && <div className="fiori-color-palette__recent-wrapper">
           <div className="fiori-color-palette__separator" />
           <div className="fiori-color-palette__recent">
-            {Array.from({ length: 5 }, (_, index) => <ColorPaletteItem key={index} value={state.recent[index] ?? ""} index={index + 1} colorLabel={colorLabel}
+            {Array.from({ length: 5 }, (_, index) => <ManagedPaletteItem key={index} navigationRefs={recentRefs} navigationIndex={index} value={state.recent[index] ?? ""} index={index + 1} colorLabel={colorLabel}
               selected={selected?.area === "recent" && selected.key === String(index)}
               {...(state.recent[index] ? swatchProps("recent", index) : { tabIndex: -1, "aria-disabled": true })} />)}
           </div>

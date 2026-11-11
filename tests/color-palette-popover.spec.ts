@@ -139,3 +139,67 @@ test("color-palette-popover: host click closes with one raw callback and restore
   await expect(main(page).nth(2)).toHaveAttribute("aria-pressed", "true")
   await expect(main(page).nth(2)).toBeFocused()
 })
+
+for (const close of ["selection", "Escape"] as const) test(`color-palette-popover: ${close} restores an actual ShadowRoot opener ref`, async ({ page }) => {
+  const root = demo(page).locator("#color-palette-popover-shadow-example")
+  const button = root.locator("#color-palette-popover-shadow-opener")
+  const popup = page.locator("#color-palette-popover-shadow-surface")
+  await button.click()
+  await expect(popup).toBeVisible()
+  await expect(popup.locator("[data-color-palette-area=main]").nth(0)).toBeFocused()
+  if (close === "selection") await popup.locator("[data-color-palette-area=main]").nth(1).click()
+  else await page.keyboard.press("Escape")
+  await expect(popup).toBeHidden()
+  await expect(button).toBeFocused()
+  expect(await button.evaluate((node) => {
+    let active = document.activeElement
+    while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
+    return active === node
+  })).toBe(true)
+  await expect(root.locator("#color-palette-popover-shadow-events")).toHaveText(close === "selection" ? '["blue"]' : "[]")
+})
+
+async function preparePlacement(page: Page, direction: "ltr" | "rtl", placement: "Start" | "End" | "Left" | "Right") {
+  const root = demo(page).locator("#color-palette-popover-placement-example"), button = root.locator("#color-palette-popover-placement-opener")
+  await button.evaluate((node) => Object.assign(node.style, { position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)" }))
+  if (direction === "rtl") await root.locator("#color-palette-popover-placement-direction").click()
+  for (const value of ["Start", "End", "Left", "Right"]) {
+    if (value === placement) break
+    await root.locator("#color-palette-popover-placement-value").click()
+  }
+  await expect(root.locator("#color-palette-popover-placement-state")).toHaveText(`${direction}:${placement}`)
+  await button.click()
+  const popup = page.locator("#color-palette-popover-placement-surface")
+  await expect(popup).toBeVisible()
+  return { button, popup }
+}
+
+async function expectPlacement(button: Locator, popup: Locator, side: "left" | "right", direction: "ltr" | "rtl") {
+  await expect(button).toHaveAttribute("dir", "ltr") // The owning popup inherits its wrapper, independently of the opener.
+  await expect(popup).toHaveAttribute("data-side", side)
+  await expect(popup).toHaveAttribute("dir", direction)
+  const anchor = (await button.boundingBox())!, box = (await popup.boundingBox())!
+  if (side === "left") expect(box.x + box.width).toBeLessThanOrEqual(anchor.x + 1)
+  else expect(box.x).toBeGreaterThanOrEqual(anchor.x + anchor.width - 1)
+}
+
+for (const [direction, placement, side] of [["ltr", "Start", "left"], ["ltr", "End", "right"], ["rtl", "Start", "right"], ["rtl", "End", "left"]] as const) {
+  test(`color-palette-popover: ${placement} uses inherited ${direction} placement with a portal`, async ({ page }) => {
+    const { button, popup } = await preparePlacement(page, direction, placement)
+    await expectPlacement(button, popup, side, direction)
+    await page.keyboard.press("Escape")
+    await expect(popup).toBeHidden()
+    await expect(button).toBeFocused()
+  })
+}
+
+test("color-palette-popover: Left and Right aliases remain physical in both directions", async ({ page }) => {
+  for (const direction of ["ltr", "rtl"] as const) for (const placement of ["Left", "Right"] as const) {
+    await page.goto("/index.html")
+    await page.waitForSelector("html[data-ready=true]")
+    const { button, popup } = await preparePlacement(page, direction, placement)
+    await expectPlacement(button, popup, placement === "Left" ? "left" : "right", direction)
+    await page.keyboard.press("Escape")
+    await expect(popup).toBeHidden()
+  }
+})
