@@ -350,3 +350,17 @@ test.describe("Breadcrumbs exact UI5 source contracts", () => {
     await expect(popup).toBeHidden()
   })
 })
+
+
+test("breadcrumbs: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/breadcrumbs")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#demo-breadcrumbs")
+  const first = root.getByRole("link", { name: /^Home/ }), next = root.getByRole("link", { name: /^Products/ })
+  await first.focus()
+  await expect(first).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(next).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(first).toBeFocused()
+})

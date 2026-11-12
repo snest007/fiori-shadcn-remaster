@@ -233,3 +233,25 @@ test("keyboard resizing matches ui5-flexible-column-layout", async ({ browser })
   const ours = await run(`/index.html?fixtures&only=${id}`)
   expect(ours).toEqual(ui5)
 })
+
+
+test("flexible-column-layout: RTL mirrors separator resizing and preserves Home/End column limits", async ({ page }) => {
+  // FlexibleColumnLayout.js moveSeparator reverses offsetX in RTL; _onSeparatorKeyDown
+  // reverses Home/End's offsets too, keeping the same start-column minimum/maximum.
+  await page.goto("/index.html?dir=rtl#/flexible-column-layout")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = demo(page)
+  await setLayout(page, "TwoColumnsMidExpanded")
+  await expect.poll(() => widths(root)).toEqual([358, 726, 0])
+  const separator = sep(root, "start")
+  await separator.focus()
+  await expect(separator).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect.poll(() => widths(root)).toEqual([378, 706, 0])
+  await page.keyboard.press("ArrowRight")
+  await expect.poll(() => widths(root)).toEqual([358, 726, 0])
+  await page.keyboard.press("Home")
+  await expect.poll(() => widths(root)).toEqual([248, 836, 0])
+  await page.keyboard.press("End")
+  await expect.poll(() => widths(root)).toEqual([836, 248, 0])
+})

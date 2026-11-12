@@ -65,3 +65,18 @@ test("segmented button: multiple mode toggles items independently", async ({ pag
   await page.keyboard.press("Enter")
   await expect(o("Bold")).toHaveAttribute("aria-selected", "false")
 })
+
+
+test("segmented-button: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/segmented-button")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#view")
+  const first = root.getByRole("option", { name: "Week", exact: true }), next = root.getByRole("option", { name: "Month", exact: true })
+  await first.focus()
+  await expect(first).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(next).toBeFocused()
+  await expect(first).toHaveAttribute("aria-selected", "true")
+  await page.keyboard.press("ArrowRight")
+  await expect(first).toBeFocused()
+})

@@ -550,3 +550,17 @@ test("color-picker: popover keeps its shared layer while dialog opens, cancels a
   await opener.click(); await expect(popup.locator('[data-color-palette-area="recent"]').first()).toHaveAttribute("aria-pressed", "true")
   await page.keyboard.press("Escape"); await expect(popup).toHaveCount(0)
 })
+
+
+test("color-picker: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/all")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#color-picker-demo #color-picker-control")
+  const handle = root.getByRole("slider", { name: "Hue Slider Slider handle", exact: true })
+  await handle.focus()
+  await expect(handle).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(handle).toHaveAttribute("aria-valuenow", "211")
+  await page.keyboard.press("ArrowRight")
+  await expect(handle).toHaveAttribute("aria-valuenow", "210")
+})

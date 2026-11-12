@@ -83,3 +83,22 @@ test("tree: single start mode selects one node with Enter", async ({ page }) => 
   await expect(n("Germany")).toHaveAttribute("aria-selected", "true")
   await expect(n("EMEA")).toHaveAttribute("aria-selected", "false")
 })
+
+
+test("tree: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/tree")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#tree-demo")
+  const parent = root.getByRole("treeitem", { name: "Reports", exact: true })
+  const child = root.getByRole("treeitem", { name: "Q1.pdf", exact: true })
+  await parent.focus()
+  await expect(parent).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(parent).toHaveAttribute("aria-expanded", "true")
+  await page.keyboard.press("ArrowLeft")
+  await expect(child).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(parent).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(parent).toHaveAttribute("aria-expanded", "false")
+})

@@ -97,3 +97,17 @@ test("horizontal layout: focus scrolls the item into view and the wheel scrolls 
   await page.mouse.wheel(0, 60)
   await expect.poll(() => scroller.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0)
 })
+
+
+test("timeline: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/timeline")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#timeline-horizontal")
+  const items = root.locator(".fiori-tli__bubble:visible")
+  await items.first().focus()
+  await expect(items.first()).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(items.nth(1)).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(items.first()).toBeFocused()
+})

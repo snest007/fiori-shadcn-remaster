@@ -119,3 +119,21 @@ test("menu: items have the Fiori layout (icon column, additional text)", async (
   const xs = await menu.locator(".fiori-menu-item__text").evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().x)))
   expect(new Set(xs).size).toBe(1)
 })
+
+
+test("menu: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/menu")
+  await page.waitForSelector("html[data-ready=true]")
+  await page.locator("#open-menu").focus()
+  await page.keyboard.press("Enter")
+  const share = menus(page).getByRole("menuitem", { name: "Share", exact: true })
+  await expect(share).toBeVisible()
+  await share.focus()
+  await expect(share).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  const email = menus(page).getByRole("menuitem", { name: "Email", exact: true })
+  await expect(email).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(email).toHaveCount(0)
+  await expect(share).toBeFocused()
+})

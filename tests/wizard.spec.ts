@@ -73,3 +73,18 @@ test("selecting a tab scrolls its step to the top; scrolling selects the step in
   await expect(stepValue(page)).toHaveText("options")
   await expect(page.getByTestId("wizard-demo-changes")).not.toHaveText(String(changes))
 })
+
+
+test("wizard: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/wizard")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#wizard-demo")
+  await root.getByRole("button", { name: "Step 2", exact: true }).click()
+  const items = root.getByRole("listitem")
+  await items.nth(1).focus()
+  await expect(items.nth(1)).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(items.first()).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(items.nth(1)).toBeFocused()
+})

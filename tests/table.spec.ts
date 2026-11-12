@@ -421,3 +421,22 @@ test("table: the drag registry preserves sources across List and Table container
   await source.dispatchEvent("dragend")
   await expect(source).not.toHaveAttribute("data-moving")
 })
+
+
+test("table: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/all")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#table-products")
+  const row = root.locator('[data-slot="table-row"]').first()
+  const selection = row.locator("[data-selection-cell]")
+  await root.locator("[data-table-sentinel]").first().focus()
+  await expect(row).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(selection).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(row.getByRole("gridcell", { name: "Product 1", exact: true })).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(selection).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(row).toBeFocused()
+})

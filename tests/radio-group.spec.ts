@@ -81,3 +81,19 @@ test("radio group: read-only can't change selection", async ({ page }) => {
   await expect(group.getByRole("radio", { name: "Pro" })).toHaveAttribute("aria-checked", "true")
   await expect(group.getByRole("radio", { name: "Free" })).toHaveAttribute("aria-checked", "false")
 })
+
+
+test("radio-group: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/radio-group")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#shipping")
+  const first = root.getByRole("radio", { name: "Standard", exact: true }), next = root.getByRole("radio", { name: "Express", exact: true })
+  await first.focus()
+  await expect(first).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(next).toBeFocused()
+  await expect(next).toHaveAttribute("aria-checked", "true")
+  await page.keyboard.press("ArrowRight")
+  await expect(first).toBeFocused()
+  await expect(first).toHaveAttribute("aria-checked", "true")
+})

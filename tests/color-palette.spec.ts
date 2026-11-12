@@ -537,3 +537,16 @@ test("color-palette: hidden root uses the actual reset and native caller display
   await root.evaluate((node) => { node.style.removeProperty("display") })
   await expect(root).toBeHidden()
 })
+
+
+test("color-palette: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/color-palette")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#color-palette-demo #color-palette-control")
+  const items = root.locator("[data-color-palette-area=main]")
+  await focusSwatch(items.nth(1))
+  await page.keyboard.press("ArrowLeft")
+  await expect(items.nth(2)).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(items.nth(1)).toBeFocused()
+})
