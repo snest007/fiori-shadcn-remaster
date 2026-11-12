@@ -145,3 +145,24 @@ test.describe("Tokenizer (Fiori model)", () => {
     await expect(page.locator("#tokenizer-demo-single").getByRole("option", { name: "Read only" }).locator(".fiori-token__icon")).toHaveCount(0)
   })
 })
+
+
+test("tokenizer: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  // Expand the tokenizer through its owning field's public focus flow. Native
+  // Tokenizer.overflownTokens uses physical bounds even in RTL while collapsed.
+  for (const native of [false, true]) {
+    await page.goto(native ? "/ui5.html?dir=rtl&only=multi-input-tokens" : "/index.html?fixtures&dir=rtl&only=multi-input-tokens")
+    await page.waitForSelector("html[data-ready=true]")
+    const root = page.locator('[data-fixture="multi-input-tokens"]')
+    const input = root.locator(native ? "input[inner-input]" : "input.fiori-field__input")
+    const tokens = root.locator(native ? "ui5-token .ui5-token--wrapper" : '[data-slot="token"]')
+    await input.focus()
+    await expect(input).toBeFocused()
+    await tokens.first().focus()
+    await expect(tokens.first()).toBeFocused()
+    await page.keyboard.press("ArrowLeft")
+    await expect(tokens.last()).toBeFocused()
+    await page.keyboard.press("ArrowRight")
+    await expect(tokens.first()).toBeFocused()
+  }
+})

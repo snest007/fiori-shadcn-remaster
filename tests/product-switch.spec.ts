@@ -51,3 +51,18 @@ test("product-switch: click, Enter and Space activate and move the selection", a
   await page.keyboard.press("Space")
   await expect(last).toHaveText("Last product: Travel & Expenses")
 })
+
+
+test("product-switch: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/product-switch")
+  await page.waitForSelector("html[data-ready=true]")
+  await page.locator("#product-switch-demo-open").click()
+  const root = page.locator("#product-switch-demo")
+  const first = root.getByRole("button", { name: /^Home/ }), next = root.getByRole("button", { name: /^Customers/ })
+  await first.focus()
+  await expect(first).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(next).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(first).toBeFocused()
+})

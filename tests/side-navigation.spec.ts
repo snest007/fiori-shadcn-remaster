@@ -1098,3 +1098,24 @@ test.describe("collapsed", () => {
     }
   }
 })
+
+
+test("side-navigation: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/side-navigation")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#side-navigation-demo")
+  const group = root.getByRole("treeitem", { name: "Organization", exact: true })
+  await group.focus()
+  await expect(group).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(group).toHaveAttribute("aria-expanded", "false")
+  await page.keyboard.press("ArrowLeft")
+  await expect(group).toHaveAttribute("aria-expanded", "true")
+  const parent = root.getByRole("treeitem", { name: "People", exact: true })
+  await parent.focus()
+  await expect(parent).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(parent).toHaveAttribute("aria-expanded", "false")
+  await page.keyboard.press("ArrowLeft")
+  await expect(parent).toHaveAttribute("aria-expanded", "true")
+})

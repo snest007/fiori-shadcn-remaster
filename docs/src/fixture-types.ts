@@ -48,13 +48,14 @@ export function h(tag: string, attrs: Record<string, string | boolean | undefine
   return el
 }
 
-export type PageOptions = { theme: string; density: "cozy" | "compact"; only?: string }
+export type PageOptions = { theme: string; density: "cozy" | "compact"; dir: "ltr" | "rtl"; only?: string }
 
 export function readPageOptions(): PageOptions {
   const q = new URLSearchParams(location.search)
   return {
     theme: q.get("theme") ?? "sap_horizon",
     density: q.get("density") === "compact" ? "compact" : "cozy",
+    dir: q.get("dir") === "rtl" ? "rtl" : "ltr",
     only: q.get("only") ?? undefined,
   }
 }

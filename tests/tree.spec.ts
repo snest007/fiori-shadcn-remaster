@@ -83,3 +83,30 @@ test("tree: single start mode selects one node with Enter", async ({ page }) => 
   await expect(n("Germany")).toHaveAttribute("aria-selected", "true")
   await expect(n("EMEA")).toHaveAttribute("aria-selected", "false")
 })
+
+
+test("tree: RTL retains UI5's physical expand, step-in, collapse and step-out keys", async ({ page }) => {
+  // TreeItemBase.js _onkeydown and Tree.js step handlers keep physical arrows.
+  for (const native of [false, true]) {
+    await page.goto(native ? "/ui5.html?dir=rtl&only=tree-collapsed" : "/index.html?fixtures&dir=rtl&only=tree-collapsed")
+    await page.waitForSelector("html[data-ready=true]")
+    const root = page.locator('[data-fixture="tree-collapsed"]')
+    const parent = root.getByRole("treeitem", { name: native ? /^Root A\b/ : "Root A", exact: !native })
+    const child = root.getByRole("treeitem", { name: native ? /^A1\b/ : "A1", exact: !native })
+    await parent.focus()
+    await expect(parent).toBeFocused()
+    await page.keyboard.press("ArrowLeft")
+    await expect(parent).toHaveAttribute("aria-expanded", "false")
+    await expect(parent).toBeFocused()
+    await page.keyboard.press("ArrowRight")
+    await expect(parent).toHaveAttribute("aria-expanded", "true")
+    await expect(parent).toBeFocused()
+    await page.keyboard.press("ArrowRight")
+    await expect(child).toBeFocused()
+    await page.keyboard.press("ArrowLeft")
+    await expect(parent).toBeFocused()
+    await page.keyboard.press("ArrowLeft")
+    await expect(parent).toHaveAttribute("aria-expanded", "false")
+    await expect(parent).toBeFocused()
+  }
+})

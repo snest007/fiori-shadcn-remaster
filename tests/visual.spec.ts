@@ -19,6 +19,13 @@ async function shoot(page: Page, url: string, ids?: string[]) {
   await page.goto(url)
   await page.waitForSelector("html[data-ready=true]", { timeout: 30_000 })
   await page.mouse.move(0, 0)
+  // Chromium captures an RTL document from its negative scroll origin when any fixture
+  // overflows horizontally. Cells have their own dir attribute, so normalize only the
+  // document scroll axis for cropping; every component keeps its requested direction.
+  if (new URL(url, "http://fixtures").searchParams.get("dir") === "rtl") {
+    await page.evaluate(() => { document.documentElement.style.direction = "ltr" })
+    await expect(page.locator("[data-fixture]").first()).toHaveCSS("direction", "rtl")
+  }
   const boxes: { id: string; x: number; y: number; w: number; h: number }[] = await page.locator("[data-fixture]").evaluateAll((els) =>
     els.map((e) => {
       const r = e.getBoundingClientRect()
@@ -42,17 +49,19 @@ async function shoot(page: Page, url: string, ids?: string[]) {
 
 const report: Record<string, { ratio: number; size: string }> = {}
 
-for (const theme of THEMES) {
-  for (const density of DENSITIES) {
-    test(`${theme} ${density} matches UI5`, async ({ browser }) => {
+const passes = THEMES.flatMap((theme) => DENSITIES.map((density) => ({ theme, density, direction: "ltr" })))
+passes.push({ theme: "sap_horizon", density: "cozy", direction: "rtl" })
+
+for (const { theme, density, direction } of passes) {
+    test(`${theme} ${density}${direction === "rtl" ? " RTL" : ""} matches UI5`, async ({ browser }) => {
       test.setTimeout(120_000)
-      const q = `?theme=${theme}&density=${density}`
+      const q = `?theme=${theme}&density=${density}&dir=${direction}`
       const ui5Page = await browser.newPage()
       const ref = await shoot(ui5Page, `/ui5.html${q}`)
       const oursPage = await browser.newPage()
       const ours = await shoot(oursPage, `/index.html${q}&fixtures`, [...ref.keys()])
       const cases: CaseInfo[] = await oursPage.evaluate(() => (window as any).__fixtures)
-      const dir = `test-results/visual/${theme}-${density}`
+      const dir = `test-results/visual/${theme}-${density}${direction === "rtl" ? "-rtl" : ""}`
       mkdirSync(dir, { recursive: true })
       const failures: string[] = []
       expect(ref.size, "UI5 page rendered no fixtures").toBeGreaterThan(0)
@@ -63,7 +72,7 @@ for (const theme of THEMES) {
           failures.push(`${f.id}: missing on our page`)
           continue
         }
-        const key = `${theme}/${density}/${f.id}`
+        const key = `${theme}/${density}/${direction}/${f.id}`
         if (a.width !== b.width || a.height !== b.height) {
           report[key] = { ratio: 1, size: `${a.width}x${a.height} vs ui5 ${b.width}x${b.height}` }
           failures.push(`${f.id}: size ${a.width}x${a.height} vs UI5 ${b.width}x${b.height}`)
@@ -85,5 +94,4 @@ for (const theme of THEMES) {
       writeFileSync(`${dir}/report.json`, JSON.stringify(report, null, 2))
       expect(failures, failures.join("\n")).toEqual([])
     })
-  }
 }

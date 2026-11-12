@@ -683,3 +683,17 @@ test.describe("Toolbar review regressions", () => {
     expect(errors).toEqual([])
   })
 })
+
+
+test("toolbar: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/toolbar")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#toolbar-demo").getByRole("toolbar", { name: "Product actions" })
+  const first = root.getByRole("button", { name: "Add", exact: true }), next = root.getByRole("button", { name: "Edit", exact: true })
+  await first.focus()
+  await expect(first).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(next).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(first).toBeFocused()
+})

@@ -541,3 +541,24 @@ test("variant-management: resizing the view list preserves selection and stays o
   await expect(dialog).toBeVisible()
   expect(await events(page)).toEqual([])
 })
+
+test("variant-management: RTL Manage keyboard resize keeps OpenUI5's physical arrows", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 1200 })
+  await page.goto("/index.html?dir=rtl#/variant-management")
+  await page.waitForSelector("html[data-ready=true]")
+  await demo(page).getByRole("checkbox", { name: "Use short list", exact: true }).check()
+  const dialog = await openManage(page)
+  await expect(dialog).toHaveCSS("direction", "rtl")
+  const handle = dialog.locator(".fiori-vm-keyboard-handle")
+  await handle.focus()
+  await expect(handle).toBeFocused()
+  const before = (await dialog.boundingBox())!
+  // Dialog.js _handleKeyboardDragResize changes width without moving left.
+  await handle.press("Shift+ArrowLeft")
+  await expect.poll(async () => (await dialog.boundingBox())!.width).toBeCloseTo(before.width - 16, 1)
+  await expect.poll(async () => (await dialog.boundingBox())!.x).toBeCloseTo(before.x, 1)
+  await handle.press("Shift+ArrowRight")
+  await expect.poll(async () => (await dialog.boundingBox())!.width).toBeCloseTo(before.width, 1)
+  await handle.press("ArrowRight")
+  await expect.poll(async () => (await dialog.boundingBox())!.x).toBeCloseTo(before.x + 16, 1)
+})

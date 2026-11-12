@@ -3,7 +3,26 @@ import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+// UI5 getEffectiveDir/ItemNavigation follows the nearest DOM direction. Radix otherwise
+// writes dir=ltr even when its owner is RTL; observe ancestors to retain live inheritance.
+function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, explicit?: "ltr" | "rtl") {
+  const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr")
+  React.useLayoutEffect(() => {
+    const node = owner.current?.parentElement
+    if (!node) return
+    const update = () => setDirection(getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr")
+    update()
+    const observer = new MutationObserver(update)
+    for (let ancestor: HTMLElement | null = node; ancestor; ancestor = ancestor.parentElement) {
+      observer.observe(ancestor, { attributes: true, attributeFilter: ["dir", "style", "class"] })
+    }
+    return () => observer.disconnect()
+  }, [owner])
+  return explicit ?? direction
+}
+
 type Common = Omit<React.ComponentProps<"div">, "defaultValue" | "dir"> & {
+  dir?: "ltr" | "rtl"
   disabled?: boolean
   /** Items take their content width instead of sharing the width equally (ui5 `items-fit-content`). */
   itemsFitContent?: boolean
@@ -26,9 +45,14 @@ type SegmentedButtonProps =
 
 // Mirrors ui5-segmented-button: a listbox of options with one tab stop. Arrow keys / Home / End move
 // focus without wrapping, Space or Enter select. In single mode the selected item can't be deselected.
-function SegmentedButton({ className, selectionMode = "single", itemsFitContent, children, style, value, defaultValue, onValueChange, ...props }: SegmentedButtonProps) {
+function SegmentedButton({ className, selectionMode = "single", itemsFitContent, children, style, value, defaultValue, onValueChange, dir, ref, ...props }: SegmentedButtonProps) {
+  const owner = React.useRef<HTMLDivElement>(null)
+  React.useImperativeHandle(ref, () => owner.current!, [])
+  const direction = useInheritedDirection(owner, dir)
   const count = React.Children.toArray(children).filter(React.isValidElement).length
   const common = {
+    ref: owner,
+    dir: direction,
     "data-slot": "segmented-button",
     "data-fit-content": itemsFitContent ? "" : undefined,
     role: "listbox",

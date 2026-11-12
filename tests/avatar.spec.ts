@@ -517,3 +517,17 @@ test("ultra-narrow groups retain the first avatar through sequential width reser
     await expect(oracle.locator(".ui5-avatar-group-overflow-btn")).toHaveText(`+${4 - shown}`)
   }
 })
+
+
+test("avatar: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/avatar")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#avatar-individual")
+  const first = root.getByRole("button", { name: "John Doe", exact: true }), next = root.getByRole("button", { name: "Anna Bauer", exact: true })
+  await first.focus()
+  await expect(first).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(next).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(first).toBeFocused()
+})

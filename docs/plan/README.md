@@ -55,7 +55,7 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 
 - [ ] [D1 Phone layouts for popups](tasks/D1-phone-popups.md) — L
 - [x] [D2 F6 fast navigation](tasks/D2-f6-navigation.md) — M
-- [ ] [D3 RTL verification](tasks/D3-rtl.md) — M
+- [x] [D3 RTL verification](tasks/D3-rtl.md) — M
 
 ## Wave F — FilterBar personalization from SAPUI5 (decided by the owner: full SAPUI5 feature set)
 

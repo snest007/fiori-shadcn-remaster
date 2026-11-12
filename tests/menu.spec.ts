@@ -119,3 +119,60 @@ test("menu: items have the Fiori layout (icon column, additional text)", async (
   const xs = await menu.locator(".fiori-menu-item__text").evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().x)))
   expect(new Set(xs).size).toBe(1)
 })
+
+
+test("menu: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/menu")
+  await page.waitForSelector("html[data-ready=true]")
+  await page.locator("#open-menu").focus()
+  await page.keyboard.press("Enter")
+  const share = menus(page).getByRole("menuitem", { name: "Share", exact: true })
+  await expect(share).toBeVisible()
+  await share.focus()
+  await expect(share).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  const email = menus(page).getByRole("menuitem", { name: "Email", exact: true })
+  await expect(email).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(email).toHaveCount(0)
+  await expect(share).toBeFocused()
+})
+
+for (const { id, direction, openerDirection } of [
+  { id: "menu-direction-owner-rtl-opener-ltr", direction: "rtl", openerDirection: "ltr" },
+  { id: "menu-direction-owner-rtl-opener-ancestor-ltr", direction: "rtl", openerDirection: "ltr" },
+  { id: "menu-direction-owner-ltr-opener-ancestor-rtl", direction: "ltr", openerDirection: "rtl" },
+  { id: "menu-direction-explicit-ltr", direction: "ltr", openerDirection: "rtl" },
+  { id: "menu-direction-explicit-rtl", direction: "rtl", openerDirection: "ltr" },
+]) {
+  test(`menu: portal direction follows owning scope and explicit dir (${id})`, async ({ page }) => {
+    // Menu.js isRtl -> UI5Element.effectiveDir -> getEffectiveDir(this), independent
+    // of opener direction. Explicit Menu dir overrides the inherited owning scope.
+    for (const native of [false, true]) {
+      await page.goto(native ? `/ui5.html?only=${id}` : `/index.html?fixtures&only=${id}`)
+      await page.waitForSelector("html[data-ready=true]")
+      const cell = page.locator(`[data-fixture="${id}"]`)
+      const opener = cell.getByRole("button", { name: "Open menu", exact: true })
+      await expect(opener).toHaveCSS("direction", openerDirection)
+      await opener.click()
+      const surface = native ? cell.getByRole("menu").first() : menus(page).first()
+      await expect(surface).toBeVisible()
+      await expect(surface).toHaveCSS("direction", direction)
+      const scope = native ? cell : menus(page)
+      // Native MenuItem's shadow row has no accessible name in this fixture;
+      // locate its real focusable ListItemTemplate row beneath the text-bearing host.
+      const share = native ? scope.locator('ui5-menu-item[text="Share"] .ui5-li-root').first() : scope.getByRole("menuitem", { name: "Share", exact: true })
+      const email = native ? scope.locator('ui5-menu-item[text="Email"] .ui5-li-root').first() : scope.getByRole("menuitem", { name: "Email", exact: true })
+      await share.focus()
+      await expect(share).toBeFocused()
+      await page.keyboard.press(direction === "rtl" ? "ArrowRight" : "ArrowLeft")
+      await expect(email).toBeHidden()
+      await expect(share).toBeFocused()
+      await page.keyboard.press(direction === "rtl" ? "ArrowLeft" : "ArrowRight")
+      await expect(email).toBeFocused()
+      await page.keyboard.press(direction === "rtl" ? "ArrowRight" : "ArrowLeft")
+      await expect(email).toBeHidden()
+      await expect(share).toBeFocused()
+    }
+  })
+}

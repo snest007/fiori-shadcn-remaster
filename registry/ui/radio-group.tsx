@@ -4,6 +4,24 @@ import { RadioGroup as RadioGroupPrimitive } from "radix-ui"
 import { cn } from "@/lib/utils"
 import { valueStateDefaultText, type ValueState } from "@/components/ui/input"
 
+// UI5 getEffectiveDir/ItemNavigation follows the nearest DOM direction. Radix otherwise
+// writes dir=ltr even when its owner is RTL; observe ancestors to retain live inheritance.
+function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, explicit?: "ltr" | "rtl") {
+  const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr")
+  React.useLayoutEffect(() => {
+    const node = owner.current?.parentElement
+    if (!node) return
+    const update = () => setDirection(getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr")
+    update()
+    const observer = new MutationObserver(update)
+    for (let ancestor: HTMLElement | null = node; ancestor; ancestor = ancestor.parentElement) {
+      observer.observe(ancestor, { attributes: true, attributeFilter: ["dir", "style", "class"] })
+    }
+    return () => observer.disconnect()
+  }, [owner])
+  return explicit ?? direction
+}
+
 type GroupContextValue = { readOnly?: boolean; valueState: ValueState }
 const RadioGroupContext = React.createContext<GroupContextValue>({ valueState: "none" })
 
@@ -16,11 +34,16 @@ type RadioGroupProps = React.ComponentProps<typeof RadioGroupPrimitive.Root> & {
 
 // Mirrors a group of ui5-radio-button sharing a `name`: one tab stop (the checked item, or the first),
 // arrow keys move focus AND selection (wrapping, skipping disabled items), Space/Enter select.
-function RadioGroup({ className, readOnly, valueState = "none", orientation, ...props }: RadioGroupProps) {
+function RadioGroup({ className, readOnly, valueState = "none", orientation, dir, ref, ...props }: RadioGroupProps) {
+  const owner = React.useRef<HTMLDivElement>(null)
+  React.useImperativeHandle(ref, () => owner.current!, [])
+  const direction = useInheritedDirection(owner, dir)
   const ctx = React.useMemo(() => ({ readOnly, valueState }), [readOnly, valueState])
   return (
     <RadioGroupContext.Provider value={ctx}>
       <RadioGroupPrimitive.Root
+        ref={owner}
+        dir={direction}
         data-slot="radio-group"
         data-orientation={orientation ?? "vertical"}
         // Fiori navigates with both arrow axes regardless of layout, so no `orientation` for Radix.

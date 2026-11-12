@@ -134,3 +134,20 @@ test("in a grid or flex parent the carousel keeps the parent's width (no resize 
   expect(first).toBeLessThanOrEqual(1280)
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1280)
 })
+
+
+test("carousel: RTL retains UI5's unmirrored item keys", async ({ page }) => {
+  // Carousel.js _onkeydown calls navigateRight for Right/Down regardless of _isRTL.
+  for (const native of [false, true]) {
+    await page.goto(native ? "/ui5.html?dir=rtl&only=carousel-default" : "/index.html?fixtures&dir=rtl&only=carousel-default")
+    await page.waitForSelector("html[data-ready=true]")
+    const root = page.locator('[data-fixture="carousel-default"]')
+    const items = root.locator('[role=listitem]')
+    await items.first().focus()
+    await expect(items.first()).toBeFocused()
+    await page.keyboard.press("ArrowRight")
+    await expect(items.nth(1)).toBeFocused()
+    await page.keyboard.press("ArrowLeft")
+    await expect(items.first()).toBeFocused()
+  }
+})

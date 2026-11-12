@@ -508,3 +508,22 @@ test.describe("MultiComboBox grouped ranges", () => {
     expect(errors).toEqual([])
   })
 })
+
+
+test("multi-combobox: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/multi-combobox")
+  await page.waitForSelector("html[data-ready=true]")
+  const input = page.locator("#multi-combobox-countries")
+  const root = page.locator('[data-slot="multi-combobox"]').filter({ has: input })
+  const tokens = root.locator('[data-slot="token"]')
+  await input.focus()
+  await expect(input).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(tokens.last()).toBeFocused()
+  await page.keyboard.press("ArrowRight")
+  await expect(tokens.first()).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(tokens.last()).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(input).toBeFocused()
+})

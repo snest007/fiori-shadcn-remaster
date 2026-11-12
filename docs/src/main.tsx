@@ -28,6 +28,7 @@ const demos = Object.values(import.meta.glob<{ default: Demo }>("./demos/*.tsx",
   .sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.title.localeCompare(b.title))
 
 const opts = readPageOptions()
+document.documentElement.dir = opts.dir
 document.documentElement.dataset.theme = opts.theme
 document.documentElement.dataset.density = opts.density
 
@@ -39,7 +40,9 @@ function FixtureGrid() {
     document.fonts.ready.then(snapSlots).then(() => (document.documentElement.dataset.ready = "true"))
   }, [])
   return (
-    <div className="flex flex-wrap items-start gap-4" style={{ "--w": FIELD_WIDTH } as React.CSSProperties}>
+    // The grid remains left-to-right so overwide fixture rows stay inside full-page screenshots.
+    // Each cell inherits the requested direction independently of harness positioning.
+    <div dir="ltr" className="flex flex-wrap items-start gap-4" style={{ "--w": FIELD_WIDTH } as React.CSSProperties}>
       {activeFixtureSets.flatMap((set) =>
         set.cases
           .filter((c) => !opts.only || c.id === opts.only)
@@ -47,7 +50,7 @@ function FixtureGrid() {
             // Each cell sits in a slot rounded up to whole pixels so one fractional-width cell can't shift
             // every following cell onto sub-pixel positions (which changes anti-aliasing).
             <div key={c.id} data-fixture-slot="" className="flex">
-              <div data-fixture={c.id} className="inline-flex p-1 leading-[normal]">
+              <div dir={opts.dir} data-fixture={c.id} className="inline-flex p-1 leading-[normal]">
                 {set.react(c.props)}
               </div>
             </div>

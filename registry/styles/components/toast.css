@@ -49,3 +49,7 @@
 @keyframes fiori-toast-fade {
   to { opacity: 0; }
 }
+
+/* ToastTemplate.js wraps a slot in bdi: its direction comes from the host, because
+   the slot has no direct text for bdi's auto algorithm. Preserve that in light DOM. */
+.fiori-toast__root > bdi { direction: inherit; }

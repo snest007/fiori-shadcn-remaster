@@ -291,3 +291,18 @@ test.describe("Tabs responsive overflow", () => {
   })
 
 })
+
+
+test("tabs: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/tabs")
+  await page.waitForSelector("html[data-ready=true]")
+  const root = page.locator("#tabs-demo").getByRole("tablist", { name: "Order sections", exact: true })
+  const first = root.getByRole("tab", { name: "Info", exact: true }), next = root.getByRole("tab", { name: "12 Items", exact: true })
+  await first.focus()
+  await expect(first).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(next).toBeFocused()
+  await expect(first).toHaveAttribute("aria-selected", "true")
+  await page.keyboard.press("ArrowRight")
+  await expect(first).toBeFocused()
+})

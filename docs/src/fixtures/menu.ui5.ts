@@ -1,4 +1,5 @@
 import "@ui5/webcomponents/dist/Menu.js"
+import "@ui5/webcomponents/dist/Button.js"
 import "@ui5/webcomponents/dist/MenuItem.js"
 import "@ui5/webcomponents/dist/MenuItemGroup.js"
 import "@ui5/webcomponents/dist/MenuSeparator.js"
@@ -11,7 +12,19 @@ import { defineUi5, h, type Ui5FixtureElement } from "../fixture-types"
 import { showShadowPopupInPlace } from "./ui5-popup-in-place"
 import set from "./menu"
 
-export default defineUi5(set, ({ icons, checkMode, disabledSubmenu, interaction }) => {
+export default defineUi5(set, ({ icons, checkMode, disabledSubmenu, interaction, ownerDir, openerDir, openerAncestorDir, menuDir }) => {
+  if (ownerDir) {
+    // Menu.js isRtl reads its own DOM scope, not its independently directed opener.
+    const opener = h("ui5-button", { dir: openerDir }, "Open menu")
+    const menu = h("ui5-menu", { dir: menuDir },
+      h("ui5-menu-item", { text: "Copy" }),
+      h("ui5-menu-item", { text: "Share" }, h("ui5-menu-item", { text: "Email" }))) as HTMLElement & { opener: HTMLElement; open: boolean }
+    menu.opener = opener
+    opener.addEventListener("click", () => { menu.open = true })
+    const frame = h("div", { dir: ownerDir }, h("div", { dir: openerAncestorDir }, opener), menu)
+    frame.style.display = "inline-flex"
+    return frame
+  }
   if (checkMode) {
     const menu = h("ui5-menu", {},
       h("ui5-menu-item", { text: "Options", icon: icons ? "copy" : undefined }),

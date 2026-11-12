@@ -100,3 +100,25 @@ test("slider: a press in the handle's column (above/below it) keeps the value (S
   await expect(handle).toBeFocused()
   await expect(page.locator("#slider-demo-value")).toHaveText(before!)
 })
+
+
+test("slider: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
+  await page.goto("/index.html?dir=rtl#/slider")
+  await page.waitForSelector("html[data-ready=true]")
+  const handle = page.locator("#slider-demo [role=slider]")
+  await handle.focus()
+  await expect(handle).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(handle).toHaveAttribute("aria-valuenow", "21")
+  await page.keyboard.press("ArrowRight")
+  await expect(handle).toHaveAttribute("aria-valuenow", "20")
+  const range = page.locator("#slider-demo-range [role=slider]").first()
+  await range.focus()
+  await expect(range).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  // RangeSliderTemplate.js exposes interval width as aria-valuenow and endpoints
+  // as aria-valuetext; translating the range keeps its width unchanged.
+  await expect(range).toHaveAttribute("aria-valuetext", "From 21 to 61")
+  await page.keyboard.press("ArrowRight")
+  await expect(range).toHaveAttribute("aria-valuetext", "From 20 to 60")
+})

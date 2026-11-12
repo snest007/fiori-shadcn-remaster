@@ -27,7 +27,11 @@ export default defineUi5(set, ({ size, shape, scheme: sc, initials, icon, image,
     // widths too; never pre-reveal items or pin an expected hidden count in the reference.
     // The group is width:100%; size it to its content as our inline group is.
     g.style.width = width ?? "max-content"
-    return g
+    // AvatarGroup.js _getWidthToItem measures from its offsetParent in RTL.
+    // A positioned, content-sized frame keeps that parent local to this fixture.
+    const frame = h("div", {}, g)
+    frame.style.cssText = "position:relative;display:inline-flex"
+    return frame
   }
   return h(
     "ui5-avatar",

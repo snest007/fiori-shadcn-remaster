@@ -117,3 +117,33 @@ test.describe("Calendar (Fiori model)", () => {
     await expect(demo(page).locator("[role=gridcell][aria-selected=true]")).toHaveCount(1)
   })
 })
+
+
+test("calendar: RTL retains UI5's chronological horizontal keys", async ({ page }) => {
+  // DayPicker.js/MonthPicker.js _onkeydown deliberately use -1/+1 in both directions.
+  for (const native of [false, true]) {
+    await page.goto(native ? "/ui5.html?dir=rtl&only=calendar-single" : "/index.html?fixtures&dir=rtl&only=calendar-single")
+    await page.waitForSelector("html[data-ready=true]")
+    const root = page.locator('[data-fixture="calendar-single"]')
+    const current = () => root.locator(native ? '.ui5-dp-item[tabindex="0"]' : '[data-picker="day"] [role=gridcell][tabindex="0"]')
+    const value = Number(await current().getAttribute(native ? "data-sap-timestamp" : "data-date"))
+    const unit = native ? 86400 : 1
+    await current().focus()
+    await expect(current()).toBeFocused()
+    await page.keyboard.press("ArrowRight")
+    await expect(current()).toHaveAttribute(native ? "data-sap-timestamp" : "data-date", String(value + unit))
+    await expect(current()).toBeFocused()
+    await page.keyboard.press("ArrowLeft")
+    await expect(current()).toHaveAttribute(native ? "data-sap-timestamp" : "data-date", String(value))
+    await page.keyboard.press("F4")
+    const months = root.locator(native ? "ui5-monthpicker" : '[data-picker="month"]')
+    const month = months.locator('[role=gridcell][tabindex="0"]')
+    await expect(month).toBeFocused()
+    const original = await month.textContent()
+    await page.keyboard.press("ArrowRight")
+    await expect(month).not.toHaveText(original!)
+    await expect(month).toBeFocused()
+    await page.keyboard.press("ArrowLeft")
+    await expect(month).toHaveText(original!)
+  }
+})

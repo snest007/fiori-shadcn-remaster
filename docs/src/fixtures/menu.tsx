@@ -1,11 +1,27 @@
 import * as React from "react"
-import { Menu, MenuContent, MenuGroup, MenuItem, MenuSeparator, MenuSub, MenuSubContent, MenuSubTrigger } from "@/components/ui/menu"
+import { Button } from "@/components/ui/button"
+import { Menu, MenuContent, MenuGroup, MenuItem, MenuSeparator, MenuSub, MenuSubContent, MenuSubTrigger, MenuTrigger } from "@/components/ui/menu"
 import { copy, deleteIcon, paste } from "@/lib/fiori-icons"
 
 import { defineFixtures } from "../fixture-types"
 import { inPlace } from "./popover"
 
-type Props = { icons?: boolean; checkMode?: "single" | "multiple"; disabledSubmenu?: boolean; interaction?: boolean }
+type Direction = "ltr" | "rtl"
+type Props = { icons?: boolean; checkMode?: "single" | "multiple"; disabledSubmenu?: boolean; interaction?: boolean; ownerDir?: Direction; openerDir?: Direction; openerAncestorDir?: Direction; menuDir?: Direction }
+
+function DirectionMenu({ ownerDir, openerDir, openerAncestorDir, menuDir }: Props) {
+  return <div dir={ownerDir} className="inline-flex">
+    <Menu dir={menuDir}>
+      <div dir={openerAncestorDir}>
+        <MenuTrigger asChild><Button dir={openerDir}>Open menu</Button></MenuTrigger>
+      </div>
+      <MenuContent aria-label="Direction actions">
+        <MenuItem>Copy</MenuItem>
+        <MenuSub><MenuSubTrigger>Share</MenuSubTrigger><MenuSubContent><MenuItem>Email</MenuItem></MenuSubContent></MenuSub>
+      </MenuContent>
+    </Menu>
+  </div>
+}
 
 function MenuFrame({ interaction, children }: { interaction?: boolean; children: React.ReactNode }) {
   const ref = React.useRef<HTMLDivElement>(null)
@@ -32,8 +48,17 @@ export default defineFixtures<Props>({
     { id: "menu-check-multiple-icons", props: { checkMode: "multiple", icons: true } },
     { id: "menu-check-single-disabled-submenu", props: { checkMode: "single", disabledSubmenu: true, icons: true } },
     { id: "menu-check-multiple-disabled-submenu", props: { checkMode: "multiple", disabledSubmenu: true } },
+    { id: "menu-direction-owner-rtl-opener-ltr", props: { ownerDir: "rtl", openerDir: "ltr" } },
+    { id: "menu-direction-owner-rtl-opener-ancestor-ltr", props: { ownerDir: "rtl", openerAncestorDir: "ltr" } },
+    { id: "menu-direction-owner-ltr-opener-ancestor-rtl", props: { ownerDir: "ltr", openerAncestorDir: "rtl" } },
+    { id: "menu-direction-explicit-ltr", props: { ownerDir: "rtl", openerDir: "rtl", menuDir: "ltr" } },
+    { id: "menu-direction-explicit-rtl", props: { ownerDir: "ltr", openerDir: "ltr", menuDir: "rtl" } },
   ],
-  react: ({ icons, checkMode, disabledSubmenu, interaction }) => checkMode ? (
+  react: (props) => props.ownerDir ? <DirectionMenu {...props} /> : staticMenu(props),
+})
+
+function staticMenu({ icons, checkMode, disabledSubmenu, interaction }: Props) {
+  return checkMode ? (
     <MenuFrame interaction={interaction}>
       <Menu open modal={false}>
         <MenuContent portal={false} aria-label="Options" preventInitialFocus className="w-40">
@@ -67,5 +92,5 @@ export default defineFixtures<Props>({
         </MenuContent>
       </Menu>
     </MenuFrame>
-  ),
-})
+  )
+}

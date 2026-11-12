@@ -55,6 +55,11 @@
   overflow-y:hidden;
   width:calc(100% + var(--fiori-timeline-scroll-container-offset));
 }
+/* UI5 fiori sap_horizon/parameters-bundle.css.js :dir(rtl) reverses this
+   offset. Other themes leave the parameter initial, preserving their auto width. */
+.fiori-timeline[data-layout="Horizontal"][data-dir="rtl"] .fiori-timeline__scroll-container {
+  width:calc(100% - var(--fiori-timeline-scroll-container-offset));
+}
 .fiori-timeline[data-layout="Vertical"] .fiori-timeline__scroll-container {
   height:100%;
   width:100%;
@@ -314,38 +319,38 @@
 .fiori-tli__desc {
   padding-block-start:var(--fiori-timelineitem-bubble-content-description-padding-top);
 }
-:dir(rtl) .fiori-tli__bubble-arrow--left {
+.fiori-tli[data-dir="rtl"] .fiori-tli__bubble-arrow--left {
   right:calc(-1 * var(--fiori-timelineitem-arrow-size));
   left:auto;
   transform:scaleX(-1);
 }
-:dir(rtl) .fiori-tli__bubble-arrow--top {
+.fiori-tli[data-dir="rtl"] .fiori-tli__bubble-arrow--top {
   right:0;
   left:auto;
   transform:scaleX(-1);
 }
-:dir(rtl) .fiori-tli__bubble {
+.fiori-tli[data-dir="rtl"] .fiori-tli__bubble {
   margin-left:auto;
   margin-right:.5rem;
 }
-.fiori-tli[data-layout="Horizontal"]:dir(rtl) .fiori-tli__bubble {
+.fiori-tli[data-layout="Horizontal"].fiori-tli[data-dir="rtl"] .fiori-tli__bubble {
   margin-right:0;
 }
-:dir(rtl) .fiori-tli__bubble:focus:after {
+.fiori-tli[data-dir="rtl"] .fiori-tli__bubble:focus:after {
   left:var(--fiori-timelineitem-bubble-rtl-left-offset);
   right:var(--fiori-timelineitem-bubble-rtl-right-offset);
 }
-.fiori-tli[data-layout="Horizontal"]:dir(rtl) .fiori-tli__bubble:focus:after {
+.fiori-tli[data-layout="Horizontal"].fiori-tli[data-dir="rtl"] .fiori-tli__bubble:focus:after {
   right:0;
 }
-.fiori-tli[data-layout="Horizontal"]:not([data-icon]):dir(rtl) .fiori-tli__indicator:after {
+.fiori-tli[data-layout="Horizontal"]:not([data-icon]).fiori-tli[data-dir="rtl"] .fiori-tli__indicator:after {
   right:.625rem;
 }
-.fiori-tli[data-layout="Horizontal"]:not([data-icon]):dir(rtl) .fiori-tli__indicator:before {
+.fiori-tli[data-layout="Horizontal"]:not([data-icon]).fiori-tli[data-dir="rtl"] .fiori-tli__indicator:before {
   right:1.9375rem;
   left:var(--fiori-timeline-tli-indicator-before-right);
 }
-.fiori-tli[data-layout="Horizontal"]:dir(rtl) .fiori-tli__indicator:before {
+.fiori-tli[data-layout="Horizontal"].fiori-tli[data-dir="rtl"] .fiori-tli__indicator:before {
   left:var(--fiori-timeline-tli-indicator-before-right);
   right:2.125rem;
 }

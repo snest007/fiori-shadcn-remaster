@@ -346,9 +346,11 @@ function MultiInput({
               if (isF6NavigationKey(e)) return
               const els = [...e.currentTarget.querySelectorAll<HTMLElement>('[data-slot="token"]')]
               const last = els[els.length - 1]
-              const rtl = getComputedStyle(e.currentTarget).direction === "rtl"
-              const toInput = e.key === "ArrowDown" || e.key === "End" || e.key === (rtl ? "ArrowLeft" : "ArrowRight")
-              if (toInput && !e.shiftKey && e.target === last) {
+              // UI5 MultiInput.js _onTokenizerKeydown keeps ArrowRight as an exit
+              // key, but requires the last token to remain focused after ItemNavigation.
+              // RTL Right moves to the preceding token, so Down/End exit from the last.
+              const toInput = e.key === "ArrowDown" || e.key === "End" || e.key === "ArrowRight"
+              if (toInput && !e.shiftKey && e.target === last && document.activeElement === last) {
                 e.preventDefault()
                 setTimeout(() => inputRef.current?.focus())
               }

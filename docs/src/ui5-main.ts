@@ -12,11 +12,15 @@ const renderers = import.meta.glob<{ default: Ui5Renderer }>("./fixtures/*.ui5.t
 const rendererFor = (name: string) => renderers[`./fixtures/${name}.ui5.ts`]?.default
 
 const opts = readPageOptions()
+// UI5 locale/getEffectiveDir.js reads :dir(rtl) before its first render.
+document.documentElement.dir = opts.dir
 await setTheme(opts.theme)
 if (opts.density === "compact") document.body.setAttribute("data-ui5-compact-size", "")
 document.body.style.cssText = "margin:0;padding:1rem;background:var(--sapBackgroundColor);font-family:var(--sapFontFamily)"
 
 const root = document.getElementById("root")!
+// Match the React grid: direction belongs to each fixture, not grid positioning.
+root.dir = "ltr"
 root.style.cssText = "display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start"
 const fixtureReadiness: Promise<void>[] = []
 for (const set of fixtureSets) {
@@ -26,6 +30,7 @@ for (const set of fixtureSets) {
     if (opts.only && c.id !== opts.only) continue
     if (set.skipCompare?.includes(c.id)) continue
     const cell = document.createElement("div")
+    cell.dir = opts.dir
     cell.dataset.fixture = c.id
     cell.style.cssText = "display:inline-flex;padding:0.25rem;line-height:normal"
     const fixture = render(c.props)
