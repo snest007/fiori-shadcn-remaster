@@ -96,11 +96,12 @@ function PickerSlider({ value, max, step, disabled, name, handleDescription, kin
 function usePickerState(initialValue: string) {
   const [model, setModel] = React.useState(() => modelFrom(initialValue))
   const lastValue = React.useRef(initialValue)
+  const committedHex = React.useRef(rgbToHex(model.color))
   const [hex, setHex] = React.useState(() => rgbToHex(model.color)), [wrongHex, setWrongHex] = React.useState(false)
   const [displayHsl, setDisplayHsl] = React.useState(false), [alphaTemp, setAlphaTemp] = React.useState<string | undefined>()
   const [announcement, setAnnouncement] = React.useState("")
   const modelRef = React.useRef(model); modelRef.current = model
-  return { model, setModel, lastValue, hex, setHex, wrongHex, setWrongHex, displayHsl, setDisplayHsl, alphaTemp, setAlphaTemp, announcement, setAnnouncement, modelRef }
+  return { model, setModel, lastValue, committedHex, hex, setHex, wrongHex, setWrongHex, displayHsl, setDisplayHsl, alphaTemp, setAlphaTemp, announcement, setAnnouncement, modelRef }
 }
 const PickerStateContext = React.createContext<ReturnType<typeof usePickerState> | null>(null)
 /** ColorPaletteMoreColorsTemplate.js retains its ColorPicker instance while the dialog is closed. */
@@ -113,16 +114,16 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
   const texts = { ...defaultTexts, ...customTexts }
   const local = usePickerState(value ?? defaultValue)
   const shared = React.useContext(PickerStateContext)
-  const { model, setModel, lastValue, hex, setHex, wrongHex, setWrongHex, displayHsl, setDisplayHsl, alphaTemp, setAlphaTemp, announcement, setAnnouncement, modelRef } = shared ?? local
+  const { model, setModel, lastValue, committedHex, hex, setHex, wrongHex, setWrongHex, displayHsl, setDisplayHsl, alphaTemp, setAlphaTemp, announcement, setAnnouncement, modelRef } = shared ?? local
   React.useLayoutEffect(() => {
     if (value !== undefined && value !== lastValue.current) {
-      const next = modelFrom(value); lastValue.current = value; setModel(next); setHex(rgbToHex(next.color)); setWrongHex(false); setAlphaTemp(undefined)
+      const next = modelFrom(value); lastValue.current = value; committedHex.current = rgbToHex(next.color); setModel(next); setHex(rgbToHex(next.color)); setWrongHex(false); setAlphaTemp(undefined)
     }
-  }, [value, lastValue, setModel, setHex, setWrongHex, setAlphaTemp])
+  }, [value, lastValue, committedHex, setModel, setHex, setWrongHex, setAlphaTemp])
   const commit = (next: PickerModel, preserveHex = false) => {
     modelRef.current = next; setModel(next)
     const color = colorToRgba(next.color); lastValue.current = color
-    if (!preserveHex) { setHex(rgbToHex(next.color)); setWrongHex(false) }
+    if (!preserveHex) { committedHex.current = rgbToHex(next.color); setHex(committedHex.current); setWrongHex(false) }
     onValueChange?.(color)
   }
   const fromHsl = (hsl: FioriHslColor, hue = hsl.h) => commit({ hsl, hue, color: { ...hslToRgb(hsl), a: modelRef.current.color.a } })
@@ -131,8 +132,11 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
     let normalized = hex.toLowerCase().replace(/^#/, "")
     if (normalized.length === 3) normalized = [...normalized].map((digit) => digit + digit).join("")
     const valid = normalized.length === 6 && /^[<0-9 abcdef]+$/.test(normalized)
+    committedHex.current = normalized
     setWrongHex(!valid)
-    if (!valid) return
+    // _handleHEXChange stores normalized ColorValue.HEX even on error. The first Negative-state render
+    // refreshes the input from HEX; repeated invalid edits retain their raw text until another picker render.
+    if (!valid) { if (!wrongHex) setHex(normalized); return }
     const rgb = { r: parseInt(normalized.slice(0, 2), 16), g: parseInt(normalized.slice(2, 4), 16), b: parseInt(normalized.slice(4, 6), 16) }
     const hsl = rgbToHsl(rgb); setHex(normalized)
     commit({ color: { ...rgb, a: modelRef.current.color.a }, hsl, hue: hsl.h }, true)
@@ -201,7 +205,7 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
           setAlphaTemp(undefined); commit({ ...modelRef.current, color: { ...modelRef.current.color, a } })
         }} /><Label>{texts.alphaLabel}</Label></div>
         <div><Button variant="transparent" className="fiori-color-picker__toggle" title={texts.toggleMode} aria-label={texts.toggleMode} onClick={() => {
-          const next = !displayHsl; setDisplayHsl(next)
+          const next = !displayHsl; setDisplayHsl(next); setHex(committedHex.current)
           const v = modelRef.current
           const channels = next ? `${texts.hue} ${v.hsl.h}, ${texts.saturation} ${v.hsl.s} ${texts.percentage}, ${texts.light} ${v.hsl.l} ${texts.percentage}, ` : `${texts.red} ${v.color.r}, ${texts.green} ${v.color.g}, ${texts.blue} ${v.color.b}, `
           setAnnouncement(texts.modeChanged(next ? "HSL" : "RGB", `${channels}${texts.alpha} ${v.color.a}`))

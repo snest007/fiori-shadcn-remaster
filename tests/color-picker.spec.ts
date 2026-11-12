@@ -72,10 +72,14 @@ test("color-picker: alpha emits live values and normalizes on commit", async ({ 
 
 test("color-picker: invalid hex disables sliders/channels, area recovers, simplified keeps Hex", async ({ page }) => {
   const root = picker(page), before = await output(page).textContent()
-  await commit(root, "Hexadecimal", "nothex")
+  await commit(root, "Hexadecimal", "NOTHEX")
+  await expect(root.getByRole("textbox", { name: "Hexadecimal" })).toHaveValue("nothex")
   await expect(root.getByRole("textbox", { name: "Hexadecimal" })).toHaveAttribute("aria-invalid", "true")
   await expect(hue(root)).toHaveAttribute("aria-disabled", "true"); await expect(root.getByRole("textbox", { name: "Red", exact: true })).toBeDisabled()
   await expect(output(page)).toHaveText(before!)
+  await commit(root, "Hexadecimal", "#GGGGGG"); await expect(root.getByRole("textbox", { name: "Hexadecimal" })).toHaveValue("#GGGGGG")
+  await root.getByRole("button", { name: "Change Color Mode" }).click()
+  await expect(root.getByRole("textbox", { name: "Hexadecimal" })).toHaveValue("gggggg")
   await root.locator(".fiori-color-picker__main").click({ position: { x: 128, y: 128 } })
   await expect(root.getByRole("textbox", { name: "Hexadecimal" })).not.toHaveAttribute("aria-invalid")
   await expect(hue(root)).not.toHaveAttribute("aria-disabled")
