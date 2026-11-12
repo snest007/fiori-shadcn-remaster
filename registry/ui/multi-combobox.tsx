@@ -655,11 +655,13 @@ function MultiComboBox({
     setPhoneSelected(phoneSnapshot.current.selected)
     if (selectedProp === undefined) setUncontrolledSelected(phoneSnapshot.current.selected)
     setValue(phoneSnapshot.current.value)
+    // MultiComboBox.js/handleCancel restores the owning value. Its next
+    // onBeforeRendering filters the restored source when the field reopens;
+    // the dialog-local Input independently retains its previous edit text.
+    setTyped(phoneSnapshot.current.value)
     if (openProp === undefined) setUncontrolledOpen(false)
     onOpenChange?.(false)
     setFilterSelected(false)
-    // handleCancel restores value/selection, but keeps _shouldFilterItems and
-    // the phone Input's typed filter for a subsequent field-click opening.
     setInvalid(false)
   }
   const acceptPhone = () => {

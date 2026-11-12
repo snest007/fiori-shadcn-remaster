@@ -18,7 +18,17 @@ async function expectDeepFocus(locator: Locator) {
     return active === element
   })).toBe(true)
 }
+async function awaitPhoneRender(holder: Locator, native: boolean) {
+  // UI5 Popup open/close and Input edits can schedule owning List renders after
+  // the surface first appears. Await its supported lifecycle before the next action.
+  if (native) await holder.evaluate(async (element: any) => element.phoneRenderFinished())
+}
+async function fillPhone(page: Page, holder: Locator, native: boolean, value: string) {
+  await phoneInput(page, native).fill(value)
+  await awaitPhoneRender(holder, native)
+}
 async function openField(page: Page, holder: Locator, kind: string, native: boolean) {
+  await awaitPhoneRender(holder, native)
   const field = kind === "select" ? holder.getByRole("combobox").first() : fieldInput(holder, kind, native)
   if (native && kind === "multi-input") {
     // MultiInput.js/innerFocusIn expands its Tokenizer before pointerup, shrinking
@@ -32,6 +42,7 @@ async function openField(page: Page, holder: Locator, kind: string, native: bool
   await expect(dialog(page, native)).toBeVisible()
   await expect(dialog(page, native)).toHaveCSS("width", "375px")
   await expect(dialog(page, native)).toHaveCSS("height", "667px")
+  await awaitPhoneRender(holder, native)
 }
 
 test.describe("D1a phone popup contracts", () => {
@@ -72,25 +83,25 @@ test.describe("D1a phone popup contracts", () => {
       await openField(page, holder, "combobox", native)
       const inner = phoneInput(page, native)
       await expect(inner).toBeFocused()
-      await inner.fill("Ge")
+      await fillPhone(page, holder, native, "Ge")
       await expect(surface(page, holder, native).getByRole("option", { name: /Germany/ })).toBeVisible()
       await (native ? holder : dialog(page, false)).getByRole("button", { name: "Cancel", exact: true }).click()
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(input).toHaveValue("")
       await openField(page, holder, "combobox", native)
-      await inner.fill("Custom country")
+      await fillPhone(page, holder, native, "Custom country")
       await expect(dialog(page, native)).toBeVisible()
       await (native ? holder : dialog(page, false)).getByRole("button", { name: "OK", exact: true }).click()
       await expect(input).toHaveValue("Custom country")
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(input).not.toBeFocused()
       await openField(page, holder, "combobox", native)
-      await inner.fill("Aus")
+      await fillPhone(page, holder, native, "Aus")
       await page.keyboard.press("Escape")
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(input).toHaveValue("Custom country")
       await openField(page, holder, "combobox", native)
-      await inner.fill("Ger")
+      await fillPhone(page, holder, native, "Ger")
       await surface(page, holder, native).getByRole("option", { name: /Germany/ }).click()
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(input).toHaveValue("Germany")
@@ -129,12 +140,12 @@ test.describe("D1a phone popup contracts", () => {
       await expect(native ? holder.locator("ui5-responsive-popover").getByRole("option") : surface(page, holder, false).getByRole("option")).toHaveCount(1)
       await surface(page, holder, native).getByRole("button", { name: "Show selected tokens", exact: true }).click()
       await expect(native ? holder.locator("ui5-suggestion-item").getByRole("option") : surface(page, holder, false).getByRole("option")).toHaveCount(4)
-      await inner.fill("Custom")
+      await fillPhone(page, holder, native, "Custom")
       await (native ? holder : dialog(page, false)).getByRole("button", { name: "Cancel", exact: true }).click()
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(input).toHaveValue("")
       await openField(page, holder, "multi-input", native)
-      await inner.fill("Custom")
+      await fillPhone(page, holder, native, "Custom")
       await (native ? holder : dialog(page, false)).getByRole("button", { name: "OK", exact: true }).click()
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(input).toHaveValue("Custom")
@@ -162,7 +173,7 @@ test.describe("D1a phone popup contracts", () => {
     test(`${label} MultiComboBox mobile Enter reports selection before its toggle`, async ({ page }) => {
       const holder = await visit(page, "multi-combobox", native, "&uncontrolled")
       await openField(page, holder, "multi-combobox", native)
-      await phoneInput(page, native).fill("Germany")
+      await fillPhone(page, holder, native, "Germany")
       await phoneInput(page, native).press("Enter")
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["selection:"]')
@@ -184,6 +195,7 @@ test.describe("D1a phone popup contracts", () => {
       const holder = await visit(page, "multi-combobox", native, "&external-open")
       await holder.getByRole("button", { name: "Open changed field", exact: true }).click()
       await expect(dialog(page, native)).toBeVisible()
+      await awaitPhoneRender(holder, native)
       // The native phone Input template omits value; its first external-open
       // header stays blank while the owning field supplies the Cancel snapshot.
       await expect(phoneInput(page, native)).toHaveValue("")
@@ -192,7 +204,11 @@ test.describe("D1a phone popup contracts", () => {
       await expect(option).toHaveAttribute("aria-selected", "true")
       await (native ? option.locator("ui5-checkbox") : option.getByRole("checkbox", { includeHidden: true })).click()
       await expect(option).toHaveAttribute("aria-selected", "false")
-      await phoneInput(page, native).fill("Germany")
+      await fillPhone(page, holder, native, "Germany")
+      await expect(fieldInput(holder, "multi-combobox", native)).toHaveValue("Germany")
+      const filtered = native ? holder.locator("ui5-mcb-item").getByRole("option") : dialog(page, false).getByRole("option")
+      await expect(filtered).toHaveCount(1)
+      await expect(filtered).toContainText("Germany")
       await surface(page, holder, native).getByRole("button", { name: "Cancel", exact: true }).click()
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(fieldInput(holder, "multi-combobox", native)).toHaveValue("Australia")
@@ -201,9 +217,9 @@ test.describe("D1a phone popup contracts", () => {
       await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
       await openField(page, holder, "multi-combobox", native)
       await expect(phoneInput(page, native)).toHaveValue("Germany")
-      const filtered = native ? holder.locator("ui5-mcb-item").getByRole("option") : dialog(page, false).getByRole("option")
+      await expect(fieldInput(holder, "multi-combobox", native)).toHaveValue("Australia")
       await expect(filtered).toHaveCount(1)
-      await expect(filtered).toContainText("Germany")
+      await expect(filtered).toContainText("Australia")
       await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["change:Australia"]')
     })
     test(`${label} keyboard-opened Select restores focus after Escape and Cancel`, async ({ page }) => {
@@ -226,7 +242,7 @@ test.describe("D1a phone popup contracts", () => {
     test(`${label} MultiInput retains token view while typing and restores suggestion focus`, async ({ page }) => {
       const holder = await visit(page, "multi-input", native, "-tokens")
       await openField(page, holder, "multi-input", native)
-      await phoneInput(page, native).fill("Custom")
+      await fillPhone(page, holder, native, "Custom")
       const toggle = surface(page, holder, native).getByRole("button", { name: "Show selected tokens", exact: true })
       await expect(toggle).toHaveAttribute("aria-pressed", "true")
       await expect(native ? holder.locator("ui5-responsive-popover").getByRole("option") : surface(page, holder, false).getByRole("option")).toHaveCount(1)
@@ -265,12 +281,12 @@ test.describe("D1a phone popup contracts", () => {
       test(`${label} ${kind} phone Input Enter leaves the dialog open`, async ({ page }) => {
         const holder = await visit(page, kind, native)
         await openField(page, holder, kind, native)
-        await phoneInput(page, native).fill("Custom")
+        await fillPhone(page, holder, native, "Custom")
         await phoneInput(page, native).press("Enter")
         await expect(dialog(page, native)).toBeVisible()
         await expect(fieldInput(holder, kind, native)).toHaveValue("Custom")
         await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
-        await phoneInput(page, native).fill("Germany")
+        await fillPhone(page, holder, native, "Germany")
         await expect(holder.locator('[data-slot="phone-events"]')).toHaveText(kind === "combobox" ? '["selection:Germany"]' : "[]")
         await phoneInput(page, native).press("Enter")
         await expect(dialog(page, native)).toBeVisible()
@@ -321,7 +337,7 @@ test.describe("D1a phone popup contracts", () => {
       await expect(before).toHaveAttribute("tabindex", "0")
       await expect(firstDelete).toBeVisible()
       await expect(secondDelete).toBeVisible()
-      if (native) await holder.evaluate(async (element: any) => element.phoneRenderFinished())
+      await awaitPhoneRender(holder, native)
       await toggle.press("Tab")
       await expectDeepFocus(before)
       await before.press("Tab")
