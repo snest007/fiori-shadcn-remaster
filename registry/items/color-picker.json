@@ -1,6 +1,6 @@
 {
   "title": "ColorPicker",
   "description": "Fiori color picker with hue, alpha, hexadecimal and RGB/HSL channel inputs.",
-  "registryDependencies": ["@fiori/button", "@fiori/input", "@fiori/label", "@fiori/icons"],
+  "registryDependencies": ["@fiori/button", "@fiori/input", "@fiori/label", "@fiori/slider", "@fiori/icons"],
   "files": [{ "path": "registry/lib/fiori-color.ts", "type": "registry:lib" }]
 }

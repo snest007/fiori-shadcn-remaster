@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { isSliderHandlePressed, sliderValueAt } from "@/components/ui/slider"
 import { colorToRgba, hslToRgb, parseCssColor, rgbToHex, rgbToHsl, type FioriColor, type FioriHslColor } from "@/lib/fiori-color"
 import { expand } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -40,7 +41,7 @@ function ChannelInput({ value, name, disabled, onCommit }: { value: number; name
   return <Input aria-label={name} disabled={disabled} wrapperClassName="fiori-color-picker__channel-input" value={raw} onChange={(event) => setRaw(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === "Enter") commit() }} />
 }
 
-/** ColorPicker's SliderTemplate.js uses a shortened inner scale, so its markup is ported locally. */
+/** ColorPicker's SliderTemplate.js uses a shortened inner scale; retain its markup and reuse Slider interaction math. */
 function PickerSlider({ value, max, step, disabled, name, handleDescription, kind, onValueChange }: {
   value: number; max: number; step: number; disabled: boolean; name: string; handleDescription: string; kind: "hue" | "alpha"; onValueChange: (value: number) => void
 }) {
@@ -53,10 +54,7 @@ function PickerSlider({ value, max, step, disabled, name, handleDescription, kin
   }
   const fromPointer = (clientX: number) => {
     // SliderBase.js handleDownBase/computedValueFromPageX maps the complete host, not its shortened visual scale.
-    const element = hostRef.current!
-    const rect = element.getBoundingClientRect()
-    const ratio = getComputedStyle(element).direction === "rtl" ? (rect.right - clientX) / rect.width : (clientX - rect.left) / rect.width
-    update(Math.round(ratio * max / step) * step)
+    update(sliderValueAt({ clientX }, hostRef.current!, 0, max, step))
   }
   return <div ref={hostRef} data-slot={`color-picker-${kind}-slider`} data-disabled={disabled ? "" : undefined} className={`fiori-color-picker__slider fiori-color-picker__slider--${kind}`}>
     <div className="fiori-color-picker__slider-root" onPointerDown={(event) => {
@@ -65,7 +63,7 @@ function PickerSlider({ value, max, step, disabled, name, handleDescription, kin
       // SliderBase.js handleDownBase focuses first; Slider.js _onmousedown captures the pre-pointer value for Escape.
       handleRef.current?.focus()
       atFocus.current ??= valueRef.current
-      if (!handleRef.current?.contains(event.target as Node)) fromPointer(event.clientX)
+      if (!isSliderHandlePressed(event.clientX, handleRef.current)) fromPointer(event.clientX)
       const move = (e: PointerEvent) => fromPointer(e.clientX)
       const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up) }
       window.addEventListener("pointermove", move); window.addEventListener("pointerup", up)
