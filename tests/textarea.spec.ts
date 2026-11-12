@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 
 test.describe("TextArea", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/textarea`)
     await page.waitForSelector("html[data-ready=true]")
   })
 

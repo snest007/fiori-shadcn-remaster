@@ -1,9 +1,10 @@
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
+import { readdirSync, readFileSync } from "node:fs"
 
 for (const theme of ["sap_horizon", "sap_horizon_dark", "sap_horizon_hcb", "sap_horizon_hcw"]) {
   test(`docs page has no axe violations (${theme})`, async ({ page }) => {
-    await page.goto(`/index.html?theme=${theme}`)
+    await page.goto(`/index.html?theme=${theme}#/all`)
     await page.waitForSelector("html[data-ready=true]")
     const results = await new AxeBuilder({ page })
       // Disabled controls are exempt from contrast rules; SAP's own disabled opacity is 0.4.
@@ -14,18 +15,43 @@ for (const theme of ["sap_horizon", "sap_horizon_dark", "sap_horizon_hcb", "sap_
 }
 
 test("text contrast meets WCAG AA in Morning Horizon", async ({ page }) => {
-  await page.goto(`/index.html?theme=sap_horizon`)
+  await page.goto(`/index.html?theme=sap_horizon#/all`)
   await page.waitForSelector("html[data-ready=true]")
   const results = await new AxeBuilder({ page }).withRules(["color-contrast"]).exclude("[disabled]").exclude("[data-disabled]").analyze()
   expect(results.violations.flatMap((v) => v.nodes.map((n) => n.target.join(" ")))).toEqual([])
 })
+
+// The installable helper entries (PickerField / variants) and compound-demo entries are routes too.
+// Read the actual Registry inventory so adding a component cannot silently reduce docs coverage.
+const componentRoutes = readdirSync(new URL("../registry/items/", import.meta.url))
+  .filter((name) => name.endsWith(".json"))
+  .map((file) => ({ name: file.replace(/\.json$/, ""), title: JSON.parse(readFileSync(new URL(`../registry/items/${file}`, import.meta.url), "utf8")).title as string }))
+const publicRoutes = [...componentRoutes, { name: "icons", title: "SAP Horizon icons" }, { name: "floorplans", title: "Floorplans" }]
+for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
+  for (const route of publicRoutes) {
+    test(`docs route ${route.name} has no axe violations (${theme})`, async ({ page }) => {
+      await page.goto(`/index.html?theme=${theme}#/${route.name}`)
+      await page.waitForSelector("html[data-ready=true]")
+      const main = page.locator("main[data-docs-route]")
+      await expect(main).toHaveAttribute("data-docs-route", route.name)
+      await expect(main.getByRole("heading", { level: 1, name: route.title, exact: true })).toBeVisible()
+      await expect(page.locator(`#docs-navigation a[href="#/${route.name}"]`)).toHaveAttribute("aria-current", "page")
+      if (route.name !== "floorplans") await expect(main.locator("pre").first()).toHaveText(`npx shadcn add @fiori/${route.name}`)
+      const results = await new AxeBuilder({ page })
+        // Preserve the all-demo contrast check above, including SAP's disabled opacity exception.
+        .disableRules(["color-contrast"])
+        .analyze()
+      expect(results.violations.map((v) => `${v.id}: ${v.nodes.length} node(s) — ${v.help}`)).toEqual([])
+    })
+  }
+}
 
 // The Select's popup list (other listboxes on the page, e.g. SegmentedButton, don't count).
 const selectList = (page: import("@playwright/test").Page) => page.locator('[role="listbox"][data-slot="select-content"]')
 
 test.describe("Select keyboard (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/select`)
     await page.waitForSelector("html[data-ready=true]")
     await page.locator("#country").focus()
   })
@@ -69,7 +95,7 @@ test.describe("Select keyboard (Fiori model)", () => {
 })
 
 test("input value state message shows on focus and is announced", async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/input`)
   await page.waitForSelector("html[data-ready=true]")
   const input = page.locator("#name")
   await input.fill("ab")
@@ -83,7 +109,7 @@ test("input value state message shows on focus and is announced", async ({ page 
 })
 
 test("button focus ring only appears for keyboard focus", async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/button`)
   await page.waitForSelector("html[data-ready=true]")
   const save = page.getByRole("button", { name: "Save" })
   await save.click()

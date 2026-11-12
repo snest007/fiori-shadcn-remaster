@@ -88,4 +88,20 @@ function OverrideFilterDemo() {
   )
 }
 
-export default defineDemo({ title: "FilterBar", order: 66, Demo: FilterBarDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [{
+    name: "filter-bar",
+    description: "Business filters with basic search, saved variants and an Adapt Filters dialog.",
+    props: [
+      { name: "FilterBar.filters", type: "FilterDefinition[]", description: "Field definitions shared with Adapt Filters." },
+      { name: "FilterBar.state", type: "FilterBarState", description: "Complete controlled filter and basic-search state." },
+      { name: "FilterBar.onStateChange", type: "(state: FilterBarState) => void", description: "Receive committed changes to the complete state." },
+      { name: "FilterBar.initialState", type: "FilterBarState", description: "Reset baseline of the selected saved view." },
+      { name: "FilterBar.variantManagement", type: "ReactNode", description: "Saved-view control placed in the header." },
+      { name: "FilterBar.onGo", type: "() => void", description: "Execute search after Go or the keyboard shortcut." },
+      { name: "FilterBar.liveMode", type: "boolean", description: "Search after every committed condition change.", defaultValue: "false" },
+      { name: "FilterBar.onAdaptFilters", type: "() => void", description: "Override the built-in Adapt Filters editor." },
+    ],
+  }],
+  title: "FilterBar", order: 66, Demo: FilterBarDemo })

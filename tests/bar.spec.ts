@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 test("bar has no role by default and keeps start / middle / end order", async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/bar`)
   await page.waitForSelector("html[data-ready=true]")
   const bar = page.locator('[data-slot="bar"][data-design="header"]').first()
   expect(await bar.getAttribute("role")).toBeNull()

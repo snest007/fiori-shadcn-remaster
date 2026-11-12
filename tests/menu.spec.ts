@@ -16,7 +16,7 @@ const open = async (page: Page, how: "click" | "Enter" | "Space" | "ArrowDown") 
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/menu`)
   await page.waitForSelector("html[data-ready=true]")
 })
 

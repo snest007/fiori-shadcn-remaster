@@ -27,7 +27,7 @@ async function result(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/index.html")
+  await page.goto("/index.html#/adapt-filters-dialog")
   await page.waitForSelector("html[data-ready=true]")
 })
 

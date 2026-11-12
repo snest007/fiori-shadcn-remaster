@@ -45,4 +45,19 @@ function FormDemo() {
   )
 }
 
-export default defineDemo({ title: "Form", order: 71, Demo: FormDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "form",
+      description: "Responsive labelled groups in display or edit mode.",
+      props: [
+        { name: "Form.layout", type: "string", description: "Responsive column counts.", defaultValue: "S1 M1 L2 XL3" },
+        { name: "Form.labelSpan", type: "string", description: "Responsive label column spans.", defaultValue: "S12 M4 L4 XL4" },
+        { name: "Form.accessibleMode", type: "display | edit", description: "Definition-list or editable-form semantics.", defaultValue: "display" },
+        { name: "Form.headerText", type: "string", description: "Form title." },
+        { name: "FormGroup.headerText", type: "string", description: "Group title." },
+      ],
+    },
+  ],
+ title: "Form", order: 71, Demo: FormDemo })

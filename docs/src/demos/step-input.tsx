@@ -26,4 +26,19 @@ function StepInputDemo() {
   )
 }
 
-export default defineDemo({ title: "StepInput", order: 32, Demo: StepInputDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "step-input",
+      description: "Numeric entry with stepping, limits and decimal validation.",
+      props: [
+        { name: "StepInput.value", type: "number", description: "Controlled numeric value." },
+        { name: "StepInput.onValueChange", type: "(value: number) => void", description: "Receive a committed value after stepping, Enter or blur." },
+        { name: "StepInput.step", type: "number", description: "Amount added or removed per small step.", defaultValue: "1" },
+        { name: "StepInput.min / StepInput.max", type: "number", description: "Allowed range." },
+        { name: "StepInput.valuePrecision", type: "number", description: "Displayed decimal places.", defaultValue: "0" },
+      ],
+    },
+  ],
+ title: "StepInput", order: 32, Demo: StepInputDemo })

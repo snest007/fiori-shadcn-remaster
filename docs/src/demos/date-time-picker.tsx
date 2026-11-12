@@ -20,4 +20,19 @@ function DateTimePickerDemo() {
   )
 }
 
-export default defineDemo({ title: "DateTimePicker", order: 64, Demo: DateTimePickerDemo })
+export default defineDemo({
+  category: "Dates",
+  docs: [
+    {
+      name: "date-time-picker",
+      description: "Combined calendar and clock selection for a date and time.",
+      props: [
+        { name: "DateTimePicker.value", type: "string", description: "Controlled date-time text." },
+        { name: "DateTimePicker.onValueChange", type: "(value: string, date: Date | null) => void", description: "Receive committed text and its parsed date-time." },
+        { name: "DateTimePicker.formatPattern", type: "string", description: "Date-time pattern or named format style." },
+        { name: "DateTimePicker.open", type: "boolean", description: "Controlled picker state." },
+        { name: "DateTimePicker.locale", type: "string", description: "Formatting locale.", defaultValue: "en-US" },
+      ],
+    },
+  ],
+ title: "DateTimePicker", order: 64, Demo: DateTimePickerDemo })

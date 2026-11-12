@@ -1,7 +1,7 @@
 import { expect, test, type Locator } from "@playwright/test"
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/index.html")
+  await page.goto("/index.html#/media-gallery")
   await page.waitForSelector("html[data-ready=true]")
 })
 const gallery = (page: { locator: (selector: string) => Locator }) => page.locator("#media-gallery-demo #media-gallery-basic")

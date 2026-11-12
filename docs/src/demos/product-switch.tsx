@@ -41,4 +41,19 @@ function ProductSwitchDemo() {
   )
 }
 
-export default defineDemo({ title: "Product Switch", order: 61, Demo: ProductSwitchDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "product-switch",
+      description: "Keyboard-navigable product tiles with links and activation callbacks.",
+      props: [
+        { name: "ProductSwitch.accessibleName", type: "string", description: "Accessible name of the product list.", defaultValue: "Products" },
+        { name: "ProductSwitchItem.titleText", type: "string", description: "Product title." },
+        { name: "ProductSwitchItem.subtitleText", type: "string", description: "Secondary product text." },
+        { name: "ProductSwitchItem.icon", type: "FioriIconData", description: "Product icon." },
+        { name: "ProductSwitchItem.targetSrc", type: "string", description: "Destination that makes the tile a link." },
+        { name: "ProductSwitchItem.onClick", type: "(event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>) => void", description: "Receive product activation by pointer or keyboard." },
+      ],
+    },
+  ], title: "Product Switch", order: 61, Demo: ProductSwitchDemo })

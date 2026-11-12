@@ -42,4 +42,18 @@ function AutoSizeDialog() {
   </Dialog>
 }
 
-export default defineDemo({ title: "Dialog drag and resize", order: 31, Demo: () => <div id="dialog-demo" className="flex flex-wrap gap-2"><MovableDialog /><MovableDialog rtl /><AutoSizeDialog /></div> })
+export default defineDemo({
+  category: "Overlays",
+  docs: [
+    {
+      name: "dialog",
+      description: "Dialog movement and resizing with keyboard and pointer controls.",
+      props: [
+        { name: "DialogContent.draggable", type: "boolean", description: "Allow moving the surface from its header.", defaultValue: "false" },
+        { name: "DialogContent.resizable", type: "boolean", description: "Allow resizing the surface.", defaultValue: "false" },
+        { name: "DialogContent.movementTexts", type: "Partial<DialogMovementTexts>", description: "Override movement and resize labels." },
+        { name: "DialogContent.style", type: "CSSProperties", description: "Set the initial surface size." },
+      ],
+    },
+  ],
+ title: "Dialog drag and resize", order: 31, Demo: () => <div id="dialog-demo" className="flex flex-wrap gap-2"><MovableDialog /><MovableDialog rtl /><AutoSizeDialog /></div> })

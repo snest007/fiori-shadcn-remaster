@@ -135,4 +135,52 @@ function Overlays() {
   )
 }
 
-export default defineDemo({ title: "Dialog, Popover, Menu, Toast", order: 30, Demo: Overlays })
+export default defineDemo({
+  category: "Overlays",
+  docs: [
+    {
+      name: "dialog",
+      description: "Modal surfaces with labelled content, value states and focus management.",
+      props: [
+        { name: "Dialog.open", type: "boolean", description: "Controlled open state." },
+        { name: "Dialog.onOpenChange", type: "(open: boolean) => void", description: "Receive open-state changes." },
+        { name: "Dialog.modal", type: "boolean", description: "Trap focus and block outside interaction.", defaultValue: "true" },
+        { name: "DialogContent.state", type: "ValueState", description: "Semantic state of the dialog.", defaultValue: "none" },
+        { name: "DialogContent.portal", type: "boolean", description: "Render the surface through a portal.", defaultValue: "true" },
+      ],
+    },
+    {
+      name: "popover",
+      description: "Anchored supplementary content with configurable placement.",
+      props: [
+        { name: "Popover.open", type: "boolean", description: "Controlled popup state." },
+        { name: "Popover.onOpenChange", type: "(open: boolean) => void", description: "Receive popup-state changes." },
+        { name: "PopoverContent.side", type: "top | right | bottom | left", description: "Preferred side of the opener.", defaultValue: "right" },
+        { name: "PopoverContent.align", type: "start | center | end", description: "Alignment relative to the opener.", defaultValue: "center" },
+        { name: "PopoverContent.hideArrow", type: "boolean", description: "Hide the directional arrow.", defaultValue: "false" },
+      ],
+    },
+    {
+      name: "menu",
+      description: "Action menus with icons, shortcuts and nested submenus.",
+      props: [
+        { name: "Menu.open", type: "boolean", description: "Controlled root menu state." },
+        { name: "Menu.onOpenChange", type: "(open: boolean) => void", description: "Receive root menu-state changes." },
+        { name: "MenuItem.icon", type: "FioriIconData", description: "Leading item icon." },
+        { name: "MenuItem.additionalText", type: "ReactNode", description: "Shortcut or secondary text." },
+        { name: "MenuItem.onSelect", type: "(event: Event) => void", description: "Receive item activation; preventDefault retains the menu." },
+      ],
+    },
+    {
+      name: "toast",
+      description: "Transient status feedback positioned relative to the viewport.",
+      props: [
+        { name: "Toast.open", type: "boolean", description: "Controlled visibility." },
+        { name: "Toast.onOpenChange", type: "(open: boolean) => void", description: "Receive visibility changes." },
+        { name: "Toast.duration", type: "number", description: "Automatic dismissal delay in milliseconds.", defaultValue: "3000" },
+        { name: "Toast.placement", type: "ToastPlacement", description: "Viewport placement.", defaultValue: "bottom-center" },
+        { name: "Toast.portal", type: "boolean", description: "Render outside the surrounding layout.", defaultValue: "true" },
+      ],
+    },
+  ],
+ title: "Dialog, Popover, Menu, Toast", order: 30, Demo: Overlays })

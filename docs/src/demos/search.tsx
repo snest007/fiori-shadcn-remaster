@@ -29,4 +29,21 @@ function SearchDemo() {
   )
 }
 
-export default defineDemo({ title: "Search", order: 64, Demo: SearchDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "search",
+      description: "Search fields with typeahead suggestions, scopes and cancellable search requests.",
+      props: [
+        { name: "Search.value", type: "string", description: "Controlled user-entered text." },
+        { name: "Search.onValueChange", type: "(value: string) => void", description: "Receive typing changes without typeahead completions." },
+        { name: "Search.onSearch", type: "(detail: { value: string; item?: string; preventDefault: () => void }) => void", description: "Receive Enter, search-icon and suggestion activation." },
+        { name: "Search.scopes", type: "SearchScope[]", description: "Available search scopes." },
+        { name: "Search.onScopeChange", type: "(value: string) => void", description: "Receive the selected scope value." },
+        { name: "Search.open", type: "boolean", description: "Controlled suggestion popup state." },
+        { name: "Search.onOpenChange", type: "(open: boolean) => void", description: "Receive suggestion popup changes." },
+        { name: "Search.accessibleName", type: "string", description: "Name the field and its search landmark." },
+      ],
+    },
+  ], title: "Search", order: 64, Demo: SearchDemo })

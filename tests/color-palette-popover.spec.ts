@@ -28,7 +28,7 @@ async function pressTo(page: Page, key: string, target: Locator) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/index.html")
+  await page.goto("/index.html#/color-palette-popover")
   await page.waitForSelector("html[data-ready=true]")
 })
 
@@ -200,7 +200,7 @@ for (const [direction, placement, side] of [["ltr", "Start", "left"], ["ltr", "E
 
 test("color-palette-popover: Left and Right aliases remain physical in both directions", async ({ page }) => {
   for (const direction of ["ltr", "rtl"] as const) for (const placement of ["Left", "Right"] as const) {
-    await page.goto("/index.html")
+    await page.goto(`/index.html?case=${direction}-${placement}#/color-palette-popover`)
     await page.waitForSelector("html[data-ready=true]")
     const { button, popup } = await preparePlacement(page, direction, placement)
     await expectPlacement(button, popup, placement === "Left" ? "left" : "right", direction)

@@ -85,4 +85,21 @@ function TabsDemo() {
   )
 }
 
-export default defineDemo({ title: "Tabs (IconTabBar)", order: 30, Demo: TabsDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "tabs",
+      description: "Text and icon tab bars with semantic designs and responsive overflow menus.",
+      props: [
+        { name: "Tabs.value", type: "string", description: "Controlled selected tab value." },
+        { name: "Tabs.onValueChange", type: "(value: string) => void", description: "Receive the selected tab value." },
+        { name: "Tabs.headerBackground", type: "solid | transparent | translucent", description: "Header background presentation.", defaultValue: "solid" },
+        { name: "Tabs.overflowMode", type: "end | startAndEnd", description: "Overflow placement around the selected tab.", defaultValue: "end" },
+        { name: "TabsTrigger.value", type: "string", description: "Required tab identifier." },
+        { name: "TabsTrigger.icon", type: "FioriIconData", description: "Icon displayed in an icon tab." },
+        { name: "TabsTrigger.additionalText", type: "ReactNode", description: "Count or supplementary tab text." },
+        { name: "TabsContent.value", type: "string", description: "Tab value whose panel content is displayed." },
+      ],
+    },
+  ], title: "Tabs (IconTabBar)", order: 30, Demo: TabsDemo })

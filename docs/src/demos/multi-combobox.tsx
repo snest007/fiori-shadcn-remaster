@@ -90,4 +90,19 @@ function MultiComboBoxDemo() {
   )
 }
 
-export default defineDemo({ title: "MultiComboBox", order: 38, Demo: MultiComboBoxDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "multi-combobox",
+      description: "Multiple selected options as tokens, with separate editable field text.",
+      props: [
+        { name: "MultiComboBox.selectedValues", type: "string[]", description: "Controlled values of selected items." },
+        { name: "MultiComboBox.onSelectionChange", type: "(values: string[]) => void", description: "Receive selected option values." },
+        { name: "MultiComboBox.value", type: "string", description: "Controlled text typed in the field." },
+        { name: "MultiComboBox.showSelectAll", type: "boolean", description: "Show the select-all checkbox." },
+        { name: "MultiComboBox.noValidation", type: "boolean", description: "Allow text that matches no item." },
+      ],
+    },
+  ],
+ title: "MultiComboBox", order: 38, Demo: MultiComboBoxDemo })

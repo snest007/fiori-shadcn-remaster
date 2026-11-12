@@ -21,4 +21,19 @@ function DateRangePickerDemo() {
   )
 }
 
-export default defineDemo({ title: "DateRangePicker", order: 62, Demo: DateRangePickerDemo })
+export default defineDemo({
+  category: "Dates",
+  docs: [
+    {
+      name: "date-range-picker",
+      description: "Date ranges selected in a calendar or entered as formatted text.",
+      props: [
+        { name: "DateRangePicker.value", type: "string", description: "Controlled formatted range." },
+        { name: "DateRangePicker.onValueChange", type: "(value: string, start: Date | null, end: Date | null) => void", description: "Receive committed text and parsed range endpoints." },
+        { name: "DateRangePicker.delimiter", type: "string", description: "Separator between formatted dates.", defaultValue: "-" },
+        { name: "DateRangePicker.formatPattern", type: "string", description: "Date pattern or named format style." },
+        { name: "DateRangePicker.locale", type: "string", description: "Formatting locale.", defaultValue: "en-US" },
+      ],
+    },
+  ],
+ title: "DateRangePicker", order: 62, Demo: DateRangePickerDemo })

@@ -71,7 +71,7 @@ F1 and F2 can run in parallel after F0.
 ## Wave E — quality infrastructure (any time; E1 first)
 
 - [x] [E1 Interaction-state visual fixtures](tasks/E1-interaction-fixtures.md) — M
-- [ ] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
+- [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
 - [ ] [E3 Publish: GitHub + registry hosting](tasks/E3-publish.md) — S (needs the owner's accounts — do last, with the owner)
 
 ## Out of scope (owner's decision)

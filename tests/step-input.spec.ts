@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test"
 
 test.describe("StepInput (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/step-input`)
     await page.waitForSelector("html[data-ready=true]")
     await page.locator("#si-qty").focus()
   })

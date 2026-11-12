@@ -29,4 +29,19 @@ function IllustratedMessageDemo() {
   )
 }
 
-export default defineDemo({ title: "IllustratedMessage", order: 60, Demo: IllustratedMessageDemo })
+export default defineDemo({
+  category: "Display",
+  docs: [
+    {
+      name: "illustrated-message",
+      description: "Responsive illustrated empty, error and success states with optional actions.",
+      props: [
+        { name: "IllustratedMessage.illustration", type: "IllustrationData", description: "Required illustration data imported from fiori-illustrations." },
+        { name: "IllustratedMessage.design", type: "Auto | Base | Dot | Spot | Dialog | Scene", description: "Fixed illustration design or responsive sizing.", defaultValue: "Auto" },
+        { name: "IllustratedMessage.titleText", type: "ReactNode", description: "Override the illustration title; null hides it." },
+        { name: "IllustratedMessage.subtitleText", type: "ReactNode", description: "Override the illustration subtitle; null hides it." },
+        { name: "IllustratedMessage.titleLevel", type: "H1 | H2 | H3 | H4 | H5 | H6", description: "Semantic title heading level.", defaultValue: "H2" },
+        { name: "IllustratedMessage.children", type: "ReactNode", description: "Actions shown below the subtitle, except in Base design." },
+      ],
+    },
+  ], title: "IllustratedMessage", order: 60, Demo: IllustratedMessageDemo })

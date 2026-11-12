@@ -41,4 +41,20 @@ function CarouselDemo() {
   )
 }
 
-export default defineDemo({ title: "Carousel", order: 62, Demo: CarouselDemo })
+export default defineDemo({
+  category: "Display",
+  docs: [
+    {
+      name: "carousel",
+      description: "Responsive paged content with arrows, indicators and optional cyclic navigation.",
+      props: [
+        { name: "Carousel.pageIndex", type: "number", description: "Controlled page index, starting at zero." },
+        { name: "Carousel.defaultPageIndex", type: "number", description: "Initial page index when uncontrolled.", defaultValue: "0" },
+        { name: "Carousel.onNavigate", type: "(pageIndex: number) => void", description: "Receive page changes made by the user." },
+        { name: "Carousel.itemsPerPage", type: "string", description: "Items per page at each responsive breakpoint.", defaultValue: "S1 M1 L1 XL1" },
+        { name: "Carousel.cyclic", type: "boolean", description: "Wrap navigation at either end.", defaultValue: "false" },
+        { name: "Carousel.pageIndicatorType", type: "Default | Numeric", description: "Dots, switching to numbers for many pages, or always numeric.", defaultValue: "Default" },
+        { name: "Carousel.arrowsPlacement", type: "Content | Navigation", description: "Show arrows over content or beside the indicator.", defaultValue: "Content" },
+      ],
+    },
+  ], title: "Carousel", order: 62, Demo: CarouselDemo })

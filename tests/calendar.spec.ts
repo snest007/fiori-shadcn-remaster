@@ -12,7 +12,7 @@ const today = () => {
 
 test.describe("Calendar (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/calendar")
     await page.waitForSelector("html[data-ready=true]")
     await demo(page).locator('[role=gridcell][tabindex="0"]').focus()
   })

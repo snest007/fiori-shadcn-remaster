@@ -4,7 +4,21 @@ import { Menu, MenuContent, MenuGroup, MenuItem, MenuSeparator, MenuSub, MenuSub
 import { copy } from "@/lib/fiori-icons"
 import { defineDemo } from "./types"
 
-export default defineDemo({ title: "Checkable menu", order: 43, Demo: () => {
+export default defineDemo({
+  category: "Overlays",
+  docs: [
+    {
+      name: "menu",
+      description: "Checkable menu groups with persistent selected states.",
+      props: [
+        { name: "MenuGroup.checkMode", type: "none | single | multiple", description: "Checking model for direct child menu items.", defaultValue: "none" },
+        { name: "MenuItem.checked", type: "boolean", description: "Controlled checked state." },
+        { name: "MenuItem.defaultChecked", type: "boolean", description: "Initial uncontrolled checked state." },
+        { name: "MenuItem.onCheckedChange", type: "(checked: boolean) => void", description: "Receive the next checked state." },
+      ],
+    },
+  ],
+ title: "Checkable menu", order: 43, Demo: () => {
   const [changes, setChanges] = React.useState<string[]>([])
   const [controlled, setControlled] = React.useState(false)
   const [controlledChoice, setControlledChoice] = React.useState<string | undefined>("A")

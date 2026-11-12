@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/object-page`)
   await page.waitForSelector("html[data-ready=true]")
   await page.locator("#object-page-demo").scrollIntoViewIfNeeded()
 })

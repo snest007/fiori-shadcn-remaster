@@ -65,4 +65,20 @@ function UploadCollectionDemo() {
   )
 }
 
-export default defineDemo({ title: "UploadCollection", order: 64, Demo: UploadCollectionDemo })
+export default defineDemo({
+  category: "Data",
+  docs: [
+    {
+      name: "upload-collection",
+      description: "Uploaded-file items with progress, retries, deletion and file drops.",
+      props: [
+        { name: "UploadCollection.onDropFiles", type: "(files: File[]) => void", description: "Receive files dropped on the collection." },
+        { name: "UploadCollection.header", type: "ReactNode", description: "Custom header, such as a toolbar." },
+        { name: "UploadCollectionItem.fileName", type: "string", description: "File name shown for an item." },
+        { name: "UploadCollectionItem.uploadState", type: "complete | error | ready | uploading", description: "Current upload state.", defaultValue: "ready" },
+        { name: "UploadCollectionItem.progress", type: "number", description: "Upload completion percentage.", defaultValue: "0" },
+        { name: "UploadCollectionItem.onRetry", type: "() => void", description: "Request another upload attempt." },
+      ],
+    },
+  ],
+ title: "UploadCollection", order: 64, Demo: UploadCollectionDemo })

@@ -119,4 +119,18 @@ function ObjectPageDemo() {
   )
 }
 
-export default defineDemo({ title: "ObjectPage", order: 73, Demo: ObjectPageDemo })
+export default defineDemo({
+  title: "ObjectPage", order: 73, Demo: ObjectPageDemo, category: "Layout",
+  docs: [{
+    name: "object-page",
+    description: "Object details with a dynamic header and section anchors or tabs.",
+    props: [
+      { name: "ObjectPage.mode", type: "anchor | tabs", description: "Scroll between sections or show one tab at a time.", defaultValue: "anchor" },
+      { name: "ObjectPage.selectedSection", type: "string", description: "Controlled selected section ID." },
+      { name: "ObjectPage.onSelectedSectionChange", type: "(id: string) => void", description: "Receive section navigation and scroll-spy changes." },
+      { name: "ObjectPage.showAnchorBar", type: "boolean", description: "Show section navigation.", defaultValue: "true" },
+      { name: "ObjectPageSection.id / ObjectPageSection.titleText", type: "string", description: "Required section identity and navigation label." },
+      { name: "ObjectPageSubSection.titleText", type: "string", description: "Optional subsection heading." },
+    ],
+  }],
+})

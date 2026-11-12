@@ -112,4 +112,19 @@ function MediaGalleryDemo() {
     </div>
   )
 }
-export default defineDemo({ title: "MediaGallery", order: 63, Demo: MediaGalleryDemo })
+export default defineDemo({
+  category: "Display",
+  docs: [{
+    name: "media-gallery",
+    description: "Selected media with responsive thumbnail navigation and overflow handling.",
+    props: [
+      { name: "MediaGallery.layout", type: "Auto | Horizontal | Vertical", description: "Responsive or fixed thumbnail orientation.", defaultValue: "Auto" },
+      { name: "MediaGallery.showAllThumbnails", type: "boolean", description: "Show all thumbnails instead of the overflow tile.", defaultValue: "false" },
+      { name: "MediaGallery.interactiveDisplayArea", type: "boolean", description: "Make the displayed media area interactive.", defaultValue: "false" },
+      { name: "MediaGallery.onSelectionChange", type: "(item: MediaGalleryItemElement) => void", description: "Receive the selected item element and its properties." },
+      { name: "MediaGallery.onOverflowClick", type: "() => void", description: "Handle activation of the thumbnail overflow." },
+      { name: "MediaGalleryItem.selected", type: "boolean", description: "Request an item's selection." },
+      { name: "MediaGalleryItem.thumbnail", type: "ReactNode", description: "Use separate content for the item's thumbnail." },
+    ],
+  }],
+  title: "MediaGallery", order: 63, Demo: MediaGalleryDemo })

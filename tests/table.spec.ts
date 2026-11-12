@@ -1,7 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/all`)
   await page.waitForSelector("html[data-ready=true]")
 })
 

@@ -81,4 +81,21 @@ function SideNavigationDemo() {
   )
 }
 
-export default defineDemo({ title: "SideNavigation", order: 70, Demo: SideNavigationDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "side-navigation",
+      description: "Grouped application navigation with collapsed popovers and responsive overflow.",
+      props: [
+        { name: "SideNavigation.value", type: "string", description: "Controlled selected item value." },
+        { name: "SideNavigation.onValueChange", type: "(value: string) => void", description: "Receive selection of another item." },
+        { name: "SideNavigation.onItemClick", type: "(value: string | undefined) => void", description: "Receive every item activation, including the current item." },
+        { name: "SideNavigation.onItemToggle", type: "(value: string | undefined, expanded: boolean) => void", description: "Receive item or group expansion changes." },
+        { name: "SideNavigation.collapsed", type: "boolean", description: "Show icons and sub-item popovers; inherits NavigationLayout when omitted." },
+        { name: "SideNavigation.fixedItems", type: "ReactNode", description: "Items pinned at the bottom." },
+        { name: "SideNavigationItem.href", type: "string", description: "Navigation destination for an item." },
+        { name: "SideNavigationGroup.defaultExpanded", type: "boolean", description: "Initial group expansion state.", defaultValue: "false" },
+      ],
+    },
+  ], title: "SideNavigation", order: 70, Demo: SideNavigationDemo })

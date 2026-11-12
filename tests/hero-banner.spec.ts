@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 test("hero banner shows a heading and its actions; the landmark role is configurable", async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/hero-banner`)
   await page.waitForSelector("html[data-ready=true]")
   const root = page.locator("#hero-banner-demo")
   await expect(root.getByRole("region", { name: "Welcome" })).toBeVisible()
@@ -10,7 +10,7 @@ test("hero banner shows a heading and its actions; the landmark role is configur
 })
 
 test("under 600px the columns stack", async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/hero-banner`)
   await page.waitForSelector("html[data-ready=true]")
   const root = page.locator("#hero-banner-demo")
   const start = root.locator(".fiori-hero-banner__block-start")

@@ -136,4 +136,20 @@ function ToolbarDemo() {
   )
 }
 
-export default defineDemo({ title: "Toolbar", order: 50, Demo: ToolbarDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "toolbar",
+      description: "Keyboard-navigable toolbars with stable controls and responsive action overflow.",
+      props: [
+        { name: "Toolbar.alignContent", type: "start | end", description: "Content alignment.", defaultValue: "end" },
+        { name: "Toolbar.design", type: "solid | transparent", description: "Toolbar presentation.", defaultValue: "solid" },
+        { name: "Toolbar.overflowButtonLabel", type: "string", description: "Accessible name of the overflow opener.", defaultValue: "Additional Options" },
+        { name: "ToolbarButton.overflowPriority", type: "default | neverOverflow | alwaysOverflow", description: "How the action participates in overflow.", defaultValue: "default" },
+        { name: "ToolbarButton.preventOverflowClosing", type: "boolean", description: "Keep the overflow popup open after activation.", defaultValue: "false" },
+        { name: "ToolbarButton.onClick", type: "React.MouseEventHandler<HTMLButtonElement>", description: "Receive activation in either toolbar or overflow." },
+        { name: "ToolbarItem.overflowPriority", type: "default | neverOverflow | alwaysOverflow", description: "Overflow policy for a wrapped arbitrary control.", defaultValue: "default" },
+      ],
+    },
+  ], title: "Toolbar", order: 50, Demo: ToolbarDemo })

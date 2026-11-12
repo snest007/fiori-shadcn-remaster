@@ -9,7 +9,7 @@ const more = (page: Page) => tokenizer(page).locator(".fiori-tokenizer__more")
 
 test.describe("Tokenizer (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/tokenizer`)
     await page.waitForSelector("html[data-ready=true]")
   })
 

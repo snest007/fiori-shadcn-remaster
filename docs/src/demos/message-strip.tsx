@@ -30,4 +30,19 @@ function MessageStripDemo() {
   )
 }
 
-export default defineDemo({ title: "MessageStrip", order: 30, Demo: MessageStripDemo })
+export default defineDemo({
+  category: "Display",
+  docs: [
+    {
+      name: "message-strip",
+      description: "Inline semantic messages with optional icons and caller-managed dismissal.",
+      props: [
+        { name: "MessageStrip.design", type: "MessageStripDesign", description: "Semantic state or indication color-set design.", defaultValue: "information" },
+        { name: "MessageStrip.colorScheme", type: "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10", description: "Indication color for color-set designs.", defaultValue: "1" },
+        { name: "MessageStrip.hideIcon", type: "boolean", description: "Hide the state icon." },
+        { name: "MessageStrip.hideCloseButton", type: "boolean", description: "Hide the dismiss action." },
+        { name: "MessageStrip.onClose", type: "() => void", description: "Receive dismissal requests; remove the strip in the caller." },
+        { name: "MessageStrip.closeButtonText", type: "string", description: "Override the close button label and tooltip." },
+      ],
+    },
+  ], title: "MessageStrip", order: 30, Demo: MessageStripDemo })

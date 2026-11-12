@@ -13,7 +13,7 @@ const narrow = async (page: Page, width: string) => {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/shell-bar`)
   await page.waitForSelector("html[data-ready=true]")
 })
 

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/avatar`)
   await page.waitForSelector("html[data-ready=true]")
 })
 
@@ -183,7 +183,7 @@ for (const custom of [false, true]) {
       counts.push(Number(await oracle.getAttribute("data-avatar-test-clicks")))
     }
 
-    await page.goto("/index.html")
+    await page.goto("/index.html#/avatar")
     await page.waitForSelector("html[data-ready=true]")
     const demo = page.locator("#avatar-demo")
     const overflow = demo.locator(custom ? "#avatar-overflow-custom" : "#avatar-overflow-individual")

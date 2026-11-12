@@ -6,7 +6,7 @@ const options = (page: Page) => page.locator(".fiori-search__popover").getByRole
 const last = (page: Page) => page.locator("#search-demo-last")
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/search`)
   await page.waitForSelector("html[data-ready=true]")
   await input(page).focus()
 })

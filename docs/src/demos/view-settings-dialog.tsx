@@ -30,4 +30,19 @@ function ViewSettingsDialogDemo() {
   )
 }
 
-export default defineDemo({ title: "ViewSettingsDialog", order: 65, Demo: ViewSettingsDialogDemo })
+export default defineDemo({
+  category: "Overlays",
+  docs: [{
+    name: "view-settings-dialog",
+    description: "Configure sorting, filtering and grouping through a staged dialog.",
+    props: [
+      { name: "ViewSettingsDialog.open", type: "boolean", description: "Controlled dialog visibility." },
+      { name: "ViewSettingsDialog.onOpenChange", type: "(open: boolean) => void", description: "Receive visibility changes." },
+      { name: "ViewSettingsDialog.sortItems / ViewSettingsDialog.groupItems", type: "SortItem[]", description: "Sort and group criteria with initial selections." },
+      { name: "ViewSettingsDialog.filterItems", type: "FilterItem[]", description: "Filter criteria and their selectable values." },
+      { name: "ViewSettingsDialog.onConfirm", type: "(settings: ViewSettings) => void", description: "Receive the confirmed view settings." },
+      { name: "ViewSettingsDialog.onCancel", type: "(settings: ViewSettings) => void", description: "Receive the restored settings on cancellation." },
+      { name: "ViewSettingsDialog.texts", type: "Partial<ViewSettingsTexts>", description: "Override labels and tooltips." },
+    ],
+  }],
+  title: "ViewSettingsDialog", order: 65, Demo: ViewSettingsDialogDemo })

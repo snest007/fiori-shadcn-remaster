@@ -15,7 +15,7 @@ const selected = (page: Page) => page.getByTestId("multi-combobox-selected")
 
 test.describe("MultiComboBox (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/multi-combobox`)
     await page.waitForSelector("html[data-ready=true]")
   })
 
@@ -202,7 +202,7 @@ async function openGroupList(page: Page) {
 
 test.describe("MultiComboBox item groups", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/multi-combobox")
     await page.waitForSelector("html[data-ready=true]")
   })
 
@@ -366,7 +366,7 @@ async function openRangeList(page: Page, mixed = false) {
 // selection and callback outcomes; the React guards avoid the native exceptions.
 test.describe("MultiComboBox grouped ranges", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/multi-combobox")
     await page.waitForSelector("html[data-ready=true]")
   })
 

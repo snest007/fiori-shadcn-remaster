@@ -13,7 +13,7 @@ const requests = (page: Page) => growingDemo(page).locator("#notification-list-g
 // Construct the same two-group data on the installed UI5 oracle and the growing demo.
 // Remove prefix-matched sibling fixtures so Tab has an explicit, shared destination.
 async function growingKeyboardOracle(page: Page, reference: boolean) {
-  await page.goto(reference ? "/ui5.html?only=notification-list-growing-button" : "/index.html")
+  await page.goto(reference ? "/ui5.html?only=notification-list-growing-button" : "/index.html#/notification-list")
   await page.waitForSelector("html[data-ready=true]")
   if (reference) {
     await page.evaluate(() => {
@@ -161,7 +161,7 @@ async function requestDelayedScroll(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/notification-list`)
   await page.waitForSelector("html[data-ready=true]")
 })
 
@@ -822,7 +822,7 @@ test("notification-list: More requests preserve local child busy state unless na
             group.items[0].loading = true
           }, callback)
         } else {
-          await page.goto("/index.html")
+          await page.goto("/index.html#/notification-list")
           await page.waitForSelector("html[data-ready=true]")
           const demo = page.locator("#notification-list-local-loading-demo")
           await demo.getByLabel("Local loading callback").selectOption(callback)

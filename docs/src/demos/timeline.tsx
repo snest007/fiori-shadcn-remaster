@@ -43,4 +43,20 @@ function TimelineDemo() {
   )
 }
 
-export default defineDemo({ title: "Timeline", order: 61, Demo: TimelineDemo })
+export default defineDemo({
+  category: "Data",
+  docs: [
+    {
+      name: "timeline",
+      description: "Chronological events with grouping, semantic states and growing.",
+      props: [
+        { name: "Timeline.layout", type: "Vertical | Horizontal", description: "Event arrangement.", defaultValue: "Vertical" },
+        { name: "Timeline.growing", type: "None | Button | Scroll", description: "Loading affordance.", defaultValue: "None" },
+        { name: "Timeline.onLoadMore", type: "() => void", description: "Request more events." },
+        { name: "Timeline.loading", type: "boolean", description: "Show loading feedback.", defaultValue: "false" },
+        { name: "TimelineItem.titleText", type: "string", description: "Event title." },
+        { name: "TimelineGroupItem.onToggle", type: "(collapsed: boolean) => void", description: "Receive group collapse changes." },
+      ],
+    },
+  ],
+ title: "Timeline", order: 61, Demo: TimelineDemo })

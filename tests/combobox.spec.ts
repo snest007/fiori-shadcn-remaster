@@ -9,7 +9,7 @@ const selection = (page: Page) =>
 
 test.describe("ComboBox (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/combobox`)
     await page.waitForSelector("html[data-ready=true]")
     await page.locator("#cb-country").focus()
   })
@@ -139,7 +139,7 @@ const groupSelection = (page: Page) => page.locator('#combobox-demo [data-testid
 
 test.describe("ComboBox item groups", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/combobox")
     await page.waitForSelector("html[data-ready=true]")
     await groupInput(page).focus()
   })

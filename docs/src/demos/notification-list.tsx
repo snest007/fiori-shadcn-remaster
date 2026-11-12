@@ -171,4 +171,21 @@ function NotificationListDemo() {
   )
 }
 
-export default defineDemo({ title: "Notification List", order: 63, Demo: NotificationListDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "notification-list",
+      description: "Grouped notifications with activation, dismissal and caller-managed growing.",
+      props: [
+        { name: "NotificationList.onItemClick", type: "(value: string) => void", description: "Receive notification activation." },
+        { name: "NotificationList.onItemClose", type: "(value: string) => void", description: "Receive dismissal requests; remove the item in the caller." },
+        { name: "NotificationList.onItemToggle", type: "(value: string, collapsed: boolean) => void", description: "Receive notification-group collapse changes." },
+        { name: "NotificationListItem.titleText", type: "string", description: "Notification title." },
+        { name: "NotificationListItem.read", type: "boolean", description: "Use a regular-weight title for a read notification." },
+        { name: "NotificationListGroupItem.collapsed", type: "boolean", description: "Controlled group collapse state." },
+        { name: "NotificationListGroupItem.growing", type: "none | button | scroll", description: "Request more notifications through a button or scroll.", defaultValue: "none" },
+        { name: "NotificationListGroupItem.onLoadMore", type: "() => void", description: "Request additional stable-keyed notifications." },
+      ],
+    },
+  ], title: "Notification List", order: 63, Demo: NotificationListDemo })

@@ -6,7 +6,7 @@ const NNBSP = " "
 
 test.describe("TimePicker (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/time-picker")
     await page.waitForSelector("html[data-ready=true]")
     await page.locator("#time-picker-main").focus()
   })
@@ -95,7 +95,7 @@ test.describe("TimePicker (Fiori model)", () => {
 
 test.describe("DateTimePicker", () => {
   test("pick a day and a time, then OK", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/date-time-picker")
     await page.waitForSelector("html[data-ready=true]")
     const input = page.locator("#date-time-picker-main")
     await expect(input).toHaveAttribute("aria-roledescription", "Date Time Input")

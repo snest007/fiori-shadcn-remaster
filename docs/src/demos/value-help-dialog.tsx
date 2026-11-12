@@ -72,4 +72,19 @@ function ValueHelpDialogDemo() {
   )
 }
 
-export default defineDemo({ title: "ValueHelpDialog", order: 67, Demo: ValueHelpDialogDemo })
+export default defineDemo({
+  category: "Overlays",
+  docs: [{
+    name: "value-help-dialog",
+    description: "Select business values from a searchable table or define filter conditions.",
+    props: [
+      { name: "ValueHelpDialog.open / ValueHelpDialog.onOpenChange", type: "boolean / (open: boolean) => void", description: "Control dialog visibility." },
+      { name: "ValueHelpDialog.columns / ValueHelpDialog.items", type: "ValueHelpColumn[] / ValueHelpItem[]", description: "Table column definitions and candidate values." },
+      { name: "ValueHelpDialog.keyField", type: "string", description: "Column used as the selected business key." },
+      { name: "ValueHelpDialog.selectionMode", type: "single | multiple", description: "Allow one value or multiple selected values and conditions.", defaultValue: "multiple" },
+      { name: "ValueHelpDialog.defaultValue", type: "ValueHelpValue", description: "Initial selection when the dialog opens." },
+      { name: "ValueHelpDialog.onSearch", type: "(query: { search: string; filters: Record<string, string> }) => void", description: "Handle server-side search; omit to filter items locally." },
+      { name: "ValueHelpDialog.onConfirm", type: "(result: ValueHelpResult) => void", description: "Receive confirmed values and conditions." },
+    ],
+  }],
+  title: "ValueHelpDialog", order: 67, Demo: ValueHelpDialogDemo })

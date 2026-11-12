@@ -74,4 +74,20 @@ function BreadcrumbsDemo() {
   )
 }
 
-export default defineDemo({ title: "Breadcrumbs", order: 40, Demo: BreadcrumbsDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "breadcrumbs",
+      description: "Navigation trails with keyboard navigation and responsive ancestor overflow.",
+      props: [
+        { name: "Breadcrumbs.design", type: "standard | no-current-page", description: "Whether the final item represents the current page.", defaultValue: "standard" },
+        { name: "Breadcrumbs.separators", type: "BreadcrumbsSeparator", description: "Separator style between ancestors.", defaultValue: "slash" },
+        { name: "Breadcrumbs.overflowOpen", type: "boolean", description: "Controlled overflow popup state." },
+        { name: "Breadcrumbs.onOverflowOpenChange", type: "(open: boolean) => void", description: "Receive overflow popup changes." },
+        { name: "Breadcrumbs.overflowLabel", type: "string", description: "Accessible name of the overflow arrow.", defaultValue: "More" },
+        { name: "BreadcrumbsItem.href", type: "string", description: "Ancestor navigation destination." },
+        { name: "BreadcrumbsItem.onClick", type: "React.MouseEventHandler<HTMLAnchorElement>", description: "Receive activation; preventDefault cancels navigation." },
+      ],
+    },
+  ], title: "Breadcrumbs", order: 40, Demo: BreadcrumbsDemo })

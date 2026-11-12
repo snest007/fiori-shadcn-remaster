@@ -22,4 +22,19 @@ function RatingIndicatorDemo() {
   )
 }
 
-export default defineDemo({ title: "RatingIndicator", order: 61, Demo: RatingIndicatorDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "rating-indicator",
+      description: "Star ratings with interactive, read-only and display-only modes.",
+      props: [
+        { name: "RatingIndicator.value", type: "number", description: "Controlled rating." },
+        { name: "RatingIndicator.onValueChange", type: "(value: number) => void", description: "Receive rating changes." },
+        { name: "RatingIndicator.max", type: "number", description: "Number of stars.", defaultValue: "5" },
+        { name: "RatingIndicator.size", type: "S | M | L", description: "Star size.", defaultValue: "M" },
+        { name: "RatingIndicator.displayOnly", type: "boolean", description: "Render smaller stars without a keyboard stop." },
+      ],
+    },
+  ],
+ title: "RatingIndicator", order: 61, Demo: RatingIndicatorDemo })

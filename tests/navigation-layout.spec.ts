@@ -5,7 +5,7 @@ const sideNav = (page: Page) => demo(page).locator("[data-slot=side-navigation]"
 const toggle = (page: Page) => demo(page).getByRole("button", { name: "Toggle navigation" })
 
 test("auto mode is expanded on wide screens; the menu button collapses it", async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/navigation-layout`)
   await page.waitForSelector("html[data-ready=true]")
   await expect(sideNav(page)).not.toHaveAttribute("data-collapsed")
   await expect(demo(page).getByRole("tree", { name: "Primary Navigation Menu" })).toBeVisible()
@@ -18,7 +18,7 @@ test("auto mode is expanded on wide screens; the menu button collapses it", asyn
 
 test("small screens: collapsed by default, expanded covers the content, choosing an item collapses", async ({ page }) => {
   await page.setViewportSize({ width: 480, height: 800 })
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/navigation-layout`)
   await page.waitForSelector("html[data-ready=true]")
   const aside = demo(page).locator("aside")
   await expect(sideNav(page)).toHaveAttribute("data-collapsed", "")

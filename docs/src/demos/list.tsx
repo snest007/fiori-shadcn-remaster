@@ -128,4 +128,20 @@ function ListDemo() {
   )
 }
 
-export default defineDemo({ title: "List", order: 36, Demo: ListDemo })
+export default defineDemo({
+  category: "Data",
+  docs: [
+    {
+      name: "list",
+      description: "Selectable item lists with keyboard navigation, growing and move requests.",
+      props: [
+        { name: "List.selectionMode", type: "ListSelectionMode", description: "Selection or delete mode.", defaultValue: "none" },
+        { name: "List.value", type: "string[]", description: "Controlled selected item values in every mode." },
+        { name: "List.onValueChange", type: "(value: string[], detail: { item: string; selected: boolean }) => void", description: "Receive selection values and the changed item." },
+        { name: "List.onItemClick", type: "(value: string) => void", description: "Receive activation of an item." },
+        { name: "List.growing", type: "none | button | scroll", description: "Loading affordance.", defaultValue: "none" },
+        { name: "ListItemStandard.movable", type: "boolean", description: "Allow drag and keyboard move requests." },
+      ],
+    },
+  ],
+ title: "List", order: 36, Demo: ListDemo })

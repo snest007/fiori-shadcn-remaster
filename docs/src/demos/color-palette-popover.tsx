@@ -239,4 +239,19 @@ function ColorPalettePopoverDemo() {
   </div>
 }
 
-export default defineDemo({ title: "ColorPalettePopover", order: 63, Demo: ColorPalettePopoverDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "color-palette-popover",
+      description: "A color palette popup anchored to an external opener.",
+      props: [
+        { name: "ColorPalettePopover.open", type: "boolean", description: "Controlled popup request." },
+        { name: "ColorPalettePopover.opener", type: "HTMLElement | RefObject<HTMLElement | null> | string | null", description: "Opener element, ref or element ID." },
+        { name: "ColorPalettePopover.onOpenChange", type: "(open: boolean) => void", description: "Receive open or dismissal changes." },
+        { name: "ColorPalettePopover.placement", type: "Bottom | Top | Start | End | Left | Right", description: "Preferred popup placement.", defaultValue: "Bottom" },
+        { name: "ColorPalettePopover.onItemClick", type: "(detail: { color: string }) => void", description: "Receive a selected color before dismissal." },
+      ],
+    },
+  ],
+ title: "ColorPalettePopover", order: 63, Demo: ColorPalettePopoverDemo })
