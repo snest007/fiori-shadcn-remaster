@@ -65,3 +65,12 @@
 }
 .fiori-color-palette-item:not([data-disabled]):not([data-selected]):not(:hover) .fiori-color-palette-item__inner:focus-visible::after { border: var(--fiori-color-palette-item-after-focus-not-selected-border); }
 .fiori-color-palette-item[data-selected]:not([data-disabled]) .fiori-color-palette-item__inner:focus-visible::before { inset: var(--fiori-color-palette-item-selected-focused-border-before); }
+
+/* ColorPalette.css.js More Colors surface and ColorPaletteDialog.css.js dialog composition. */
+.fiori-color-palette__more-wrapper { display:flex; flex-direction:column; width:100%; }
+.fiori-color-palette__more { height:var(--fiori-color-palette-button-height); text-align:center; border:none; padding:.0625rem; border-radius:0; }
+.fiori-color-palette__dialog-content { display:flex; justify-content:center; align-items:center; margin:1rem 0; }
+.fiori-color-palette__dialog .fiori-popup__footer { height:auto; }
+/* PopupsCommon.css.js ::slotted([slot="footer"]) sets the full content height before its vertical margins. */
+.fiori-color-palette__dialog-footer { height:var(--fiori-popup-footer-height); width:100%; display:flex; justify-content:flex-end; margin:.1875rem 1rem; }
+.fiori-color-palette__dialog-footer button:first-child { margin-right:1rem; }

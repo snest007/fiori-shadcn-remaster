@@ -150,7 +150,7 @@ function ColorPaletteDemo() {
       <Button id="color-palette-remount" onClick={() => setMounted(!mounted)}>Toggle palette</Button>
       <Button id="color-palette-external" onClick={() => setExternal(!external)}>Toggle selected property</Button>
     </div>
-    {mounted && <ColorPalette id="color-palette-control" showDefaultColor={showDefault} defaultColor="rgb(1, 2, 3)" showRecentColors showMoreColors
+    {mounted && <ColorPalette id="color-palette-control" showDefaultColor={showDefault} defaultColor="rgb(1, 2, 3)" showRecentColors
       onClick={(event) => setPaletteClicks((history) => [...history, (event.target as HTMLElement).dataset.slot === "color-palette-item" ? "host" : "inner"])}
       onItemClick={({ color }) => setEvents((history) => [...history, color])}>
       {paletteColors.slice(0, count).map((value, index) => <ColorPaletteItem key={index} value={value} selected={external && index === 7}

@@ -29,7 +29,7 @@ test("color-palette: numeric color utilities preserve palette history strings", 
   expect(colorContrast({ r: 0, g: 0, b: 0, a: 1 }, { r: 255, g: 255, b: 255, a: 1 })).toBe(21)
 })
 
-test("color-palette: five columns, disabled painted recent slots, no deferred More Colors", async ({ page }) => {
+test("color-palette: five columns, disabled painted recent slots, More Colors is opt-in", async ({ page }) => {
   const root = control(page), main = swatches(root)
   await expect(main).toHaveCount(15)
   await expect(root.locator(".fiori-color-palette__recent [data-slot=color-palette-item]")).toHaveCount(5)
