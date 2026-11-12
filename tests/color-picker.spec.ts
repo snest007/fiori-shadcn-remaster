@@ -233,7 +233,7 @@ test("color-picker: canceled dialog retains invalid Hex and HSL while runtime se
   await commit(dialog(page), "Hexadecimal", "00ff00"); await expect(dialog(page).getByRole("textbox", { name: "Saturation", exact: true })).toBeEnabled()
 })
 
-test("color-picker: reopening invalid HSL draft focuses Hex and its error surface like native", async ({ page, context }, testInfo) => {
+test("color-picker: reopening invalid HSL draft settles on Hue after native dialog open delegation", async ({ page, context }, testInfo) => {
   const native = await context.newPage()
   try {
     await native.goto("/ui5.html?only=color-picker-alpha"); await native.waitForSelector("html[data-ready=true]")
@@ -246,7 +246,14 @@ test("color-picker: reopening invalid HSL draft focuses Hex and its error surfac
     })
     const nativePalette = native.locator("#color-picker-focus-native-palette"), nativeDialog = nativePalette.locator("ui5-dialog"), nativePicker = nativeDialog.locator("ui5-color-picker")
     const more = palette(page).getByRole("button", { name: "More Colors...", exact: true }), nativeMore = nativePalette.getByRole("button", { name: "More Colors...", exact: true })
-    const openBoth = async () => { await more.click(); await nativeMore.click(); await expect(dialog(page)).toBeVisible(); await expect(nativeDialog).toBeVisible() }
+    // Popup.js applies traversal before ui5-open; ColorPalette's open callback then delegates asynchronously to Hue.
+    await nativeDialog.evaluate((element) => element.addEventListener("ui5-open", () => { element.setAttribute("data-c2-open-count", String(Number(element.getAttribute("data-c2-open-count") ?? 0) + 1)) }))
+    let opens = 0
+    const openBoth = async () => {
+      await more.click(); await nativeMore.click(); await expect(dialog(page)).toBeVisible(); await expect(nativeDialog).toBeVisible()
+      await expect(nativeDialog).toHaveAttribute("data-c2-open-count", String(++opens))
+      await expect(hue(nativePicker)).toBeFocused(); await expect(hue(dialog(page))).toBeFocused()
+    }
     const message = (root: Locator, isNative: boolean) => root.locator(isNative ? ".ui5-color-picker-hex-input .ui5-valuestatemessage-popover" : ".fiori-color-picker__hex .fiori-value-state-message")
     await openBoth(); await expect(hue(dialog(page))).toBeFocused(); await expect(hue(nativePicker)).toBeFocused()
     for (const [root, isNative] of [[dialog(page), false], [nativePicker, true]] as const) {
@@ -270,12 +277,17 @@ test("color-picker: reopening invalid HSL draft focuses Hex and its error surfac
       await expect(hex).toHaveValue("nothex"); await expect(hex).toHaveAttribute("aria-invalid", "true")
       await expect(hue(root)).toHaveAttribute("tabindex", "-1"); await expect(hue(root)).toHaveAttribute("aria-disabled", "true")
       await expect(root.getByRole("textbox", { name: "Saturation", exact: true })).toBeDisabled()
-      await expect(hex).toBeFocused(); await expect(hue(root)).not.toBeFocused(); await expect(error).toBeVisible(); await expect(error).toContainText("Invalid entry")
-      proof.push({ surface: isNative ? "UI5" : "React", hex: await hex.inputValue(), invalid: await hex.getAttribute("aria-invalid"), hueTabIndex: await hue(root).getAttribute("tabindex"), hexFocused: await hex.evaluate((element) => element.getRootNode() instanceof ShadowRoot ? (element.getRootNode() as ShadowRoot).activeElement === element : document.activeElement === element), errorVisible: await error.isVisible(), errorText: await error.innerText() })
+      await expect(hue(root)).toBeFocused(); await expect(hex).not.toBeFocused(); await expect(error).toBeHidden()
+      proof.push({ surface: isNative ? "UI5" : "React", hex: await hex.inputValue(), invalid: await hex.getAttribute("aria-invalid"), hueTabIndex: await hue(root).getAttribute("tabindex"), hueFocused: await hue(root).evaluate((element) => element.getRootNode() instanceof ShadowRoot ? (element.getRootNode() as ShadowRoot).activeElement === element : document.activeElement === element), hexFocused: false, errorVisible: await error.isVisible(), errorText: await error.innerText() })
     }
     await testInfo.attach("c2-reopen-focus-differential.json", { body: JSON.stringify(proof, null, 2), contentType: "application/json" })
     await testInfo.attach("c2-reopen-focus-react.png", { body: await dialog(page).screenshot(), contentType: "image/png" })
-    await testInfo.attach("c2-reopen-focus-native.png", { body: await nativeDialog.getByRole("dialog").screenshot(), contentType: "image/png" })
+    // Native Input renders its error in the popup top layer; the full page retains that surface in the evidence.
+    await testInfo.attach("c2-reopen-focus-native.png", { body: await native.screenshot(), contentType: "image/png" })
+    for (const [root, isNative] of [[dialog(page), false], [nativePicker, true]] as const) {
+      await expect(hue(root)).toBeFocused(); await expect(root.getByRole("textbox", { name: "Hexadecimal", exact: true })).not.toBeFocused()
+      await expect(message(root, isNative)).toBeHidden()
+    }
   } finally { await native.close() }
 })
 

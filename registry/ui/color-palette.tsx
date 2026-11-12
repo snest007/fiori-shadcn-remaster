@@ -392,11 +392,9 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
           onOpenAutoFocus={(event) => {
             moreColorsDialogProps?.onOpenAutoFocus?.(event)
             if (event.defaultPrevented) return
-            // Popup.js applyFocus / Dialog.js _getFirstFocusableElement traverse visible tabbable controls.
-            // ColorPalette.js _onColorPickerDialogOpen must not displace Hex with the disabled Hue anchor.
-            const first = Array.from(pickerRef.current?.querySelectorAll<HTMLElement>('input, button, select, textarea, a[href], area[href], [tabindex]') ?? [])
-              .find((element) => element.tabIndex >= 0 && !element.matches(':disabled, [aria-disabled="true"]') && element.getClientRects().length > 0 && getComputedStyle(element).visibility !== "hidden")
-            if (first) { event.preventDefault(); first.focus() }
+            // ColorPalette.js _onColorPickerDialogOpen delegates through ColorPicker.js getFocusDomRef to Hue.
+            // SliderHandle.js getFocusDomRef returns its host; tabindex=-1 still allows programmatic focus.
+            event.preventDefault(); pickerRef.current?.querySelector<HTMLElement>('[role="slider"]')?.focus()
           }} onEscapeKeyDown={(event) => {
             moreColorsDialogProps?.onEscapeKeyDown?.(event)
             // OpenedPopupsRegistry.js ignores modified Escape; the shared Dialog remains the layer owner.
