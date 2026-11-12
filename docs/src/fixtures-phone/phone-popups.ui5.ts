@@ -22,6 +22,9 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
   const options = longList ? PHONE_LONG_OPTIONS : PHONE_OPTIONS
   const selected = Array.isArray(tokens) ? tokens : tokens ? ["Germany"] : []
   const frame = h("div") as Ui5FixtureElement
+  // Tests await UI5's supported render lifecycle after dynamic phone Lists
+  // appear; this hook lives on the fixture wrapper, outside the native oracle.
+  ;(frame as any).phoneRenderFinished = renderFinished
   frame.id = `${kind}-phone-demo`
   if (new URLSearchParams(location.search).has("nested-rtl")) frame.dir = "rtl"
   frame.style.cssText = "width:375px;height:667px;overflow:hidden"
@@ -56,10 +59,32 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
     // Theme loaders and Input.js/enableSuggestions can defer the phone template
     // past renderFinished(). Await the real Dialog before opening any field.
     const getDialog = () => kind === "responsive-popover" ? field.shadowRoot?.querySelector("ui5-dialog") : field.shadowRoot?.querySelector("ui5-responsive-popover")?.shadowRoot?.querySelector("ui5-dialog")
-    for (let frame = 0; frame < 300 && !getDialog(); frame++) {
+    const sourceReady = () => getDialog() && (kind !== "multi-input" || !!(field as any).Suggestions)
+    for (let frame = 0; frame < 300 && !sourceReady(); frame++) {
       await new Promise((resolve) => requestAnimationFrame(resolve)); await renderFinished()
     }
-    if (!getDialog()) throw new Error(`${kind}: phone dialog was not rendered`)
+    if (!sourceReady()) throw new Error(`${kind}: phone suggestions and dialog were not ready`)
+    // MultiInput/Tokenizer ResizeHandler callbacks can settle after the outer
+    // 375×667 cell stops changing. Await the rendered source geometry itself.
+    await document.fonts.ready
+    let previousGeometry = ""
+    let stableGeometry = 0
+    for (let frame = 0; frame < 300 && stableGeometry < 2; frame++) {
+      await renderFinished()
+      await new Promise((resolve) => requestAnimationFrame(resolve))
+      const source = field as any
+      const tokenizer = kind === "multi-input" ? source.tokenizer : undefined
+      const input = source.nativeInput as HTMLElement | undefined
+      const nodes = [field, ...(input ? [input] : []), ...(tokenizer ? [tokenizer] : [])]
+      const geometry = nodes.map((node) => {
+        const { x, y, width, height } = node.getBoundingClientRect()
+        return `${x},${y},${width},${height}`
+      }).join(";")
+      const rendered = nodes.every((node: any) => !node.isUI5Element || (node._rendered && !node._changedState.length))
+      stableGeometry = rendered && geometry === previousGeometry ? stableGeometry + 1 : 0
+      previousGeometry = geometry
+    }
+    if (stableGeometry < 2) throw new Error(`${kind}: phone source geometry did not settle`)
     if (!new URLSearchParams(location.search).has("interactive")) {
       if (kind === "select") (field as any)._toggleRespPopover()
       else (field as any).open = true

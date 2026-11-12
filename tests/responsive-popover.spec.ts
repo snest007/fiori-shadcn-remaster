@@ -20,7 +20,15 @@ async function expectDeepFocus(locator: Locator) {
 }
 async function openField(page: Page, holder: Locator, kind: string, native: boolean) {
   const field = kind === "select" ? holder.getByRole("combobox").first() : fieldInput(holder, kind, native)
-  await field.click()
+  if (native && kind === "multi-input") {
+    // MultiInput.js/innerFocusIn expands its Tokenizer before pointerup, shrinking
+    // the source input from the token side. Keep a real click inside the overlap.
+    const box = (await field.boundingBox())!
+    const rtl = await field.evaluate((element) => getComputedStyle(element).direction === "rtl")
+    await field.click({ position: { x: box.width * (rtl ? 0.1 : 0.9), y: box.height / 2 } })
+  } else {
+    await field.click()
+  }
   await expect(dialog(page, native)).toBeVisible()
   await expect(dialog(page, native)).toHaveCSS("width", "375px")
   await expect(dialog(page, native)).toHaveCSS("height", "667px")
@@ -299,14 +307,23 @@ test.describe("D1a phone popup contracts", () => {
       await phoneInput(page, native).press("Tab")
       const toggle = surface(page, holder, native).getByRole("button", { name: "Show selected tokens", exact: true })
       await expect(toggle).toBeFocused()
-      await toggle.press("Tab")
+      await expect(toggle).toHaveAttribute("aria-pressed", "true")
       const phoneSurface = native ? holder.locator("ui5-responsive-popover.ui5-suggestions-popover") : dialog(page, false)
       const before = native ? phoneSurface.locator("ui5-list .ui5-list-focusarea").first() : phoneSurface.locator('[data-slot="multi-input-token-before"]')
-      await expectDeepFocus(before)
       const options = phoneSurface.getByRole("option")
       const first = options.filter({ hasText: "Germany" })
       const firstDelete = first.getByRole("button", { name: "Delete", exact: true })
       const secondDelete = options.filter({ hasText: "Australia" }).getByRole("button", { name: "Delete", exact: true })
+      // MultiInput.js/_handlePickerAfterOpen switches to a new List after Dialog
+      // open. List.js/prepareListItems applies Delete mode in a later render.
+      // Visible internal buttons and the marker must exist before native Tab.
+      await expect(options).toHaveCount(2)
+      await expect(before).toHaveAttribute("tabindex", "0")
+      await expect(firstDelete).toBeVisible()
+      await expect(secondDelete).toBeVisible()
+      if (native) await holder.evaluate(async (element: any) => element.phoneRenderFinished())
+      await toggle.press("Tab")
+      await expectDeepFocus(before)
       await before.press("Tab")
       await expect(firstDelete).toBeFocused()
       await first.click()
