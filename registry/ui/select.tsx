@@ -168,6 +168,7 @@ function SelectTrigger({
   readOnly,
   disabled,
   onKeyDown,
+  onKeyUp,
   onPointerDown,
   onClick,
   asChild,
@@ -210,6 +211,20 @@ function SelectTrigger({
         onKeyDown={(e) => {
           onKeyDown?.(e)
           if (e.defaultPrevented || !items || !state || state.open) return
+          // Select.js/_onkeydown/_onkeyup: phone Space opens only on release;
+          // Keys.js/isEnter/isSpace/isShow reject every extra modifier.
+          if (state.phone) {
+            const plain = !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey
+            if (e.key === " " || e.key === "Enter") {
+              e.preventDefault() // also suppress Radix's raw-key opener for modified keys
+              if (plain && e.key === "Enter" && !disabled && !readOnly) state.setOpen(true)
+              return
+            }
+            if (!plain && !(e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && (e.key === "ArrowDown" || e.key === "ArrowUp"))) {
+              if (["ArrowDown", "ArrowUp", "Home", "End", "F4"].includes(e.key)) e.preventDefault()
+              return
+            }
+          }
           if ((e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) || e.key === "F4") {
             e.preventDefault()
             state.setOpen(true)
@@ -219,6 +234,13 @@ function SelectTrigger({
             e.preventDefault()
             const next = items.step(state.value, e.key)
             if (next !== undefined && next !== state.value) state.setValue(next)
+          }
+        }}
+        onKeyUp={(e) => {
+          onKeyUp?.(e)
+          if (!e.defaultPrevented && state?.phone && e.key === " " && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && !disabled && !readOnly) {
+            e.preventDefault()
+            state.setOpen(true)
           }
         }}
         onPointerDown={(e) => {
@@ -267,6 +289,7 @@ function SelectTrigger({
 }
 
 type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content> & {
+  onOpenAutoFocus?: (event: Event) => void
   dialogTitle?: string
   cancelText?: string
   dialogLabel?: string
@@ -280,6 +303,10 @@ function SelectContent({
   position = "popper",
   sideOffset = 4,
   onKeyDown,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
+  onEscapeKeyDown,
+  ref,
   asChild,
   dialogTitle = "All Items",
   cancelText = "Cancel",
@@ -290,8 +317,12 @@ function SelectContent({
   const state = React.useContext(SelectOpenContext)
   const [draft, setDraft] = React.useState(state?.value)
   const phoneList = React.useRef<HTMLDivElement>(null)
+  const typedChars = React.useRef("")
+  const typingTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+  React.useEffect(() => () => clearTimeout(typingTimer.current), [])
   React.useLayoutEffect(() => { if (state?.open) setDraft(state.value) }, [state?.open])
   const closePhone = (escape = false, selected = draft) => {
+    typedChars.current = ""
     if (!escape && selected !== undefined && selected !== state?.value) state?.setValue(selected)
     state?.setOpen(false)
   }
@@ -306,7 +337,7 @@ function SelectContent({
           position === "popper" && "w-(--radix-select-trigger-width)",
           className
         )}
-        {...props} data-sap-ui-fastnavgroup-container="true"
+        {...props} ref={state?.phone ? undefined : ref} onCloseAutoFocus={state?.phone ? undefined : onCloseAutoFocus} onEscapeKeyDown={state?.phone ? undefined : onEscapeKeyDown} data-sap-ui-fastnavgroup-container="true"
         onKeyDown={onKeyDown}
         asChild
       >
@@ -326,26 +357,53 @@ function SelectContent({
   // Keep Radix's hidden item collection for SelectValue, form integration and
   // closed keyboard navigation; the real phone list lives in a stretch Dialog.
   return <>{desktop}<ResponsivePopover dir={state.direction} open={state.open} onOpenChange={(open) => !open && closePhone(true)}>
-    <ResponsivePopoverContent aria-label={dialogLabel ?? (state.phoneState.accessibleName ? `${dialogNamePrefix} ${state.phoneState.accessibleName}` : undefined)} headerText={dialogTitle} phoneField phoneClassName="fiori-select-phone"
+    <ResponsivePopoverContent {...props} ref={ref} className={className} aria-label={props["aria-label"] ?? dialogLabel ?? (state.phoneState.accessibleName ? `${dialogNamePrefix} ${state.phoneState.accessibleName}` : undefined)} headerText={dialogTitle} phoneField phoneClassName="fiori-select-phone"
       phoneHeader={<div className="fiori-responsive-popover__rows"><div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
         {state.phoneState.valueState !== "none" && state.phoneState.valueState !== "positive" && state.phoneState.message != null &&
           <div data-value-state={state.phoneState.valueState} className="fiori-value-state-message fiori-select-phone__message">{state.phoneState.message}</div>}
       </div>}
       phoneFooter={<Button variant="transparent" onClick={() => closePhone()}>{cancelText}</Button>}
-      onOpenAutoFocus={(event) => { event.preventDefault(); phoneList.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus() }}
-      onCloseAutoFocus={(event) => { event.preventDefault(); state.changeTarget.current?.querySelector<HTMLElement>('[data-slot="select-trigger"]')?.focus() }}
-      onEscapeKeyDown={() => closePhone(true)}>
+      onOpenAutoFocus={(event) => { onOpenAutoFocus?.(event); if (event.defaultPrevented) return; event.preventDefault(); phoneList.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus() }}
+      onCloseAutoFocus={(event) => { onCloseAutoFocus?.(event); if (event.defaultPrevented) return; event.preventDefault(); state.changeTarget.current?.querySelector<HTMLElement>('[data-slot="select-trigger"]')?.focus() }}
+      onEscapeKeyDown={(event) => { onEscapeKeyDown?.(event); if (!event.defaultPrevented) closePhone(true) }}
+      onKeyDown={(event) => {
+        onKeyDown?.(event)
+        if (event.defaultPrevented || !phoneList.current?.contains(event.target as Node)) return
+        if ((event.key === "F4" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) || ((event.key === "ArrowDown" || event.key === "ArrowUp") && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey)) { event.preventDefault(); closePhone(); return }
+        const allOptions = [...(phoneList.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
+        const options = allOptions.filter((option) => option.getAttribute("aria-disabled") !== "true")
+        // Select.js/_handleKeyboardNavigation/_searchNextItemByText: Shift is
+        // allowed for printable text, repeated letters cycle, timeout is 1000ms.
+        if (event.key.length === 1 && event.key !== " " && !event.altKey && !event.ctrlKey && !event.metaKey) {
+          typedChars.current += event.key.toLowerCase()
+          const text = /^(.)\1+$/i.test(typedChars.current) ? event.key.toLowerCase() : typedChars.current
+          clearTimeout(typingTimer.current)
+          typingTimer.current = setTimeout(() => { typedChars.current = "" }, 1000)
+          const selected = allOptions.findIndex((option) => option.dataset.value === draft)
+          const ordered = [...allOptions.slice(selected + 1), ...allOptions.slice(0, Math.max(selected, 0))]
+          const next = ordered.find((option) => (option.dataset.textValue ?? option.textContent ?? "").toLowerCase().startsWith(text))
+          // _changeSelectedItem changes selected/focused properties, but does
+          // not move DOM focus. List's own ItemNavigation owns actual focus.
+          if (next) { setDraft(next.dataset.value); next.scrollIntoView({ block: "nearest" }) }
+          return
+        }
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+        const index = options.indexOf(document.activeElement as HTMLElement)
+        // List.js/ItemNavigation: Page keys skip ten enabled items and clamp.
+        const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : event.key === "ArrowDown" ? Math.min(index + 1, options.length - 1) : event.key === "ArrowUp" ? Math.max(index - 1, 0) : event.key === "PageDown" ? Math.min(index + 10, options.length - 1) : event.key === "PageUp" ? Math.max(index - 10, 0) : -1
+        if (index >= 0 && next >= 0) {
+          event.preventDefault(); options[next]?.focus(); options[next]?.scrollIntoView({ block: "nearest" })
+          // Select.js has no Page selection handler: those keys move List focus
+          // only, and the focused row is committed later by Enter/Space.
+          if (event.key !== "PageDown" && event.key !== "PageUp") {
+            const selected = allOptions.findIndex((option) => option.dataset.value === draft)
+            const selectedIndex = event.key === "Home" ? 0 : event.key === "End" ? allOptions.length - 1 : event.key === "ArrowDown" ? Math.min(selected + 1, allOptions.length - 1) : Math.max(selected - 1, 0)
+            setDraft(allOptions[selectedIndex]?.dataset.value)
+          }
+        }
+      }}>
       <PhoneSelectItems.Provider value={{ value: draft, select: (value, close = true) => { setDraft(value); if (close) closePhone(false, value) } }}>
-        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true" onKeyDown={(event) => {
-          onKeyDown?.(event)
-          if (event.defaultPrevented) return
-          if ((event.key === "F4" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) || ((event.key === "ArrowDown" || event.key === "ArrowUp") && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey)) { event.preventDefault(); closePhone(); return }
-          if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
-          const options = [...(phoneList.current?.querySelectorAll<HTMLElement>('[role="option"]:not([aria-disabled="true"])') ?? [])]
-          const index = options.indexOf(document.activeElement as HTMLElement)
-          const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : event.key === "ArrowDown" ? Math.min(index + 1, options.length - 1) : event.key === "ArrowUp" ? Math.max(index - 1, 0) : -1
-          if (next >= 0) { event.preventDefault(); options[next]?.focus(); setDraft(options[next]?.dataset.value) }
-        }}>{children}</div>
+        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true">{children}</div>
       </PhoneSelectItems.Provider>
     </ResponsivePopoverContent>
   </ResponsivePopover></>
@@ -373,12 +431,19 @@ function SelectItem({ className, children, value, disabled = false, asChild, ...
     [ctx, value, disabled]
   )
   const PhoneHost = asChild ? Slot.Root : "div"
-  if (phoneItems) return <PhoneHost {...props} data-slot="select-item" data-value={value} role="option" aria-selected={phoneItems.value === value} aria-disabled={disabled || undefined}
-    tabIndex={phoneItems.value === value ? 0 : -1} data-state={phoneItems.value === value ? "checked" : "unchecked"}
+  if (phoneItems) return <PhoneHost {...props} data-slot="select-item" data-value={value} data-text-value={props.textValue} role="option" aria-selected={phoneItems.value === value} aria-disabled={disabled || undefined}
+    tabIndex={!disabled && phoneItems.value === value ? 0 : -1} data-state={phoneItems.value === value ? "checked" : "unchecked"}
     className={cn("fiori-list-item", className)} onMouseDown={(event) => { props.onMouseDown?.(event); event.preventDefault() }}
     onClick={(event) => { props.onClick?.(event); if (!event.defaultPrevented && !disabled) phoneItems.select(value) }} onKeyDown={(event) => {
       props.onKeyDown?.(event)
-      if (!event.defaultPrevented && !disabled && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); phoneItems.select(value) }
+      // Option.js inherits ListItemBase: Enter presses on keydown; plain Space
+      // only prevents scrolling here and presses on keyup.
+      if (event.defaultPrevented || disabled || event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+      if (event.key === " ") event.preventDefault()
+      if (event.key === "Enter") { event.preventDefault(); phoneItems.select(value) }
+    }} onKeyUp={(event) => {
+      props.onKeyUp?.(event)
+      if (!event.defaultPrevented && !disabled && event.target === event.currentTarget && event.key === " " && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) phoneItems.select(value)
     }}>{children}</PhoneHost>
   return (
     <SelectPrimitive.Item

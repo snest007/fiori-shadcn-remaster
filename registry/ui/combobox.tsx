@@ -180,6 +180,7 @@ function ComboBox({
   const [filterValue, setFilterValue] = React.useState("")
   /** Index (in the visible list) of the item that has virtual focus, -1 = the input has it. */
   const [active, setActive] = React.useState(-1)
+  const [phoneFocused, setPhoneFocused] = React.useState(0)
 
   const inputRef = React.useRef<HTMLInputElement>(null)
   React.useImperativeHandle(ref, () => inputRef.current!, [])
@@ -330,6 +331,13 @@ function ComboBox({
     if (!item || isGroup(item)) return
     pendingSelection.current = [item.text.length, item.text.length]
     setValue(item.text)
+    // ComboBox.js/_selectItem reports selection-change before _fireChangeEvent.
+    // Report synchronously on phones and mark it reported to avoid effect echo.
+    if (phone && prevSelected.current?.text !== item.text) {
+      prevSelected.current = item
+      onSelectionChange?.(item)
+      inputRef.current?.dispatchEvent(new Event("fiori-control-selection-change", { bubbles: true }))
+    }
     commit(item.text)
     setOpen(false)
   }
@@ -344,11 +352,22 @@ function ComboBox({
       key={`${item.text}-${i}`}
       id={optionId(i)}
       role="option"
+      tabIndex={phone ? (i === phoneFocused || i === selected ? 0 : -1) : undefined}
       aria-selected={i === selected}
       data-state={i === selected ? "checked" : undefined}
       data-highlighted={i === active ? "" : undefined}
       className="fiori-list-item fiori-combobox__item"
       onClick={() => choose(i)}
+      onFocus={phone ? () => setPhoneFocused(i) : undefined}
+      onKeyDown={phone ? (event) => {
+        // ComboBoxItem.js inherits ListItemBase's exact-key activation phases.
+        if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+        if (event.key === " ") event.preventDefault()
+        if (event.key === "Enter") { event.preventDefault(); choose(i) }
+      } : undefined}
+      onKeyUp={phone ? (event) => {
+        if (event.target === event.currentTarget && event.key === " " && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) choose(i)
+      } : undefined}
     >
       <span className="fiori-combobox__item-text">{highlight(item.text, filterValue)}</span>
       {item.additionalText && <span className="fiori-combobox__item-additional">{item.additionalText}</span>}
@@ -419,6 +438,23 @@ function ComboBox({
           aria-label={listLabel}
           className="overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()}
+          onKeyDown={phone ? (event) => {
+            if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return
+            const rows = [...(listRef.current?.querySelectorAll<HTMLElement>('[role="option"], [data-slot="combobox-group-header"]') ?? [])]
+            const index = rows.indexOf(event.target as HTMLElement)
+            if (index < 0) return
+            // List.js/ItemNavigation uses actual row focus, a ten-item Page step,
+            // and static boundaries. List Tab forwards around every row.
+            if (event.key === "Tab" && event.shiftKey) {
+              // List.js/onForwardBefore stops propagation after forwarding.
+              // Otherwise Dialog's FocusScope sees the newly focused first
+              // control and wraps the same Shift+Tab to its last footer button.
+              event.preventDefault(); event.stopPropagation(); phoneInputRef.current?.focus(); return
+            }
+            if (event.shiftKey) return
+            const next = event.key === "ArrowDown" ? Math.min(index + 1, rows.length - 1) : event.key === "ArrowUp" ? Math.max(index - 1, 0) : event.key === "Home" ? 0 : event.key === "End" ? rows.length - 1 : event.key === "PageDown" ? Math.min(index + SKIP_ITEMS, rows.length - 1) : event.key === "PageUp" ? Math.max(index - SKIP_ITEMS, 0) : -1
+            if (next >= 0) { event.preventDefault(); rows[next]?.focus(); rows[next]?.scrollIntoView({ block: "nearest" }) }
+          } : undefined}
         >
           {orderedEntries.map((entry, index) => {
             if (!isGroup(entry)) return visible.includes(entry) ? renderItem(entry, visible.indexOf(entry)) : null
@@ -428,6 +464,7 @@ function ComboBox({
               <div key={`group-${index}`} data-slot="combobox-item-group" role="group">
                 {entry.headerText && (
                   <div id={optionId(visible.indexOf(entry))} data-slot="combobox-group-header" role="group" aria-label={entry.headerText}
+                    tabIndex={phone ? (visible.indexOf(entry) === phoneFocused ? 0 : -1) : undefined} onFocus={phone ? () => setPhoneFocused(visible.indexOf(entry)) : undefined}
                     data-highlighted={active === visible.indexOf(entry) ? "" : undefined} className="fiori-combobox__group-header">
                     <span>{entry.headerText}</span>
                   </div>

@@ -345,7 +345,7 @@ function MultiInput({
     phoneHeader: <div className="fiori-responsive-popover__rows">
       <div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
       <div className="fiori-responsive-popover__row fiori-responsive-popover__row--input">
-        <Input ref={phoneInputRef} wrapperClassName="fiori-multi-input-phone__input my-0" aria-label={dialogTitle} placeholder={placeholder} value={value}
+        <Input ref={phoneInputRef} type={props.type} wrapperClassName="fiori-multi-input-phone__input my-0" aria-label={dialogTitle} placeholder={placeholder} value={value}
           // InputSuggestionsTemplate.js supplies no suggestions to this Input.
           // Enter/arrows leave the owning dialog alone; Dialog handles Escape.
           onChange={(e) => { const text = e.target.value; setTyped(text); setValue(text); setActive(-1) }} />

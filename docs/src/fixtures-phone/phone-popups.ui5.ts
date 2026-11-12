@@ -19,7 +19,8 @@ import { ui5State } from "../fixtures/ui5-helpers"
 import set, { PHONE_OPTIONS, PHONE_LONG_OPTIONS } from "./popups"
 
 export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
-  const options = longList ? PHONE_LONG_OPTIONS : PHONE_OPTIONS
+  const query = new URLSearchParams(location.search)
+  const options = longList || query.has("long-list") ? PHONE_LONG_OPTIONS : PHONE_OPTIONS
   const selected = Array.isArray(tokens) ? tokens : tokens ? ["Germany"] : []
   const frame = h("div") as Ui5FixtureElement
   // Tests await UI5's supported render lifecycle after dynamic phone Lists
@@ -29,13 +30,25 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
   if (new URLSearchParams(location.search).has("nested-rtl")) frame.dir = "rtl"
   frame.style.cssText = "width:375px;height:667px;overflow:hidden"
   const attrs = { "accessible-name": "Country", "value-state": ui5State(valueState) }
-  const field = kind === "responsive-popover" ? h("ui5-responsive-popover", { "header-text": "Country" }, h("p", {}, "Choose a country."), h("ui5-button", {}, "Done"))
-    : kind === "select" ? h("ui5-select", attrs, ...options.map((text) => h("ui5-option", { selected: text === "Germany" }, text)))
+  const field = kind === "responsive-popover" ? h("ui5-responsive-popover", { "header-text": "Country", ...(query.has("consumer-props") ? { "accessible-description": "Choose one country for delivery." } : {}) }, h("p", {}, "Choose a country."), h("ui5-button", {}, "Done"))
+    : kind === "select" ? h("ui5-select", attrs, ...options.map((text) => h("ui5-option", { selected: text === "Germany", disabled: query.has("disabled-option") && text === "Australia" }, text)))
     : kind === "combobox" ? h("ui5-combobox", attrs, ...options.map((text) => h("ui5-cb-item", { text })))
     : kind === "multi-combobox" ? h("ui5-multi-combobox", { ...attrs, "show-select-all": true, "no-validation": new URLSearchParams(location.search).has("external-open") }, ...options.map((text) => h("ui5-mcb-item", { text, selected: selected.includes(text) })))
-    : h("ui5-multi-input", { ...attrs, "show-suggestions": true }, ...selected.map((text) => h("ui5-token", { slot: "tokens", text })), ...options.map((text) => h("ui5-suggestion-item", { text })))
+    : h("ui5-multi-input", { ...attrs, "show-suggestions": true, ...(query.has("email") ? { type: "Email" } : {}) }, ...selected.map((text) => h("ui5-token", { slot: "tokens", text })), ...options.map((text) => h("ui5-suggestion-item", { text })))
   field.id = `${kind}-phone-field`
   field.style.width = "13.125rem"
+  if (query.has("controlled-echo")) {
+    // This adapter echoes the selected flags used by our text-key API. It does
+    // not assign item.value or normalize UI5's separate selectedValues contract.
+    field.addEventListener("selection-change", (event: any) => {
+      field.querySelectorAll("ui5-mcb-item").forEach((item: any) => { item.selected = event.detail.items.includes(item) })
+    })
+    for (const [label, selection] of [["Replace selection", ["Australia"]], ["Reset selection", []]] as const) {
+      const button = h("ui5-button", {}, label)
+      button.addEventListener("click", () => field.querySelectorAll("ui5-mcb-item").forEach((item: any) => { item.selected = (selection as readonly string[]).includes(item.text) }))
+      frame.append(button)
+    }
+  }
   if (new URLSearchParams(location.search).has("external-open")) {
     const trigger = h("ui5-button", {}, "Open changed field")
     trigger.addEventListener("click", () => {

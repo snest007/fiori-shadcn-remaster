@@ -217,7 +217,9 @@ function MultiComboBox({
   const committedValues = selectedProp ?? uncontrolledSelected
   const [phoneSelected, setPhoneSelected] = React.useState(committedValues)
   const previousCommittedValues = React.useRef(committedValues)
-  const selectedValues = phone ? (committedValues !== previousCommittedValues.current ? committedValues : phoneSelected) : committedValues
+  const phoneEnterEcho = React.useRef<string[] | null>(null)
+  const ignoresPhoneEnterEcho = phone && phoneEnterEcho.current !== null && committedValues.length === phoneEnterEcho.current.length && committedValues.every((key, index) => key === phoneEnterEcho.current![index])
+  const selectedValues = phone ? (committedValues !== previousCommittedValues.current && !ignoresPhoneEnterEcho ? committedValues : phoneSelected) : committedValues
   const latestPhoneSelected = React.useRef(selectedValues)
   latestPhoneSelected.current = selectedValues
   const phoneSnapshot = React.useRef({ selected: committedValues, value: valueProp ?? defaultValue })
@@ -302,9 +304,12 @@ function MultiComboBox({
     }
   }
   React.useLayoutEffect(() => {
-    previousCommittedValues.current = committedValues
-    setPhoneSelected(committedValues)
-  }, [committedValues, phone])
+    if (previousCommittedValues.current !== committedValues) {
+      previousCommittedValues.current = committedValues
+      if (!ignoresPhoneEnterEcho) setPhoneSelected(committedValues)
+    }
+    phoneEnterEcho.current = null
+  })
   const previousPhoneOpen = React.useRef(false)
   React.useLayoutEffect(() => {
     // MultiComboBox.js/_beforeOpen also snapshots when the public open property
@@ -498,6 +503,9 @@ function MultiComboBox({
     const onSelectAll = (e.target as HTMLElement).dataset.slot === "multi-combobox-select-all"
     const { key, altKey: alt, shiftKey: shift } = e
     const ctrl = e.ctrlKey || e.metaKey
+    // Phone MultiComboBoxItem -> ComboBoxItem -> ListItemBase rejects all
+    // modified Enter/Space keys; desktop's existing selection model is retained.
+    if (phone && (key === " " || key === "Enter") && (alt || ctrl || shift)) return
     // UI5 Keys.js/isDownShift and isUpShift require Shift without Ctrl/Meta/Alt.
     // In grouped lists these modified arrows neither range-select nor toggle.
     if (shift && (ctrl || alt) && (key === "ArrowDown" || key === "ArrowUp") && entries.some(isGroup)) {
@@ -579,6 +587,7 @@ function MultiComboBox({
         return focusOption(key === "PageUp" ? Math.max(index - SKIP_ITEMS, 0) : Math.min(index + SKIP_ITEMS, els.length - 1))
       case " ":
         e.preventDefault()
+        if (phone) return // ListItemBase.js/_onkeyup presses Space only on release
         if (readOnly || isGroup(item)) return
         toggleItem(item.key)
         if (!selectedSet.has(item.key) || selectedItems.length > 1 || !filterSelected) return
@@ -627,6 +636,11 @@ function MultiComboBox({
         className="fiori-list-item fiori-multi-combobox__item"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => pressItem(item)}
+        onKeyUp={phone ? (event) => {
+          if (event.target !== event.currentTarget || event.key !== " " || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || readOnly) return
+          toggleItem(item.key)
+          if (isSelected && selectedItems.length === 1 && filterSelected) setFilterSelected(false)
+        } : undefined}
       >
         <Checkbox
           tabIndex={-1}
@@ -690,6 +704,12 @@ function MultiComboBox({
                 // MultiComboBox.js/_onMobileInputKeydown fires selection-change
                 // before toggling the matching item, unlike row selection.
                 e.preventDefault()
+                // Our text-key API maps native item.selected flags. That native
+                // handler reports their pre-toggle state, then toggles locally.
+                // Consume only this callback's unchanged echo; later controlled
+                // replacements still synchronize. UI5 selectedValues+item.value
+                // has a different _syncSelection contract and is not normalized.
+                phoneEnterEcho.current = [...selectedValues]
                 setSelected(selectedValues, true)
                 toggleItem(matching.key)
                 setValue("")

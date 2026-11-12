@@ -13,12 +13,17 @@ export const PHONE_OPTIONS = ["Argentina", "Australia", "Germany", "United Kingd
 export const PHONE_LONG_OPTIONS = [...PHONE_OPTIONS, ...Array.from({ length: 36 }, (_, index) => `Country ${index + 5}`)]
 export type PhoneCase = { kind: "select" | "combobox" | "multi-combobox" | "multi-input" | "responsive-popover"; valueState?: ValueState; tokens?: boolean | string[]; longList?: boolean }
 function PhonePopup({ kind, valueState = "none", tokens = false, longList = false }: PhoneCase) {
-  const options = longList ? PHONE_LONG_OPTIONS : PHONE_OPTIONS
+  const query = new URLSearchParams(location.search)
+  const options = longList || query.has("long-list") ? PHONE_LONG_OPTIONS : PHONE_OPTIONS
   const initialSelected = Array.isArray(tokens) ? tokens : tokens ? ["Germany"] : []
   const interactive = new URLSearchParams(location.search).has("interactive")
   const uncontrolled = new URLSearchParams(location.search).has("uncontrolled")
   const nestedRtl = new URLSearchParams(location.search).has("nested-rtl")
   const externalOpen = new URLSearchParams(location.search).has("external-open")
+  const consumerProps = query.has("consumer-props")
+  const [contentNode, setContentNode] = React.useState<HTMLDivElement | null>(null)
+  const [contentEvents, setContentEvents] = React.useState<string[]>([])
+  const recordContent = (event: string) => setContentEvents((previous) => [...previous, event])
   const [open, setOpen] = React.useState(!interactive)
   const [value, setValue] = React.useState(kind === "select" ? "Germany" : "")
   const [selected, setSelected] = React.useState(initialSelected)
@@ -30,24 +35,32 @@ function PhonePopup({ kind, valueState = "none", tokens = false, longList = fals
   }, [interactive, kind])
   return <div id={`${kind}-phone-demo`} ref={holder} dir={nestedRtl ? "rtl" : undefined} style={{ width: "375px", height: "667px", overflow: "hidden" }}>
     {externalOpen && <Button onClick={() => { setValue("Australia"); setSelected(["Australia"]); setOpen(true) }}>Open changed field</Button>}
+    {query.has("controlled-echo") && <><Button onClick={() => setSelected(["Australia"])}>Replace selection</Button><Button onClick={() => setSelected([])}>Reset selection</Button></>}
+    {consumerProps && <p id="phone-description">Choose one country for delivery.</p>}
     <div style={{ width: "13.125rem" }}>
       {kind === "select" && <Select value={value} onValueChange={(next) => { setValue(next); record(`change:${next}`) }} open={open} onOpenChange={setOpen}>
         <SelectTrigger aria-label="Country" valueState={valueState}><SelectValue /></SelectTrigger>
-        <SelectContent>{options.map((text) => <SelectItem key={text} value={text}>{text}</SelectItem>)}</SelectContent>
+        <SelectContent {...(consumerProps ? { id: "phone-consumer-select", className: "phone-consumer-class", style: { "--phone-consumer-probe": "7" } as React.CSSProperties,
+          "data-consumer": "forwarded", "aria-label": "Delivery country", "aria-describedby": "phone-description", ref: setContentNode,
+          onOpenAutoFocus: (event: Event) => { recordContent("open"); event.preventDefault(); document.querySelector<HTMLButtonElement>('#phone-consumer-select button')?.focus() },
+          onCloseAutoFocus: (event: Event) => { recordContent("close"); event.preventDefault() },
+          onEscapeKeyDown: (event: KeyboardEvent) => { recordContent("escape"); event.preventDefault() },
+        } : {})}>{options.map((text) => <SelectItem key={text} value={text} disabled={query.has("disabled-option") && text === "Australia"}>{text}</SelectItem>)}</SelectContent>
       </Select>}
       {kind === "combobox" && <ComboBox id="combobox-phone-field" aria-label="Country" value={value} onValueChange={setValue} onCommit={(next) => record(`change:${next}`)} onSelectionChange={(item) => record(`selection:${item?.text ?? ""}`)}
         open={open} onOpenChange={setOpen} valueState={valueState}>{options.map((text) => <ComboBoxItem key={text} text={text} />)}</ComboBox>}
       {kind === "multi-combobox" && <MultiComboBox id="multi-combobox-phone-field" aria-label="Country" value={value} onValueChange={setValue} onCommit={(next) => record(`change:${next}`)} selectedValues={uncontrolled ? undefined : selected} defaultSelectedValues={initialSelected}
         onSelectionChange={(next) => { setSelected(next); record(`selection:${next.join(",")}`) }} open={open} onOpenChange={setOpen} valueState={valueState} showSelectAll noValidation={externalOpen}>
         {options.map((text) => <MultiComboBoxItem key={text} text={text} />)}</MultiComboBox>}
-      {kind === "multi-input" && <MultiInput id="multi-input-phone-field" aria-label="Country" value={value} onValueChange={setValue} onCommit={(next) => record(`change:${next}`)}
+      {kind === "multi-input" && <MultiInput id="multi-input-phone-field" type={query.has("email") ? "email" : undefined} aria-label="Country" value={value} onValueChange={setValue} onCommit={(next) => record(`change:${next}`)}
         onSuggestionSelect={(item) => record(`suggestion:${item.text}`)} onTokenDelete={(keys) => { setSelected((previous) => previous.filter((key) => !keys.includes(key))); record(`delete:${keys.join(",")}`) }}
         valueState={valueState} tokens={selected.map((text) => <Token key={text} value={text} text={text} />)}>
         {options.map((text) => <SuggestionItem key={text} text={text} />)}</MultiInput>}
       {kind === "responsive-popover" && <ResponsivePopover open={open} onOpenChange={setOpen}><ResponsivePopoverTrigger asChild><Button>Open</Button></ResponsivePopoverTrigger>
-        <ResponsivePopoverContent headerText="Country"><p>Choose a country.</p><Button onClick={() => setOpen(false)}>Done</Button></ResponsivePopoverContent></ResponsivePopover>}
+        <ResponsivePopoverContent headerText="Country" aria-describedby={consumerProps ? "phone-description" : undefined}><p>Choose a country.</p><Button onClick={() => setOpen(false)}>Done</Button></ResponsivePopoverContent></ResponsivePopover>}
     </div>
     <output data-slot="phone-events" hidden>{JSON.stringify(events)}</output><output data-slot="phone-selected" hidden>{selected.join(",")}</output>
+    {consumerProps && <><output data-slot="phone-content-ref" hidden>{contentNode?.id ?? "null"}</output><output data-slot="phone-content-events" hidden>{JSON.stringify(contentEvents)}</output></>}
   </div>
 }
 export default defineFixtures<PhoneCase>({ name: "phone-popups", cases: [

@@ -77,7 +77,8 @@ function ResponsivePopoverContent({ headerText = "", closeLabel = "Decline", pho
   const { side: _side, align: _align, sideOffset: _offset, alignOffset: _alignOffset,
     avoidCollisions: _avoid, collisionPadding: _padding, collisionBoundary: _boundary,
     sticky: _sticky, hideWhenDetached: _hide, hideArrow: _arrow, draggable: _draggable, ...dialogProps } = props
-  return <DialogContent {...dialogProps} dir={props.dir ?? dir ?? ownerDirection} ref={ref} portal={portal} aria-describedby={undefined}
+  return <DialogContent {...dialogProps} dir={props.dir ?? dir ?? ownerDirection} ref={ref} portal={portal} aria-describedby={props["aria-describedby"]}
+    {...(props["aria-label"] && props["aria-labelledby"] === undefined ? { "aria-labelledby": undefined } : {})}
     style={style} className={cn("fiori-responsive-popover h-full w-full max-h-full max-w-full min-h-0 min-w-0 rounded-none", phoneField && "fiori-responsive-popover--field", className, phoneClassName)}
     onOpenAutoFocus={onOpenAutoFocus} onCloseAutoFocus={(event) => {
       onCloseAutoFocus?.(event)
