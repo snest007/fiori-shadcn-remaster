@@ -34,11 +34,26 @@ type ColorPickerProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onCh
   accessibleName?: string; texts?: Partial<ColorPickerTexts>
 }
 
+/** InputTemplate.js native change -> Input.js _handleChange; focus/blur maintain its confirmation baseline. */
+function useNativeInputChange(onCommit: (raw: string) => string) {
+  const previousValue = React.useRef(""), commitRef = React.useRef(onCommit)
+  commitRef.current = onCommit
+  return React.useCallback<React.RefCallback<HTMLInputElement>>((input) => {
+    if (!input) return
+    const change = () => { if (input.value !== previousValue.current) previousValue.current = commitRef.current(input.value) }
+    const focus = () => { previousValue.current = input.value }
+    const blur = () => { previousValue.current = "" }
+    // React's synthetic onChange tracks input events; native change also handles browser Enter/blur commits.
+    input.addEventListener("change", change); input.addEventListener("focus", focus); input.addEventListener("blur", blur)
+    return () => { input.removeEventListener("change", change); input.removeEventListener("focus", focus); input.removeEventListener("blur", blur) }
+  }, [])
+}
+
 function ChannelInput({ value, name, disabled, onCommit }: { value: number; name: string; disabled: boolean; onCommit: (value: string) => string }) {
   const [raw, setRaw] = React.useState(String(value))
   React.useEffect(() => { setRaw(String(value)) }, [value])
-  const commit = () => { if (raw !== String(value)) setRaw(onCommit(raw)) }
-  return <Input aria-label={name} disabled={disabled} wrapperClassName="fiori-color-picker__channel-input" value={raw} onChange={(event) => setRaw(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === "Enter") commit() }} />
+  const ref = useNativeInputChange((input) => { const normalized = onCommit(input); setRaw(normalized); return normalized })
+  return <Input ref={ref} aria-label={name} disabled={disabled} wrapperClassName="fiori-color-picker__channel-input" value={raw} onChange={(event) => setRaw(event.target.value)} />
 }
 
 /** ColorPicker's SliderTemplate.js uses a shortened inner scale; retain its markup and reuse Slider interaction math. */
@@ -134,20 +149,29 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
     onValueChange?.(color)
   }
   const fromHsl = (hsl: FioriHslColor, hue = hsl.h) => commit({ hsl, hue, color: { ...hslToRgb(hsl), a: modelRef.current.color.a } })
-  const changeHex = () => {
+  const changeHex = (raw = hex) => {
     // ColorPicker.js _handleHEXChange accepts a leading # and expands three-character shorthand before validation.
-    let normalized = hex.toLowerCase().replace(/^#/, "")
+    let normalized = raw.toLowerCase().replace(/^#/, "")
     if (normalized.length === 3) normalized = [...normalized].map((digit) => digit + digit).join("")
     const valid = normalized.length === 6 && /^[<0-9 abcdef]+$/.test(normalized)
     committedHex.current = normalized
     setWrongHex(!valid)
     // _handleHEXChange stores normalized ColorValue.HEX even on error. The first Negative-state render
     // refreshes the input from HEX; repeated invalid edits retain their raw text until another picker render.
-    if (!valid) { if (!wrongHex) setHex(normalized); return }
+    if (!valid) { if (!wrongHex) setHex(normalized); return raw }
     const rgb = { r: parseInt(normalized.slice(0, 2), 16), g: parseInt(normalized.slice(2, 4), 16), b: parseInt(normalized.slice(4, 6), 16) }
     const hsl = rgbToHsl(rgb); setHex(normalized)
     commit({ color: { ...rgb, a: modelRef.current.color.a }, hsl, hue: hsl.h }, true)
+    return normalized
   }
+  const hexRef = useNativeInputChange(changeHex)
+  const alphaRef = useNativeInputChange((raw) => {
+    // ColorPicker.js _handleAlphaChange reads its live draft (or defaults to 1), then the bubbled
+    // _handleColorInputChange writes integer text before Input.js _handleChange confirms that text.
+    const parsed = alphaTemp ? parseFloat(alphaTemp) : 1, a = clamp(Number.isNaN(parsed) ? 1 : parsed, 1)
+    setAlphaTemp(undefined); commit({ ...modelRef.current, color: { ...modelRef.current.color, a } })
+    return String(parseInt(raw) || 0)
+  })
   const changeChannel = (key: "r" | "g" | "b" | "h" | "s" | "l", raw: string) => {
     // ColorPicker.js _handleColorInputChange and ColorValue.js normalize* clamp parsed integers, not negative value states.
     const n = clamp(parseInt(raw) || 0, key === "h" ? 360 : key === "s" || key === "l" ? 100 : 255)
@@ -191,25 +215,15 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
       </div>
       <div className="fiori-color-picker__current">
         <div className="fiori-color-picker__colors"><span className="fiori-color-picker__white" /><span className="fiori-color-picker__color"><span className="fiori-color-picker__color-inner" style={{ backgroundColor: colorToRgba(model.color) }} /></span></div>
-        <div className="fiori-color-picker__hex-wrapper"><Label>{texts.hexLabel}</Label><Input aria-label={texts.hex} wrapperClassName="fiori-color-picker__hex" value={hex} onInput={(e) => setHex(e.currentTarget.value)} onChange={() => {}} onBlur={() => { if (hex !== rgbToHex(model.color)) changeHex() }} onKeyDown={(e) => { if (e.key === "Enter" && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) changeHex() }} valueState={wrongHex ? "negative" : "none"} valueStateMessage={texts.invalidEntry} /></div>
+        <div className="fiori-color-picker__hex-wrapper"><Label>{texts.hexLabel}</Label><Input ref={hexRef} aria-label={texts.hex} wrapperClassName="fiori-color-picker__hex" value={hex} onInput={(e) => setHex(e.currentTarget.value)} onChange={() => {}} onKeyDown={(e) => { if (e.key === "Enter" && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) changeHex() }} valueState={wrongHex ? "negative" : "none"} valueStateMessage={texts.invalidEntry} /></div>
       </div>
       {!simplified && <div className="fiori-color-picker__channels">
         {channelInputs.map(([key, label, name]) => <React.Fragment key={key}><div className="fiori-color-picker__channel"><ChannelInput name={name} disabled={wrongHex} value={key in model.color ? model.color[key as 'r' | 'g' | 'b'] : model.hsl[key as 'h' | 's' | 'l']} onCommit={(raw) => changeChannel(key, raw)} /><Label>{label}</Label></div><div className="fiori-color-picker__percentage">{(key === "s" || key === "l") && <Label>{texts.percentage}</Label>}</div></React.Fragment>)}
-        <div className="fiori-color-picker__channel"><Input aria-label={texts.alpha} disabled={wrongHex} wrapperClassName="fiori-color-picker__channel-input" value={alphaTemp ?? String(model.color.a)} onChange={(e) => {
+        <div className="fiori-color-picker__channel"><Input ref={alphaRef} aria-label={texts.alpha} disabled={wrongHex} wrapperClassName="fiori-color-picker__channel-input" value={alphaTemp ?? String(model.color.a)} onChange={(e) => {
           const raw = e.target.value; setAlphaTemp(raw)
           // _handleAlphaInput emits continuously and keeps the raw text until _handleAlphaChange on blur.
           const parsed = parseFloat(raw), a = Number.isNaN(parsed) ? 1 : parsed
           commit({ ...modelRef.current, color: { ...modelRef.current.color, a } })
-        }} onBlur={() => {
-          if (alphaTemp === undefined) return
-          const parsed = parseFloat(alphaTemp), a = clamp(Number.isNaN(parsed) ? 1 : parsed, 1)
-          setAlphaTemp(undefined)
-          // _handleAlphaChange runs before the bubbled _handleColorInputChange, which emits the normalized RGBA.
-          commit({ ...modelRef.current, color: { ...modelRef.current.color, a } })
-        }} onKeyDown={(event) => {
-          if (event.key !== "Enter" || alphaTemp === undefined) return
-          const parsed = parseFloat(alphaTemp), a = clamp(Number.isNaN(parsed) ? 1 : parsed, 1)
-          setAlphaTemp(undefined); commit({ ...modelRef.current, color: { ...modelRef.current.color, a } })
         }} /><Label>{texts.alphaLabel}</Label></div>
         <div><Button variant="transparent" className="fiori-color-picker__toggle" title={texts.toggleMode} aria-label={texts.toggleMode} onClick={() => {
           const next = !displayHsl; setDisplayHsl(next); setHex(committedHex.current)

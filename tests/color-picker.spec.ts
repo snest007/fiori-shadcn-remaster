@@ -168,6 +168,106 @@ test("color-picker: hex and RGB/HSL channels round-trip and normalize", async ({
   await expect(root.getByRole("status")).toContainText("Color mode changed to HSL")
 })
 
+// Chromium emits native change for Shift+Enter; other modifiers retain the draft until normal focusout.
+for (const [key, commitsOnEnter] of [["Shift+Enter", true], ["Control+Enter", false], ["Alt+Enter", false], ["Meta+Enter", false], ["Control+Shift+Enter", false]] as const) {
+  test(`color-picker: Hex native change matches ${key} for valid, invalid and recovered input`, async ({ page, context }, testInfo) => {
+    const native = await context.newPage()
+    const proof: { stage: string; surface: string; hex: string; rgba: string; invalid: string | null; hueDisabled: string | null; channelDisabled: boolean; focused: boolean; nativeChanges: number }[] = []
+    try {
+      await native.goto("/ui5.html?only=color-picker-alpha"); await native.waitForSelector("html[data-ready=true]")
+      const nativeRoot = native.locator('[data-fixture="color-picker-alpha"] ui5-color-picker')
+      const surfaces = [[page, picker(page), false], [native, nativeRoot, true]] as const
+      for (const [, root] of surfaces) await root.getByRole("textbox", { name: "Hexadecimal", exact: true }).evaluate((input) => {
+        input.setAttribute("data-c2-native-changes", "0")
+        input.addEventListener("change", () => input.setAttribute("data-c2-native-changes", String(Number(input.getAttribute("data-c2-native-changes")) + 1)))
+      })
+      const assertBoth = async (stage: string, expectedHex: string, rgba: string, invalid: boolean, focused = true) => {
+        for (const [surface, root, isNative] of surfaces) {
+          const field = root.getByRole("textbox", { name: "Hexadecimal", exact: true }), red = root.getByRole("textbox", { name: "Red", exact: true })
+          await expect(field).toHaveValue(expectedHex)
+          if (focused) await expect(field).toBeFocused()
+          else await expect(field).not.toBeFocused()
+          if (isNative) await expect(root).toHaveJSProperty("value", rgba)
+          else await expect(output(surface)).toHaveText(rgba)
+          const message = root.locator(isNative ? ".ui5-color-picker-hex-input .ui5-valuestatemessage-popover" : ".fiori-color-picker__hex .fiori-value-state-message")
+          if (invalid) {
+            await expect(field).toHaveAttribute("aria-invalid", "true"); await expect(hue(root)).toHaveAttribute("aria-disabled", "true"); await expect(red).toBeDisabled()
+            if (focused) { await expect(message).toBeVisible(); await expect(message).toContainText("Invalid entry") }
+            else await expect(message).toBeHidden()
+          } else {
+            await expect(field).not.toHaveAttribute("aria-invalid"); await expect(hue(root)).not.toHaveAttribute("aria-disabled"); await expect(red).toBeEnabled(); await expect(message).toBeHidden()
+          }
+          proof.push({ stage, surface: isNative ? "UI5" : "React", hex: await field.inputValue(), rgba: isNative ? await root.evaluate((element) => (element as HTMLElement & { value: string }).value) : (await output(surface).textContent())!, invalid: await field.getAttribute("aria-invalid"), hueDisabled: await hue(root).getAttribute("aria-disabled"), channelDisabled: await red.isDisabled(), focused: await field.evaluate((element) => element.getRootNode() instanceof ShadowRoot ? (element.getRootNode() as ShadowRoot).activeElement === element : document.activeElement === element), nativeChanges: Number(await field.getAttribute("data-c2-native-changes")) })
+        }
+      }
+      for (const [, root] of surfaces) { const field = root.getByRole("textbox", { name: "Hexadecimal", exact: true }); await field.fill("#123456"); await expect(field).toHaveValue("#123456"); await field.press(key) }
+      await assertBoth("valid modified Enter", commitsOnEnter ? "123456" : "#123456", commitsOnEnter ? "rgba(18, 52, 86, 0.5)" : "rgba(51, 102, 153, 0.5)", false)
+      for (const [, root] of surfaces) await root.getByRole("textbox", { name: "Hexadecimal", exact: true }).press(key)
+      await assertBoth("unchanged repeated modified Enter", commitsOnEnter ? "123456" : "#123456", commitsOnEnter ? "rgba(18, 52, 86, 0.5)" : "rgba(51, 102, 153, 0.5)", false)
+      for (const [, root] of surfaces) await root.getByRole("textbox", { name: "Hexadecimal", exact: true }).press("Tab")
+      await assertBoth("normal blur confirms valid draft", "123456", "rgba(18, 52, 86, 0.5)", false, false)
+      for (const [, root] of surfaces) { const field = root.getByRole("textbox", { name: "Hexadecimal", exact: true }); await field.fill("nothex"); await field.press(key) }
+      await assertBoth("invalid modified Enter retains RGBA", "nothex", "rgba(18, 52, 86, 0.5)", commitsOnEnter)
+      for (const [, root] of surfaces) await root.getByRole("textbox", { name: "Hexadecimal", exact: true }).press("Tab")
+      await assertBoth("normal blur validates invalid draft", "nothex", "rgba(18, 52, 86, 0.5)", true, false)
+      for (const [, root] of surfaces) { const field = root.getByRole("textbox", { name: "Hexadecimal", exact: true }); await field.fill("#F80"); await field.press(key) }
+      await assertBoth("shorthand modified Enter", commitsOnEnter ? "ff8800" : "#F80", commitsOnEnter ? "rgba(255, 136, 0, 0.5)" : "rgba(18, 52, 86, 0.5)", !commitsOnEnter)
+      for (const [, root] of surfaces) await root.getByRole("textbox", { name: "Hexadecimal", exact: true }).press("Tab")
+      await assertBoth("normal blur recovers shorthand", "ff8800", "rgba(255, 136, 0, 0.5)", false, false)
+      for (const stage of [...new Set(proof.map((row) => row.stage))]) {
+        const rows = proof.filter((row) => row.stage === stage).map(({ surface: _surface, nativeChanges: _nativeChanges, ...state }) => state)
+        expect(rows[0]).toEqual(rows[1])
+      }
+      await testInfo.attach(`c2-hex-${key.toLowerCase().replaceAll("+", "-")}-differential.json`, { body: JSON.stringify(proof, null, 2), contentType: "application/json" })
+    } finally { await native.close() }
+  })
+}
+
+// Input.js _handleChange commits RGB/HSL and Alpha on the browser's native change event, not every Enter key.
+for (const [key, commitsOnEnter] of [["Enter", true], ["Shift+Enter", true], ["Control+Enter", false], ["Alt+Enter", false], ["Meta+Enter", false], ["Control+Shift+Enter", false]] as const) {
+  test(`color-picker: RGB and Alpha native change match ${key} before and after Tab`, async ({ page, context }, testInfo) => {
+    const native = await context.newPage()
+    const proof: { name: string; stage: string; surface: string; raw: string; rgba: string; focused: boolean }[] = []
+    try {
+      await native.goto("/ui5.html?only=color-picker-alpha"); await native.waitForSelector("html[data-ready=true]")
+      const nativeRoot = native.locator('[data-fixture="color-picker-alpha"] ui5-color-picker')
+      const surfaces = [[page, picker(page), false], [native, nativeRoot, true]] as const
+      for (const [name, draft, normalized] of [["Red", "300", "255"], ["Alpha", "3", "1"], ["Alpha", "0.37", "0.37"]] as const) {
+        const assertBoth = async (stage: string, raw: string, rgba: string, focused: boolean) => {
+          for (const [surface, root, isNative] of surfaces) {
+            const field = root.getByRole("textbox", { name, exact: true })
+            await expect(field).toHaveValue(raw)
+            if (focused) await expect(field).toBeFocused()
+            else await expect(field).not.toBeFocused()
+            if (isNative) await expect(root).toHaveJSProperty("value", rgba)
+            else await expect(output(surface)).toHaveText(rgba)
+            proof.push({ name, stage, surface: isNative ? "UI5" : "React", raw: await field.inputValue(), rgba: isNative ? await root.evaluate((element) => (element as HTMLElement & { value: string }).value) : (await output(surface).textContent())!, focused: await field.evaluate((element) => element.getRootNode() instanceof ShadowRoot ? (element.getRootNode() as ShadowRoot).activeElement === element : document.activeElement === element) })
+          }
+        }
+        const draftRgba = name === "Red" ? "rgba(51, 102, 153, 0.5)" : `rgba(255, 102, 153, ${draft})`
+        const confirmedRgba = name === "Red" ? "rgba(255, 102, 153, 0.5)" : `rgba(255, 102, 153, ${normalized})`
+        for (const [, root] of surfaces) await root.getByRole("textbox", { name, exact: true }).fill(draft)
+        await assertBoth("filled draft", draft, draftRgba, true)
+        for (const [, root] of surfaces) await root.getByRole("textbox", { name, exact: true }).press(key)
+        await assertBoth("Enter before Tab", commitsOnEnter ? normalized : draft, commitsOnEnter ? confirmedRgba : draftRgba, true)
+        // Alpha renders its float after the bubbled channel handler confirms integer text in Input.js.
+        if (name === "Alpha" && draft === "0.37") await expect(nativeRoot.locator("ui5-input#alpha")).toHaveJSProperty("previousValue", commitsOnEnter ? "0" : "1")
+        for (const [, root] of surfaces) await root.getByRole("textbox", { name, exact: true }).press(key)
+        await assertBoth("repeated Enter before Tab", commitsOnEnter ? normalized : draft, commitsOnEnter ? confirmedRgba : draftRgba, true)
+        for (const [, root] of surfaces) await root.getByRole("textbox", { name, exact: true }).press("Tab")
+        await assertBoth("normal blur confirms draft", normalized, confirmedRgba, false)
+        for (const [, root] of surfaces) { const field = root.getByRole("textbox", { name, exact: true }); await field.focus(); await expect(field).toBeFocused(); await field.press(key) }
+        await assertBoth("unchanged refocused Enter", normalized, confirmedRgba, true)
+      }
+      for (let i = 0; i < proof.length; i += 2) {
+        const { surface: _ours, ...ours } = proof[i], { surface: _native, ...reference } = proof[i + 1]
+        expect(ours).toEqual(reference)
+      }
+      await testInfo.attach(`c2-channels-${key.toLowerCase().replaceAll("+", "-")}-differential.json`, { body: JSON.stringify(proof, null, 2), contentType: "application/json" })
+    } finally { await native.close() }
+  })
+}
+
 test("color-picker: alpha emits live values and normalizes on commit", async ({ page }) => {
   const root = picker(page), input = root.getByRole("textbox", { name: "Alpha", exact: true })
   await input.fill("0.37"); await expect(output(page)).toHaveText("rgba(51, 102, 153, 0.37)")
