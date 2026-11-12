@@ -463,6 +463,67 @@ test.describe("D1a reviewed phone keyboard and consumer contracts", () => {
       await awaitPhoneRender(holder, native)
       await expect(surface(page, holder, native).getByRole("option", { name: "Germany", exact: true })).toBeFocused()
     })
+    test(`${label} MultiComboBox list rejects extra isShow modifiers`, async ({ page }) => {
+      const holder = await visit(page, "multi-combobox", native)
+      await openField(page, holder, "multi-combobox", native)
+      const row = surface(page, holder, native).getByRole("option", { name: /Germany/ })
+      await row.focus()
+      await expect(row).toBeFocused()
+      for (const modifier of ["Control", "Meta", "Shift"]) for (const key of ["ArrowDown", "ArrowUp"]) {
+        await page.keyboard.press(`${modifier}+Alt+${key}`)
+        await expect(dialog(page, native)).toBeVisible()
+        await expect(row).toBeFocused()
+        await expect(row).toHaveAttribute("aria-selected", "false")
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
+      }
+      await page.keyboard.press("Alt+ArrowDown")
+      await expect(dialog(page, native)).toHaveCount(0)
+    })
+    test(`${label} MultiComboBox source token uses exact isShow modifiers`, async ({ page }) => {
+      const holder = await visit(page, "multi-combobox", native, "-selected")
+      const token = holder.locator(native ? "ui5-token .ui5-token--wrapper" : '[data-slot="token"]').first()
+      await token.focus()
+      await expect(token).toBeFocused()
+      for (const modifier of ["Control", "Meta", "Shift"]) for (const key of ["ArrowDown", "ArrowUp"]) {
+        await page.keyboard.press(`${modifier}+Alt+${key}`)
+        await expect(dialog(page, native)).toHaveCount(0)
+        await expect(token).toBeFocused()
+      }
+      for (const modifier of ["Control", "Meta", "Shift", "Alt"]) {
+        await page.keyboard.press(`${modifier}+F4`)
+        await expect(dialog(page, native)).toHaveCount(0)
+        await expect(token).toBeFocused()
+      }
+      for (const key of ["F4", "Alt+ArrowDown", "Alt+ArrowUp"]) {
+        await token.focus()
+        await expect(token).toBeFocused()
+        await page.keyboard.press(key)
+        await expect(dialog(page, native)).toBeVisible()
+        await awaitPhoneRender(holder, native)
+        await surface(page, holder, native).getByRole("button", { name: "Cancel", exact: true }).click()
+        await expect(dialog(page, native)).toHaveCount(0)
+      }
+      await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
+    })
+    test(`${label} MultiInput source token does not route isShow to value help`, async ({ page }) => {
+      const holder = await visit(page, "multi-input", native, "-tokens")
+      const token = holder.locator(native ? "ui5-token .ui5-token--wrapper" : '[data-slot="token"]').first()
+      await token.focus()
+      await expect(token).toBeFocused()
+      const keys = ["F4", "Alt+ArrowDown", "Alt+ArrowUp", ...["Control", "Meta", "Shift"].flatMap((modifier) => ["ArrowDown", "ArrowUp"].map((key) => `${modifier}+Alt+${key}`)), ...["Control", "Meta", "Shift", "Alt"].map((modifier) => `${modifier}+F4`)]
+      for (const key of keys) {
+        await page.keyboard.press(key)
+        await expect(token).toBeFocused()
+        await expect(dialog(page, native)).toHaveCount(0)
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
+      }
+      // Positive control: InputTemplate's source-input keydown owns value help.
+      const input = fieldInput(holder, "multi-input", native)
+      await input.focus()
+      await expect(input).toBeFocused()
+      await page.keyboard.press("F4")
+      await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["value-help"]')
+    })
     test(`${label} Select row Space commits only on release`, async ({ page }) => {
       const holder = await visit(page, "select", native)
       await openField(page, holder, "select", native)

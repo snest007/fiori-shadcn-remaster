@@ -406,11 +406,13 @@ function MultiInput({
               // key, but requires the last token to remain focused after ItemNavigation.
               // RTL Right moves to the preceding token, so Down/End exit from the last.
               const toInput = e.key === "ArrowDown" || e.key === "End" || e.key === "ArrowRight"
-              if (toInput && !e.shiftKey && e.target === last && document.activeElement === last) {
+              if (toInput && !e.shiftKey && (!phone || (!e.altKey && (!(e.ctrlKey || e.metaKey) || e.key === "ArrowRight"))) && e.target === last && document.activeElement === last) {
                 e.preventDefault()
                 setTimeout(() => inputRef.current?.focus())
               }
-              if ((e.key === "F4" || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp"))) && !disabled) {
+              // MultiInput.js/_onTokenizerKeydown has no value-help branch;
+              // InputTemplate.js attaches _onkeydown only to the source input.
+              if (!phone && (e.key === "F4" || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp"))) && !disabled) {
                 e.preventDefault()
                 onValueHelpTrigger?.()
               }

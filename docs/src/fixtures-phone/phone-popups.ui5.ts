@@ -65,6 +65,7 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
   field.addEventListener("change", () => record(`change:${(field as any).value}`))
   field.addEventListener("selection-change", (event: any) => record(`selection:${event.detail.items?.map((item: any) => item.text).join(",") ?? event.detail.item?.text ?? ""}`))
   field.addEventListener("suggestion-item-select", (event: any) => record(`suggestion:${event.detail.item.text}`))
+  field.addEventListener("value-help-trigger", () => record("value-help"))
   field.addEventListener("token-delete", (event: any) => { event.detail.tokens.forEach((token: HTMLElement) => token.remove()); record(`delete:${event.detail.tokens.map((token: any) => token.text).join(",")}`) })
   frame.fixtureReady = (async () => {
     while (!frame.isConnected) await new Promise((resolve) => requestAnimationFrame(resolve))

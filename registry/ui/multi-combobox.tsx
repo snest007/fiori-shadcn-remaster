@@ -506,6 +506,9 @@ function MultiComboBox({
     // Phone MultiComboBoxItem -> ComboBoxItem -> ListItemBase rejects all
     // modified Enter/Space keys; desktop's existing selection model is retained.
     if (phone && (key === " " || key === "Enter") && (alt || ctrl || shift)) return
+    // MultiComboBox.js/_onItemKeydown uses Keys.js/isShow: extra modifiers
+    // neither close the phone list nor fall through to range selection.
+    if (phone && alt && (ctrl || shift) && (key === "ArrowDown" || key === "ArrowUp")) return
     // UI5 Keys.js/isDownShift and isUpShift require Shift without Ctrl/Meta/Alt.
     // In grouped lists these modified arrows neither range-select nor toggle.
     if (shift && (ctrl || alt) && (key === "ArrowDown" || key === "ArrowUp") && entries.some(isGroup)) {
@@ -869,7 +872,9 @@ function MultiComboBox({
                 e.preventDefault()
                 setTimeout(() => inputRef.current?.focus())
               }
-              if ((e.key === "F4" || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp"))) && !readOnly && !disabled) {
+              const isShow = (e.key === "F4" || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")))
+                && (!phone || (!e.ctrlKey && !e.metaKey && !e.shiftKey && (e.key !== "F4" || !e.altKey)))
+              if (isShow && !readOnly && !disabled) {
                 e.preventDefault()
                 toggleByKeyboard((e.target as HTMLElement).querySelector(".fiori-token__text")?.textContent ?? undefined)
               }

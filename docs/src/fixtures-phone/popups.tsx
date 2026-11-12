@@ -53,7 +53,7 @@ function PhonePopup({ kind, valueState = "none", tokens = false, longList = fals
         onSelectionChange={(next) => { setSelected(next); record(`selection:${next.join(",")}`) }} open={open} onOpenChange={setOpen} valueState={valueState} showSelectAll noValidation={externalOpen}>
         {options.map((text) => <MultiComboBoxItem key={text} text={text} />)}</MultiComboBox>}
       {kind === "multi-input" && <MultiInput id="multi-input-phone-field" type={query.has("email") ? "email" : undefined} aria-label="Country" value={value} onValueChange={setValue} onCommit={(next) => record(`change:${next}`)}
-        onSuggestionSelect={(item) => record(`suggestion:${item.text}`)} onTokenDelete={(keys) => { setSelected((previous) => previous.filter((key) => !keys.includes(key))); record(`delete:${keys.join(",")}`) }}
+        onSuggestionSelect={(item) => record(`suggestion:${item.text}`)} onValueHelpTrigger={() => record("value-help")} onTokenDelete={(keys) => { setSelected((previous) => previous.filter((key) => !keys.includes(key))); record(`delete:${keys.join(",")}`) }}
         valueState={valueState} tokens={selected.map((text) => <Token key={text} value={text} text={text} />)}>
         {options.map((text) => <SuggestionItem key={text} text={text} />)}</MultiInput>}
       {kind === "responsive-popover" && <ResponsivePopover open={open} onOpenChange={setOpen}><ResponsivePopoverTrigger asChild><Button>Open</Button></ResponsivePopoverTrigger>
