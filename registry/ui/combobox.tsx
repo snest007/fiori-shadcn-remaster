@@ -5,6 +5,11 @@ import { Popover as PopoverPrimitive } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
+import { useIsPhone } from "@/lib/use-is-phone"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ResponsivePopover, ResponsivePopoverAnchor, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
+
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
@@ -65,6 +70,10 @@ type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue
   /** Render the list in place instead of in a portal on document.body. */
   portal?: boolean
   wrapperClassName?: string
+  /** Phone dialog title and action labels (UI5 ComboBoxPopoverTemplate). */
+  dialogTitle?: string
+  okText?: string
+  cancelText?: string
 }
 
 const SKIP_ITEMS = 10
@@ -142,10 +151,14 @@ function ComboBox({
   arrowLabel = "Select Options",
   listLabel = "Available Options",
   portal = true,
+  dialogTitle = "All Items",
+  okText = "OK",
+  cancelText = "Cancel",
   disabled,
   readOnly,
   id,
   onKeyDown,
+  onClick,
   onKeyUp,
   onFocus,
   onBlur,
@@ -153,6 +166,11 @@ function ComboBox({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: ComboBoxProps) {
+  const phone = useIsPhone()
+  const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
+  const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
+  const Content = phone ? ResponsivePopoverContent : PopoverPrimitive.Content
+  const phoneInputRef = React.useRef<HTMLInputElement>(null)
   const entries = collectEntries(children)
   const items = entries.flatMap((entry) => isGroup(entry) ? entry.items : [entry])
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
@@ -230,7 +248,8 @@ function ComboBox({
 
   React.useLayoutEffect(() => {
     const sel = pendingSelection.current
-    if (sel && inputRef.current && document.activeElement === inputRef.current) inputRef.current.setSelectionRange(sel[0], sel[1])
+    const input = phone && open ? phoneInputRef.current : inputRef.current
+    if (sel && input && document.activeElement === input) input.setSelectionRange(sel[0], sel[1])
     pendingSelection.current = null
   })
   React.useEffect(() => {
@@ -291,6 +310,7 @@ function ComboBox({
     userTyped.current = ""
     pendingSelection.current = [0, value.length]
     setOpen(true)
+    if (phone) return
     const allRows = rowsFor(items, true)
     const sel = allRows.findIndex((i) => !isGroup(i) && i.text.toLowerCase() === value.toLowerCase())
     if (sel >= 0) setActive(sel)
@@ -335,8 +355,38 @@ function ComboBox({
     </div>
   )
 
+  // ComboBox.js/_handleMobileInput edits live; Cancel/Escape restore _lastValue,
+  // OK commits, and selecting a row commits and closes immediately.
+  const closePhone = (cancel = false) => {
+    const next = cancel ? lastValue.current : value
+    if (cancel) setValue(next)
+    else commit(next)
+    setOpen(false)
+    phoneInputRef.current?.blur()
+  }
+  const phoneProps = phone ? {
+    headerText: dialogTitle, phoneField: true, phoneOwnerRef: inputRef, preventFocusRestore: true,
+    phoneClassName: "fiori-combobox-phone",
+    phoneHeader: <div className="fiori-responsive-popover__rows">
+      <div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
+      <div className="fiori-responsive-popover__row fiori-responsive-popover__row--input">
+        <Input ref={phoneInputRef} aria-label={dialogTitle} placeholder={props.placeholder} value={value} valueState={valueState} valueStateMessage={null}
+          role="combobox" aria-expanded={open} aria-controls={listId} aria-autocomplete="both" aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+          onChange={(e) => { setValue(e.target.value); setFilterValue(e.target.value); userTyped.current = e.target.value; setActive(-1) }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") { e.preventDefault(); closePhone(true) }
+            else if (e.key === "Enter") active >= 0 ? choose(active) : closePhone()
+            else if (NAV_KEYS.has(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) handleNavKey(e)
+          }} />
+      </div>
+    </div>,
+    phoneFooter: <><Button variant="emphasized" onClick={() => closePhone()}>{okText}</Button><Button variant="transparent" onClick={() => closePhone(true)}>{cancelText}</Button></>,
+    onOpenAutoFocus: (e: Event) => { e.preventDefault(); phoneInputRef.current?.focus() },
+    onEscapeKeyDown: () => closePhone(true),
+    onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === "Tab" && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) closePhone() },
+  } : {}
   const listContent = (
-    <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
+    <Content data-sap-ui-fastnavgroup-container="true"
       data-slot="combobox-popover"
       align="start"
       sideOffset={4}
@@ -346,10 +396,11 @@ function ComboBox({
       onInteractOutside={(e) => {
         if (inputRef.current?.parentElement?.contains(e.target as Node)) e.preventDefault()
       }}
-      className={cn(
+      className={phone ? undefined : cn(
         "fiori-popover fiori-combobox__popover z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col",
         !visible.length && !showHeader && "hidden"
       )}
+      {...phoneProps}
     >
       {showHeader && (
         <div data-value-state={valueState} className="fiori-value-state-message fiori-combobox__header">
@@ -385,12 +436,12 @@ function ComboBox({
           })}
         </div>
       )}
-    </PopoverPrimitive.Content>
+    </Content>
   )
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
-      <PopoverPrimitive.Anchor asChild>
+    <Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
+      <Anchor asChild>
         <div
           data-slot="combobox"
           data-value-state={hasState ? valueState : undefined}
@@ -407,7 +458,7 @@ function ComboBox({
             role="combobox"
             autoComplete="off"
             aria-autocomplete="both"
-            aria-haspopup="listbox"
+            aria-haspopup={phone ? "dialog" : "listbox"}
             aria-expanded={open}
             aria-controls={open ? listId : undefined}
             aria-activedescendant={open && active >= 0 ? optionId(active) : undefined}
@@ -434,6 +485,7 @@ function ComboBox({
                 }
               }
               setValue(next)
+              if (phone) return
               if (!matches.length || typed === "") setOpen(false)
               else setOpen(true)
             }}
@@ -472,13 +524,14 @@ function ComboBox({
               onKeyUp?.(e)
               userTyped.current = e.currentTarget.value.slice(0, e.currentTarget.selectionStart ?? 0)
             }}
+            onClick={(e) => { onClick?.(e); if (!e.defaultPrevented && phone && !disabled && !readOnly) { lastValue.current = value; setOpen(true) } }}
             onFocus={(e) => {
               lastValue.current = e.currentTarget.value
-              e.currentTarget.setSelectionRange(0, e.currentTarget.value.length)
+              if (!phone) e.currentTarget.setSelectionRange(0, e.currentTarget.value.length)
               onFocus?.(e)
             }}
             onBlur={(e) => {
-              if (listRef.current?.contains(e.relatedTarget as Node)) return
+              if ((phone && open) || listRef.current?.contains(e.relatedTarget as Node)) return
               commit()
               setOpen(false)
               onBlur?.(e)
@@ -516,9 +569,9 @@ function ComboBox({
             </div>
           )}
         </div>
-      </PopoverPrimitive.Anchor>
-      {portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
-    </PopoverPrimitive.Root>
+      </Anchor>
+      {!phone && portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
+    </Root>
   )
 }
 

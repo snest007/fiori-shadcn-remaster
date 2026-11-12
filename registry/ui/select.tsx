@@ -6,6 +6,10 @@ import { Select as SelectPrimitive, Slot } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
+import { useIsPhone } from "@/lib/use-is-phone"
+import { Button } from "@/components/ui/button"
+import { ResponsivePopover, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
+
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
@@ -64,6 +68,9 @@ function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, expli
 type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root>
 
 function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, ...props }: SelectProps) {
+  const phone = useIsPhone()
+  const phoneListId = React.useId()
+  const [phoneState, setPhoneState] = React.useState<{ valueState: ValueState; message: React.ReactNode; accessibleName?: string }>({ valueState: "none", message: null })
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolledValue
   const changeTarget = React.useRef<HTMLDivElement>(null)
@@ -113,8 +120,8 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
 
   return (
     <SelectContext.Provider value={ctx}>
-      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget }}>
-        <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={open} onOpenChange={setOpen} {...props} />
+      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction }}>
+        <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={!phone && open} onOpenChange={setOpen} {...props} />
       </SelectOpenContext.Provider>
     </SelectContext.Provider>
   )
@@ -126,6 +133,11 @@ const SelectOpenContext = React.createContext<{
   value: string | undefined
   setValue: (v: string) => void
   changeTarget: React.RefObject<HTMLDivElement | null>
+  phone: boolean
+  phoneListId: string
+  direction: "ltr" | "rtl"
+  phoneState: { valueState: ValueState; message: React.ReactNode; accessibleName?: string }
+  setPhoneState: React.Dispatch<React.SetStateAction<{ valueState: ValueState; message: React.ReactNode; accessibleName?: string }>>
 } | null>(null)
 
 function SelectGroup(props: React.ComponentProps<typeof SelectPrimitive.Group>) {
@@ -140,6 +152,8 @@ type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger> &
   valueState?: ValueState
   /** Shown below the field while focused; defaults to SAP's standard text. `null` hides it. */
   valueStateMessage?: React.ReactNode | null
+  /** UI5 Select.js/valueStateTypeMappings; prefix of the phone state message. */
+  valueStateTypeText?: Partial<Record<Exclude<ValueState, "none">, string>>
   readOnly?: boolean
   wrapperClassName?: string
 }
@@ -150,6 +164,7 @@ function SelectTrigger({
   children,
   valueState = "none",
   valueStateMessage,
+  valueStateTypeText,
   readOnly,
   disabled,
   onKeyDown,
@@ -165,6 +180,8 @@ function SelectTrigger({
   const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
 
+  React.useLayoutEffect(() => { state?.setPhoneState({ valueState, accessibleName: props["aria-label"], message: showMessage ? (valueStateMessage === undefined && hasState ? `${valueStateTypeText?.[valueState] ?? ({ negative: "Value State Error", critical: "Value State Warning", positive: "Value State Success", information: "Value State Information" }[valueState])} ${message}` : message) : null }) }, [valueState, message, showMessage, valueStateTypeText, props["aria-label"]])
+
   return (
     <div
       ref={state?.changeTarget}
@@ -179,6 +196,7 @@ function SelectTrigger({
     >
       <SelectPrimitive.Trigger
         data-slot="select-trigger"
+        {...(state?.phone ? { "aria-expanded": state.open, "aria-controls": state.phoneListId, tabIndex: state.open ? -1 : 0 } : {})}
         disabled={disabled || readOnly}
         aria-readonly={readOnly || undefined}
         aria-invalid={valueState === "negative" || undefined}
@@ -248,6 +266,14 @@ function SelectTrigger({
   )
 }
 
+type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content> & {
+  dialogTitle?: string
+  cancelText?: string
+  dialogLabel?: string
+  dialogNamePrefix?: string
+}
+const PhoneSelectItems = React.createContext<{ value: string | undefined; select: (value: string, close?: boolean) => void } | null>(null)
+
 function SelectContent({
   className,
   children,
@@ -255,9 +281,21 @@ function SelectContent({
   sideOffset = 4,
   onKeyDown,
   asChild,
+  dialogTitle = "All Items",
+  cancelText = "Cancel",
+  dialogLabel,
+  dialogNamePrefix = "Select",
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
-  return (
+}: SelectContentProps) {
+  const state = React.useContext(SelectOpenContext)
+  const [draft, setDraft] = React.useState(state?.value)
+  const phoneList = React.useRef<HTMLDivElement>(null)
+  React.useLayoutEffect(() => { if (state?.open) setDraft(state.value) }, [state?.open])
+  const closePhone = (escape = false, selected = draft) => {
+    if (!escape && selected !== undefined && selected !== state?.value) state?.setValue(selected)
+    state?.setOpen(false)
+  }
+  const desktop = (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         data-slot="select-content"
@@ -284,6 +322,33 @@ function SelectContent({
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )
+  if (!state?.phone) return desktop
+  // Keep Radix's hidden item collection for SelectValue, form integration and
+  // closed keyboard navigation; the real phone list lives in a stretch Dialog.
+  return <>{desktop}<ResponsivePopover dir={state.direction} open={state.open} onOpenChange={(open) => !open && closePhone(true)}>
+    <ResponsivePopoverContent aria-label={dialogLabel ?? (state.phoneState.accessibleName ? `${dialogNamePrefix} ${state.phoneState.accessibleName}` : undefined)} headerText={dialogTitle} phoneField phoneClassName="fiori-select-phone"
+      phoneHeader={<div className="fiori-responsive-popover__rows"><div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
+        {state.phoneState.valueState !== "none" && state.phoneState.valueState !== "positive" && state.phoneState.message != null &&
+          <div data-value-state={state.phoneState.valueState} className="fiori-value-state-message fiori-select-phone__message">{state.phoneState.message}</div>}
+      </div>}
+      phoneFooter={<Button variant="transparent" onClick={() => closePhone()}>{cancelText}</Button>}
+      onOpenAutoFocus={(event) => { event.preventDefault(); phoneList.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus() }}
+      onCloseAutoFocus={(event) => { event.preventDefault(); state.changeTarget.current?.querySelector<HTMLElement>('[data-slot="select-trigger"]')?.focus() }}
+      onEscapeKeyDown={() => closePhone(true)}>
+      <PhoneSelectItems.Provider value={{ value: draft, select: (value, close = true) => { setDraft(value); if (close) closePhone(false, value) } }}>
+        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true" onKeyDown={(event) => {
+          onKeyDown?.(event)
+          if (event.defaultPrevented) return
+          if ((event.key === "F4" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) || ((event.key === "ArrowDown" || event.key === "ArrowUp") && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey)) { event.preventDefault(); closePhone(); return }
+          if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+          const options = [...(phoneList.current?.querySelectorAll<HTMLElement>('[role="option"]:not([aria-disabled="true"])') ?? [])]
+          const index = options.indexOf(document.activeElement as HTMLElement)
+          const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : event.key === "ArrowDown" ? Math.min(index + 1, options.length - 1) : event.key === "ArrowUp" ? Math.max(index - 1, 0) : -1
+          if (next >= 0) { event.preventDefault(); options[next]?.focus(); setDraft(options[next]?.dataset.value) }
+        }}>{children}</div>
+      </PhoneSelectItems.Provider>
+    </ResponsivePopoverContent>
+  </ResponsivePopover></>
 }
 
 function SelectLabel({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Label>) {
@@ -300,16 +365,26 @@ function SelectLabel({ className, ...props }: React.ComponentProps<typeof Select
   )
 }
 
-function SelectItem({ className, children, value, disabled = false, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) {
+function SelectItem({ className, children, value, disabled = false, asChild, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) {
   const ctx = React.useContext(SelectContext)
+  const phoneItems = React.useContext(PhoneSelectItems)
   const ref = React.useCallback(
     (node: HTMLDivElement | null) => ctx?.register(value, node, disabled),
     [ctx, value, disabled]
   )
+  const PhoneHost = asChild ? Slot.Root : "div"
+  if (phoneItems) return <PhoneHost {...props} data-slot="select-item" data-value={value} role="option" aria-selected={phoneItems.value === value} aria-disabled={disabled || undefined}
+    tabIndex={phoneItems.value === value ? 0 : -1} data-state={phoneItems.value === value ? "checked" : "unchecked"}
+    className={cn("fiori-list-item", className)} onMouseDown={(event) => { props.onMouseDown?.(event); event.preventDefault() }}
+    onClick={(event) => { props.onClick?.(event); if (!event.defaultPrevented && !disabled) phoneItems.select(value) }} onKeyDown={(event) => {
+      props.onKeyDown?.(event)
+      if (!event.defaultPrevented && !disabled && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); phoneItems.select(value) }
+    }}>{children}</PhoneHost>
   return (
     <SelectPrimitive.Item
       ref={ref}
       data-slot="select-item"
+      asChild={asChild}
       value={value}
       disabled={disabled}
       className={cn("fiori-list-item", className)}

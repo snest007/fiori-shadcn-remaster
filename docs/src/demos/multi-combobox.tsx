@@ -102,6 +102,8 @@ export default defineDemo({
         { name: "MultiComboBox.value", type: "string", description: "Controlled text typed in the field." },
         { name: "MultiComboBox.showSelectAll", type: "boolean", description: "Show the select-all checkbox." },
         { name: "MultiComboBox.noValidation", type: "boolean", description: "Allow text that matches no item." },
+        { name: "MultiComboBox.dialogTitle / okText / cancelText", type: "string", description: "Override phone dialog strings. Checkbox edits are provisional until OK; Cancel restores the opening selection and text.", defaultValue: "All Items / OK / Cancel" },
+        { name: "MultiComboBox.showSelectedLabel", type: "string", description: "Accessible name of the phone selected-items toggle.", defaultValue: "Show Selected Items Only" },
       ],
     },
   ],

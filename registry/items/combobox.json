@@ -5,7 +5,10 @@
   ],
   "registryDependencies": [
     "@fiori/icons",
-    "@fiori/input"
+    "@fiori/input",
+    "@fiori/use-is-phone",
+    "@fiori/responsive-popover",
+    "@fiori/button"
   ],
   "description": "Fiori combo box: free-text field with type-ahead filtering, inline autocomplete and the SAP keyboard model."
 }
