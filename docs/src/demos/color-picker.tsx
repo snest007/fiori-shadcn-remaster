@@ -27,4 +27,17 @@ function ColorPickerDemo() {
     <output id="color-picker-palette-events">{JSON.stringify(events)}</output>
   </div>
 }
-export default defineDemo({ title: "ColorPicker", order: 62.1, Demo: ColorPickerDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [{
+    name: "color-picker",
+    description: "Choose a color with hue and alpha sliders, Hex, RGB or HSL channels, and the palette's More Colors dialog.",
+    props: [
+      { name: "ColorPicker.value / defaultValue", type: "string", description: "Controlled or initial CSS color.", defaultValue: "rgba(255,255,255,1)" },
+      { name: "ColorPicker.onValueChange", type: "(value: string) => void", description: "Receive the selected RGBA color." },
+      { name: "ColorPicker.simplified", type: "boolean", description: "Hide alpha and channel inputs while keeping Hue and Hex.", defaultValue: "false" },
+      { name: "ColorPicker.texts", type: "Partial<ColorPickerTexts>", description: "Override input labels and announcements." },
+    ],
+  }],
+  title: "ColorPicker", order: 62.1, Demo: ColorPickerDemo,
+})
