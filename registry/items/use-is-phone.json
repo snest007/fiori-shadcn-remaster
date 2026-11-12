@@ -1,0 +1,6 @@
+{
+  "type": "registry:lib",
+  "title": "Phone detection",
+  "description": "Reactive UI5-style touch/phone detection with a data-fiori-device override.",
+  "files": [{ "path": "registry/lib/use-is-phone.ts", "type": "registry:lib" }]
+}
