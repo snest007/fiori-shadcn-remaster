@@ -225,4 +225,33 @@ function TableDemo() {
   )
 }
 
-export default defineDemo({ title: "Table", order: 200, Demo: TableDemo })
+export default defineDemo({
+  category: "Data",
+  docs: [
+    {
+      name: "table",
+      description: "Fiori tables with row selection, popins, growing and caller-managed moves.",
+      props: [
+        { name: "Table.selectionMode", type: "none | single | multi", description: "Row selection model.", defaultValue: "none" },
+        { name: "Table.selectedRows", type: "string[]", description: "Controlled selected row keys." },
+        { name: "Table.onSelectionChange", type: "(selectedRows: string[]) => void", description: "Receive selected row keys." },
+        { name: "Table.overflowMode", type: "scroll | popin", description: "Horizontal overflow behavior.", defaultValue: "scroll" },
+        { name: "Table.growing", type: "button | scroll", description: "Offer explicit or scroll-triggered loading." },
+        { name: "Table.onLoadMore", type: "() => void", description: "Request additional rows." },
+      ],
+    },
+    {
+      name: "data-table",
+      description: "Data-driven tables with TanStack columns, sorting and optional virtualization.",
+      fixtureSet: "table",
+      props: [
+        { name: "DataTable.data", type: "TData[]", description: "Rows to render." },
+        { name: "DataTable.columns", type: "DataTableColumnDef<TData, any>[]", description: "TanStack column definitions." },
+        { name: "DataTable.getRowId", type: "(row: TData, index: number) => string", description: "Stable key used for selection." },
+        { name: "DataTable.sortTrigger", type: "menu | click | none", description: "How users sort a column.", defaultValue: "menu" },
+        { name: "DataTable.onSortingChange", type: "(sorting: SortingState) => void", description: "Receive controlled sorting changes." },
+        { name: "DataTable.virtualize", type: "boolean", description: "Render only visible rows; provide a fixed row height and viewport height.", defaultValue: "false" },
+      ],
+    },
+  ],
+ title: "Table", order: 200, Demo: TableDemo })

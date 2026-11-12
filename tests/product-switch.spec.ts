@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test"
 const tile = (page: Page, name: RegExp) => page.locator("#product-switch-demo").getByRole("button", { name })
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/product-switch`)
   await page.waitForSelector("html[data-ready=true]")
   await page.locator("#product-switch-demo-open").click()
   await expect(page.locator("#product-switch-demo")).toBeVisible()

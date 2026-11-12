@@ -61,4 +61,20 @@ function CalendarDemo() {
   )
 }
 
-export default defineDemo({ title: "Calendar", order: 60, Demo: CalendarDemo })
+export default defineDemo({
+  category: "Dates",
+  docs: [
+    {
+      name: "calendar",
+      description: "Gregorian date selection with day, month and year pickers.",
+      props: [
+        { name: "Calendar.selectionMode", type: "single | multiple | range", description: "Choose individual days or a start/end range.", defaultValue: "single" },
+        { name: "Calendar.selectedDates", type: "Date[]", description: "Controlled selected days." },
+        { name: "Calendar.onSelectedDatesChange", type: "(dates: Date[]) => void", description: "Receive selected days." },
+        { name: "Calendar.minDate", type: "Date", description: "Earliest focusable and selectable day." },
+        { name: "Calendar.maxDate", type: "Date", description: "Latest focusable and selectable day." },
+        { name: "Calendar.locale", type: "string", description: "Locale for names, week start and weekend.", defaultValue: "en-US" },
+      ],
+    },
+  ],
+ title: "Calendar", order: 60, Demo: CalendarDemo })

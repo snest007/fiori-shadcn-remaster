@@ -14,7 +14,7 @@ async function open(page: Page) {
 async function focus(item: ReturnType<typeof checkbox>) { await item.focus(); await expect(item).toBeFocused() }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/index.html")
+  await page.goto("/index.html#/menu")
   await page.waitForSelector("html[data-ready=true]")
 })
 

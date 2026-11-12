@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url"
 // Home/End to the first/last; text fields keep the arrows until the caret reaches their edge.
 test.describe("Toolbar keyboard and ARIA", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/toolbar`)
     await page.waitForSelector("html[data-ready=true]")
   })
 
@@ -65,7 +65,7 @@ test.describe("Toolbar keyboard and ARIA", () => {
 
 test.describe("Toolbar overflow", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
   })
 
@@ -217,7 +217,7 @@ test.describe("Toolbar overflow", () => {
 
 test.describe("Toolbar review regressions", () => {
   test("the second Select closes on the first control's committed change event type", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const toolbar = page.locator("#toolbar-select-wrappers-demo")
     const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -233,7 +233,7 @@ test.describe("Toolbar review regressions", () => {
   })
 
   test("a function-wrapped Select closes only on commit and respects the first control mapping", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const toolbar = page.locator("#toolbar-select-wrappers-demo")
     const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -259,7 +259,7 @@ test.describe("Toolbar review regressions", () => {
   })
 
   test("opaque controlled controls close only on their committed event and preserve callback counts", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const toolbar = page.locator("#toolbar-function-controls-demo")
     const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -316,7 +316,7 @@ test.describe("Toolbar review regressions", () => {
   })
 
   test("a pinned function DatePicker keeps overflow open through its portaled calendar", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const toolbar = page.locator("#toolbar-function-controls-demo")
     const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -364,7 +364,7 @@ test.describe("Toolbar review regressions", () => {
 
   for (const pinned of [false, true]) {
     test(`same-date calendar confirmation ${pinned ? "keeps pinned overflow open" : "closes default overflow"} without a value-change callback`, async ({ page }) => {
-      await page.goto("/index.html")
+      await page.goto("/index.html#/toolbar")
       await page.waitForSelector("html[data-ready=true]")
       const toolbar = page.locator("#toolbar-same-date-demo")
       const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -405,7 +405,7 @@ test.describe("Toolbar review regressions", () => {
   }
 
   test("mixed controls use the first control's event type across opaque siblings", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const toolbar = page.locator("#toolbar-mixed-controls-demo")
     const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -443,7 +443,7 @@ test.describe("Toolbar review regressions", () => {
   })
 
   test("a 12-item overflow scrolls within a 10rem viewport and reaches the last action", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const viewportHeight = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize) * 10)
     await page.setViewportSize({ width: 1280, height: viewportHeight })
@@ -473,7 +473,7 @@ test.describe("Toolbar review regressions", () => {
   })
 
   test("Button clicks bubble through a function component and honor preventOverflowClosing", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const toolbar = page.locator("#toolbar-wrappers-demo")
     const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -491,7 +491,7 @@ test.describe("Toolbar review regressions", () => {
   })
 
   test("either Button inside one ToolbarItem closes the overflow", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const toolbar = page.locator("#toolbar-wrappers-demo")
     const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -536,7 +536,7 @@ test.describe("Toolbar review regressions", () => {
   })
 
   test("wrapped control closing uses committed events and labels remain overridable", async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const toolbar = page.locator("#toolbar-controls-demo")
     const trigger = toolbar.getByRole("button", { name: "Additional Options" })
@@ -627,7 +627,7 @@ test.describe("Toolbar review regressions", () => {
     const outputs = (Array.isArray(result) ? result : [result]).flatMap((item) => "output" in item ? item.output : [])
     const code = outputs.find((item) => item.type === "chunk" && item.isEntry)
     if (!code || code.type !== "chunk") throw new Error("Hydration bundle missing")
-    await page.goto("/index.html")
+    await page.goto("/index.html#/toolbar")
     await page.waitForSelector("html[data-ready=true]")
     const errors: string[] = []
     page.on("pageerror", (error) => errors.push(error.message))

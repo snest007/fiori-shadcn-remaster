@@ -7,7 +7,7 @@ const widths = (fcl: Locator) =>
   Promise.all((["start", "mid", "end"] as const).map((c) => col(fcl, c).evaluate((e) => Math.round(e.getBoundingClientRect().width))))
 
 async function open(page: Page) {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/flexible-column-layout`)
   await page.waitForSelector("html[data-ready=true]")
   await demo(page).scrollIntoViewIfNeeded()
 }

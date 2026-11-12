@@ -37,4 +37,19 @@ function TagDemo() {
   )
 }
 
-export default defineDemo({ title: "Tag", order: 31, Demo: TagDemo })
+export default defineDemo({
+  category: "Display",
+  docs: [
+    {
+      name: "tag",
+      description: "Compact semantic labels, indication colors and optional interactive actions.",
+      props: [
+        { name: "Tag.design", type: "neutral | positive | negative | critical | information | set1 | set2", description: "Semantic or indication color design.", defaultValue: "neutral" },
+        { name: "Tag.colorScheme", type: "1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10", description: "Indication color for set1 and set2.", defaultValue: "1" },
+        { name: "Tag.size", type: "S | L", description: "Tag size.", defaultValue: "S" },
+        { name: "Tag.wrappingType", type: "normal | none", description: "Wrap or truncate the text.", defaultValue: "normal" },
+        { name: "Tag.interactive", type: "boolean", description: "Render a button for activation." },
+        { name: "Tag.onClick", type: "React.MouseEventHandler<HTMLElement>", description: "Receive interactive tag activation." },
+      ],
+    },
+  ], title: "Tag", order: 31, Demo: TagDemo })

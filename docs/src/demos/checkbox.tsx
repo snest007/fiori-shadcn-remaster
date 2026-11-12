@@ -28,4 +28,19 @@ function CheckboxDemo() {
   )
 }
 
-export default defineDemo({ title: "CheckBox", order: 30, Demo: CheckboxDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "checkbox",
+      description: "A checkbox with an integrated label and validation state.",
+      props: [
+        { name: "Checkbox.checked", type: "boolean | indeterminate", description: "Controlled checked state." },
+        { name: "Checkbox.onCheckedChange", type: "(checked: boolean | indeterminate) => void", description: "Receive checked-state changes." },
+        { name: "Checkbox.text", type: "ReactNode", description: "Label rendered inside the control." },
+        { name: "Checkbox.readOnly", type: "boolean", description: "Keep the control focusable without changing its value." },
+        { name: "Checkbox.valueState", type: "ValueState", description: "Semantic validation state.", defaultValue: "none" },
+      ],
+    },
+  ],
+ title: "CheckBox", order: 30, Demo: CheckboxDemo })

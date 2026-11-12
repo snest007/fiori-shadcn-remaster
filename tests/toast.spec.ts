@@ -8,7 +8,7 @@ const show = async (page: Page, name = "Show toast") => {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/toast`)
   await page.waitForSelector("html[data-ready=true]")
 })
 

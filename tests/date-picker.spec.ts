@@ -5,7 +5,7 @@ const popover = (page: Page) => page.locator("[data-slot=picker-popover]")
 
 test.describe("DatePicker (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/date-picker")
     await page.waitForSelector("html[data-ready=true]")
   })
 
@@ -117,7 +117,7 @@ test.describe("DatePicker (Fiori model)", () => {
 
 test.describe("DateRangePicker", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/date-range-picker")
     await page.waitForSelector("html[data-ready=true]")
   })
 

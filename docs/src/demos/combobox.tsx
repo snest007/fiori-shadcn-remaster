@@ -73,4 +73,19 @@ function ComboBoxDemo() {
   )
 }
 
-export default defineDemo({ title: "ComboBox", order: 31, Demo: ComboBoxDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "combobox",
+      description: "An editable choice with filtering, autocomplete and free text.",
+      props: [
+        { name: "ComboBox.value", type: "string", description: "Controlled field text." },
+        { name: "ComboBox.onValueChange", type: "(value: string) => void", description: "Receive typing, autocomplete and navigation changes." },
+        { name: "ComboBox.onCommit", type: "(value: string) => void", description: "Receive committed text on Enter, blur or selection." },
+        { name: "ComboBox.onSelectionChange", type: "(item: ComboBoxItemProps | null) => void", description: "Receive the matching item or null." },
+        { name: "ComboBox.filter", type: "startsWithPerTerm | startsWith | contains | none", description: "Filtering strategy.", defaultValue: "startsWithPerTerm" },
+      ],
+    },
+  ],
+ title: "ComboBox", order: 31, Demo: ComboBoxDemo })

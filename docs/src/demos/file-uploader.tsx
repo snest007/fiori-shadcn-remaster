@@ -24,4 +24,19 @@ function FileUploaderDemo() {
   )
 }
 
-export default defineDemo({ title: "FileUploader", order: 63, Demo: FileUploaderDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "file-uploader",
+      description: "File selection with native type filtering and size validation.",
+      props: [
+        { name: "FileUploader.accept", type: "string", description: "Native accepted extensions or MIME types." },
+        { name: "FileUploader.multiple", type: "boolean", description: "Allow multiple selected files." },
+        { name: "FileUploader.maxFileSize", type: "number", description: "Maximum size per file in MB." },
+        { name: "FileUploader.onFilesChange", type: "(files: File[]) => void", description: "Receive the new selection, including an empty array after clearing." },
+        { name: "FileUploader.onFileSizeExceed", type: "(files: FileSizeExceed[]) => void", description: "Receive files rejected by size validation." },
+      ],
+    },
+  ],
+ title: "FileUploader", order: 63, Demo: FileUploaderDemo })

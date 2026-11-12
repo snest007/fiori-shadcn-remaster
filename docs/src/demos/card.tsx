@@ -46,4 +46,21 @@ function CardDemo() {
   )
 }
 
-export default defineDemo({ title: "Card", order: 33, Demo: CardDemo })
+export default defineDemo({
+  category: "Display",
+  docs: [
+    {
+      name: "card",
+      description: "Cards with descriptive headers, content and optional header actions.",
+      props: [
+        { name: "Card.accessibleName", type: "string", description: "Accessible name of the card." },
+        { name: "CardHeader.titleText", type: "ReactNode", description: "Primary card heading." },
+        { name: "CardHeader.subtitleText", type: "ReactNode", description: "Secondary header text." },
+        { name: "CardHeader.additionalText", type: "ReactNode", description: "Status text at the end of the header." },
+        { name: "CardHeader.action", type: "ReactNode", description: "Header action controls." },
+        { name: "CardHeader.interactive", type: "boolean", description: "Make the header respond to click, Enter and Space." },
+        { name: "CardHeader.onClick", type: "React.MouseEventHandler<HTMLDivElement>", description: "Receive interactive header activation." },
+        { name: "CardHeader.titleLevel", type: "number", description: "Semantic heading level.", defaultValue: "3" },
+      ],
+    },
+  ], title: "Card", order: 33, Demo: CardDemo })

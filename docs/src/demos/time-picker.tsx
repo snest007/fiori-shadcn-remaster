@@ -23,4 +23,19 @@ function TimePickerDemo() {
   )
 }
 
-export default defineDemo({ title: "TimePicker", order: 63, Demo: TimePickerDemo })
+export default defineDemo({
+  category: "Dates",
+  docs: [
+    {
+      name: "time-picker",
+      description: "Typed times with a format-aware clock popup.",
+      props: [
+        { name: "TimePicker.value", type: "string", description: "Controlled formatted time." },
+        { name: "TimePicker.onValueChange", type: "(value: string, date: Date | null) => void", description: "Receive committed text and parsed time." },
+        { name: "TimePicker.formatPattern", type: "string", description: "Time pattern or named format style." },
+        { name: "TimePicker.open", type: "boolean", description: "Controlled clock popup state." },
+        { name: "TimePicker.submitLabel", type: "string", description: "Confirmation action text.", defaultValue: "OK" },
+      ],
+    },
+  ],
+ title: "TimePicker", order: 63, Demo: TimePickerDemo })

@@ -43,4 +43,19 @@ function UserMenuDemo() {
   )
 }
 
-export default defineDemo({ title: "User Menu", order: 62, Demo: UserMenuDemo })
+export default defineDemo({
+  category: "Overlays",
+  docs: [{
+    name: "user-menu",
+    description: "An anchored account menu with profile details, actions and sign out.",
+    props: [
+      { name: "UserMenu.open / UserMenu.onOpenChange", type: "boolean / (open: boolean) => void", description: "Control account-menu visibility." },
+      { name: "UserMenu.opener", type: "HTMLElement | null", description: "Element used to anchor the menu." },
+      { name: "UserMenu.account", type: "UserMenuAccount", description: "Avatar and account details." },
+      { name: "UserMenu.showManageAccount", type: "boolean", description: "Show the manage-account action." },
+      { name: "UserMenu.onItemClick", type: "(value: string, event: { preventDefault: () => void }) => void", description: "Receive item activation; preventDefault keeps the menu open." },
+      { name: "UserMenu.onSignOutClick", type: "(event: { preventDefault: () => void }) => void", description: "Handle sign out; preventDefault keeps the menu open." },
+      { name: "UserMenu.footer", type: "ReactNode", description: "Replace the sign-out footer; null hides it." },
+    ],
+  }],
+  title: "User Menu", order: 62, Demo: UserMenuDemo })

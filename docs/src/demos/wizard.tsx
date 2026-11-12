@@ -73,4 +73,20 @@ function WizardDemo() {
   )
 }
 
-export default defineDemo({ title: "Wizard", order: 74, Demo: WizardDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "wizard",
+      description: "Guided steps with keyboard navigation and scroll-based step selection.",
+      props: [
+        { name: "Wizard.selectedStep", type: "string", description: "Controlled selected step identifier." },
+        { name: "Wizard.onStepChange", type: "(step: string, detail: { previousStep: string | undefined; withScroll: boolean }) => void", description: "Receive selection and scroll-based step changes." },
+        { name: "Wizard.contentLayout", type: "multipleSteps | singleStep", description: "Show all reached steps or only the selected step.", defaultValue: "multipleSteps" },
+        { name: "Wizard.stepSwitchThreshold", type: "number", description: "Share of a step to scroll past before selecting the next.", defaultValue: "0.7" },
+        { name: "WizardStep.value", type: "string", description: "Step identifier; defaults to its index." },
+        { name: "WizardStep.titleText", type: "string", description: "Step title." },
+        { name: "WizardStep.disabled", type: "boolean", description: "Keep an unreached step inactive and its content hidden." },
+      ],
+    },
+  ], title: "Wizard", order: 74, Demo: WizardDemo })

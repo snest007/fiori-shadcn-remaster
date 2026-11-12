@@ -34,4 +34,19 @@ function TextAreaDemo() {
   )
 }
 
-export default defineDemo({ title: "TextArea", order: 30, Demo: TextAreaDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "textarea",
+      description: "Multiline text with growing rows, character counts and value states.",
+      props: [
+        { name: "TextArea.rows", type: "number", description: "Visible rows; 0 uses the two-row visual default.", defaultValue: "0" },
+        { name: "TextArea.growing", type: "boolean", description: "Grow to fit content.", defaultValue: "false" },
+        { name: "TextArea.growingMaxRows", type: "number", description: "Maximum growing rows; 0 is unlimited.", defaultValue: "0" },
+        { name: "TextArea.counterMode", type: "none | always | auto", description: "Character counter behavior when maxLength is set.", defaultValue: "none" },
+        { name: "TextArea.valueState", type: "ValueState", description: "Semantic validation state.", defaultValue: "none" },
+      ],
+    },
+  ],
+ title: "TextArea", order: 30, Demo: TextAreaDemo })

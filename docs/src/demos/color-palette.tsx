@@ -184,4 +184,19 @@ function ColorPaletteDemo() {
   </div>
 }
 
-export default defineDemo({ title: "ColorPalette", order: 62, Demo: ColorPaletteDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "color-palette",
+      description: "A predefined color grid with a default choice and local recent colors.",
+      props: [
+        { name: "ColorPalette.showDefaultColor", type: "boolean", description: "Show the default-color action.", defaultValue: "false" },
+        { name: "ColorPalette.defaultColor", type: "string", description: "CSS color emitted by the default action.", defaultValue: "" },
+        { name: "ColorPalette.showRecentColors", type: "boolean", description: "Show the local five-slot recent-color row.", defaultValue: "false" },
+        { name: "ColorPalette.onItemClick", type: "(detail: { color: string }) => void", description: "Receive the selected CSS color." },
+        { name: "ColorPaletteItem.selected", type: "boolean", description: "Declare the initial selected swatch.", defaultValue: "false" },
+      ],
+    },
+  ],
+ title: "ColorPalette", order: 62, Demo: ColorPaletteDemo })

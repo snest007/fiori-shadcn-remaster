@@ -16,7 +16,7 @@ async function pressTo(page: Page, key: string, target: Locator) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/index.html")
+  await page.goto("/index.html#/color-palette")
   await page.waitForSelector("html[data-ready=true]")
 })
 

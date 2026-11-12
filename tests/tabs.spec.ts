@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test"
 // UI5 TabContainer keyboard model: arrows move focus only; Enter (key down) / Space (key up) select.
 test.describe("Tabs keyboard and ARIA", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/tabs`)
     await page.waitForSelector("html[data-ready=true]")
   })
 
@@ -101,7 +101,7 @@ test.describe("Tabs keyboard and ARIA", () => {
 
 test.describe("Tabs responsive overflow", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/tabs")
     await page.waitForSelector("html[data-ready=true]")
   })
   const root = (page: import("@playwright/test").Page) => page.locator("#tabs-overflow-demo")

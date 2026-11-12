@@ -63,4 +63,17 @@ function NavigationLayoutDemo() {
   )
 }
 
-export default defineDemo({ title: "NavigationLayout", order: 71, Demo: NavigationLayoutDemo })
+export default defineDemo({
+  title: "NavigationLayout", order: 71, Demo: NavigationLayoutDemo, category: "Layout",
+  docs: [{
+    name: "navigation-layout",
+    description: "Application layout with a shell header and responsive side navigation.",
+    props: [
+      { name: "NavigationLayout.mode", type: "auto | collapsed | expanded", description: "Responsive or explicitly controlled navigation state.", defaultValue: "auto" },
+      { name: "NavigationLayout.onModeChange", type: "(mode: NavigationLayoutMode) => void", description: "Receive automatic collapse after small-screen navigation." },
+      { name: "NavigationLayout.header", type: "ReactNode", description: "Shell header and menu control." },
+      { name: "NavigationLayout.sideContent", type: "ReactNode", description: "SideNavigation connected to the layout's collapse state." },
+      { name: "NavigationLayout.children", type: "ReactNode", description: "Main application content." },
+    ],
+  }],
+})

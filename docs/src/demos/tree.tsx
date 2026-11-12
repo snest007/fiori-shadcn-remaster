@@ -38,4 +38,19 @@ function TreeDemo() {
   )
 }
 
-export default defineDemo({ title: "Tree", order: 37, Demo: TreeDemo })
+export default defineDemo({
+  category: "Data",
+  docs: [
+    {
+      name: "tree",
+      description: "Hierarchical lists with selection and caller-managed expansion.",
+      props: [
+        { name: "Tree.value", type: "string[]", description: "Controlled selected node values." },
+        { name: "Tree.onValueChange", type: "(value: string[], detail: { item: string; selected: boolean }) => void", description: "Receive selection values and the changed node." },
+        { name: "Tree.selectionMode", type: "ListSelectionMode", description: "Selection or delete model.", defaultValue: "none" },
+        { name: "Tree.onItemToggle", type: "(value: string, expanded: boolean) => void", description: "Receive node expansion changes." },
+        { name: "TreeItem.hasChildren", type: "boolean", description: "Show expansion for a lazily populated node." },
+      ],
+    },
+  ],
+ title: "Tree", order: 37, Demo: TreeDemo })

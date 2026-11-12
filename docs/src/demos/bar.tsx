@@ -7,6 +7,19 @@ import { navBack, settings } from "@/lib/fiori-icons"
 import { defineDemo } from "./types"
 
 export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "bar",
+      description: "Header, subheader and footer bars with start, center and end content.",
+      props: [
+        { name: "Bar.design", type: "header | subheader | footer | floating-footer", description: "Bar presentation.", defaultValue: "header" },
+        { name: "Bar.startContent", type: "ReactNode", description: "Content at the start of the bar." },
+        { name: "Bar.children", type: "ReactNode", description: "Centered bar content." },
+        { name: "Bar.endContent", type: "ReactNode", description: "Content at the end of the bar." },
+      ],
+    },
+  ],
   title: "Bar",
   order: 60,
   Demo: () => (

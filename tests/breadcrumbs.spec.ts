@@ -27,7 +27,7 @@ async function dispatchKey(target: Locator, key: string, modifier: Modifiers = {
 
 test.describe("Breadcrumbs keyboard and ARIA", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/breadcrumbs`)
     await page.waitForSelector("html[data-ready=true]")
   })
 
@@ -80,7 +80,7 @@ test.describe("Breadcrumbs keyboard and ARIA", () => {
 
 test.describe("Breadcrumbs responsive overflow", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/breadcrumbs")
     await page.waitForSelector("html[data-ready=true]")
   })
 
@@ -219,7 +219,7 @@ test.describe("Breadcrumbs responsive overflow", () => {
 
 test.describe("Breadcrumbs exact UI5 source contracts", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/index.html")
+    await page.goto("/index.html#/breadcrumbs")
     await page.waitForSelector("html[data-ready=true]")
   })
 

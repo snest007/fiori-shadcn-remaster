@@ -114,4 +114,18 @@ function FclDemo() {
   )
 }
 
-export default defineDemo({ title: "Flexible Column Layout", order: 900, Demo: FclDemo })
+export default defineDemo({
+  title: "Flexible Column Layout", order: 900, Demo: FclDemo, category: "Layout",
+  docs: [{
+    name: "flexible-column-layout",
+    description: "Responsive list, detail and detail-detail columns with resizable separators.",
+    props: [
+      { name: "FlexibleColumnLayout.layout", type: "FCLLayout", description: "Controlled column arrangement." },
+      { name: "FlexibleColumnLayout.startColumn / midColumn / endColumn", type: "ReactNode", description: "Content for the three columns." },
+      { name: "FlexibleColumnLayout.onLayoutChange", type: "(detail: FCLLayoutChangeDetail) => void", description: "Receive layout, visible columns and change origin." },
+      { name: "FlexibleColumnLayout.disableResizing", type: "boolean", description: "Disable separator interactions and hide their controls." },
+      { name: "FlexibleColumnLayout.onMediaChange", type: "(media: FCLMedia, maxColumnsCount: number) => void", description: "Receive width-breakpoint changes." },
+      { name: "useFlexibleColumnLayout(options)", type: "UseFlexibleColumnLayoutOptions", description: "Manage layout navigation and full-screen or close-column actions." },
+    ],
+  }],
+})

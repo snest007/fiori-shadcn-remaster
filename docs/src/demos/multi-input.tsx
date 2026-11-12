@@ -48,4 +48,20 @@ function MultiInputDemo() {
   )
 }
 
-export default defineDemo({ title: "MultiInput", order: 37, Demo: MultiInputDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "multi-input",
+      description: "A token field with suggestions and optional value help.",
+      props: [
+        { name: "MultiInput.tokens", type: "ReactNode", description: "Token elements managed by the caller." },
+        { name: "MultiInput.value", type: "string", description: "Controlled input text." },
+        { name: "MultiInput.onCommit", type: "(value: string) => void", description: "Commit text; create a token in the caller." },
+        { name: "MultiInput.onTokenDelete", type: "(values: string[]) => void", description: "Receive deleted token values; remove them in the caller." },
+        { name: "MultiInput.showValueHelpIcon", type: "boolean", description: "Show the value-help action." },
+        { name: "MultiInput.onValueHelpTrigger", type: "() => void", description: "Handle value-help activation." },
+      ],
+    },
+  ],
+ title: "MultiInput", order: 37, Demo: MultiInputDemo })

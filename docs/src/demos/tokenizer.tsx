@@ -47,4 +47,32 @@ function TokenizerDemo() {
   )
 }
 
-export default defineDemo({ title: "Token, Tokenizer", order: 36, Demo: TokenizerDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "token",
+      description: "Selectable and deletable value tokens for tokenizers and multi-value fields.",
+      props: [
+        { name: "Token.text", type: "string", description: "Required token text." },
+        { name: "Token.value", type: "string", description: "Callback identifier; defaults to text." },
+        { name: "Token.selected", type: "boolean", description: "Controlled selected state." },
+        { name: "Token.onSelectedChange", type: "(selected: boolean) => void", description: "Receive selection changes." },
+        { name: "Token.onDelete", type: "(via: \"click\" | \"backspace\" | \"delete\") => void", description: "Receive deletion requests and their input method." },
+        { name: "Token.readOnly", type: "boolean", description: "Remove deletion and use highlighted text for selection." },
+      ],
+    },
+    {
+      name: "tokenizer",
+      description: "Keyboard-selectable token lists with deletion requests and responsive overflow.",
+      props: [
+        { name: "Tokenizer.children", type: "ReactNode", description: "Token elements to render." },
+        { name: "Tokenizer.onTokenDelete", type: "(values: string[]) => void", description: "Receive deletion requests; remove matching tokens in the caller." },
+        { name: "Tokenizer.onSelectionChange", type: "(values: string[]) => void", description: "Receive the selected token values." },
+        { name: "Tokenizer.readOnly", type: "boolean", description: "Disable token deletion." },
+        { name: "Tokenizer.disabled", type: "boolean", description: "Disable interactions with the token list." },
+        { name: "Tokenizer.nMoreText", type: "(count: number, allHidden: boolean) => string", description: "Override the token overflow indicator text." },
+        { name: "Tokenizer.onPopoverOpenChange", type: "(open: boolean) => void", description: "Receive overflow popup state changes." },
+      ],
+    },
+  ], title: "Token, Tokenizer", order: 36, Demo: TokenizerDemo })

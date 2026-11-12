@@ -15,4 +15,20 @@ function ExpandableTextDemo() {
   )
 }
 
-export default defineDemo({ title: "ExpandableText", order: 64, Demo: ExpandableTextDemo })
+export default defineDemo({
+  category: "Display",
+  docs: [
+    {
+      name: "expandable-text",
+      description: "Long text that expands in place or opens in a popover.",
+      props: [
+        { name: "ExpandableText.text", type: "string", description: "Full text to display." },
+        { name: "ExpandableText.maxCharacters", type: "number", description: "Characters shown while collapsed.", defaultValue: "100" },
+        { name: "ExpandableText.overflowMode", type: "InPlace | Popover", description: "Where the full text is shown.", defaultValue: "InPlace" },
+        { name: "ExpandableText.defaultExpanded", type: "boolean", description: "Start expanded in InPlace mode.", defaultValue: "false" },
+        { name: "ExpandableText.emptyIndicatorMode", type: "Off | On", description: "Show a dash for empty text.", defaultValue: "Off" },
+        { name: "ExpandableText.showMoreText", type: "string", description: "Expand action text.", defaultValue: "Show More" },
+        { name: "ExpandableText.showLessText", type: "string", description: "Collapse action text.", defaultValue: "Show Less" },
+      ],
+    },
+  ], title: "ExpandableText", order: 64, Demo: ExpandableTextDemo })

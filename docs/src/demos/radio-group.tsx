@@ -29,4 +29,19 @@ function RadioGroupDemo() {
   )
 }
 
-export default defineDemo({ title: "RadioButton", order: 31, Demo: RadioGroupDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "radio-group",
+      description: "A mutually exclusive choice group with Fiori arrow navigation.",
+      props: [
+        { name: "RadioGroup.value", type: "string", description: "Controlled selected item value." },
+        { name: "RadioGroup.onValueChange", type: "(value: string) => void", description: "Receive the selected item value." },
+        { name: "RadioGroup.readOnly", type: "boolean", description: "Keep item focus without changing selection." },
+        { name: "RadioGroupItem.text", type: "ReactNode", description: "Text rendered beside each radio button." },
+        { name: "RadioGroup.valueState", type: "ValueState", description: "Default validation state of group items.", defaultValue: "none" },
+      ],
+    },
+  ],
+ title: "RadioButton", order: 31, Demo: RadioGroupDemo })

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 test("busy indicator appears only after its delay and is a progressbar", async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/busy-indicator`)
   await page.waitForSelector("html[data-ready=true]")
   const busy = page.locator("#busy-demo")
   await page.getByRole("button", { name: "Load (1s delay)" }).click()

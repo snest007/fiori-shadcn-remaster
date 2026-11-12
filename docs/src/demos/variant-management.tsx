@@ -89,4 +89,34 @@ function VariantManagementDemo() {
   )
 }
 
-export default defineDemo({ title: "VariantManagement", order: 66.5, Demo: VariantManagementDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [{
+    name: "variant-management",
+    description: "Select, save and manage named views while the host persists their state.",
+    props: [
+      { name: "VariantManagement.items", type: "VariantItem[]", description: "Host-owned saved-view entries." },
+      { name: "VariantManagement.selectedKey / VariantManagement.defaultKey", type: "string", description: "Currently selected and default view keys.", defaultValue: "" },
+      { name: "VariantManagement.modified", type: "boolean", description: "Mark the selected view as changed.", defaultValue: "false" },
+      { name: "VariantManagement.onSelect", type: "(event: { key: string }) => void", description: "Receive the selected view key." },
+      { name: "VariantManagement.onSave", type: "(event: VariantSaveEvent) => void", description: "Persist an overwrite or newly named view." },
+      { name: "VariantManagement.onManage", type: "(event: VariantManageEvent) => void", description: "Persist sparse rename, delete, favorite, default and role changes." },
+      { name: "VariantManagement.supportContexts", type: "boolean", description: "Enable role-restricted view visibility.", defaultValue: "false" },
+      { name: "VariantManagement.roles", type: "VariantRole[]", description: "Available role candidates for restricted visibility." },
+    ],
+  }, {
+    name: "variants",
+    description: "useVariantState connects FilterBar state to saved-view operations; localStorageAdapter optionally persists views. The example shows the consuming VariantManagement control.",
+    props: [
+      { name: "useVariantState(options)", type: "VariantStateOptions", description: "Create the saved-view model from the following options." },
+      { name: "options.initialVariants", type: "Variant[]", description: "Initial views read once; supply key standard to customize its title and state." },
+      { name: "options.storage", type: "VariantStorage", description: "Optional asynchronous load and save adapter." },
+      { name: "options.onExecute", type: "(state: FilterBarState) => void", description: "Execute after applying a view with executeOnSelect, including the initial default." },
+      { name: "localStorageAdapter(key)", type: "(key: string) => VariantStorage", description: "Persist views in localStorage under the supplied key." },
+      { name: "result.state / result.savedState", type: "FilterBarState", description: "Current filter state and the selected view's reset baseline." },
+      { name: "result.setState", type: "(state: FilterBarState) => void", description: "Update the current state from FilterBar.onStateChange." },
+      { name: "result.selectVariant / saveVariant / manageVariants", type: "(key: string) => void / (event: VariantSaveEvent) => void / (event: VariantManageEvent) => void", description: "Connect selection, save and manage callbacks to the model." },
+      { name: "result.ready / result.saving / result.error", type: "boolean / boolean / unknown", description: "Loading readiness, persistence activity and the latest adapter error." },
+    ],
+  }],
+  title: "VariantManagement", order: 66.5, Demo: VariantManagementDemo })

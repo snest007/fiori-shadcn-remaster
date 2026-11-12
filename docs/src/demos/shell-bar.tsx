@@ -83,4 +83,22 @@ function ShellBarDemo() {
   )
 }
 
-export default defineDemo({ title: "Shell Bar", order: 60, Demo: ShellBarDemo })
+export default defineDemo({
+  category: "Navigation",
+  docs: [
+    {
+      name: "shell-bar",
+      description: "Responsive application headers with branding, search, notifications and profile actions.",
+      props: [
+        { name: "ShellBar.branding", type: "ReactNode", description: "Branding or application-menu content." },
+        { name: "ShellBar.startButton", type: "ReactNode", description: "Button before branding, such as the navigation toggle." },
+        { name: "ShellBar.search", type: "ReactNode", description: "ShellBarSearch content." },
+        { name: "ShellBar.searchExpanded", type: "boolean", description: "Controlled search-field expansion." },
+        { name: "ShellBar.onSearchExpandedChange", type: "(expanded: boolean) => void", description: "Receive search expansion changes." },
+        { name: "ShellBar.onProfileClick", type: "(event: ShellBarClickEvent) => void", description: "Receive profile activation with its popup target." },
+        { name: "ShellBar.onNotificationsClick", type: "(event: ShellBarClickEvent) => void", description: "Receive notifications activation with its popup target." },
+        { name: "ShellBar.onProductSwitchClick", type: "(event: ShellBarClickEvent) => void", description: "Receive product-switch activation with its popup target." },
+        { name: "ShellBar.onContentItemVisibilityChange", type: "(hiddenKeys: string[]) => void", description: "Receive the keys of hidden content items." },
+      ],
+    },
+  ], title: "Shell Bar", order: 60, Demo: ShellBarDemo })

@@ -99,4 +99,22 @@ function AvatarDemo() {
   )
 }
 
-export default defineDemo({ title: "Avatar", order: 32, Demo: AvatarDemo })
+export default defineDemo({
+  category: "Display",
+  docs: [
+    {
+      name: "avatar",
+      description: "Avatars and responsive avatar groups with keyboard activation and overflow actions.",
+      props: [
+        { name: "Avatar.size", type: "XS | S | M | L | XL", description: "Avatar size.", defaultValue: "S" },
+        { name: "Avatar.initials", type: "string", description: "One to three letters; invalid or oversized initials use the fallback icon." },
+        { name: "Avatar.src", type: "string", description: "Image URL; load errors fall back to initials or an icon." },
+        { name: "Avatar.colorScheme", type: "AvatarColorScheme", description: "SAP accent, placeholder or transparent presentation.", defaultValue: "auto" },
+        { name: "Avatar.interactive", type: "boolean", description: "Enable button activation through click, Enter and Space." },
+        { name: "Avatar.onClick", type: "React.MouseEventHandler<HTMLButtonElement>", description: "Receive activation of an interactive avatar." },
+        { name: "AvatarGroup.type", type: "group | individual", description: "Use one group button or individually navigable avatars.", defaultValue: "group" },
+        { name: "AvatarGroup.onOverflowClick", type: "(hiddenItems: ReactElement<AvatarProps>[]) => void", description: "Receive the original hidden avatar elements." },
+        { name: "AvatarGroup.onGroupClick", type: "(detail: AvatarGroupClickDetail) => void", description: "Receive the activated target and whether it was the overflow button." },
+      ],
+    },
+  ], title: "Avatar", order: 32, Demo: AvatarDemo })

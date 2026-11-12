@@ -73,4 +73,19 @@ function AdaptFiltersDialogDemo() {
   )
 }
 
-export default defineDemo({ title: "AdaptFiltersDialog", order: 66.1, Demo: AdaptFiltersDialogDemo })
+export default defineDemo({
+  category: "Overlays",
+  docs: [{
+    name: "adapt-filters-dialog",
+    description: "Stage filter conditions, visibility and ordering before applying them to the host.",
+    props: [
+      { name: "AdaptFiltersDialog.open", type: "boolean", description: "Controlled dialog visibility." },
+      { name: "AdaptFiltersDialog.onOpenChange", type: "(open: boolean) => void", description: "Update the controlled dialog state." },
+      { name: "AdaptFiltersDialog.filters", type: "FilterDefinition[]", description: "Available fields and their shared render functions." },
+      { name: "AdaptFiltersDialog.values / AdaptFiltersDialog.visibleKeys", type: "FilterValues / string[]", description: "Conditions and ordered visible fields when opening." },
+      { name: "AdaptFiltersDialog.onApply", type: "(state: AdaptFiltersState) => void", description: "Commit the staged conditions and visible field order." },
+      { name: "AdaptFiltersDialog.initialValues / initialVisibleKeys", type: "FilterValues / string[]", description: "Reset baseline from the initial state or selected variant." },
+      { name: "AdaptFiltersDialog.p13nMode", type: "(item | value)[]", description: "Enable field personalization, value editing or both.", defaultValue: "[item, value]" },
+    ],
+  }],
+  title: "AdaptFiltersDialog", order: 66.1, Demo: AdaptFiltersDialogDemo })

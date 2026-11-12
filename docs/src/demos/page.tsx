@@ -41,4 +41,18 @@ function PageDemo() {
   )
 }
 
-export default defineDemo({ title: "Page", order: 72, Demo: PageDemo })
+export default defineDemo({
+  title: "Page", order: 72, Demo: PageDemo, category: "Layout",
+  docs: [{
+    name: "page",
+    description: "A page frame with a header, scrolling content and floating or fixed footer.",
+    props: [
+      { name: "Page.header / Page.footer", type: "ReactNode", description: "Header and footer content, usually Bar components." },
+      { name: "Page.backgroundDesign", type: "solid | transparent | list", description: "Page background treatment.", defaultValue: "solid" },
+      { name: "Page.noScrolling", type: "boolean", description: "Disable scrolling inside the content area." },
+      { name: "Page.fixedFooter", type: "boolean", description: "Dock the footer below the content." },
+      { name: "Page.hideFooter", type: "boolean", description: "Hide the footer." },
+      { name: "Page.contentProps", type: "React.ComponentProps<\"section\">", description: "Props for the scrolling content area." },
+    ],
+  }],
+})

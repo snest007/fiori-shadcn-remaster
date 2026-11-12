@@ -46,4 +46,19 @@ function DynamicSideContentDemo() {
   )
 }
 
-export default defineDemo({ title: "DynamicSideContent", order: 73, Demo: DynamicSideContentDemo })
+export default defineDemo({
+  title: "DynamicSideContent", order: 73, Demo: DynamicSideContentDemo, category: "Layout",
+  docs: [{
+    name: "dynamic-side-content",
+    description: "Main content and a responsive side area that can stack or toggle at smaller widths.",
+    props: [
+      { name: "DynamicSideContent.sideContent", type: "ReactNode", description: "Supplementary content beside the main children." },
+      { name: "DynamicSideContent.sideContentPosition", type: "start | end", description: "Side-area position.", defaultValue: "end" },
+      { name: "DynamicSideContent.sideContentVisibility", type: "SideContentVisibility", description: "Breakpoints where the side content remains visible.", defaultValue: "showAboveS" },
+      { name: "DynamicSideContent.sideContentFallDown", type: "SideContentFallDown", description: "When the side area stacks below the main content.", defaultValue: "onMinimumWidth" },
+      { name: "DynamicSideContent.equalSplit", type: "boolean", description: "Use equal-width areas above the smallest breakpoint.", defaultValue: "false" },
+      { name: "DynamicSideContent.onToggledChange", type: "(toggled: boolean) => void", description: "Receive changes from the ref's toggleContents action." },
+      { name: "DynamicSideContent.onLayoutChange", type: "(detail: LayoutChange) => void", description: "Receive the current breakpoint and area visibility." },
+    ],
+  }],
+})

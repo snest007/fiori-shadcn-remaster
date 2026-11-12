@@ -39,4 +39,32 @@ function DatePickerDemo() {
   )
 }
 
-export default defineDemo({ title: "DatePicker", order: 61, Demo: DatePickerDemo })
+export default defineDemo({
+  category: "Dates",
+  docs: [
+    {
+      name: "date-picker",
+      description: "Typed dates with an anchored calendar and format-aware validation.",
+      props: [
+        { name: "DatePicker.value", type: "string", description: "Controlled formatted date text." },
+        { name: "DatePicker.onValueChange", type: "(value: string, date: Date | null) => void", description: "Receive committed text and its parsed date." },
+        { name: "DatePicker.formatPattern", type: "string", description: "Date pattern or named format style." },
+        { name: "DatePicker.locale", type: "string", description: "Formatting locale.", defaultValue: "en-US" },
+        { name: "DatePicker.open", type: "boolean", description: "Controlled calendar popup state." },
+      ],
+    },
+    {
+      name: "picker-field",
+      description: "Shared controlled field and value-help popup used by date and time pickers.",
+      fixtureSet: "date-picker",
+      fixtureId: "date-picker-empty",
+      props: [
+        { name: "PickerField.value", type: "string", description: "Controlled field text." },
+        { name: "PickerField.open", type: "boolean", description: "Controlled popup state." },
+        { name: "PickerField.onOpenChange", type: "(open: boolean) => void", description: "Update the controlled popup state." },
+        { name: "PickerField.icon", type: "FioriIconData", description: "Required value-help icon." },
+        { name: "PickerField.onCommit", type: "(text: string) => void", description: "Receive text when it is committed." },
+      ],
+    },
+  ],
+ title: "DatePicker", order: 61, Demo: DatePickerDemo })

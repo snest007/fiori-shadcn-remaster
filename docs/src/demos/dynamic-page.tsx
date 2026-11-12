@@ -86,4 +86,19 @@ function DynamicPageDemo() {
   )
 }
 
-export default defineDemo({ title: "DynamicPage", order: 70, Demo: DynamicPageDemo })
+export default defineDemo({
+  title: "DynamicPage", order: 70, Demo: DynamicPageDemo, category: "Layout",
+  docs: [{
+    name: "dynamic-page",
+    description: "A page with a scroll-responsive title, collapsible header and pin control.",
+    props: [
+      { name: "DynamicPage.title / DynamicPage.header", type: "ReactNode", description: "Compose DynamicPageTitle and DynamicPageHeader." },
+      { name: "DynamicPage.headerSnapped", type: "boolean", description: "Controlled collapsed-header state." },
+      { name: "DynamicPage.onTitleToggle", type: "(snapped: boolean) => void", description: "Receive header collapse and expansion changes." },
+      { name: "DynamicPage.headerPinned", type: "boolean", description: "Controlled header pin state." },
+      { name: "DynamicPage.onPinButtonToggle", type: "(pinned: boolean) => void", description: "Receive changes from the pin control." },
+      { name: "DynamicPage.showFooter", type: "boolean", description: "Show the supplied footer.", defaultValue: "false" },
+      { name: "DynamicPage.accessibilityAttributes", type: "DynamicPageAccessibilityAttributes", description: "Override page-area roles and accessible names." },
+    ],
+  }],
+})

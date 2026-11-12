@@ -31,4 +31,20 @@ function SliderDemo() {
   )
 }
 
-export default defineDemo({ title: "Slider, RangeSlider", order: 62, Demo: SliderDemo })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "slider",
+      description: "Single values and ranges on a horizontal numeric scale.",
+      props: [
+        { name: "Slider.value", type: "number", description: "Controlled single value." },
+        { name: "RangeSlider.value", type: "[number, number]", description: "Controlled start and end values." },
+        { name: "Slider.min / Slider.max", type: "number", description: "Scale bounds.", defaultValue: "0 / 100" },
+        { name: "Slider.step", type: "number", description: "Step interval.", defaultValue: "1" },
+        { name: "Slider.onValueChange", type: "(value: number) => void", description: "Receive every interaction change." },
+        { name: "Slider.onValueCommit", type: "(value: number) => void", description: "Receive the changed value when an interaction ends." },
+      ],
+    },
+  ],
+ title: "Slider, RangeSlider", order: 62, Demo: SliderDemo })

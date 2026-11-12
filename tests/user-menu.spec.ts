@@ -5,7 +5,7 @@ const menu = (page: Page) => page.getByRole("dialog", { name: "User menu for Joh
 const last = (page: Page) => page.locator("#user-menu-demo-last")
 
 test.beforeEach(async ({ page }) => {
-  await page.goto(`/index.html`)
+  await page.goto(`/index.html#/user-menu`)
   await page.waitForSelector("html[data-ready=true]")
   await opener(page).click()
   await expect(menu(page)).toBeVisible()

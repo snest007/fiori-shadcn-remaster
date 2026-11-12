@@ -45,4 +45,40 @@ function FormFields() {
   )
 }
 
-export default defineDemo({ title: "Form fields: Label, Input, Select", order: 20, Demo: FormFields })
+export default defineDemo({
+  category: "Forms",
+  docs: [
+    {
+      name: "label",
+      description: "Field labels with required markers, colons and optional truncation.",
+      props: [
+        { name: "Label.htmlFor", type: "string", description: "ID of the labelled form control." },
+        { name: "Label.required", type: "boolean", description: "Show the required marker." },
+        { name: "Label.showColon", type: "boolean", description: "Append a colon." },
+        { name: "Label.truncate", type: "boolean", description: "Keep the label on one line with an ellipsis." },
+      ],
+    },
+    {
+      name: "input",
+      description: "A text field with Fiori value states and a trailing icon slot.",
+      props: [
+        { name: "Input.value", type: "string | number | readonly string[]", description: "Controlled native input value." },
+        { name: "Input.onChange", type: "React.ChangeEventHandler<HTMLInputElement>", description: "Receive native text changes." },
+        { name: "Input.valueState", type: "ValueState", description: "Semantic validation state.", defaultValue: "none" },
+        { name: "Input.valueStateMessage", type: "ReactNode | null", description: "Message shown on focus; null hides it." },
+        { name: "Input.icon", type: "ReactNode", description: "Trailing icon or value-help action." },
+      ],
+    },
+    {
+      name: "select",
+      description: "A fixed-option choice with the Fiori closed-field keyboard model.",
+      props: [
+        { name: "Select.value", type: "string", description: "Controlled selected option value." },
+        { name: "Select.onValueChange", type: "(value: string) => void", description: "Receive the selected option value." },
+        { name: "Select.open", type: "boolean", description: "Controlled popup state." },
+        { name: "SelectTrigger.valueState", type: "ValueState", description: "Semantic field state.", defaultValue: "none" },
+        { name: "SelectTrigger.readOnly", type: "boolean", description: "Keep focus and prevent selection changes." },
+      ],
+    },
+  ],
+ title: "Form fields: Label, Input, Select", order: 20, Demo: FormFields })

@@ -6,6 +6,30 @@ import { boldText, italicText, textAlignCenter, textAlignLeft, textAlignRight, u
 import { defineDemo } from "./types"
 
 export default defineDemo({
+  category: "Actions",
+  docs: [
+    {
+      name: "segmented-button",
+      description: "A single or multiple selection group with one keyboard entry point.",
+      props: [
+        { name: "SegmentedButton.selectionMode", type: "single | multiple", description: "Select one item or any number of items.", defaultValue: "single" },
+        { name: "SegmentedButton.value", type: "string | string[]", description: "Controlled selected value; an array is required in multiple mode." },
+        { name: "SegmentedButton.onValueChange", type: "(value: string) => void | (value: string[]) => void", description: "Receive the selected value for the chosen mode." },
+        { name: "SegmentedButton.itemsFitContent", type: "boolean", description: "Size items to their content instead of sharing the width." },
+      ],
+    },
+    {
+      name: "toggle-button",
+      description: "An action that retains its pressed state.",
+      props: [
+        { name: "ToggleButton.pressed", type: "boolean", description: "Controlled pressed state." },
+        { name: "ToggleButton.defaultPressed", type: "boolean", description: "Initial uncontrolled pressed state." },
+        { name: "ToggleButton.onPressedChange", type: "(pressed: boolean) => void", description: "Receive the next pressed state." },
+        { name: "ToggleButton.variant", type: "ButtonProps[\"variant\"]", description: "Semantic button design.", defaultValue: "default" },
+      ],
+    },
+  ],
+
   title: "SegmentedButton, ToggleButton",
   order: 33,
   Demo: () => (

@@ -8,7 +8,7 @@ const tokensText = (page: Page) => page.getByTestId("multi-input-tokens")
 
 test.describe("MultiInput (Fiori model)", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto(`/index.html`)
+    await page.goto(`/index.html#/multi-input`)
     await page.waitForSelector("html[data-ready=true]")
   })
 
