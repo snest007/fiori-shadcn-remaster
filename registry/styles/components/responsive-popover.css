@@ -8,7 +8,16 @@
      portal must reset Tailwind's document-level 1.5 line height. */
   line-height: normal;
 }
-.fiori-responsive-popover--field .fiori-popup__content { padding: 0; }
+/* ValueStateMessage.css.js/phone content part: messages remain fixed above a
+   scrolling List. Scrolling the whole content would move the state message. */
+.fiori-responsive-popover--field .fiori-popup__content {
+  padding: 0; display: flex; flex-direction: column; overflow: hidden;
+}
+.fiori-select-phone [data-slot="select-phone-list"] { min-height: 0; overflow: auto; }
+/* MultiComboBoxPopoverTemplate.js places select-all next to the List, rather
+   than inside its scroll area; preserve their separate flex sizing on phones. */
+.fiori-multi-combobox-phone .fiori-popup__content > .overflow-y-auto { display: contents; }
+.fiori-multi-combobox-phone [data-slot="multi-combobox-list"] { min-height: 0; overflow: auto; }
 .fiori-responsive-popover__field-header.fiori-popup__header { padding: 0; gap: 0; }
 .fiori-responsive-popover__field-header { flex-direction: column; min-height: 0; }
 .fiori-responsive-popover__rows { width: 100%; display: flex; flex-direction: column; }

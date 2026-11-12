@@ -345,16 +345,9 @@ function MultiInput({
       <div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
       <div className="fiori-responsive-popover__row fiori-responsive-popover__row--input">
         <Input ref={phoneInputRef} wrapperClassName="fiori-multi-input-phone__input my-0" aria-label={dialogTitle} placeholder={placeholder} value={value}
-          onChange={(e) => { const text = e.target.value; setTyped(text); setValue(text); setActive(-1) }}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") return // InputSuggestions Dialog closes with live text; Cancel alone restores.
-            if (e.key === "Enter") {
-              const item = visible[active] ?? items.find((i) => i.text.toLowerCase() === value.toLowerCase())
-              if (item) choose(item); else acceptPhone()
-            } else if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-              e.preventDefault(); if (!showPhoneTokens) navigate(e.key === "ArrowDown" ? Math.min(active + 1, visible.length - 1) : Math.max(active - 1, 0))
-            }
-          }} />
+          // InputSuggestionsTemplate.js supplies no suggestions to this Input.
+          // Enter/arrows leave the owning dialog alone; Dialog handles Escape.
+          onChange={(e) => { const text = e.target.value; setTyped(text); setValue(text); setActive(-1) }} />
         <ToggleButton variant="transparent" aria-label={showTokensLabel} disabled={!tokenCount} pressed={showPhoneTokens && tokenCount > 0}
           onPressedChange={setShowPhoneTokens}><Icon icon={multiselectAll} /></ToggleButton>
       </div>
@@ -556,19 +549,36 @@ function MultiInput({
             aria-label={suggestionsLabel}
             className="overflow-y-auto"
             onMouseDown={(e) => e.preventDefault()}
+            onKeyDown={phone && showPhoneTokens && tokenCount > 0 ? (e) => {
+              // MultiInputTemplate.js uses ListItemStandard for token rows, which
+              // retain List's ItemNavigation. The SuggestionItem phone projection
+              // leaves arrows alone (SuggestionItem.js/_effectiveTabIndex -1).
+              if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || isF6NavigationKey(e)) return
+              const options = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="option"]')]
+              const index = options.indexOf(document.activeElement as HTMLElement)
+              const next = e.key === "ArrowDown" ? index + 1 : e.key === "ArrowUp" ? index - 1 : e.key === "Home" ? 0 : e.key === "End" ? options.length - 1 : e.key === "PageDown" ? index + 10 : e.key === "PageUp" ? index - 10 : -1
+              if (index >= 0 && ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(e.key)) {
+                e.preventDefault()
+                const target = options[Math.max(0, Math.min(next, options.length - 1))]
+                target?.focus(); target?.scrollIntoView({ block: "nearest" })
+              }
+            } : undefined}
           >
-            {phone && showPhoneTokens && tokenCount > 0 ? tokenItems.map((token, index) => <div key={index} role="option" aria-selected={false} className="fiori-list-item fiori-multi-input-phone__token">
+            {phone && showPhoneTokens && tokenCount > 0 ? tokenItems.map((token, index) => <div key={index} role="option" aria-selected={false} tabIndex={index === 0 ? 0 : -1} className="fiori-list-item fiori-multi-input-phone__token"
+              onKeyDown={(e) => { if (e.key === "Delete") { e.preventDefault(); onTokenDelete?.([token.value ?? token.text ?? ""]) } }}>
               <span>{token.text}</span><Button variant="transparent" aria-label={tokenDeleteLabel} onClick={() => onTokenDelete?.([token.value ?? token.text ?? ""])}><Icon icon={decline} /></Button>
             </div>) : visible.map((item, i) => (
               <div
                 key={`${item.text}-${i}`}
                 id={optionId(i)}
                 role="option"
+                tabIndex={phone ? (i === 0 ? 0 : -1) : undefined}
                 aria-selected={i === active}
                 data-state={i === active ? "checked" : undefined}
                 data-highlighted={i === active ? "" : undefined}
                 className="fiori-list-item fiori-suggestions__item"
                 onClick={() => choose(item)}
+                onKeyDown={phone ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(item) } } : undefined}
               >
                 <span className="fiori-suggestions__text">{highlightAll(item.text, typed)}</span>
                 {item.additionalText && <span className="fiori-suggestions__additional">{item.additionalText}</span>}

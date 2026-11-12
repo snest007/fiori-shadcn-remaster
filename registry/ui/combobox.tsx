@@ -375,8 +375,10 @@ function ComboBox({
           onChange={(e) => { setValue(e.target.value); setFilterValue(e.target.value); userTyped.current = e.target.value; setActive(-1) }}
           onKeyDown={(e) => {
             if (e.key === "Escape") { e.preventDefault(); closePhone(true) }
-            else if (e.key === "Enter") active >= 0 ? choose(active) : closePhone()
-            else if (NAV_KEYS.has(e.key) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) handleNavKey(e)
+            // ComboBox.js/_handleMobileKeydown handles only Escape. Its phone
+            // Input's Enter/change does not close or commit the owning dialog.
+            // The embedded phone Input does not navigate the owning list from
+            // its arrow keys (ComboBoxPopoverTemplate.js has no key forwarding).
           }} />
       </div>
     </div>,

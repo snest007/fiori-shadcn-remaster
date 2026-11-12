@@ -209,6 +209,80 @@ test.describe("D1a phone popup contracts", () => {
       await expect(fieldInput(holder, "multi-input", native)).toBeFocused()
       await expect(holder.locator('[data-slot="phone-events"]')).toContainText(native ? "selection:Australia" : "suggestion:Australia")
     })
+    for (const kind of ["combobox", "multi-combobox"]) {
+      test(`${label} ${kind} keeps value-state and footer fixed while its long list scrolls`, async ({ page }) => {
+        const holder = await visit(page, kind, native, "-negative-long")
+        await openField(page, holder, kind, native)
+        const message = native ? holder.locator("ui5-responsive-popover .ui5-valuestatemessage-root:visible") : dialog(page, false).locator(".fiori-value-state-message")
+        const footer = surface(page, holder, native).getByRole("button", { name: "OK", exact: true })
+        const initial = { message: await message.boundingBox(), footer: await footer.boundingBox() }
+        const list = native ? holder.locator(`ui5-list.${kind === "combobox" ? "ui5-combobox-items-list" : "ui5-multi-combobox-all-items-list"}`) : dialog(page, false).locator(`[data-slot="${kind}-list"]`)
+        // UI5 List owns its scroll area; the phone content/message stays fixed.
+        await list.evaluate((element) => {
+          const host = element as HTMLElement
+          const inner = host.shadowRoot?.querySelector<HTMLElement>(".ui5-list-scroll-container")
+          const target = host.scrollHeight > host.clientHeight ? host : inner ?? host
+          target.scrollTop = target.scrollHeight
+        })
+        await expect.poll(() => list.evaluate((element) => {
+          const host = element as HTMLElement
+          const inner = host.shadowRoot?.querySelector<HTMLElement>(".ui5-list-scroll-container")
+          return Math.max(host.scrollTop, inner?.scrollTop ?? 0)
+        })).toBeGreaterThan(0)
+        expect(await message.boundingBox()).toEqual(initial.message)
+        expect(await footer.boundingBox()).toEqual(initial.footer)
+      })
+    }
+    for (const kind of ["combobox", "multi-input"]) {
+      test(`${label} ${kind} phone Input Enter leaves the dialog open`, async ({ page }) => {
+        const holder = await visit(page, kind, native)
+        await openField(page, holder, kind, native)
+        await phoneInput(page, native).fill("Custom")
+        await phoneInput(page, native).press("Enter")
+        await expect(dialog(page, native)).toBeVisible()
+        await expect(fieldInput(holder, kind, native)).toHaveValue("Custom")
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
+        await phoneInput(page, native).fill("Germany")
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText(kind === "combobox" ? '["selection:Germany"]' : "[]")
+        await phoneInput(page, native).press("Enter")
+        await expect(dialog(page, native)).toBeVisible()
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText(kind === "combobox" ? '["selection:Germany"]' : "[]")
+      })
+      test(`${label} ${kind} phone header arrow follows its embedded Input`, async ({ page }) => {
+        const holder = await visit(page, kind, native)
+        await openField(page, holder, kind, native)
+        await phoneInput(page, native).press("ArrowDown")
+        await expect(dialog(page, native)).toBeVisible()
+        await expect(phoneInput(page, native)).toHaveValue("")
+        await expect(fieldInput(holder, kind, native)).toHaveValue("")
+      })
+    }
+    test(`${label} MultiInput phone suggestions receive Tab and Enter while arrows leave focus alone`, async ({ page }) => {
+      const holder = await visit(page, "multi-input", native)
+      await openField(page, holder, "multi-input", native)
+      await phoneInput(page, native).press("Tab")
+      const options = native ? holder.locator("ui5-suggestion-item").getByRole("option") : dialog(page, false).getByRole("option")
+      await expect(options.filter({ hasText: "Argentina" })).toBeFocused()
+      await page.keyboard.press("ArrowDown")
+      // SuggestionItem.js/_effectiveTabIndex and this phone slot projection do
+      // not activate ItemNavigation.js/_canNavigate. Enter still presses the row.
+      await expect(options.filter({ hasText: "Argentina" })).toBeFocused()
+      await expect(fieldInput(holder, "multi-input", native)).toHaveValue("")
+      await page.keyboard.press("Enter")
+      await expect(dialog(page, native)).toHaveCount(0)
+      await expect(fieldInput(holder, "multi-input", native)).toHaveValue("Argentina")
+      await expect(fieldInput(holder, "multi-input", native)).toBeFocused()
+    })
+    test(`${label} MultiInput deleting its last phone token returns to suggestions`, async ({ page }) => {
+      const holder = await visit(page, "multi-input", native, "-tokens")
+      await openField(page, holder, "multi-input", native)
+      await surface(page, holder, native).getByRole("option", { name: /Germany/ }).getByRole("button", { name: "Delete", exact: true }).click()
+      const toggle = surface(page, holder, native).getByRole("button", { name: "Show selected tokens", exact: true })
+      await expect(toggle).toHaveAttribute("aria-pressed", "false")
+      await expect(toggle).toBeDisabled()
+      await expect(native ? holder.locator("ui5-suggestion-item").getByRole("option") : dialog(page, false).getByRole("option")).toHaveCount(4)
+      await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["delete:Germany"]')
+    })
   }
   test("ResponsivePopover traps focus, closes and restores opener", async ({ page }) => {
     const holder = await visit(page, "responsive-popover")

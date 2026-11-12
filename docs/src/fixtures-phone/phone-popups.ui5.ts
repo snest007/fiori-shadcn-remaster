@@ -16,19 +16,20 @@ import "@ui5/webcomponents-icons/dist/multiselect-all.js"
 import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 import { defineUi5, h, type Ui5FixtureElement } from "../fixture-types"
 import { ui5State } from "../fixtures/ui5-helpers"
-import set, { PHONE_OPTIONS } from "./popups"
+import set, { PHONE_OPTIONS, PHONE_LONG_OPTIONS } from "./popups"
 
-export default defineUi5(set, ({ kind, valueState, tokens }) => {
+export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
+  const options = longList ? PHONE_LONG_OPTIONS : PHONE_OPTIONS
   const frame = h("div") as Ui5FixtureElement
   frame.id = `${kind}-phone-demo`
   if (new URLSearchParams(location.search).has("nested-rtl")) frame.dir = "rtl"
   frame.style.cssText = "width:375px;height:667px;overflow:hidden"
   const attrs = { "accessible-name": "Country", "value-state": ui5State(valueState) }
   const field = kind === "responsive-popover" ? h("ui5-responsive-popover", { "header-text": "Country" }, h("p", {}, "Choose a country."), h("ui5-button", {}, "Done"))
-    : kind === "select" ? h("ui5-select", attrs, ...PHONE_OPTIONS.map((text) => h("ui5-option", { selected: text === "Germany" }, text)))
-    : kind === "combobox" ? h("ui5-combobox", attrs, ...PHONE_OPTIONS.map((text) => h("ui5-cb-item", { text })))
-    : kind === "multi-combobox" ? h("ui5-multi-combobox", { ...attrs, "show-select-all": true, "no-validation": new URLSearchParams(location.search).has("external-open") }, ...PHONE_OPTIONS.map((text) => h("ui5-mcb-item", { text, selected: tokens && text === "Germany" })))
-    : h("ui5-multi-input", { ...attrs, "show-suggestions": true }, ...(tokens ? [h("ui5-token", { slot: "tokens", text: "Germany" })] : []), ...PHONE_OPTIONS.map((text) => h("ui5-suggestion-item", { text })))
+    : kind === "select" ? h("ui5-select", attrs, ...options.map((text) => h("ui5-option", { selected: text === "Germany" }, text)))
+    : kind === "combobox" ? h("ui5-combobox", attrs, ...options.map((text) => h("ui5-cb-item", { text })))
+    : kind === "multi-combobox" ? h("ui5-multi-combobox", { ...attrs, "show-select-all": true, "no-validation": new URLSearchParams(location.search).has("external-open") }, ...options.map((text) => h("ui5-mcb-item", { text, selected: tokens && text === "Germany" })))
+    : h("ui5-multi-input", { ...attrs, "show-suggestions": true }, ...(tokens ? [h("ui5-token", { slot: "tokens", text: "Germany" })] : []), ...options.map((text) => h("ui5-suggestion-item", { text })))
   field.id = `${kind}-phone-field`
   field.style.width = "13.125rem"
   if (new URLSearchParams(location.search).has("external-open")) {
