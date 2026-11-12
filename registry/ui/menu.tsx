@@ -14,7 +14,7 @@ type CheckMode = "none" | "single" | "multiple"
 type CheckProps = { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void }
 type StateKey = { /** @internal Stable identity assigned by Menu before Radix unmounts popup rows. */ _menuStateKey?: string }
 type Surface = { element: HTMLDivElement | null; close: (nativeTab?: boolean) => void; escape?: (e: KeyboardEvent) => void; nested: boolean; depth: number; submenus: Map<HTMLElement, { close: () => void; open: (mouse?: boolean) => void }> }
-type MenuState = { owner: React.RefObject<HTMLButtonElement | null>; setOpen: (open: boolean) => void; checked: Map<string, boolean>; update: () => void; surfaces: Set<Surface>; nativeTab: boolean; triggerSpace: boolean }
+type MenuState = { setOpen: (open: boolean) => void; checked: Map<string, boolean>; update: () => void; surfaces: Set<Surface>; nativeTab: boolean; triggerSpace: boolean }
 const MenuContext = React.createContext<MenuState | null>(null)
 const SurfaceContext = React.createContext<Surface | null>(null)
 const GroupContext = React.createContext<{ mode: CheckMode; keys: string[] } | null>(null)
@@ -42,32 +42,30 @@ function persistentChildren(children: React.ReactNode, path = "menu"): React.Rea
 }
 
 function Menu({ open: openProp, defaultOpen, onOpenChange, children, dir, ...props }: React.ComponentProps<typeof MenuPrimitive.Root>) {
-  const owner = React.useRef<HTMLButtonElement>(null)
+  const scope = React.useRef<HTMLSpanElement>(null)
   const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr")
   const [uncontrolled, setUncontrolled] = React.useState(defaultOpen ?? false)
   const [, update] = React.useReducer((n) => n + 1, 0)
-  const state = React.useRef<MenuState>({ owner, setOpen: () => {}, checked: new Map(), update, surfaces: new Set(), nativeTab: false, triggerSpace: false }).current
+  const state = React.useRef<MenuState>({ setOpen: () => {}, checked: new Map(), update, surfaces: new Set(), nativeTab: false, triggerSpace: false }).current
   const setOpen = React.useCallback((open: boolean) => {
     if (openProp === undefined) setUncontrolled(open)
     onOpenChange?.(open)
   }, [openProp, onOpenChange])
   state.setOpen = setOpen
   React.useLayoutEffect(() => {
-    // Menu.js isRtl follows its opener/owner. Keep that direction when Radix portals
-    // the surface into a body with a different dir, and support in-place open menus.
-    const surfaceParent = [...state.surfaces].find((surface) => !surface.nested)?.element?.parentElement
-    // Radix's positioning wrapper sets its own dir. For a triggerless, in-place
-    // menu the wrapper's parent is the owning DOM scope, as UI5 Menu.effectiveDir.
-    const node = owner.current ?? (surfaceParent?.hasAttribute("data-radix-popper-content-wrapper") ? surfaceParent.parentElement : surfaceParent)
+    // Menu.js isRtl reads UI5Element.effectiveDir on the Menu itself, independently
+    // of opener direction. Radix Root has no host: retain its declaration scope
+    // with a hidden marker before any differently directed opener descendants.
+    const node = scope.current
     if (!node) return
-    const updateDirection = () => setDirection(getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr")
+    const updateDirection = () => setDirection(node.matches(":dir(rtl)") ? "rtl" : "ltr")
     updateDirection()
     const observer = new MutationObserver(updateDirection)
     for (let ancestor: HTMLElement | null = node; ancestor; ancestor = ancestor.parentElement) {
       observer.observe(ancestor, { attributes: true, attributeFilter: ["dir", "style", "class"] })
     }
     return () => observer.disconnect()
-  })
+  }, [])
   React.useEffect(() => {
     let tabFrame: number | undefined
     // OpenedPopupsRegistry.js _keydownListener: only plain Escape closes the topmost
@@ -99,7 +97,7 @@ function Menu({ open: openProp, defaultOpen, onOpenChange, children, dir, ...pro
       if (tabFrame !== undefined) cancelAnimationFrame(tabFrame)
     }
   }, [state])
-  return <MenuContext.Provider value={state}><MenuPrimitive.Root dir={dir ?? direction} data-slot="menu" open={openProp ?? uncontrolled} onOpenChange={setOpen} {...props}>{persistentChildren(children)}</MenuPrimitive.Root></MenuContext.Provider>
+  return <MenuContext.Provider value={state}><MenuPrimitive.Root dir={dir ?? direction} data-slot="menu" open={openProp ?? uncontrolled} onOpenChange={setOpen} {...props}><span ref={scope} data-slot="menu-scope" hidden aria-hidden="true" />{persistentChildren(children)}</MenuPrimitive.Root></MenuContext.Provider>
 }
 
 // UI5 Menu opener/List ItemNavigation do not cancel F6 aliases. Filtering Radix's
@@ -125,10 +123,9 @@ function MenuContentHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.C
     else onKeyDown?.(event)
   }} />
 }
-function MenuTrigger({ onKeyDown, children, asChild, ref, ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
+function MenuTrigger({ onKeyDown, children, asChild, ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
   const root = React.useContext(MenuContext)
-  React.useImperativeHandle(ref, () => root?.owner.current!, [root])
-  return <MenuPrimitive.Trigger ref={root?.owner} data-slot="menu-trigger" {...props} onKeyDown={(e) => {
+  return <MenuPrimitive.Trigger data-slot="menu-trigger" {...props} onKeyDown={(e) => {
     onKeyDown?.(e)
     // Radix opens on Space down; its following keyup belongs to the opener, not the
     // newly focused item. UI5 button openers open on Space up instead.

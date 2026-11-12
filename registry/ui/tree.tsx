@@ -208,8 +208,9 @@ function TreeItemRoot({
     onKeyDown: (e) => {
       onKeyDown?.(e as React.KeyboardEvent<HTMLDivElement>)
       if (e.defaultPrevented || e.target !== e.currentTarget || e.altKey || e.ctrlKey || e.metaKey) return
-      const rtl = getComputedStyle(e.currentTarget).direction === "rtl"
-      const key = rtl ? { ArrowLeft: "ArrowRight", ArrowRight: "ArrowLeft" }[e.key] ?? e.key : e.key
+      // UI5 TreeItemBase.js _onkeydown uses physical Right/Left for expansion
+      // and step-in/step-out in both directions; Keys.js does not mirror them.
+      const key = e.key
       if (key === "ArrowRight" && showToggle) {
         e.preventDefault()
         if (!expanded) toggle(value)
