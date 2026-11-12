@@ -20,14 +20,67 @@ test("color-picker: HSL area and both slider drags change the controlled value",
   await expect(output(page)).toHaveText("rgba(64, 128, 191, 0.5)")
   await expect(area).toHaveAttribute("role", "presentation"); await expect(area).not.toHaveAttribute("tabindex")
   for (const [kind, value] of [["hue", "180"], ["alpha", "0.75"]] as const) {
-    const scale = root.locator(`.fiori-color-picker__slider--${kind} .fiori-color-picker__scale-inner`)
+    const scale = root.locator(`[data-slot="color-picker-${kind}-slider"]`)
     await scale.scrollIntoViewIfNeeded()
     const rect = (await scale.boundingBox())!
     const target = kind === "hue" ? hue(root) : alpha(root)
-    await page.mouse.move(rect.x + rect.width * .25, rect.y); await page.mouse.down(); await page.mouse.move(rect.x + rect.width * (kind === "hue" ? .5 : .75), rect.y); await page.mouse.up()
+    await page.mouse.move(rect.x + rect.width * .25, rect.y + rect.height / 2); await page.mouse.down(); await page.mouse.move(rect.x + rect.width * (kind === "hue" ? .5 : .75), rect.y + rect.height / 2); await page.mouse.up()
     await expect(target).toHaveAttribute("aria-valuenow", value)
   }
   await expect(output(page)).toHaveText("rgba(64, 191, 191, 0.75)")
+})
+
+test("color-picker: full-host pointer values and first-focus Escape match native hue and alpha", async ({ page, context }, testInfo) => {
+  const native = await context.newPage()
+  const proof: { kind: string; action: string; ours: string; native: string }[] = []
+  try {
+    await native.goto("/ui5.html?only=color-picker-alpha"); await native.waitForSelector("html[data-ready=true]")
+    const root = picker(page)
+    // Keep endpoint/outside coordinates integral and over an ordinary parent, not documentElement:
+    // native SliderBase's window mouseout handler ends a drag when relatedTarget is documentElement.
+    await root.evaluate((element) => { const x = element.getBoundingClientRect().x; element.style.marginLeft = `${Math.ceil(x) + 64 - x}px` })
+    await native.evaluate(() => {
+      const element = document.querySelector<HTMLElement>('[data-fixture="color-picker-alpha"] ui5-color-picker')!
+      element.id = "color-picker-pointer-native"
+      const frame = document.createElement("div"); frame.style.cssText = "padding:64px;min-height:900px;box-sizing:border-box"
+      frame.append(element); document.body.style.margin = "0"; document.body.replaceChildren(frame)
+    })
+    const nativeRoot = native.locator("#color-picker-pointer-native")
+    for (const kind of ["hue", "alpha"] as const) {
+      const initial = kind === "hue" ? "210" : "0.25", maximum = kind === "hue" ? "360" : "1"
+      if (kind === "alpha") {
+        // Commit via the channel so neither alpha slider has owned focus before its first pointer interaction.
+        await commit(root, "Alpha", initial)
+        const input = nativeRoot.locator("ui5-input#alpha input")
+        await input.fill(initial); await input.press("Enter"); await expect(input).toHaveValue(initial)
+      }
+      const oursHost = root.locator(`[data-slot="color-picker-${kind}-slider"]`)
+      const nativeHost = nativeRoot.locator(`.ui5-color-picker-${kind}-slider`)
+      const oursHandle = kind === "hue" ? hue(root) : alpha(root), nativeHandle = nativeHost.locator('[role="slider"]')
+      const assertBoth = async (action: string, expected: string) => {
+        await expect(oursHandle).toHaveAttribute("aria-valuenow", expected); await expect(nativeHandle).toHaveAttribute("aria-valuenow", expected)
+        proof.push({ kind, action, ours: (await oursHandle.getAttribute("aria-valuenow"))!, native: (await nativeHandle.getAttribute("aria-valuenow"))! })
+      }
+      await assertBoth("before first pointer focus", initial)
+      for (const [surface, host] of [[page, oursHost], [native, nativeHost]] as const) {
+        await host.scrollIntoViewIfNeeded(); const box = (await host.boundingBox())!
+        await surface.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      }
+      await assertBoth("host midpoint", kind === "hue" ? "180" : "0.5")
+      await expect(oursHandle).toBeFocused(); await expect(nativeHandle).toBeFocused()
+      await page.keyboard.press("Escape"); await native.keyboard.press("Escape")
+      await assertBoth("Escape restores pointer-entry value", initial)
+      for (const [action, fraction, expected] of [["left endpoint", 0, "0"], ["right endpoint", 1, maximum], ["clamp below host", -.1, "0"], ["clamp above host", 1.1, maximum]] as const) {
+        for (const [surface, host] of [[page, oursHost], [native, nativeHost]] as const) {
+          const box = (await host.boundingBox())!, y = box.y + box.height / 2
+          await surface.mouse.move(box.x + box.width * .25, y); await surface.mouse.down()
+          await surface.mouse.move(box.x + box.width * fraction, y); await surface.mouse.up()
+        }
+        await assertBoth(action, expected)
+      }
+    }
+    await testInfo.attach("c2-pointer-differential.json", { body: JSON.stringify(proof, null, 2), contentType: "application/json" })
+  } finally { await native.close() }
 })
 
 test("color-picker: slider keyboard matches UI5 steps, modifiers, bounds and Escape", async ({ page }) => {
@@ -108,7 +161,7 @@ test("color-picker: More Colors retains canceled draft, applies and focuses rece
   await page.keyboard.press("Escape"); await expect(dialog(page)).toHaveCount(0); await expect(more).toBeFocused()
 })
 
-test("color-picker: canceled dialog retains invalid Hex and HSL mode until runtime selection changes", async ({ page }) => {
+test("color-picker: canceled dialog retains invalid Hex and HSL while runtime selection replaces only the color", async ({ page }) => {
   const root = palette(page), more = root.getByRole("button", { name: "More Colors...", exact: true })
   await more.click(); await dialog(page).getByRole("button", { name: "Change Color Mode" }).click()
   await commit(dialog(page), "Hexadecimal", "nothex")
@@ -118,7 +171,86 @@ test("color-picker: canceled dialog retains invalid Hex and HSL mode until runti
   await dialog(page).getByRole("button", { name: "Cancel", exact: true }).click()
   await root.locator('[data-color-palette-area="main"]').first().click()
   await more.click(); await expect(dialog(page).getByRole("textbox", { name: "Hexadecimal" })).toHaveValue("ff0000")
-  await expect(dialog(page).getByRole("textbox", { name: "Saturation", exact: true })).toBeEnabled()
+  await expect(dialog(page).getByRole("textbox", { name: "Hexadecimal" })).toHaveAttribute("aria-invalid", "true")
+  await expect(dialog(page).getByRole("textbox", { name: "Saturation", exact: true })).toBeDisabled()
+  await commit(dialog(page), "Hexadecimal", "00ff00"); await expect(dialog(page).getByRole("textbox", { name: "Saturation", exact: true })).toBeEnabled()
+})
+
+test("color-picker: canceled state survives outer popover lifetime and runtime replacement like native", async ({ page, context }, testInfo) => {
+  const native = await context.newPage()
+  const proof: { stage: string; ours: { hex: string; invalid: string | null; hsl: boolean; disabled: boolean }; native: { hex: string; invalid: string | null; hsl: boolean; disabled: boolean } }[] = []
+  try {
+    await native.goto("/ui5.html?only=color-picker-alpha"); await native.waitForSelector("html[data-ready=true]")
+    await native.evaluate(async () => {
+      await customElements.whenDefined("ui5-color-palette-popover")
+      const frame = document.createElement("div"), opener = document.createElement("button")
+      opener.id = "color-picker-lifetime-native-opener"; opener.textContent = "Open color palette"
+      const popup = document.createElement("ui5-color-palette-popover") as HTMLElement & { showMoreColors: boolean; showRecentColors: boolean; opener: HTMLElement; open: boolean }
+      popup.id = "color-picker-lifetime-native-popup"; popup.showMoreColors = true; popup.showRecentColors = true; popup.opener = opener
+      for (const color of ["red", "blue"]) { const item = document.createElement("ui5-color-palette-item"); item.setAttribute("value", color); popup.append(item) }
+      opener.onclick = () => { popup.open = !popup.open }
+      frame.append(opener, popup); document.body.replaceChildren(frame)
+    })
+    const opener = page.locator("#color-picker-demo #color-picker-popover-opener"), popup = page.locator("#color-picker-palette-popover")
+    const nativeOpener = native.locator("#color-picker-lifetime-native-opener"), nativePopup = native.locator("#color-picker-lifetime-native-popup")
+    const nativePalette = nativePopup.locator("ui5-color-palette"), nativeDialog = nativePalette.locator("ui5-dialog"), nativePicker = nativeDialog.locator("ui5-color-picker")
+    const more = () => popup.getByRole("button", { name: "More Colors...", exact: true }), nativeMore = nativePalette.locator(".ui5-cp-more-colors")
+    const state = async (root: Locator) => ({
+      hex: await root.getByRole("textbox", { name: "Hexadecimal", exact: true }).inputValue(),
+      invalid: await root.getByRole("textbox", { name: "Hexadecimal", exact: true }).getAttribute("aria-invalid"),
+      hsl: await root.getByRole("textbox", { name: "Saturation", exact: true }).count() === 1,
+      disabled: await root.getByRole("textbox", { name: "Saturation", exact: true }).isDisabled(),
+    })
+    const assertBoth = async (stage: string, hex: string, invalid: boolean) => {
+      for (const root of [dialog(page), nativePicker]) {
+        const field = root.getByRole("textbox", { name: "Hexadecimal", exact: true }), saturation = root.getByRole("textbox", { name: "Saturation", exact: true })
+        await expect(field).toHaveValue(hex)
+        if (invalid) { await expect(field).toHaveAttribute("aria-invalid", "true"); await expect(saturation).toBeDisabled() }
+        else { await expect(field).not.toHaveAttribute("aria-invalid"); await expect(saturation).toBeEnabled() }
+      }
+      const ours = await state(dialog(page)), reference = await state(nativePicker)
+      expect(ours).toEqual(reference); proof.push({ stage, ours, native: reference })
+    }
+    const openMore = async () => { await more().click(); await nativeMore.click(); await expect(dialog(page)).toBeVisible(); await expect(nativeDialog).toBeVisible() }
+    const cancelBoth = async () => {
+      await dialog(page).getByRole("button", { name: "Cancel", exact: true }).click(); await nativeDialog.getByRole("button", { name: "Cancel", exact: true }).click()
+      await expect(dialog(page)).toHaveCount(0); await expect(nativeDialog).not.toBeVisible(); await expect(more()).toBeFocused()
+    }
+    await opener.click(); await nativeOpener.click(); await expect(popup).toBeVisible(); await expect(nativePalette).toBeVisible(); await openMore()
+    for (const retained of [nativePalette, nativeDialog, nativePicker]) await retained.evaluate((element) => element.setAttribute("data-c2-retained-instance", "true"))
+    await dialog(page).getByRole("button", { name: "Change Color Mode", exact: true }).click(); await nativePicker.getByRole("button", { name: "Change Color Mode", exact: true }).click()
+    await commit(dialog(page), "Hexadecimal", "nothex"); await commit(nativePicker, "Hexadecimal", "nothex")
+    await assertBoth("invalid HSL before Cancel", "nothex", true); await cancelBoth()
+    await opener.click(); await nativeOpener.click(); await expect(popup).toHaveCount(0); await expect(nativePalette).not.toBeVisible(); await expect(opener).toBeFocused()
+    for (const retained of [nativePalette, nativeDialog, nativePicker]) await expect(retained).toHaveAttribute("data-c2-retained-instance", "true")
+    await opener.click(); await nativeOpener.click(); await expect(popup).toBeVisible(); await expect(nativePalette).toBeVisible(); await openMore()
+    for (const retained of [nativePalette, nativeDialog, nativePicker]) await expect(retained).toHaveAttribute("data-c2-retained-instance", "true")
+    await assertBoth("outer close/reopen retains canceled state", "nothex", true); await cancelBoth()
+    await popup.locator('[data-color-palette-area="main"]').first().click(); await nativePopup.locator("ui5-color-palette-item").first().getByRole("button").click()
+    await expect(popup).toHaveCount(0); await expect(nativePalette).not.toBeVisible(); await expect(events(page)).toHaveText('["red"]')
+    await opener.click(); await nativeOpener.click(); await expect(popup).toBeVisible(); await expect(nativePalette).toBeVisible(); await openMore()
+    // Native onBeforeRendering replaces external RGB but retains its negative marker and HSL mode.
+    await assertBoth("runtime selected red replaces only the color", "ff0000", true)
+    await commit(dialog(page), "Hexadecimal", "ff0000"); await commit(nativePicker, "Hexadecimal", "ff0000")
+    await assertBoth("valid red Hex clears the marker", "ff0000", false)
+    await commit(dialog(page), "Hexadecimal", "nothex"); await commit(nativePicker, "Hexadecimal", "nothex")
+    await assertBoth("invalid Hex with retained red RGB", "nothex", true); await cancelBoth()
+    await popup.locator('[data-color-palette-area="main"]').first().click(); await nativePopup.locator("ui5-color-palette-item").first().getByRole("button").click()
+    await expect(popup).toHaveCount(0); await expect(nativePalette).not.toBeVisible(); await expect(events(page)).toHaveText('["red","red"]')
+    await opener.click(); await nativeOpener.click(); await expect(popup).toBeVisible(); await expect(nativePalette).toBeVisible(); await openMore()
+    // CSS spelling changes from emitted rgba(...) to the selected "red", while native RGB equality preserves raw HEX.
+    await assertBoth("same RGB runtime replacement retains invalid Hex", "nothex", true)
+    await commit(dialog(page), "Hexadecimal", "00ff00"); await commit(nativePicker, "Hexadecimal", "00ff00")
+    await assertBoth("valid Hex recovers the retained marker", "00ff00", false); await cancelBoth()
+    await opener.click(); await nativeOpener.click(); await expect(popup).toHaveCount(0); await expect(nativePalette).not.toBeVisible()
+    // Sibling inline palettes must remain independent of the popover's retained picker context.
+    await palette(page, "-no-recents").getByRole("button", { name: "More Colors...", exact: true }).click()
+    await expect(dialog(page).getByRole("textbox", { name: "Hexadecimal", exact: true })).toHaveValue("ffffff")
+    await expect(dialog(page).getByRole("textbox", { name: "Red", exact: true })).toBeEnabled()
+    await expect(dialog(page).getByRole("textbox", { name: "Saturation", exact: true })).toHaveCount(0)
+    await dialog(page).getByRole("button", { name: "Cancel", exact: true }).click()
+    await testInfo.attach("c2-outer-lifetime-differential.json", { body: JSON.stringify(proof, null, 2), contentType: "application/json" })
+  } finally { await native.close() }
 })
 
 test("color-picker: More Colors navigation and applying without recents preserves existing selection", async ({ page }) => {

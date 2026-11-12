@@ -44,7 +44,7 @@ function ChannelInput({ value, name, disabled, onCommit }: { value: number; name
 function PickerSlider({ value, max, step, disabled, name, handleDescription, kind, onValueChange }: {
   value: number; max: number; step: number; disabled: boolean; name: string; handleDescription: string; kind: "hue" | "alpha"; onValueChange: (value: number) => void
 }) {
-  const innerRef = React.useRef<HTMLDivElement>(null), handleRef = React.useRef<HTMLDivElement>(null)
+  const hostRef = React.useRef<HTMLDivElement>(null), handleRef = React.useRef<HTMLDivElement>(null)
   const valueRef = React.useRef(value), atFocus = React.useRef<number | undefined>(undefined)
   valueRef.current = value
   const update = (n: number) => {
@@ -52,22 +52,25 @@ function PickerSlider({ value, max, step, disabled, name, handleDescription, kin
     if (next !== valueRef.current) { valueRef.current = next; onValueChange(next) }
   }
   const fromPointer = (clientX: number) => {
-    const element = innerRef.current!
+    // SliderBase.js handleDownBase/computedValueFromPageX maps the complete host, not its shortened visual scale.
+    const element = hostRef.current!
     const rect = element.getBoundingClientRect()
     const ratio = getComputedStyle(element).direction === "rtl" ? (rect.right - clientX) / rect.width : (clientX - rect.left) / rect.width
     update(Math.round(ratio * max / step) * step)
   }
-  return <div data-slot={`color-picker-${kind}-slider`} data-disabled={disabled ? "" : undefined} className={`fiori-color-picker__slider fiori-color-picker__slider--${kind}`}>
+  return <div ref={hostRef} data-slot={`color-picker-${kind}-slider`} data-disabled={disabled ? "" : undefined} className={`fiori-color-picker__slider fiori-color-picker__slider--${kind}`}>
     <div className="fiori-color-picker__slider-root" onPointerDown={(event) => {
       if (disabled || event.button !== 0) return
       event.preventDefault()
-      if (!handleRef.current?.contains(event.target as Node)) fromPointer(event.clientX)
+      // SliderBase.js handleDownBase focuses first; Slider.js _onmousedown captures the pre-pointer value for Escape.
       handleRef.current?.focus()
+      atFocus.current ??= valueRef.current
+      if (!handleRef.current?.contains(event.target as Node)) fromPointer(event.clientX)
       const move = (e: PointerEvent) => fromPointer(e.clientX)
       const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up) }
       window.addEventListener("pointermove", move); window.addEventListener("pointerup", up)
     }}>
-      <div className="fiori-color-picker__scale"><div ref={innerRef} className="fiori-color-picker__scale-inner">
+      <div className="fiori-color-picker__scale"><div className="fiori-color-picker__scale-inner">
         <div ref={handleRef} className="fiori-color-picker__slider-handle" role="slider" tabIndex={disabled ? -1 : 0} aria-disabled={disabled || undefined}
           aria-label={`${name} ${handleDescription}`} aria-orientation="horizontal" aria-valuemin={0} aria-valuemax={max} aria-valuenow={value}
           style={{ insetInlineStart: `${clamp(value / max * 100, 100)}%` }} onFocus={() => { atFocus.current ??= valueRef.current }} onBlur={() => { atFocus.current = undefined }}
@@ -117,9 +120,15 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
   const { model, setModel, lastValue, committedHex, hex, setHex, wrongHex, setWrongHex, displayHsl, setDisplayHsl, alphaTemp, setAlphaTemp, announcement, setAnnouncement, modelRef } = shared ?? local
   React.useLayoutEffect(() => {
     if (value !== undefined && value !== lastValue.current) {
-      const next = modelFrom(value); lastValue.current = value; committedHex.current = rgbToHex(next.color); setModel(next); setHex(rgbToHex(next.color)); setWrongHex(false); setAlphaTemp(undefined)
+      // ColorPicker.js onBeforeRendering/_isColorValueEqual replaces HEX only when external RGB changes;
+      // an equivalent CSS value or alpha-only change retains invalid HEX, _wrongHEX and display mode.
+      const next = modelFrom(value), current = modelRef.current
+      const rgbChanged = next.color.r !== current.color.r || next.color.g !== current.color.g || next.color.b !== current.color.b
+      const updated = rgbChanged ? next : { ...current, color: { ...current.color, a: next.color.a } }
+      lastValue.current = value; modelRef.current = updated; setModel(updated); setAlphaTemp(undefined)
+      if (rgbChanged) { committedHex.current = rgbToHex(next.color); setHex(committedHex.current) }
     }
-  }, [value, lastValue, committedHex, setModel, setHex, setWrongHex, setAlphaTemp])
+  }, [value, lastValue, committedHex, modelRef, setModel, setHex, setAlphaTemp])
   const commit = (next: PickerModel, preserveHex = false) => {
     modelRef.current = next; setModel(next)
     const color = colorToRgba(next.color); lastValue.current = color

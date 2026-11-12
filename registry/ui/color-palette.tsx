@@ -27,7 +27,8 @@ const StateContext = React.createContext<PaletteState | null>(null)
 /** Keeps local palette history and item identity alive when a popover's surface unmounts. */
 function ColorPaletteStateProvider({ children }: { children: React.ReactNode }) {
   const state = usePaletteState()
-  return <StateContext.Provider value={state}>{children}</StateContext.Provider>
+  // ColorPalettePopoverTemplate.js and ColorPaletteMoreColorsTemplate.js retain the palette and picker across both popup lifetimes.
+  return <StateContext.Provider value={state}><ColorPickerStateProvider>{children}</ColorPickerStateProvider></StateContext.Provider>
 }
 
 type ColorPaletteItemProps = Omit<React.ComponentProps<"div">, "children"> & {
@@ -178,6 +179,8 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
   const local = usePaletteState()
   const shared = React.useContext(StateContext)
   const state = shared ?? local
+  // The popover's shared provider survives live/hidden palette replacement; inline palettes retain their own picker state.
+  const PickerStateProvider = shared ? React.Fragment : ColorPickerStateProvider
   const rootRef = React.useRef<HTMLDivElement | null>(null)
   const [name, setName] = React.useState(accessibleNameRef ? "" : accessibleName || "")
   React.useLayoutEffect(() => {
@@ -384,7 +387,7 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
           </div>
         </div>}
       </div>
-      {showMoreColors && <ColorPickerStateProvider><Dialog open={dialogOpen} modal={moreColorsDialogProps?.portal !== false} onOpenChange={changeDialogOpen}>
+      {showMoreColors && <PickerStateProvider><Dialog open={dialogOpen} modal={moreColorsDialogProps?.portal !== false} onOpenChange={changeDialogOpen}>
         <DialogContent {...moreColorsDialogProps} data-slot="color-palette-dialog" className={cn("fiori-color-palette__dialog", moreColorsDialogProps?.className)}
           onOpenAutoFocus={(event) => {
             moreColorsDialogProps?.onOpenAutoFocus?.(event)
@@ -414,7 +417,7 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
             <Button variant="transparent" onClick={() => changeDialogOpen(false)}>{moreColorsCancelText}</Button>
           </div></DialogFooter>
         </DialogContent>
-      </Dialog></ColorPickerStateProvider>}
+      </Dialog></PickerStateProvider>}
     </div>
   )
 }
