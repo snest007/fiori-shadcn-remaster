@@ -1,6 +1,10 @@
 import * as React from "react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
+// UI5 2.28 ComboBoxPopoverTemplate.js renders an internal List (fastNavigation metadata).
+
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
+
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
@@ -332,7 +336,7 @@ function ComboBox({
   )
 
   const listContent = (
-    <PopoverPrimitive.Content
+    <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
       data-slot="combobox-popover"
       align="start"
       sideOffset={4}
@@ -357,7 +361,7 @@ function ComboBox({
         <div
           ref={listRef}
           id={listId}
-          data-slot="combobox-list"
+          data-slot="combobox-list" data-sap-ui-fastnavgroup="true"
           role="listbox"
           aria-label={listLabel}
           className="overflow-y-auto"
@@ -457,7 +461,8 @@ function ComboBox({
                 }
               }
               if (key === "Tab" && open) setOpen(false)
-              const isShow = (key === "F4" && !alt && !ctrl && !shift && !meta) || ((key === "ArrowDown" || key === "ArrowUp") && alt && !ctrl && !shift)
+              // ComboBox.js/_keydown uses Keys.isShow: Alt-only arrows exclude both Ctrl and Meta.
+              const isShow = (key === "F4" && !alt && !ctrl && !shift && !meta) || ((key === "ArrowDown" || key === "ArrowUp") && alt && !ctrl && !shift && !meta)
               if (isShow && !readOnly && !disabled) {
                 e.preventDefault()
                 toggle()
@@ -502,6 +507,7 @@ function ComboBox({
               id={messageId}
               role="status"
               data-popover=""
+              data-sap-ui-fastnavgroup-container="true"
               data-value-state={valueState}
               className="fiori-value-state-message absolute start-0 top-full z-50 mt-1 hidden max-w-[22rem] group-focus-within/field:block group-data-open/field:hidden"
             >

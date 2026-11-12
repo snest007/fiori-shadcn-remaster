@@ -1,0 +1,6 @@
+{
+  "type": "registry:lib",
+  "title": "Fiori F6 navigation",
+  "description": "Opt-in UI5 fast navigation between page groups, with scoped roots, Popup containers, shadows and slots.",
+  "files": [{ "path": "registry/lib/fiori-f6.ts", "type": "registry:lib" }]
+}

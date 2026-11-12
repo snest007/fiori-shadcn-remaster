@@ -13,43 +13,18 @@ import { ShellBarSearchContext } from "@/components/ui/search"
 // assistant, items, profile). Width breakpoints set the side padding and, at S, hide the branding title.
 // Items that don't fit move to an overflow popover in UI5's order: custom items, assistant and notifications
 // first, then content (last-placed first), then the search button. Keyboard: ←/→/Home/End move among the
-// bar's tabbables (an input keeps the arrows until its caret is at the edge); F6 / Shift+F6 and
-// Ctrl+Alt+↓ / ↑ jump between fast-navigation groups.
+// bar's tabbables (an input keeps the arrows until its caret is at the edge). ShellBar marks its
+// fastNavigation group (UI5 metadata); F6 is handled only when the application installs it.
 // The bar has no popovers of its own besides overflow: on*Click callers open theirs against `targetRef`.
 
 const shellButton =
   "w-9 min-w-(--fiori-button-base-min-width) text-(--sapShell_TextColor) hover:bg-(--sapShell_Hover_Background) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:text-(--sapShell_InteractiveTextColor) active:text-(--fiori-shellbar-button-active-color)"
 
 // ---------------------------------------------------------------------------------------------
-// Fast navigation (UI5 features/F6Navigation): one document listener however many bars are mounted.
+// Local keyboard targets; application F6 navigation is explicitly installed from @/lib/fiori-f6.
 
 const FOCUSABLE = 'a[href], a[tabindex], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
 const isShown = (el: HTMLElement) => el.offsetWidth > 0 && el.offsetHeight > 0 && getComputedStyle(el).visibility !== "hidden"
-
-function onFastNavigation(e: KeyboardEvent) {
-  const next = (e.key === "F6" && !e.shiftKey && !e.ctrlKey && !e.altKey) || (e.key === "ArrowDown" && e.ctrlKey && e.altKey && !e.shiftKey)
-  const previous = (e.key === "F6" && e.shiftKey && !e.ctrlKey && !e.altKey) || (e.key === "ArrowUp" && e.ctrlKey && e.altKey && !e.shiftKey)
-  if (!next && !previous) return
-  const groups = [...document.querySelectorAll<HTMLElement>('[data-sap-ui-fastnavgroup="true"]')].filter(isShown)
-  if (!groups.length) return
-  e.preventDefault()
-  const current = groups.findIndex((g) => g.contains(document.activeElement))
-  for (let step = 1; step <= groups.length; step++) {
-    const from = current === -1 ? (next ? -1 : 0) : current
-    const group = groups[(from + (next ? step : -step) + groups.length * 2) % groups.length]
-    const target = [...group.querySelectorAll<HTMLElement>(FOCUSABLE)].find(isShown)
-    if (target) return target.focus()
-  }
-}
-let fastNavigationUsers = 0
-function useFastNavigation() {
-  React.useEffect(() => {
-    if (fastNavigationUsers++ === 0) document.addEventListener("keydown", onFastNavigation)
-    return () => {
-      if (--fastNavigationUsers === 0) document.removeEventListener("keydown", onFastNavigation)
-    }
-  }, [])
-}
 
 // ---------------------------------------------------------------------------------------------
 // Parts
@@ -477,8 +452,6 @@ function ShellBar({
     ro.observe(host)
     return () => ro.disconnect()
   }, [measure])
-
-  useFastNavigation()
 
   const isHidden = (id: string) => hiddenIds.includes(id)
 

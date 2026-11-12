@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 Calendar fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import {
   addDays,
   clampDay,
@@ -336,7 +338,7 @@ function Calendar({
 
   return (
     <LegendContext.Provider value={{ setType: setLegendType, labels }}>
-      <div ref={rootRef} data-slot="calendar" className={cn("fiori-calendar", className)} onKeyDown={handleRootKeyDown} {...props}>
+      <div ref={rootRef} data-slot="calendar" data-sap-ui-fastnavgroup="true" className={cn("fiori-calendar", className)} onKeyDown={handleRootKeyDown} {...props}>
         <div className="fiori-cal-root">
           <div className="fiori-calheader">
             <div className="fiori-calheader-root">

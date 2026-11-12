@@ -1,5 +1,5 @@
 {
   "title": "App Shell",
   "description": "SAP Fiori launchpad-style shell: a ShellBar wired to notifications, user menu and product switch popovers, with a side navigation slot and a content area.",
-  "registryDependencies": ["@fiori/icons", "@fiori/avatar", "@fiori/button", "@fiori/card", "@fiori/notification-list", "@fiori/popover", "@fiori/product-switch", "@fiori/search", "@fiori/shell-bar", "@fiori/text", "@fiori/title", "@fiori/user-menu"]
+  "registryDependencies": ["@fiori/icons", "@fiori/avatar", "@fiori/button", "@fiori/card", "@fiori/notification-list", "@fiori/popover", "@fiori/product-switch", "@fiori/search", "@fiori/shell-bar", "@fiori/text", "@fiori/title", "@fiori/user-menu", "@fiori/f6-navigation"]
 }

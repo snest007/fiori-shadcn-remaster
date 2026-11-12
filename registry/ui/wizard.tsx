@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 Wizard fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -268,7 +270,7 @@ function Wizard({
   }, [current])
 
   return (
-    <div data-slot="wizard" data-content-layout={contentLayout} className={cn("fiori-wiz", className)} {...props}>
+    <div data-slot="wizard" data-sap-ui-fastnavgroup="true" data-content-layout={contentLayout} className={cn("fiori-wiz", className)} {...props}>
       <div className="fiori-wiz__root" role="region" aria-label={accessibleName ?? texts.wizard}>
         <nav className="fiori-wiz__nav" aria-label={texts.navigation} tabIndex={-1}>
           <div

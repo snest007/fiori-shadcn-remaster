@@ -8,7 +8,8 @@
     "@fiori/input",
     "@fiori/checkbox",
     "@fiori/token",
-    "@fiori/tokenizer"
+    "@fiori/tokenizer",
+    "@fiori/f6-navigation"
   ],
   "description": "Fiori multi combo box: tokens plus a filterable check box list, \"show selected\" via n more, select all and the SAP keyboard model."
 }

@@ -1,6 +1,8 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
+
 import { cn } from "@/lib/utils"
 import { resizeCorner } from "@/lib/fiori-icons"
 import { Icon } from "@/components/ui/icon"
@@ -288,7 +290,7 @@ function DialogContent({ className, children, state = "none", portal = true, dra
         portal ? "fixed inset-0 z-50 m-auto h-fit w-fit" : "relative max-h-none max-w-none",
         className
       )}
-      {...props}
+      {...props} data-sap-ui-fastnavgroup-container="true"
     >
       <DialogStateContext.Provider value={state}>
         <DialogDragContext.Provider value={startDrag}>

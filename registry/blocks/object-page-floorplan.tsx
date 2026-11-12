@@ -1,5 +1,7 @@
 import * as React from "react"
 
+import { useF6Navigation } from "@/lib/fiori-f6"
+
 import { Avatar } from "@/components/ui/avatar"
 import { Bar } from "@/components/ui/bar"
 import { Breadcrumbs, BreadcrumbsItem } from "@/components/ui/breadcrumbs"
@@ -19,6 +21,8 @@ import { Title } from "@/components/ui/title"
 import { Toolbar, ToolbarButton, ToolbarSpacer } from "@/components/ui/toolbar"
 import { machine } from "@/lib/fiori-icons"
 
+// F6 follows the object title, header/content groups and visible Bar footer in DOM order.
+// Install on document so portalled Popup containers participate; duplicate block installations share one listener.
 // SAP Fiori "Object Page" floorplan (guideline: object-page): title with the object name and actions, header with
 // avatar and facets (attributes, status, KPI), anchor navigation bar, sections "General Information" (form),
 // "Items" (table) and "Notes". "Edit" switches the page to edit mode: fields become inputs and a floating footer
@@ -54,6 +58,7 @@ const FIELDS: { key: keyof Details; label: string; group: "order" | "terms" }[] 
 ]
 
 export default function ObjectPageBlock() {
+  useF6Navigation()
   const [saved, setSaved] = React.useState(INITIAL)
   const [draft, setDraft] = React.useState(INITIAL)
   const [editing, setEditing] = React.useState(false)
@@ -109,7 +114,7 @@ export default function ObjectPageBlock() {
           />
         }
         header={
-          <ObjectPageHeader accessibleName="Sales order summary" avatar={<Avatar size="L" shape="square" icon={machine} accessibleName="Product image" />}>
+          <ObjectPageHeader data-sap-ui-fastnavgroup="true" accessibleName="Sales order summary" avatar={<Avatar size="L" shape="square" icon={machine} accessibleName="Product image" />}>
             <ObjectPageHeaderFacet>
               <ObjectAttribute title="Customer" text={saved.customer} />
               <ObjectAttribute title="Contact" text={saved.contact} active href="#contact" />

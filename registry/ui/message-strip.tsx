@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 MessageStrip fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import { alert, decline, error, information, sysEnter2 } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -75,7 +77,7 @@ function MessageStrip({
     : undefined
   return (
     <div
-      data-slot="message-strip"
+      data-slot="message-strip" data-sap-ui-fastnavgroup="true"
       data-design={design}
       data-hide-icon={shouldHideIcon ? "" : undefined}
       data-hide-close={hideCloseButton ? "" : undefined}

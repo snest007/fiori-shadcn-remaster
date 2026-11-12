@@ -127,6 +127,8 @@ function Form({
         className={cn("fiori-form", className)}
         style={{ ...vars, ...style } as React.CSSProperties}
         {...props}
+        // UI5 Form.js/setFastNavGroup: FormGroups own navigation; only an ungrouped Form marks its root.
+        data-sap-ui-fastnavgroup={hasGroups ? undefined : "true"}
       >
         <div
           className="fiori-form__root"
@@ -154,7 +156,7 @@ function Form({
                 return (
                   <div key={g.key ?? index} className="fiori-form__column" style={spanVars(spanOf(g))}>
                     <div
-                      data-slot="form-group"
+                      data-slot="form-group" data-sap-ui-fastnavgroup="true"
                       className={cn("fiori-form__group", groupClass)}
                       role={edit ? "form" : undefined}
                       aria-label={edit ? name : undefined}

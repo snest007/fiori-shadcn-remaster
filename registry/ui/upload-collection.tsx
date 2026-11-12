@@ -111,7 +111,8 @@ function UploadCollection({
       }}
       {...props}
     >
-      <div className="fiori-upload-collection__content">
+      {/* UI5 UploadCollectionTemplate renders a List (fastNavigation metadata) around header and items. */}
+      <div className="fiori-upload-collection__content" data-sap-ui-fastnavgroup="true">
         {header}
         <ul
           ref={listRef}

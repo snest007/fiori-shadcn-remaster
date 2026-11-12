@@ -1,6 +1,8 @@
 import * as React from "react"
 import { Collapsible as CollapsiblePrimitive } from "radix-ui"
 
+// UI5 2.28 Panel fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import { slimArrowRight } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -57,7 +59,7 @@ function Panel({
 
   return (
     <CollapsiblePrimitive.Root
-      data-slot="panel"
+      data-slot="panel" data-sap-ui-fastnavgroup="true"
       data-fixed={fixed ? "" : undefined}
       data-custom-header={hasCustomHeader ? "" : undefined}
       data-animated={noAnimation ? undefined : ""}

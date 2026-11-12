@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 Carousel fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import { slimArrowLeft, slimArrowRight } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
@@ -282,7 +284,7 @@ function Carousel({
   )
 
   return (
-    <div ref={hostRef} data-slot="carousel" className={cn("fiori-carousel", className)} {...props}>
+    <div ref={hostRef} data-slot="carousel" data-sap-ui-fastnavgroup="true" className={cn("fiori-carousel", className)} {...props}>
       <section
         className={cn("fiori-carousel__root", `fiori-carousel__background-${backgroundDesign.toLowerCase()}`)}
         aria-label={accessibleName}

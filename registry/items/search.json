@@ -1,6 +1,6 @@
 {
   "title": "Search",
   "dependencies": [],
-  "registryDependencies": ["@fiori/icons", "@fiori/busy-indicator", "@fiori/button", "@fiori/popover", "@fiori/select", "@fiori/tag"],
+  "registryDependencies": ["@fiori/icons", "@fiori/busy-indicator", "@fiori/button", "@fiori/popover", "@fiori/select", "@fiori/tag", "@fiori/f6-navigation"],
   "description": "Fiori search field with scope select, type-ahead and suggestions, plus the collapsible ShellBarSearch (ui5-search, ui5-shellbar-search)."
 }

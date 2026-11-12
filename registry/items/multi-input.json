@@ -7,7 +7,8 @@
     "@fiori/icons",
     "@fiori/input",
     "@fiori/token",
-    "@fiori/tokenizer"
+    "@fiori/tokenizer",
+    "@fiori/f6-navigation"
   ],
   "description": "Fiori multi input: a text field with tokens, value help and suggestions, plus the SAP token keyboard model."
 }

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 
+// UI5 2.28 UserMenuTemplate.js renders internal Bar and List fastNavigation groups.
+
 // Mirrors ui5-user-menu (Horizon): a popover opened against the shell bar's profile button, with the account
 // header, a menu and a Sign Out footer. Keyboard (as UI5): opening focuses the first item, ↑/↓/Home/End move
 // (no wrap), hovering an item focuses it, Enter/Space activate and close, Tab cycles inside, Escape closes and
@@ -197,7 +199,7 @@ function UserMenu({
         {...props}
       >
         <h1 className="sr-only">{texts.heading}</h1>
-        <div role="group" aria-label={texts.currentInformation} className="fiori-user-menu__bar" data-scrolled={scrolled || titleInHeader ? "" : undefined}>
+        <div role="group" aria-label={texts.currentInformation} className="fiori-user-menu__bar" data-sap-ui-fastnavgroup="true" data-scrolled={scrolled || titleInHeader ? "" : undefined}>
           {titleInHeader && <div className="fiori-user-menu__bar-title">{account.titleText}</div>}
         </div>
         <div ref={scrollRef} className="fiori-user-menu__content" onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}>
@@ -237,7 +239,7 @@ function UserMenu({
                 ref={listRef}
                 role="menu"
                 aria-label={texts.actions}
-                className="fiori-user-menu__list"
+                className="fiori-user-menu__list" data-sap-ui-fastnavgroup="true"
                 onFocus={(e) => {
                   const i = items().indexOf(e.target as HTMLElement)
                   if (i !== -1) setCurrent(i)

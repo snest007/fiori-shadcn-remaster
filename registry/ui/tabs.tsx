@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 TabContainer fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { alert, error, slimArrowDown, sysEnter2 } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -106,7 +108,7 @@ function Tabs({
     <TabsContext.Provider value={ctx}>
       <div
         ref={rootRef}
-        data-slot="tabs"
+        data-slot="tabs" data-sap-ui-fastnavgroup="true"
         data-media-range={range}
         data-header-background={headerBackground}
         data-content-background={contentBackground}

@@ -70,12 +70,14 @@ test("shell-bar: arrows, Home and End move among the items without wrapping", as
   await expect(start).toBeFocused()
 })
 
-test("shell-bar: F6 and Shift+F6 move between fast navigation groups", async ({ page }) => {
-  await page.locator("#shell-bar-demo-start").focus()
+test("shell-bar: its group alone does not install application F6 navigation", async ({ page }) => {
+  // UI5 ShellBar metadata marks a group; F6Navigation is a separately installed feature.
+  const start = page.locator("#shell-bar-demo-start")
+  await start.focus()
   await page.keyboard.press("F6")
-  await expect(page.locator("#shell-bar-demo-menu").locator("button").first()).toBeFocused()
+  await expect(start).toBeFocused()
   await page.keyboard.press("Shift+F6")
-  await expect(page.locator("#shell-bar-demo-start")).toBeFocused()
+  await expect(start).toBeFocused()
 })
 
 test("shell-bar: narrow widths move items into the overflow popover, keeping profile and product switch", async ({ page }) => {

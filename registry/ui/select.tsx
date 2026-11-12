@@ -1,5 +1,10 @@
 import * as React from "react"
-import { Select as SelectPrimitive } from "radix-ui"
+import { isF6NavigationKey } from "@/lib/fiori-f6"
+import { Select as SelectPrimitive, Slot } from "radix-ui"
+
+// UI5 2.28 SelectPopoverTemplate.js renders an internal List (fastNavigation metadata).
+
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -13,6 +18,30 @@ type SelectContextValue = {
   step: (current: string | undefined, key: "ArrowUp" | "ArrowDown" | "Home" | "End") => string | undefined
 }
 const SelectContext = React.createContext<SelectContextValue | null>(null)
+
+// Select.js/_onkeydown and List's ItemNavigation leave F6 aliases untouched. Radix's
+// composed Trigger/Content handlers match raw arrows, so filter their callback at the
+// public asChild host boundary without cancelling the native event or adding a DOM node.
+function SelectTriggerHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.ComponentProps<"button"> & {
+  asChild?: boolean
+  aliasKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>
+}) {
+  const Host = asChild ? Slot.Root : "button"
+  return <Host {...props} onKeyDown={(event) => {
+    if (isF6NavigationKey(event)) aliasKeyDown?.(event)
+    else onKeyDown?.(event)
+  }} />
+}
+function SelectContentHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.ComponentProps<"div"> & {
+  asChild?: boolean
+  aliasKeyDown?: React.KeyboardEventHandler<HTMLDivElement>
+}) {
+  const Host = asChild ? Slot.Root : "div"
+  return <Host {...props} onKeyDown={(event) => {
+    if (isF6NavigationKey(event)) aliasKeyDown?.(event)
+    else onKeyDown?.(event)
+  }} />
+}
 
 type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root>
 
@@ -107,6 +136,7 @@ function SelectTrigger({
   onKeyDown,
   onPointerDown,
   onClick,
+  asChild,
   ...props
 }: SelectTriggerProps) {
   const items = React.useContext(SelectContext)
@@ -169,7 +199,9 @@ function SelectTrigger({
           e.preventDefault()
         }}
         {...props}
+        asChild
       >
+        <SelectTriggerHost asChild={asChild} aliasKeyDown={onKeyDown}>
         <span className="fiori-select__value">{children}</span>
         {!readOnly && (
           <SelectPrimitive.Icon asChild>
@@ -178,12 +210,14 @@ function SelectTrigger({
             </span>
           </SelectPrimitive.Icon>
         )}
+        </SelectTriggerHost>
       </SelectPrimitive.Trigger>
       {showMessage && (
         <div
           id={messageId}
           role="status"
           data-popover=""
+          data-sap-ui-fastnavgroup-container="true"
           data-value-state={valueState}
           className="fiori-value-state-message absolute start-0 top-full z-50 mt-1 hidden max-w-[22rem] group-focus-within/field:block group-data-open/field:hidden"
         >
@@ -200,6 +234,8 @@ function SelectContent({
   children,
   position = "popper",
   sideOffset = 4,
+  onKeyDown,
+  asChild,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
@@ -213,15 +249,19 @@ function SelectContent({
           position === "popper" && "w-(--radix-select-trigger-width)",
           className
         )}
-        {...props}
+        {...props} data-sap-ui-fastnavgroup-container="true"
+        onKeyDown={onKeyDown}
+        asChild
       >
+        <SelectContentHost asChild={asChild} aliasKeyDown={onKeyDown}>
         <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} className="rotate-180" />
         </SelectPrimitive.ScrollUpButton>
-        <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
+        <SelectPrimitive.Viewport data-sap-ui-fastnavgroup="true">{children}</SelectPrimitive.Viewport>
         <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} />
         </SelectPrimitive.ScrollDownButton>
+        </SelectContentHost>
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )
