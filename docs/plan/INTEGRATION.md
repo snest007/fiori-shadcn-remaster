@@ -80,6 +80,13 @@ which one it was, and re-run `verify`:
 6. **Load-dependent reference rendering** (only fails with several workers): confirm by running the spec with
    `--workers=1` several times; if it's the reference (not ours) that varies, run that spec serially and say so.
 
+**Known intermittent reference artifact** (seen once, 2026-11-11, not reproduced in 3+3 later full runs):
+`visual-sapui5` cell `variant-management-error-open`, where the **SAPUI5 reference** PNG shows an empty white popover body
+(ours is correct). Diagnosis is archived in `.integration/run-C1-E1-20261111-180213/integration-diagnosis/DIAGNOSIS.md`.
+If it is the only failure and the reference image (not ours) is the blank one: re-run `verify` once; if it passes, note
+"known reference artifact recurred" in the report and continue. If it recurs twice in a row, stop and report — then it
+needs a real fix in `sapui5/fixtures/variant-management.js` readiness.
+
 If after two honest attempts a failure is still unexplained, stop: leave the branch merged if it was clean before,
 otherwise roll back with the command `merge` printed first (`git reset --hard <main before merging>`, also in
 `.integration/main-before.txt` and the report), and describe the failure in the report.
