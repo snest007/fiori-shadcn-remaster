@@ -20,6 +20,7 @@ test("view-settings-dialog: opens on Sort; lists, segmented modes, Reset disable
 test("view-settings-dialog: keyboard selection, Reset, OK confirms", async ({ page }) => {
   await page.locator("#view-settings-dialog-demo-open").click()
   const dialog = page.getByRole("dialog", { name: "View Settings" })
+  await expect(dialog.getByRole("option", { name: "Ascending" })).toBeFocused()
   await page.keyboard.press("ArrowDown")
   await expect(dialog.getByRole("option", { name: "Descending" })).toBeFocused()
   await page.keyboard.press("Space")
