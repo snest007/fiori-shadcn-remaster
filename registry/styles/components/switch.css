@@ -86,10 +86,10 @@
 .fiori-switch[data-state="checked"][data-design="textual"] .fiori-switch__slider {
   transform: var(--fiori-switch-transform-with-label);
 }
-.fiori-switch[data-state="checked"]:dir(rtl) .fiori-switch__slider {
+.fiori-switch[data-state="checked"][data-dir="rtl"] .fiori-switch__slider {
   transform: var(--fiori-switch-rtl-transform);
 }
-.fiori-switch[data-state="checked"][data-design="textual"]:dir(rtl) .fiori-switch__slider {
+.fiori-switch[data-state="checked"][data-design="textual"][data-dir="rtl"] .fiori-switch__slider {
   transform: var(--fiori-switch-rtl-transform-with-label);
 }
 

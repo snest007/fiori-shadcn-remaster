@@ -49,6 +49,24 @@ const lineWidth = (item: React.ReactElement<any>, next?: React.ReactElement<any>
   return item.props.icon && next ? "large" : undefined
 }
 
+// UI5 getEffectiveDir/ItemNavigation follows the nearest DOM direction. CSS optimizers may
+// lower :dir(rtl) to language selectors; data-dir preserves actual DOM direction.
+function useHostDirection(owner: React.RefObject<HTMLElement | null>, explicit?: "ltr" | "rtl") {
+  const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr")
+  React.useLayoutEffect(() => {
+    const node = owner.current
+    if (!node) return
+    const update = () => setDirection(getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr")
+    update()
+    const observer = new MutationObserver(update)
+    for (let ancestor: HTMLElement | null = node; ancestor; ancestor = ancestor.parentElement) {
+      observer.observe(ancestor, { attributes: true, attributeFilter: ["dir", "style", "class"] })
+    }
+    return () => observer.disconnect()
+  }, [owner])
+  return explicit ?? direction
+}
+
 type TimelineItemProps = Omit<React.ComponentProps<"div">, "title"> & {
   icon?: FioriIconData
   /** Accessible text for the icon, also its tooltip. */
@@ -79,8 +97,12 @@ function TimelineItem({
   stateText,
   className,
   children,
+  ref,
   ...props
 }: TimelineItemProps) {
+  const owner = React.useRef<HTMLDivElement>(null)
+  React.useImperativeHandle(ref, () => owner.current!, [])
+  const direction = useHostDirection(owner)
   const { layout, itemRole } = React.useContext(TimelineContext)
   const pos = React.useContext(PositionContext)
   const stateDescription = state === "None" ? undefined : (stateText ?? `${state} State`)
@@ -91,7 +113,9 @@ function TimelineItem({
   const description = isTree ? [stateDescription, iconTooltip].filter(Boolean).join(", ") || undefined : stateDescription
   return (
     <div
+      ref={owner}
       data-slot="timeline-item"
+      data-dir={direction}
       data-layout={layout}
       data-icon={icon ? "" : undefined}
       data-state={state}
@@ -281,6 +305,7 @@ function Timeline({
   ...props
 }: TimelineProps) {
   const rootRef = React.useRef<HTMLDivElement>(null)
+  const direction = useHostDirection(rootRef)
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const growingBtn = React.useRef<HTMLButtonElement>(null)
   const endMarker = React.useRef<HTMLDivElement>(null)
@@ -411,6 +436,7 @@ function Timeline({
   return (
     <div
       data-slot="timeline"
+      data-dir={direction}
       data-layout={layout}
       data-growing={growing}
       data-loading={loading ? "" : undefined}

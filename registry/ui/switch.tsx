@@ -5,6 +5,24 @@ import { accept, decline, less } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 
+// UI5 getEffectiveDir/ItemNavigation follows the nearest DOM direction. CSS optimizers may
+// lower :dir(rtl) to language selectors; data-dir preserves actual DOM direction.
+function useHostDirection(owner: React.RefObject<HTMLElement | null>, explicit?: "ltr" | "rtl") {
+  const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr")
+  React.useLayoutEffect(() => {
+    const node = owner.current
+    if (!node) return
+    const update = () => setDirection(getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr")
+    update()
+    const observer = new MutationObserver(update)
+    for (let ancestor: HTMLElement | null = node; ancestor; ancestor = ancestor.parentElement) {
+      observer.observe(ancestor, { attributes: true, attributeFilter: ["dir", "style", "class"] })
+    }
+    return () => observer.disconnect()
+  }, [owner])
+  return explicit ?? direction
+}
+
 type SwitchProps = Omit<React.ComponentProps<typeof SwitchPrimitive.Root>, "children"> & {
   /**
    * "textual" (default): shows `textOn`/`textOff`, or check/minus icons when neither is given.
@@ -37,6 +55,7 @@ function Switch({
 }: SwitchProps) {
   const changeTarget = React.useRef<HTMLButtonElement>(null)
   React.useImperativeHandle(ref, () => changeTarget.current!, [])
+  const direction = useHostDirection(changeTarget)
   const descId = React.useId()
   const graphical = design === "graphical"
   const kind = graphical ? "graphical" : textOn || textOff ? "textual" : "no-label"
@@ -44,6 +63,7 @@ function Switch({
     <SwitchPrimitive.Root
       ref={changeTarget}
       data-slot="switch"
+      data-dir={direction}
       data-design={kind}
       data-readonly={readOnly ? "" : undefined}
       aria-readonly={readOnly || undefined}
