@@ -78,7 +78,9 @@ test("color-picker: invalid hex disables sliders/channels, area recovers, simpli
   await expect(hue(root)).toHaveAttribute("aria-disabled", "true"); await expect(root.getByRole("textbox", { name: "Red", exact: true })).toBeDisabled()
   await expect(output(page)).toHaveText(before!)
   await commit(root, "Hexadecimal", "#GGGGGG"); await expect(root.getByRole("textbox", { name: "Hexadecimal" })).toHaveValue("#GGGGGG")
-  await root.getByRole("button", { name: "Change Color Mode" }).click()
+  // The focused negative Input's value-state surface covers the nearby mode button; Tab uses its native focus path.
+  const toggle = root.getByRole("button", { name: "Change Color Mode" })
+  await root.getByRole("textbox", { name: "Hexadecimal" }).press("Tab"); await expect(toggle).toBeFocused(); await toggle.press("Enter")
   await expect(root.getByRole("textbox", { name: "Hexadecimal" })).toHaveValue("gggggg")
   await root.locator(".fiori-color-picker__main").click({ position: { x: 128, y: 128 } })
   await expect(root.getByRole("textbox", { name: "Hexadecimal" })).not.toHaveAttribute("aria-invalid")
