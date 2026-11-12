@@ -1,4 +1,7 @@
 import * as React from "react"
+import { isF6NavigationKey } from "@/lib/fiori-f6"
+
+// UI5 2.28 TokenizerPopoverTemplate.js renders an internal List (fastNavigation metadata).
 
 import { decline } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -507,8 +510,10 @@ function Tokenizer({
         <ul
           ref={listRef}
           role="list"
-          className="fiori-tokenizer__list"
+          className="fiori-tokenizer__list" data-sap-ui-fastnavgroup="true"
           onKeyDown={(e) => {
+            // TokenizerPopoverTemplate renders a List; ItemNavigation ignores F6 aliases.
+            if (isF6NavigationKey(e)) return
             const items = [...(listRef.current?.querySelectorAll<HTMLElement>("li") ?? [])]
             const i = items.indexOf(e.target as HTMLElement)
             const ctrl = e.ctrlKey || e.metaKey

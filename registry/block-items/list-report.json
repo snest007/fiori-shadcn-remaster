@@ -17,6 +17,7 @@
     "@fiori/object-identifier",
     "@fiori/icons",
     "@fiori/variant-management",
-    "@fiori/variants"
+    "@fiori/variants",
+    "@fiori/f6-navigation"
   ]
 }

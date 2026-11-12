@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 FlexibleColumnLayout fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { slimArrowLeft, slimArrowRight, verticalGrip } from "@/lib/fiori-icons"
@@ -647,7 +649,7 @@ function FlexibleColumnLayout({
   return (
     <div
       ref={rootRef}
-      data-slot="flexible-column-layout"
+      data-slot="flexible-column-layout" data-sap-ui-fastnavgroup="true"
       data-layout={layout}
       data-media={ready ? media(e) : undefined}
       data-resizing={resizing ? "" : undefined}

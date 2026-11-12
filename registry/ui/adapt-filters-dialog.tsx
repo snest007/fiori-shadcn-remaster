@@ -1,6 +1,8 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
+
 import { cn } from "@/lib/utils"
 import { alert, arrowBottom as moveBottom, backToTop as moveTop, decline, filter, hide, horizontalGrip, resizeCorner, search, show, slimArrowDown, slimArrowUp } from "@/lib/fiori-icons"
 import { Button } from "@/components/ui/button"
@@ -344,7 +346,7 @@ function AdaptFiltersSession({
   const confirmation = <DialogPrimitive.Root open={resetOpen} onOpenChange={setResetOpen} modal={modal}>
     {resetOpen && <ResetConfirmation portal={portal} standalone={defaultResetConfirmation && !portal} title={t.warning} message={t.resetWarning} ok={t.ok} cancel={t.cancel} onConfirm={reset} onCancel={() => setResetOpen(false)} id={`${baseId}-reset`} />}
   </DialogPrimitive.Root>
-  const content = <DialogPrimitive.Content ref={surfaceRef} id={baseId} data-slot="adapt-filters-dialog" data-portal={portal ? "" : undefined}
+  const content = <DialogPrimitive.Content data-sap-ui-fastnavgroup-container="true" ref={surfaceRef} id={baseId} data-slot="adapt-filters-dialog" data-portal={portal ? "" : undefined}
     data-view={view} data-mode={mode} aria-describedby={undefined} className={cn("fiori-adapt-filters", className)}
     style={{ "--fiori-adapt-content-width": contentWidth, "--fiori-adapt-content-height": contentHeight, ...(bounds ? { inset: "auto", margin: 0, ...bounds } : {}), ...style } as React.CSSProperties}
     onPointerDownOutside={(event) => event.preventDefault()}
@@ -447,7 +449,7 @@ function AdaptFiltersSession({
 }
 
 function ResetConfirmation({ portal, standalone, title, message, ok, cancel, onConfirm, onCancel, id }: { portal: boolean; standalone?: boolean; title: string; message: string; ok: string; cancel: string; onConfirm: () => void; onCancel: () => void; id: string }) {
-  const content = <DialogPrimitive.Content id={id} data-slot="adapt-filters-reset" role="alertdialog" aria-describedby={`${id}-message`} className="fiori-adapt-filters-reset" data-portal={portal ? "" : undefined} onPointerDownOutside={(event) => event.preventDefault()}
+  const content = <DialogPrimitive.Content data-sap-ui-fastnavgroup-container="true" id={id} data-slot="adapt-filters-reset" role="alertdialog" aria-describedby={`${id}-message`} className="fiori-adapt-filters-reset" data-portal={portal ? "" : undefined} onPointerDownOutside={(event) => event.preventDefault()}
     // sap.m.MessageBox closes only through its buttons or Escape; focus moving elsewhere must not dismiss it.
     onInteractOutside={(event) => event.preventDefault()}
     onOpenAutoFocus={(event) => { if (!portal) event.preventDefault() }}

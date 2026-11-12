@@ -1,6 +1,8 @@
 import * as React from "react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
+
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
@@ -46,9 +48,10 @@ type PickerFieldProps = Omit<React.ComponentProps<"input">, "value" | "defaultVa
   f4Closes?: boolean
 }
 
+// UI5 Keys.js/isShowByArrows is Alt-only; Meta+Alt belongs to F6 navigation.
 const isShowKey = (e: React.KeyboardEvent) =>
   (e.key === "F4" && !e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey) ||
-  ((e.key === "ArrowDown" || e.key === "ArrowUp") && e.altKey && !e.ctrlKey && !e.shiftKey)
+  ((e.key === "ArrowDown" || e.key === "ArrowUp") && e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey)
 
 function PickerField({
   value,
@@ -210,6 +213,7 @@ function PickerField({
               id={messageId}
               role="status"
               data-popover=""
+              data-sap-ui-fastnavgroup-container="true"
               data-value-state={valueState}
               className="fiori-value-state-message absolute start-0 top-full z-50 mt-1 hidden max-w-[22rem] group-focus-within/field:block group-data-open/field:hidden"
             >
@@ -220,7 +224,7 @@ function PickerField({
         </div>
       </PopoverPrimitive.Anchor>
       <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
+        <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
           ref={contentRef}
           data-slot="picker-popover"
           side="bottom"

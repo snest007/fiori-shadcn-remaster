@@ -1,5 +1,7 @@
 import * as React from "react"
 
+import { useF6Navigation } from "@/lib/fiori-f6"
+
 import { Bar } from "@/components/ui/bar"
 import { Button } from "@/components/ui/button"
 import { FlexibleColumnLayout, useFlexibleColumnLayout, type FCLColumnActions } from "@/components/ui/flexible-column-layout"
@@ -9,6 +11,8 @@ import { List, ListItemStandard } from "@/components/ui/list"
 import { Tag } from "@/components/ui/tag"
 import { decline, exitFullScreen, fullScreen, product as productIcon, search } from "@/lib/fiori-icons"
 
+// F6 follows FlexibleColumnLayout and its native Bar/List groups in DOM order.
+// Install on document so portalled Popup containers participate; duplicate block installations share one listener.
 // Fiori "Flexible Column Layout" app: products (begin column) -> product object view (mid column)
 // -> sales order line item (end column). Navigation follows the Fiori rules via useFlexibleColumnLayout.
 
@@ -155,6 +159,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function MasterDetail() {
+  useF6Navigation()
   const fcl = useFlexibleColumnLayout()
   const [query, setQuery] = React.useState("")
   const [productId, setProductId] = React.useState<string>()

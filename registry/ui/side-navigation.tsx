@@ -1,4 +1,7 @@
 import * as React from "react"
+import { isF6NavigationKey } from "@/lib/fiori-f6"
+
+// UI5 2.28 SideNavigation fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
 import { arrowRight, navigationDownArrow, navigationRightArrow, overflow, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -367,6 +370,8 @@ function useOverflowKeyboard() {
       const entry = menu && keyboard.current.menus.get(menu)
       if (!menu || !entry) return
       const key = navigationKey(e)
+      // NavigationMenuItem/ItemNavigation ignore F6 aliases; do not swallow their document bubble.
+      if (isF6NavigationKey(e)) { if (key !== "F6" && e.keyCode !== 117) e.preventDefault(); return }
       if (key === "Escape") {
         e.stopImmediatePropagation()
         // OpenedPopupsRegistry.js closes the topmost popup even if its owning row has focus.
@@ -554,6 +559,8 @@ function OverflowItem({ ref, items, listRef }: {
               // Keys.js: modified navigation and unsupported activation keys are ignored.
               // Stop before Radix Trigger's raw key handlers while retaining browser defaults.
               const key = navigationKey(e)
+              // The native More opener ignores F6 aliases; suppress only Radix's raw Down opener.
+              if (isF6NavigationKey(e)) { if (key !== "F6" && e.keyCode !== 117) e.preventDefault(); return }
               if ((navigationKeys.includes(key) && hasNavigationModifiers(e))
                 || (key === " " && !isNavigationSpace(e))
                 || (key === "Enter" && !isNavigationEnter(e))) e.stopPropagation()
@@ -853,7 +860,7 @@ function SideNavigation({
   return (
     <RootContext.Provider value={root}>
       <div
-        data-slot="side-navigation"
+        data-slot="side-navigation" data-sap-ui-fastnavgroup="true"
         data-collapsed={collapsed ? "" : undefined}
         className={cn("fiori-sn", className)}
         {...props}
@@ -1417,7 +1424,8 @@ function CollapsedItem(props: SideNavigationItemProps) {
               anchorRef.current?.focus()
             }}
           >
-            <div ref={popoverTreeRef} className="fiori-sn fiori-sn--popover" data-in-popover="">
+            {/* SideNavigationPopoverTemplate.js renders a nested SideNavigation (fastNavigation metadata). */}
+            <div ref={popoverTreeRef} className="fiori-sn fiori-sn--popover" data-in-popover="" data-sap-ui-fastnavgroup="true">
               <div className="fiori-sn__root" role="none">
                 <PopoverModeProvider closePopover={closePopover}>
                   <SideNavigationItem {...props} icon={undefined} expanded defaultExpanded onExpandedChange={undefined} />

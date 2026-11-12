@@ -1,6 +1,8 @@
 import * as React from "react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
+
 import { cn } from "@/lib/utils"
 
 // Mirrors ui5-popover (Horizon): optional header bar (<PopoverHeader><PopoverTitle>), a padded, scrolling
@@ -74,7 +76,7 @@ function PopoverContent({
         "fiori-popup fiori-popover-surface z-50 max-h-(--radix-popover-content-available-height) max-w-[calc(100vw-20px)] outline-none",
         className
       )}
-      {...props}
+      {...props} data-sap-ui-fastnavgroup-container="true"
     >
       {!hideArrow && (
         <PopoverPrimitive.Arrow asChild width={16} height={8}>

@@ -332,8 +332,8 @@ function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, 
     <ListCoreContext.Provider value={notificationCore}>
       <NotificationContext.Provider value={ctx}>
         <div data-slot="notification-list" className={cn("fiori-notification-list", className)} {...props}>
-          {/* navItems() looks for its root by this data-slot. */}
-          <div ref={core.rootRef} data-slot="list" className="fiori-list__scroll">
+          {/* NotificationListInternal/NotificationListGroupList inherit List fastNavigation metadata. */}
+          <div ref={core.rootRef} data-slot="list" data-sap-ui-fastnavgroup="true" className="fiori-list__scroll">
             {hasData && focusArea("before")}
             <ul role="list" aria-label={ariaLabel ?? texts.list} className="fiori-list__ul" onKeyDown={onKeyDown} onFocusCapture={(e) => {
               const target = e.target as HTMLElement
@@ -859,7 +859,7 @@ function NotificationListGroupItem({
         </div>
       </div>
       <BusyIndicator active={loading && growing !== "button"} delay={loadingDelay} title={texts.busyTitle} className="fiori-nli-group__busy" onKeyDownCapture={stopBusyKeyboardEvent} onKeyUpCapture={stopBusyKeyboardEvent}>
-        <div className="fiori-nli-group__list">
+        <div className="fiori-nli-group__list" data-sap-ui-fastnavgroup="true">
           <span ref={startRef} aria-hidden className="fiori-nli-group__start-marker" />
           <ul ref={itemsRef} id={`${id}-items`} role="list" aria-labelledby={`${id}-title`} className="fiori-nli-group__items">
             <GroupRenderContext.Provider value={groupRender}>{children}</GroupRenderContext.Provider>

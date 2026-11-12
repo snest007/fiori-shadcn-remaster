@@ -1,5 +1,7 @@
 import * as React from "react"
 
+import { useF6Navigation } from "@/lib/fiori-f6"
+
 import { Bar } from "@/components/ui/bar"
 import { Button } from "@/components/ui/button"
 import { DataTable, createDataTableColumnHelper } from "@/components/ui/data-table"
@@ -18,6 +20,8 @@ import { localStorageAdapter, useVariantState, type Variant } from "@/lib/fiori-
 import { Toolbar, ToolbarButton, ToolbarSpacer } from "@/components/ui/toolbar"
 import { action, settings, sort } from "@/lib/fiori-icons"
 
+// F6 follows title, filter header, Table and visible Bar footer; the Table sentinel restores its current row.
+// Install on document so portalled Popup containers participate; duplicate block installations share one listener.
 // SAP Fiori "List Report" floorplan (guideline: list-report-floorplan-sap-fiori-element):
 // DynamicPage whose title is the variant ("Standard"), whose header holds the filter bar, and whose content is the
 // table with its own toolbar ("Products (n)" + actions). The header snaps away on scroll; the pin keeps the
@@ -115,6 +119,7 @@ const columns = col.columns([
 ])
 
 export default function ListReport() {
+  useF6Navigation()
   const [applied, setApplied] = React.useState({ search: "", category: "all", supplier: "" })
   const applyState = (state: FilterBarState) => {
     setApplied({ search: state.search, category: String(state.values.category?.[0]?.values[0] ?? "all"), supplier: String(state.values.supplier?.[0]?.values[0] ?? "") })
@@ -170,7 +175,7 @@ export default function ListReport() {
           />
         }
         header={
-          <DynamicPageHeader accessibleName="Filter Bar">
+          <DynamicPageHeader accessibleName="Filter Bar" data-sap-ui-fastnavgroup="true">
             <FilterBar
               className="!p-0 !bg-transparent"
               showToggle={false}

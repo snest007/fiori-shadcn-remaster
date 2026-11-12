@@ -1,4 +1,7 @@
 import * as React from "react"
+import { isF6NavigationKey } from "@/lib/fiori-f6"
+
+// UI5 2.28 SearchPopoverTemplate.js renders an internal List (fastNavigation metadata).
 
 import { decline, search as searchIcon, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -207,7 +210,8 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     inputProps?.onKeyDown?.(e)
-    if (e.defaultPrevented) return
+    // Search.js/_onkeydown uses Keys.isDown; F6 aliases must reach document before focus changes.
+    if (e.defaultPrevented || isF6NavigationKey(e)) return
     if (e.key === "Enter") {
       e.preventDefault()
       const input = e.currentTarget
@@ -265,6 +269,8 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
       inputRef.current?.focus()
     },
     onItemKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
+      // Search.js/_onListItemKeyDown uses exact isUp/isDown modifier guards.
+      if (isF6NavigationKey(e)) return
       const list = [...(popRef.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
       const i = list.indexOf(e.currentTarget)
       if (e.key === "ArrowDown") {
@@ -410,7 +416,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
       <SearchItemContext.Provider value={itemCtx}>
         <div className="fiori-search__popover-content" data-loading={loading ? "" : undefined}>
           {React.Children.count(children) > 0 && (
-            <ul role="listbox" aria-label={texts.suggestions} className="fiori-search__list">
+            <ul role="listbox" aria-label={texts.suggestions} className="fiori-search__list" data-sap-ui-fastnavgroup="true">
               {children}
             </ul>
           )}

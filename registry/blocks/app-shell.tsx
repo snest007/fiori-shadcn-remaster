@@ -1,5 +1,7 @@
 import * as React from "react"
 
+import { useF6Navigation } from "@/lib/fiori-f6"
+
 import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -14,6 +16,8 @@ import { Title } from "@/components/ui/title"
 import { UserMenu, UserMenuItem } from "@/components/ui/user-menu"
 import { actionSettings, customer, globe, home, menu2, product, settings, sysHelp, travelExpense } from "@/lib/fiori-icons"
 
+// F6 follows the shell, optional navigation and application content groups in DOM order.
+// Install on document so portalled Popup containers participate; duplicate block installations share one listener.
 // SAP Fiori launchpad-style shell: a ShellBar wired to the notifications, user menu and product switch popovers, above a
 // side navigation slot and the page's content. Sample data is inline; replace it with your own.
 
@@ -93,6 +97,7 @@ function ShellPopover({ target, onClose, title, children, ...props }: Omit<React
 }
 
 export default function AppShell({ sideNavigation, children }: AppShellProps) {
+  useF6Navigation()
   const [popup, setPopup] = React.useState<OpenPopup>(null)
   const [closed, setClosed] = React.useState<string[]>([])
   const [read, setRead] = React.useState<string[]>([])

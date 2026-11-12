@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 InputPopoverTemplate/Popup.onEnterDOM: the standalone value-state message is a Popup scope.
+
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
@@ -154,6 +156,7 @@ function TextArea({
           id={messageId}
           role="status"
           data-popover=""
+          data-sap-ui-fastnavgroup-container="true"
           data-value-state={valueState}
           className="fiori-value-state-message absolute start-0 top-full z-50 mt-1 hidden max-w-[22rem] group-focus-within/field:block"
         >

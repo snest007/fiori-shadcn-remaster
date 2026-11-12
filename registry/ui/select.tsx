@@ -1,5 +1,10 @@
 import * as React from "react"
+import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Select as SelectPrimitive } from "radix-ui"
+
+// UI5 2.28 SelectPopoverTemplate.js renders an internal List (fastNavigation metadata).
+
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -142,6 +147,8 @@ function SelectTrigger({
         )}
         onKeyDown={(e) => {
           onKeyDown?.(e)
+          // Select.js/_onkeydown ignores F6 aliases. Prevent only Radix's raw arrow opener; keep bubbling.
+          if (isF6NavigationKey(e)) { if (e.key !== "F6" && e.keyCode !== 117) e.preventDefault(); return }
           if (e.defaultPrevented || !items || !state || state.open) return
           if ((e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) || e.key === "F4") {
             e.preventDefault()
@@ -184,6 +191,7 @@ function SelectTrigger({
           id={messageId}
           role="status"
           data-popover=""
+          data-sap-ui-fastnavgroup-container="true"
           data-value-state={valueState}
           className="fiori-value-state-message absolute start-0 top-full z-50 mt-1 hidden max-w-[22rem] group-focus-within/field:block group-data-open/field:hidden"
         >
@@ -200,6 +208,7 @@ function SelectContent({
   children,
   position = "popper",
   sideOffset = 4,
+  onKeyDown,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
@@ -213,12 +222,17 @@ function SelectContent({
           position === "popper" && "w-(--radix-select-trigger-width)",
           className
         )}
-        {...props}
+        {...props} data-sap-ui-fastnavgroup-container="true"
+        onKeyDown={(event) => {
+          onKeyDown?.(event)
+          // UI5 List ItemNavigation ignores modified arrows; suppress Radix's deferred raw arrow focus.
+          if (isF6NavigationKey(event) && event.key !== "F6" && event.keyCode !== 117) event.preventDefault()
+        }}
       >
         <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} className="rotate-180" />
         </SelectPrimitive.ScrollUpButton>
-        <SelectPrimitive.Viewport>{children}</SelectPrimitive.Viewport>
+        <SelectPrimitive.Viewport data-sap-ui-fastnavgroup="true">{children}</SelectPrimitive.Viewport>
         <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} />
         </SelectPrimitive.ScrollDownButton>

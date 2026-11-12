@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 Bar fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import { cn } from "@/lib/utils"
 
 // Mirrors ui5-bar (Horizon): a header / subheader / footer bar with start, middle and end areas.
@@ -54,7 +56,7 @@ function Bar({ design = "header", startContent, endContent, children, className,
 
   return (
     <div
-      data-slot="bar"
+      data-slot="bar" data-sap-ui-fastnavgroup="true"
       data-design={design}
       // Content-box like the UI5 host, so the footer's top border adds to the height.
       className={cn("box-content block w-full", designClasses[design], className)}

@@ -114,7 +114,8 @@ function Tree({
           className={cn("fiori-list fiori-tree", className)}
           {...props}
         >
-          <div className="fiori-list__container">
+          {/* UI5 TreeTemplate renders TreeList, inheriting List fastNavigation metadata. */}
+          <div className="fiori-list__container" data-sap-ui-fastnavgroup="true">
             {header}
             {!header && headerText && (
               <header id={headerId} className="fiori-list__header">

@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 DynamicPageTitle fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import { pushpinOff, pushpinOn, slimArrowDown, slimArrowUp } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -19,7 +21,7 @@ import { ToggleButton } from "@/components/ui/toggle-button"
 // - The pin button keeps the header in the sticky area while the content scrolls; snapping unpins it.
 // - The title is a button with aria-expanded and aria-describedby "Toggle Header" while the page has a header;
 //   the title+header area is a "banner" (overridable) labelled "Header Expanded" / "Header Snapped".
-// Not yet implemented: the phone-only "snappedTitleOnMobile" title and F6 fast navigation groups.
+// Not yet implemented: the phone-only "snappedTitleOnMobile" title.
 
 type DynamicPageTexts = {
   headerExpanded: string
@@ -439,7 +441,7 @@ function DynamicPageTitle({
   return (
     <div
       ref={setRef}
-      data-slot="dynamic-page-title"
+      data-slot="dynamic-page-title" data-sap-ui-fastnavgroup="true"
       data-snapped={snapped ? "" : undefined}
       data-interactive={interactive ? "" : undefined}
       data-hovered={ctx?.hovered ? "" : undefined}

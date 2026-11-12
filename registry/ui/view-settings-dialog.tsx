@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 ViewSettingsDialogTemplate.js renders an internal List (fastNavigation metadata).
+
 import { accept, filter as filterIcon, group2, navBack, sort as sortIcon } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -149,7 +151,7 @@ function VsdList({
     }
   })
   return (
-    <div className={cn("fiori-vsd__list", className)}>
+    <div className={cn("fiori-vsd__list", className)} data-sap-ui-fastnavgroup="true">
       {header && (
         <div id={headerId} className="fiori-vsd__group-header" role="presentation">
           <span>{header}</span>

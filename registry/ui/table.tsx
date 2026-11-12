@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 Table fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import { useFioriDragAndDrop, type FioriMoveHandlers } from "@/lib/fiori-drag-and-drop"
 
 import { clearAll, navigationRightArrow, overflow, sortAscending, sortDescending } from "@/lib/fiori-icons"
@@ -964,7 +966,7 @@ function Table({
     <TableContext.Provider value={ctx}>
       <div
         ref={rootRef}
-        data-slot="table"
+        data-slot="table" data-sap-ui-fastnavgroup="true"
         data-overflow-mode={overflowMode}
         data-busy={busy ? "" : undefined}
         className={cn("fiori-table", className)}

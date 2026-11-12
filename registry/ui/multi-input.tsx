@@ -1,5 +1,10 @@
 import * as React from "react"
+import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Popover as PopoverPrimitive } from "radix-ui"
+
+// UI5 2.28 MultiInputTemplate.js renders an internal List (fastNavigation metadata).
+
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
 import { valueHelp } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -285,7 +290,7 @@ function MultiInput({
       if (item) onSuggestionSelect?.(item)
       setOpen(false)
     }
-    const isShow = (key === "F4" && plain) || ((key === "ArrowDown" || key === "ArrowUp") && alt && !ctrl && !shift)
+    const isShow = (key === "F4" && plain) || ((key === "ArrowDown" || key === "ArrowUp") && alt && !ctrl && !shift && !meta)
     if (isShow && !disabled) {
       e.preventDefault()
       onValueHelpTrigger?.()
@@ -337,6 +342,8 @@ function MultiInput({
             onFocusExhausted={() => inputRef.current?.focus()}
             onPopoverOpenChange={setTokensPopoverOpen}
             onKeyDown={(e) => {
+              // MultiInput.js/_onTokenizerKeydown uses exact keys; aliases must not schedule input focus.
+              if (isF6NavigationKey(e)) return
               const els = [...e.currentTarget.querySelectorAll<HTMLElement>('[data-slot="token"]')]
               const last = els[els.length - 1]
               const rtl = getComputedStyle(e.currentTarget).direction === "rtl"
@@ -433,6 +440,7 @@ function MultiInput({
               id={messageId}
               role="status"
               data-popover=""
+              data-sap-ui-fastnavgroup-container="true"
               data-value-state={valueState}
               className={cn(
                 "fiori-value-state-message absolute start-0 top-full z-50 mt-1 hidden max-w-[22rem]",
@@ -446,7 +454,7 @@ function MultiInput({
         </div>
       </PopoverPrimitive.Anchor>
       <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content
+        <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
           align="start"
           sideOffset={4}
           aria-label="Suggestions"
@@ -477,7 +485,7 @@ function MultiInput({
           <div
             ref={listRef}
             id={listId}
-            data-slot="multi-input-suggestions"
+            data-slot="multi-input-suggestions" data-sap-ui-fastnavgroup="true"
             role="listbox"
             aria-label="Suggestions"
             className="overflow-y-auto"

@@ -1,5 +1,9 @@
 import * as React from "react"
+import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { DropdownMenu as MenuPrimitive } from "radix-ui"
+
+// MenuTemplate/MenuItemTemplate Popup > List are collapsed into Content here; List metadata marks its group.
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { accept, slimArrowRight } from "@/lib/fiori-icons"
@@ -84,6 +88,8 @@ function MenuTrigger({ onKeyDown, ...props }: React.ComponentProps<typeof MenuPr
   const root = React.useContext(MenuContext)
   return <MenuPrimitive.Trigger data-slot="menu-trigger" {...props} onKeyDown={(e) => {
     onKeyDown?.(e)
+    // UI5 opener has no F6 alias action; cancel Radix's raw arrow opener without stopping document F6.
+    if (isF6NavigationKey(e) && e.key !== "F6" && e.keyCode !== 117) e.preventDefault()
     // Radix opens on Space down; its following keyup belongs to the opener, not the
     // newly focused item. UI5 button openers open on Space up instead.
     if (!e.defaultPrevented && root && (e.key === " " || e.key === "Spacebar")) root.triggerSpace = true
@@ -149,6 +155,9 @@ function surfaceKeyDown(e: React.KeyboardEvent<HTMLDivElement>, surface: Surface
   const element = surface.element
   if (!element || e.defaultPrevented || (e.target as HTMLElement).closest('[role="menu"]') !== element || element.hasAttribute("data-sn-overflow-menu")) return
   const key = e.key === "Spacebar" ? " " : e.key
+  // Menu.js/_itemKeyDown and ItemNavigation use exact modifiers. Block raw Radix arrow movement,
+  // while the source F6 document handler deliberately handles already-prevented events.
+  if (isF6NavigationKey(e)) { if (key !== "F6" && e.keyCode !== 117) e.preventDefault(); return }
   // UI5 has no printable typeahead; do not let Radix's search buffer poison Space.
   if ((navigationKeys.includes(key) && modified(e)) || (key.length === 1 && key !== " ")
     || ((key === " " || key === "Enter") && !activationAllowed(e))) { e.stopPropagation(); return }
@@ -199,10 +208,10 @@ function MenuContent({ className, side = "bottom", align = "start", sideOffset =
   const mergedRef = React.useCallback((node: HTMLDivElement | null) => { setRef(node); if (typeof ref === "function") ref(node); else if (ref) ref.current = node }, [ref, setRef])
   const autoFocus = { onOpenAutoFocus: (e: Event) => { e.preventDefault(); if (!preventInitialFocus && surface.element) rows(surface.element)[0]?.focus({ preventScroll: true }) } } as object
   const content = <SurfaceContext.Provider value={surface}><HoverContext.Provider value={hover}><GroupContext.Provider value={null}>
-    <MenuPrimitive.Content ref={mergedRef} data-slot="menu-content" side={side} align={align} sideOffset={sideOffset} collisionPadding={collisionPadding}
+    <MenuPrimitive.Content ref={mergedRef} data-slot="menu-content" data-sap-ui-fastnavgroup="true" side={side} align={align} sideOffset={sideOffset} collisionPadding={collisionPadding}
       className={cn("fiori-menu z-50 max-h-(--radix-dropdown-menu-content-available-height)", className)}
       onKeyDownCapture={(e) => { onKeyDownCapture?.(e); surfaceKeyDown(e, surface) }}
-      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }} {...autoFocus} {...props}>{children}</MenuPrimitive.Content>
+      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }} {...autoFocus} {...props} data-sap-ui-fastnavgroup-container="true">{children}</MenuPrimitive.Content>
   </GroupContext.Provider></HoverContext.Provider></SurfaceContext.Provider>
   return portal ? <MenuPrimitive.Portal>{content}</MenuPrimitive.Portal> : content
 }
@@ -351,7 +360,7 @@ function MenuSubContent({ className, sideOffset = 0, alignOffset = 4, collisionP
     if (sub?.mouse.current && !surface.element?.hasAttribute("data-sn-overflow-menu")) { e.preventDefault(); sub.trigger.current?.focus({ preventScroll: true }) }
   } } as object
   return <MenuPrimitive.Portal><SurfaceContext.Provider value={surface}><HoverContext.Provider value={hover}><GroupContext.Provider value={null}>
-    <MenuPrimitive.SubContent {...props} ref={mergedRef} data-slot="menu-sub-content" sideOffset={sideOffset} alignOffset={alignOffset} collisionPadding={collisionPadding}
+    <MenuPrimitive.SubContent data-sap-ui-fastnavgroup="true" {...props} data-sap-ui-fastnavgroup-container="true" ref={mergedRef} data-slot="menu-sub-content" sideOffset={sideOffset} alignOffset={alignOffset} collisionPadding={collisionPadding}
       className={cn("fiori-menu z-50 max-h-(--radix-dropdown-menu-content-available-height)", className)}
       onKeyDownCapture={(e) => { onKeyDownCapture?.(e); surfaceKeyDown(e, surface) }}
       {...entryFocus}

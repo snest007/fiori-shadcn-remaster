@@ -1,5 +1,10 @@
 import * as React from "react"
+import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Popover as PopoverPrimitive } from "radix-ui"
+
+// UI5 2.28 MultiComboBoxPopoverTemplate.js renders an internal List (fastNavigation metadata).
+
+// UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -357,7 +362,8 @@ function MultiComboBox({
 
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     onKeyDown?.(e)
-    if (e.defaultPrevented || e.nativeEvent.isComposing) return
+    // MultiComboBox.js/_onkeydown only navigates plain/Ctrl-only arrows, never F6 aliases.
+    if (e.defaultPrevented || e.nativeEvent.isComposing || isF6NavigationKey(e)) return
     const { key, altKey: alt, shiftKey: shift } = e
     const ctrl = e.ctrlKey || e.metaKey
     const input = e.currentTarget
@@ -442,6 +448,8 @@ function MultiComboBox({
   }
 
   const handleListKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // MultiComboBox.js/_onItemKeydown: exact isShow/isUpCtrl/isDownCtrl leave F6 aliases to the feature.
+    if (isF6NavigationKey(e)) return
     const els = optionEls()
     const index = els.indexOf(e.target as HTMLElement)
     const onSelectAll = (e.target as HTMLElement).dataset.slot === "multi-combobox-select-all"
@@ -599,7 +607,7 @@ function MultiComboBox({
   }
 
   const listContent = (
-    <PopoverPrimitive.Content
+    <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
       ref={contentRef}
       data-slot="multi-combobox-popover"
       align="start"
@@ -655,7 +663,7 @@ function MultiComboBox({
         <div
           ref={listRef}
           id={listId}
-          data-slot="multi-combobox-list"
+          data-slot="multi-combobox-list" data-sap-ui-fastnavgroup="true"
           role="listbox"
           aria-label={listLabel}
           aria-multiselectable
@@ -729,6 +737,8 @@ function MultiComboBox({
             onFocusExhausted={() => inputRef.current?.focus()}
             onFocus={() => setFocused(true)}
             onKeyDown={(e) => {
+              // MultiComboBox.js/_onTokenizerKeydown uses exact isShow, excluding F6 aliases.
+              if (isF6NavigationKey(e)) return
               const els = [...e.currentTarget.querySelectorAll<HTMLElement>('[data-slot="token"]:not([data-overflows])')]
               const last = els[els.length - 1]
               const rtl = getComputedStyle(e.currentTarget).direction === "rtl"
@@ -841,6 +851,7 @@ function MultiComboBox({
               id={messageId}
               role="status"
               data-popover=""
+              data-sap-ui-fastnavgroup-container="true"
               data-value-state={valueState}
               className="fiori-value-state-message absolute start-0 top-full z-50 mt-1 hidden max-w-[22rem] group-focus-within/field:block group-data-open/field:hidden"
             >

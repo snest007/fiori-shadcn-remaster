@@ -19,6 +19,7 @@
     "@fiori/object-status",
     "@fiori/object-number",
     "@fiori/object-identifier",
-    "@fiori/icons"
+    "@fiori/icons",
+    "@fiori/f6-navigation"
   ]
 }

@@ -1,5 +1,7 @@
 import * as React from "react"
 
+// UI5 2.28 List fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+
 import { useFioriDragAndDrop, type FioriMoveHandlers } from "@/lib/fiori-drag-and-drop"
 
 import { accept, decline, edit, slimArrowRight } from "@/lib/fiori-icons"
@@ -484,7 +486,7 @@ function List({
     <ListCoreContext.Provider value={core}>
       <div
         ref={core.rootRef}
-        data-slot="list"
+        data-slot="list" data-sap-ui-fastnavgroup="true"
         data-selection-mode={selectionMode}
         data-separators={separators}
         data-indent={indent ? "" : undefined}
