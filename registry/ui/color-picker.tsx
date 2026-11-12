@@ -35,24 +35,37 @@ type ColorPickerProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onCh
 }
 
 /** InputTemplate.js native change -> Input.js _handleChange; focus/blur maintain its confirmation baseline. */
-function useNativeInputChange(onCommit: (raw: string) => string) {
-  const previousValue = React.useRef(""), commitRef = React.useRef(onCommit)
-  commitRef.current = onCommit
+function useNativeInputChange(onCommit: (raw: string) => string, onRestore: (raw: string, fireInput: boolean) => void) {
+  const previousValue = React.useRef(""), lastConfirmedValue = React.useRef(""), commitRef = React.useRef(onCommit), restoreRef = React.useRef(onRestore)
+  commitRef.current = onCommit; restoreRef.current = onRestore
   return React.useCallback<React.RefCallback<HTMLInputElement>>((input) => {
     if (!input) return
     const change = () => { if (input.value !== previousValue.current) previousValue.current = commitRef.current(input.value) }
     const focus = () => { previousValue.current = input.value }
-    const blur = () => { previousValue.current = "" }
+    const blur = () => { previousValue.current = ""; lastConfirmedValue.current = "" }
+    const keydown = (event: KeyboardEvent) => {
+      if (!event.composedPath().includes(input) || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+      if (event.key === "Enter" && input.value !== previousValue.current) lastConfirmedValue.current = input.value
+      if (event.key !== "Escape" && event.key !== "Esc") return
+      // Input.js _handleEscape restores the last plain Enter confirmation or focus-entry value.
+      // Its input event updates Alpha live; leave Escape propagation to the owning dialog/popup.
+      const fireInput = input.value !== previousValue.current && input.value !== lastConfirmedValue.current
+      input.value = lastConfirmedValue.current || previousValue.current
+      restoreRef.current(input.value, fireInput)
+    }
     // React's synthetic onChange tracks input events; native change also handles browser Enter/blur commits.
     input.addEventListener("change", change); input.addEventListener("focus", focus); input.addEventListener("blur", blur)
-    return () => { input.removeEventListener("change", change); input.removeEventListener("focus", focus); input.removeEventListener("blur", blur) }
+    // Input's cancellation precedes UI5 Popup's dismissal; run before Radix's document capture closes its owner.
+    const eventRoot = input.ownerDocument.defaultView!
+    eventRoot.addEventListener("keydown", keydown, true)
+    return () => { input.removeEventListener("change", change); input.removeEventListener("focus", focus); input.removeEventListener("blur", blur); eventRoot.removeEventListener("keydown", keydown, true) }
   }, [])
 }
 
 function ChannelInput({ value, name, disabled, onCommit }: { value: number; name: string; disabled: boolean; onCommit: (value: string) => string }) {
   const [raw, setRaw] = React.useState(String(value))
   React.useEffect(() => { setRaw(String(value)) }, [value])
-  const ref = useNativeInputChange((input) => { const normalized = onCommit(input); setRaw(normalized); return normalized })
+  const ref = useNativeInputChange((input) => { const normalized = onCommit(input); setRaw(normalized); return normalized }, setRaw)
   return <Input ref={ref} aria-label={name} disabled={disabled} wrapperClassName="fiori-color-picker__channel-input" value={raw} onChange={(event) => setRaw(event.target.value)} />
 }
 
@@ -164,14 +177,20 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
     commit({ color: { ...rgb, a: modelRef.current.color.a }, hsl, hue: hsl.h }, true)
     return normalized
   }
-  const hexRef = useNativeInputChange(changeHex)
+  const hexRef = useNativeInputChange(changeHex, setHex)
+  const inputAlpha = (raw: string) => {
+    setAlphaTemp(raw)
+    // ColorPicker.js _handleAlphaInput also handles Input.js _handleEscape's semantic input event.
+    const parsed = parseFloat(raw), a = Number.isNaN(parsed) ? 1 : parsed
+    commit({ ...modelRef.current, color: { ...modelRef.current.color, a } })
+  }
   const alphaRef = useNativeInputChange((raw) => {
     // ColorPicker.js _handleAlphaChange reads its live draft (or defaults to 1), then the bubbled
     // _handleColorInputChange writes integer text before Input.js _handleChange confirms that text.
     const parsed = alphaTemp ? parseFloat(alphaTemp) : 1, a = clamp(Number.isNaN(parsed) ? 1 : parsed, 1)
     setAlphaTemp(undefined); commit({ ...modelRef.current, color: { ...modelRef.current.color, a } })
     return String(parseInt(raw) || 0)
-  })
+  }, (raw, fireInput) => { if (fireInput) inputAlpha(raw); else setAlphaTemp(raw) })
   const changeChannel = (key: "r" | "g" | "b" | "h" | "s" | "l", raw: string) => {
     // ColorPicker.js _handleColorInputChange and ColorValue.js normalize* clamp parsed integers, not negative value states.
     const n = clamp(parseInt(raw) || 0, key === "h" ? 360 : key === "s" || key === "l" ? 100 : 255)
@@ -219,12 +238,7 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
       </div>
       {!simplified && <div className="fiori-color-picker__channels">
         {channelInputs.map(([key, label, name]) => <React.Fragment key={key}><div className="fiori-color-picker__channel"><ChannelInput name={name} disabled={wrongHex} value={key in model.color ? model.color[key as 'r' | 'g' | 'b'] : model.hsl[key as 'h' | 's' | 'l']} onCommit={(raw) => changeChannel(key, raw)} /><Label>{label}</Label></div><div className="fiori-color-picker__percentage">{(key === "s" || key === "l") && <Label>{texts.percentage}</Label>}</div></React.Fragment>)}
-        <div className="fiori-color-picker__channel"><Input ref={alphaRef} aria-label={texts.alpha} disabled={wrongHex} wrapperClassName="fiori-color-picker__channel-input" value={alphaTemp ?? String(model.color.a)} onChange={(e) => {
-          const raw = e.target.value; setAlphaTemp(raw)
-          // _handleAlphaInput emits continuously and keeps the raw text until _handleAlphaChange on blur.
-          const parsed = parseFloat(raw), a = Number.isNaN(parsed) ? 1 : parsed
-          commit({ ...modelRef.current, color: { ...modelRef.current.color, a } })
-        }} /><Label>{texts.alphaLabel}</Label></div>
+        <div className="fiori-color-picker__channel"><Input ref={alphaRef} aria-label={texts.alpha} disabled={wrongHex} wrapperClassName="fiori-color-picker__channel-input" value={alphaTemp ?? String(model.color.a)} onChange={(e) => inputAlpha(e.target.value)} /><Label>{texts.alphaLabel}</Label></div>
         <div><Button variant="transparent" className="fiori-color-picker__toggle" title={texts.toggleMode} aria-label={texts.toggleMode} onClick={() => {
           const next = !displayHsl; setDisplayHsl(next); setHex(committedHex.current)
           const v = modelRef.current

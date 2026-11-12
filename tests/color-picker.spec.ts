@@ -268,6 +268,69 @@ for (const [key, commitsOnEnter] of [["Enter", true], ["Shift+Enter", true], ["C
   })
 }
 
+for (const key of ["Escape", "Shift+Escape", "Control+Escape", "Alt+Escape", "Meta+Escape", "Control+Shift+Escape"] as const) {
+  test(`color-picker: ${key} matches native draft cancellation before Tab`, async ({ page, context }, testInfo) => {
+    const native = await context.newPage(), proof: { name: string; stage: string; surface: string; raw: string; rgba: string }[] = []
+    try {
+      await native.goto("/ui5.html?only=color-picker-alpha"); await native.waitForSelector("html[data-ready=true]")
+      const nativeRoot = native.locator('[data-fixture="color-picker-alpha"] ui5-color-picker'), surfaces = [[page, picker(page), false], [native, nativeRoot, true]] as const
+      const color = { r: 51, g: 102, b: 153, a: .5 }, rgba = () => `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`
+      const assertBoth = async (name: string, stage: string, raw: string, expectedColor: string) => {
+        for (const [surface, root, isNative] of surfaces) {
+          const field = root.getByRole("textbox", { name, exact: true })
+          await expect(field).toHaveValue(raw)
+          if (isNative) await expect(root).toHaveJSProperty("value", expectedColor)
+          else await expect(output(surface)).toHaveText(expectedColor)
+          proof.push({ name, stage, surface: isNative ? "UI5" : "React", raw: await field.inputValue(), rgba: isNative ? await root.evaluate((element) => (element as HTMLElement & { value: string }).value) : (await output(surface).textContent())! })
+        }
+      }
+      for (const [name, draft] of [["Hexadecimal", "#123456"], ["Red", "300"], ["Alpha", "3"]] as const) {
+        const initial = name === "Hexadecimal" ? "336699" : name === "Red" ? String(color.r) : String(color.a)
+        for (const [, root] of surfaces) { const field = root.getByRole("textbox", { name, exact: true }); await field.fill(draft); await field.press(key); await expect(field).toBeFocused() }
+        await assertBoth(name, "Escape", key === "Escape" ? initial : draft, name === "Alpha" && key !== "Escape" ? `rgba(${color.r}, ${color.g}, ${color.b}, 3)` : rgba())
+        if (key !== "Escape") { if (name === "Hexadecimal") Object.assign(color, { r: 18, g: 52, b: 86 }); else if (name === "Red") color.r = 255; else color.a = 1 }
+        for (const [, root] of surfaces) { const field = root.getByRole("textbox", { name, exact: true }); await field.press("Tab"); await expect(field).not.toBeFocused() }
+        await assertBoth(name, "Tab after Escape", key === "Escape" ? initial : name === "Hexadecimal" ? "123456" : name === "Red" ? "255" : "1", rgba())
+      }
+      for (let i = 0; i < proof.length; i += 2) { const { surface: _ours, ...ours } = proof[i], { surface: _native, ...reference } = proof[i + 1]; expect(ours).toEqual(reference) }
+      await testInfo.attach(`c2-${key.toLowerCase().replaceAll("+", "-")}-cancellation.json`, { body: JSON.stringify(proof, null, 2), contentType: "application/json" })
+    } finally { await native.close() }
+  })
+}
+
+test("color-picker: input Escape cancels the draft and still closes the native More Colors dialog", async ({ page, context }, testInfo) => {
+  const native = await context.newPage(), proof = []
+  try {
+    await native.goto("/ui5.html?only=color-picker-alpha"); await native.waitForSelector("html[data-ready=true]")
+    await native.evaluate(async () => {
+      await customElements.whenDefined("ui5-color-palette")
+      const control = document.createElement("ui5-color-palette") as HTMLElement & { showMoreColors: boolean }
+      control.id = "color-picker-escape-native-palette"; control.showMoreColors = true
+      for (const color of ["red", "blue"]) { const item = document.createElement("ui5-color-palette-item"); item.setAttribute("value", color); control.append(item) }
+      document.body.replaceChildren(control)
+    })
+    const nativePalette = native.locator("#color-picker-escape-native-palette"), nativeDialog = nativePalette.locator("ui5-dialog"), nativePicker = nativeDialog.locator("ui5-color-picker")
+    const more = palette(page).getByRole("button", { name: "More Colors...", exact: true }), nativeMore = nativePalette.getByRole("button", { name: "More Colors...", exact: true })
+    const openBoth = async () => { await more.click(); await nativeMore.click(); await expect(dialog(page)).toBeVisible(); await expect(nativeDialog).toBeVisible(); await expect(hue(dialog(page))).toBeFocused(); await expect(hue(nativePicker)).toBeFocused() }
+    await openBoth()
+    for (const [root, isNative] of [[dialog(page), false], [nativePicker, true]] as const) {
+      const field = root.getByRole("textbox", { name: "Hexadecimal", exact: true })
+      await field.fill("#123456"); await field.press("Shift+Escape"); await expect(field).toHaveValue("#123456"); await expect(field).toBeFocused()
+      await expect(isNative ? nativeDialog : dialog(page)).toBeVisible()
+      await field.press("Escape")
+    }
+    await expect(dialog(page)).toHaveCount(0); await expect(nativeDialog).not.toBeVisible(); await expect(more).toBeFocused(); await expect(nativeMore).toBeFocused()
+    await openBoth()
+    for (const [root, isNative] of [[dialog(page), false], [nativePicker, true]] as const) {
+      const field = root.getByRole("textbox", { name: "Hexadecimal", exact: true })
+      await expect(field).toHaveValue("ffffff"); await expect(field).not.toHaveAttribute("aria-invalid"); await expect(root.getByRole("textbox", { name: "Red", exact: true })).toHaveValue("255")
+      proof.push({ surface: isNative ? "UI5" : "React", hex: await field.inputValue(), red: await root.getByRole("textbox", { name: "Red", exact: true }).inputValue(), invalid: await field.getAttribute("aria-invalid") })
+    }
+    expect(proof[0].hex).toBe(proof[1].hex)
+    await testInfo.attach("c2-dialog-escape-cancellation.json", { body: JSON.stringify(proof, null, 2), contentType: "application/json" })
+  } finally { await native.close() }
+})
+
 test("color-picker: alpha emits live values and normalizes on commit", async ({ page }) => {
   const root = picker(page), input = root.getByRole("textbox", { name: "Alpha", exact: true })
   await input.fill("0.37"); await expect(output(page)).toHaveText("rgba(51, 102, 153, 0.37)")
