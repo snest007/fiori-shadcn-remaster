@@ -1,6 +1,6 @@
 import * as React from "react"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
-import { Select as SelectPrimitive } from "radix-ui"
+import { Select as SelectPrimitive, Slot } from "radix-ui"
 
 // UI5 2.28 SelectPopoverTemplate.js renders an internal List (fastNavigation metadata).
 
@@ -18,6 +18,30 @@ type SelectContextValue = {
   step: (current: string | undefined, key: "ArrowUp" | "ArrowDown" | "Home" | "End") => string | undefined
 }
 const SelectContext = React.createContext<SelectContextValue | null>(null)
+
+// Select.js/_onkeydown and List's ItemNavigation leave F6 aliases untouched. Radix's
+// composed Trigger/Content handlers match raw arrows, so filter their callback at the
+// public asChild host boundary without cancelling the native event or adding a DOM node.
+function SelectTriggerHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.ComponentProps<"button"> & {
+  asChild?: boolean
+  aliasKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>
+}) {
+  const Host = asChild ? Slot.Root : "button"
+  return <Host {...props} onKeyDown={(event) => {
+    if (isF6NavigationKey(event)) aliasKeyDown?.(event)
+    else onKeyDown?.(event)
+  }} />
+}
+function SelectContentHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.ComponentProps<"div"> & {
+  asChild?: boolean
+  aliasKeyDown?: React.KeyboardEventHandler<HTMLDivElement>
+}) {
+  const Host = asChild ? Slot.Root : "div"
+  return <Host {...props} onKeyDown={(event) => {
+    if (isF6NavigationKey(event)) aliasKeyDown?.(event)
+    else onKeyDown?.(event)
+  }} />
+}
 
 type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root>
 
@@ -112,6 +136,7 @@ function SelectTrigger({
   onKeyDown,
   onPointerDown,
   onClick,
+  asChild,
   ...props
 }: SelectTriggerProps) {
   const items = React.useContext(SelectContext)
@@ -147,8 +172,6 @@ function SelectTrigger({
         )}
         onKeyDown={(e) => {
           onKeyDown?.(e)
-          // Select.js/_onkeydown ignores F6 aliases. Prevent only Radix's raw arrow opener; keep bubbling.
-          if (isF6NavigationKey(e)) { if (e.key !== "F6" && e.keyCode !== 117) e.preventDefault(); return }
           if (e.defaultPrevented || !items || !state || state.open) return
           if ((e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) || e.key === "F4") {
             e.preventDefault()
@@ -176,7 +199,9 @@ function SelectTrigger({
           e.preventDefault()
         }}
         {...props}
+        asChild
       >
+        <SelectTriggerHost asChild={asChild} aliasKeyDown={onKeyDown}>
         <span className="fiori-select__value">{children}</span>
         {!readOnly && (
           <SelectPrimitive.Icon asChild>
@@ -185,6 +210,7 @@ function SelectTrigger({
             </span>
           </SelectPrimitive.Icon>
         )}
+        </SelectTriggerHost>
       </SelectPrimitive.Trigger>
       {showMessage && (
         <div
@@ -209,6 +235,7 @@ function SelectContent({
   position = "popper",
   sideOffset = 4,
   onKeyDown,
+  asChild,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
@@ -223,12 +250,10 @@ function SelectContent({
           className
         )}
         {...props} data-sap-ui-fastnavgroup-container="true"
-        onKeyDown={(event) => {
-          onKeyDown?.(event)
-          // UI5 List ItemNavigation ignores modified arrows; suppress Radix's deferred raw arrow focus.
-          if (isF6NavigationKey(event) && event.key !== "F6" && event.keyCode !== 117) event.preventDefault()
-        }}
+        onKeyDown={onKeyDown}
+        asChild
       >
+        <SelectContentHost asChild={asChild} aliasKeyDown={onKeyDown}>
         <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} className="rotate-180" />
         </SelectPrimitive.ScrollUpButton>
@@ -236,6 +261,7 @@ function SelectContent({
         <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} />
         </SelectPrimitive.ScrollDownButton>
+        </SelectContentHost>
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )

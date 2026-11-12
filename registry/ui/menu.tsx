@@ -1,6 +1,6 @@
 import * as React from "react"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
-import { DropdownMenu as MenuPrimitive } from "radix-ui"
+import { DropdownMenu as MenuPrimitive, Slot } from "radix-ui"
 
 // MenuTemplate/MenuItemTemplate Popup > List are collapsed into Content here; List metadata marks its group.
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
@@ -84,16 +84,37 @@ function Menu({ open: openProp, defaultOpen, onOpenChange, children, ...props }:
   return <MenuContext.Provider value={state}><MenuPrimitive.Root data-slot="menu" open={openProp ?? uncontrolled} onOpenChange={setOpen} {...props}>{persistentChildren(children)}</MenuPrimitive.Root></MenuContext.Provider>
 }
 
-function MenuTrigger({ onKeyDown, ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
+// UI5 Menu opener/List ItemNavigation do not cancel F6 aliases. Filtering Radix's
+// composed raw-arrow callback in its public asChild host preserves native defaults,
+// caller handlers and refs, without changing the rendered host or event propagation.
+function MenuTriggerHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.ComponentProps<"button"> & {
+  asChild?: boolean
+  aliasKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>
+}) {
+  const Host = asChild ? Slot.Root : "button"
+  return <Host {...props} onKeyDown={(event) => {
+    if (isF6NavigationKey(event)) aliasKeyDown?.(event)
+    else onKeyDown?.(event)
+  }} />
+}
+function MenuContentHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.ComponentProps<"div"> & {
+  asChild?: boolean
+  aliasKeyDown?: React.KeyboardEventHandler<HTMLDivElement>
+}) {
+  const Host = asChild ? Slot.Root : "div"
+  return <Host {...props} onKeyDown={(event) => {
+    if (isF6NavigationKey(event)) aliasKeyDown?.(event)
+    else onKeyDown?.(event)
+  }} />
+}
+function MenuTrigger({ onKeyDown, children, asChild, ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
   const root = React.useContext(MenuContext)
   return <MenuPrimitive.Trigger data-slot="menu-trigger" {...props} onKeyDown={(e) => {
     onKeyDown?.(e)
-    // UI5 opener has no F6 alias action; cancel Radix's raw arrow opener without stopping document F6.
-    if (isF6NavigationKey(e) && e.key !== "F6" && e.keyCode !== 117) e.preventDefault()
     // Radix opens on Space down; its following keyup belongs to the opener, not the
     // newly focused item. UI5 button openers open on Space up instead.
     if (!e.defaultPrevented && root && (e.key === " " || e.key === "Spacebar")) root.triggerSpace = true
-  }} />
+  }} asChild><MenuTriggerHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuTriggerHost></MenuPrimitive.Trigger>
 }
 
 type MenuGroupProps = React.ComponentProps<typeof MenuPrimitive.Group> & { checkMode?: CheckMode }
@@ -155,9 +176,8 @@ function surfaceKeyDown(e: React.KeyboardEvent<HTMLDivElement>, surface: Surface
   const element = surface.element
   if (!element || e.defaultPrevented || (e.target as HTMLElement).closest('[role="menu"]') !== element || element.hasAttribute("data-sn-overflow-menu")) return
   const key = e.key === "Spacebar" ? " " : e.key
-  // Menu.js/_itemKeyDown and ItemNavigation use exact modifiers. Block raw Radix arrow movement,
-  // while the source F6 document handler deliberately handles already-prevented events.
-  if (isF6NavigationKey(e)) { if (key !== "F6" && e.keyCode !== 117) e.preventDefault(); return }
+  // Menu.js/_itemKeyDown and ItemNavigation ignore aliases without cancelling their native event.
+  if (isF6NavigationKey(e)) return
   // UI5 has no printable typeahead; do not let Radix's search buffer poison Space.
   if ((navigationKeys.includes(key) && modified(e)) || (key.length === 1 && key !== " ")
     || ((key === " " || key === "Enter") && !activationAllowed(e))) { e.stopPropagation(); return }
@@ -201,7 +221,7 @@ type MenuContentProps = React.ComponentProps<typeof MenuPrimitive.Content> & {
   /** Render in place instead of in a portal on document.body. */ portal?: boolean
   /** Don't move focus into the menu on open. UI5 normally focuses the first item for mouse too. */ preventInitialFocus?: boolean
 }
-function MenuContent({ className, side = "bottom", align = "start", sideOffset = 0, collisionPadding = 10, portal = true, preventInitialFocus = false, ref, onKeyDownCapture, onFocusOutside, onEscapeKeyDown, children, ...props }: MenuContentProps) {
+function MenuContent({ className, side = "bottom", align = "start", sideOffset = 0, collisionPadding = 10, portal = true, preventInitialFocus = false, ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: MenuContentProps) {
   const root = React.useContext(MenuContext)
   const { surface, setRef, hover } = useSurface(false, () => root?.setOpen(false))
   surface.escape = onEscapeKeyDown
@@ -211,7 +231,7 @@ function MenuContent({ className, side = "bottom", align = "start", sideOffset =
     <MenuPrimitive.Content ref={mergedRef} data-slot="menu-content" data-sap-ui-fastnavgroup="true" side={side} align={align} sideOffset={sideOffset} collisionPadding={collisionPadding}
       className={cn("fiori-menu z-50 max-h-(--radix-dropdown-menu-content-available-height)", className)}
       onKeyDownCapture={(e) => { onKeyDownCapture?.(e); surfaceKeyDown(e, surface) }}
-      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }} {...autoFocus} {...props} data-sap-ui-fastnavgroup-container="true">{children}</MenuPrimitive.Content>
+      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }} {...autoFocus} {...props} onKeyDown={onKeyDown} data-sap-ui-fastnavgroup-container="true" asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.Content>
   </GroupContext.Provider></HoverContext.Provider></SurfaceContext.Provider>
   return portal ? <MenuPrimitive.Portal>{content}</MenuPrimitive.Portal> : content
 }
@@ -331,7 +351,7 @@ function MenuSubTrigger({ className, icon, children, ref, checked: _checked, def
   </MenuPrimitive.SubTrigger>
 }
 
-function MenuSubContent({ className, sideOffset = 0, alignOffset = 4, collisionPadding = 10, ref, onKeyDownCapture, onFocusOutside, onEscapeKeyDown, children, ...props }: React.ComponentProps<typeof MenuPrimitive.SubContent>) {
+function MenuSubContent({ className, sideOffset = 0, alignOffset = 4, collisionPadding = 10, ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: React.ComponentProps<typeof MenuPrimitive.SubContent>) {
   const sub = React.useContext(MenuSubContext)
   const root = React.useContext(MenuContext)
   const close = (nativeTab = false) => {
@@ -365,7 +385,7 @@ function MenuSubContent({ className, sideOffset = 0, alignOffset = 4, collisionP
       onKeyDownCapture={(e) => { onKeyDownCapture?.(e); surfaceKeyDown(e, surface) }}
       {...entryFocus}
       onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }}
-      onEscapeKeyDown={(e) => { onEscapeKeyDown?.(e); if (!e.defaultPrevented) { e.preventDefault(); if (!modified(e)) close() } }}>{children}</MenuPrimitive.SubContent>
+      onEscapeKeyDown={(e) => { onEscapeKeyDown?.(e); if (!e.defaultPrevented) { e.preventDefault(); if (!modified(e)) close() } }} onKeyDown={onKeyDown} asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.SubContent>
   </GroupContext.Provider></HoverContext.Provider></SurfaceContext.Provider></MenuPrimitive.Portal>
 }
 

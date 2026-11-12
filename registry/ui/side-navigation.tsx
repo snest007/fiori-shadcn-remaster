@@ -371,7 +371,7 @@ function useOverflowKeyboard() {
       if (!menu || !entry) return
       const key = navigationKey(e)
       // NavigationMenuItem/ItemNavigation ignore F6 aliases; do not swallow their document bubble.
-      if (isF6NavigationKey(e)) { if (key !== "F6" && e.keyCode !== 117) e.preventDefault(); return }
+      if (isF6NavigationKey(e)) return
       if (key === "Escape") {
         e.stopImmediatePropagation()
         // OpenedPopupsRegistry.js closes the topmost popup even if its owning row has focus.
@@ -559,8 +559,8 @@ function OverflowItem({ ref, items, listRef }: {
               // Keys.js: modified navigation and unsupported activation keys are ignored.
               // Stop before Radix Trigger's raw key handlers while retaining browser defaults.
               const key = navigationKey(e)
-              // The native More opener ignores F6 aliases; suppress only Radix's raw Down opener.
-              if (isF6NavigationKey(e)) { if (key !== "F6" && e.keyCode !== 117) e.preventDefault(); return }
+              // The MenuTrigger host filters Radix's raw opener; retain the native event unchanged.
+              if (isF6NavigationKey(e)) return
               if ((navigationKeys.includes(key) && hasNavigationModifiers(e))
                 || (key === " " && !isNavigationSpace(e))
                 || (key === "Enter" && !isNavigationEnter(e))) e.stopPropagation()
@@ -569,6 +569,7 @@ function OverflowItem({ ref, items, listRef }: {
               // SideNavigationSelectableItemBase.js _onkeydown does not open More on Down.
               // Own activation so Radix's raw key match cannot open for unsupported modifiers.
               const key = navigationKey(e)
+              if (isF6NavigationKey(e)) return
               if (key === "ArrowDown" || key === " " || key === "ArrowLeft" || key === "ArrowRight") e.preventDefault()
               if (e.key === "Enter") {
                 if (isNavigationEnter(e)) changeOpen(true)

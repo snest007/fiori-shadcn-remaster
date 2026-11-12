@@ -15,13 +15,16 @@ type Harness = {
   unmount: () => void
   shadow: (html: string) => void
   ui5: (negative?: boolean) => void
-  surface: (name: string) => void
+  surface: (name: string, options?: { handlers?: boolean; cancel?: boolean; asChild?: boolean }) => void
   deep: () => HTMLElement
   groups: () => string[]
   ready: number
   focusCalls: string[]
   events: Snapshot[]
   helps: number
+  calls: string[]
+  refs: Record<string, HTMLElement | null>
+  scheduled: number
 }
 declare global { interface Window { f6Harness: Harness } }
 
@@ -75,14 +78,18 @@ test.beforeAll(async () => {
     import { Form, FormGroup, FormItem } from "@/components/ui/form";
     import { List, ListItemStandard } from "@/components/ui/list";
     import { Tree, TreeItem } from "@/components/ui/tree";
+    import { SideNavigation, SideNavigationItem } from "@/components/ui/side-navigation";
     const native = new NativeF6(); native.removeEventListeners();
     let stop; const cleanups = []; let reactRoot; let hooksRoot;
-    const h = window.f6Harness = { ready: 0, events: [], focusCalls: [], helps: 0 };
+    const h = window.f6Harness = { ready: 0, events: [], focusCalls: [], helps: 0, calls: [], refs: {}, scheduled: 0 };
+    let aliasEvent = false; const originalTimeout = window.setTimeout;
+    window.setTimeout = function(...args) { if(aliasEvent) h.scheduled++; return originalTimeout.apply(this,args); };
+    document.addEventListener("keydown",event=>{aliasEvent=event.key==="F6"||((event.ctrlKey||event.metaKey)&&event.altKey&&["ArrowDown","ArrowUp"].includes(event.key));},true);
     h.deep = () => { let a=document.activeElement; while(a?.shadowRoot?.activeElement) a=a.shadowRoot.activeElement; return a; };
     const originalFocus=HTMLElement.prototype.focus;
     HTMLElement.prototype.focus=function(...args){ h.focusCalls.push(this.id || this.getAttribute("data-slot") || this.tagName); return originalFocus.apply(this,args); };
     const nativeListener=async e=>{ await native._keydownHandler(e); record(e); };
-    const record=e=>{ if(!["Shift","Control","Meta","Alt"].includes(e.key)) h.events.push({active:h.deep()?.id, prevented:e.defaultPrevented, focusCalls:[...h.focusCalls]}); };
+    const record=e=>{ aliasEvent=false; if(!["Shift","Control","Meta","Alt"].includes(e.key)) h.events.push({active:h.deep()?.id, prevented:e.defaultPrevented, focusCalls:[...h.focusCalls]}); };
     h.mode=mode=>{
       stop?.(); document.removeEventListener("keydown",nativeListener); document.removeEventListener("keydown",record);
       if(mode==="ours") { stop=installF6Navigation(); document.addEventListener("keydown",record); }
@@ -110,9 +117,12 @@ test.beforeAll(async () => {
     };
     h.unmount=()=>{ flushSync(()=>hooksRoot.unmount()); hooksRoot=undefined; };
     const e=React.createElement;
-    h.surface=name=>{
+    h.surface=(name,options={})=>{
       reactRoot ||= createRoot(document.getElementById("f6-react"));
       let surface;
+      h.calls=[]; h.refs={}; h.scheduled=0;
+      const handler=label=>event=>{if(["Shift","Control","Meta","Alt"].includes(event.key))return;h.calls.push(label);if(options.cancel)event.preventDefault();};
+      const controlProps=label=>({id:label,ref:node=>h.refs[label]=node,...(options.handlers?{onKeyDown:handler(label)}:{})});
       if(name==="dialog") surface=e(Dialog,{open:true},e(DialogContent,{"data-sap-ui-fastnavgroup-container":"false"},e(DialogTitle,null,"F6 dialog"),
         e("section",{"data-sap-ui-fastnavgroup":"true"},e("button",{id:"d1"},"One")),e("section",{"data-sap-ui-fastnavgroup":"true"},e("button",{id:"d2"},"Two"))));
       if(name==="popover") surface=e(Popover,{open:true},e(PopoverAnchor,{asChild:true},e("button",{id:"anchor"},"Anchor")),e(PopoverContent,{"aria-label":"F6 popover","data-sap-ui-fastnavgroup-container":"false"},e("button",{id:"plain"},"Plain")));
@@ -129,6 +139,13 @@ test.beforeAll(async () => {
       if(name==="search") surface=e(Search,{id:"search-root"},e(SearchItem,{id:"s1",text:"One"}),e(SearchItem,{id:"s2",text:"Other"}));
       if(name==="list") surface=e(React.Fragment,null,e(List,{selectionMode:"single",accessibleRole:"listbox",defaultValue:["one"]},e(ListItemStandard,{id:"nav-first",value:"one"},"One"),e(ListItemStandard,{value:"two"},"Two")),e("section",{"data-sap-ui-fastnavgroup":"true"},e("button",{id:"tail"},"Tail")));
       if(name==="tree") surface=e(React.Fragment,null,e(Tree,{selectionMode:"single",defaultValue:["one"]},e(TreeItem,{id:"nav-first",value:"one",text:"One"}),e(TreeItem,{value:"two",text:"Two"})),e("section",{"data-sap-ui-fastnavgroup":"true"},e("button",{id:"tail"},"Tail")));
+      if(name==="leaf-select"||name==="leaf-open-select") surface=e(Select,{defaultValue:"one",...(name==="leaf-open-select"?{open:true}:{})},
+        e(SelectTrigger,controlProps("leaf-trigger"),e(SelectValue)),e(SelectContent,controlProps("leaf-content"),e(SelectItem,{id:"leaf-first",value:"one"},"One"),e(SelectItem,{id:"leaf-second",value:"two"},"Two")));
+      if(name==="leaf-menu"||name==="leaf-open-menu"||name==="leaf-open-submenu") surface=e(Menu,{...(name!=="leaf-menu"?{open:true}:{})},
+        e(MenuTrigger,{...controlProps("leaf-trigger"),asChild:options.asChild},options.asChild?e("button",{id:"leaf-child",ref:node=>h.refs.child=node,onKeyDown:handler("child")},"Open menu"):"Open menu"),
+        e(MenuContent,{...controlProps("leaf-content"),asChild:options.asChild},options.asChild?e("div",{id:"leaf-content-child",ref:node=>h.refs.contentChild=node,onKeyDown:handler("content-child")},e(MenuItem,{id:"leaf-first"},"One"),e(MenuItem,{id:"leaf-second"},"Two")):
+          [e(MenuItem,{id:"leaf-first",key:"one"},"One"),e(MenuItem,{id:"leaf-second",key:"two"},"Two"),name==="leaf-open-submenu"?e(MenuSub,{open:true,key:"sub"},e(MenuSubTrigger,{id:"leaf-sub-trigger"},"Sub"),e(MenuSubContent,controlProps("leaf-sub-content"),e(MenuItem,{id:"leaf-sub-first"},"Nested"))):null]));
+      if(name==="leaf-navigation") surface=e(SideNavigation,{collapsed:true,style:{height:"140px"}},...Array.from({length:12},(_,i)=>e(SideNavigationItem,{key:i,value:String(i),text:"Item "+i})));
       if(name.startsWith("closed-")||name==="tokens"||name==="search") {
         surface=e(React.Fragment,null,e("section",{"data-sap-ui-fastnavgroup":"true"},surface),e("section",{"data-sap-ui-fastnavgroup":"true"},e("button",{id:"tail"},"Tail")));
       }
@@ -166,10 +183,10 @@ async function focus(page: Page, id: string) {
     h.focusCalls = []
   }, id)
 }
-async function key(page: Page, name: string | KeyInit, active: string, prevented = true, focusCalls?: string[]): Promise<Snapshot> {
+async function key(page: Page, name: string | KeyInit, active: string, prevented = true, focusCalls?: string[], target?: string): Promise<Snapshot> {
   await page.evaluate(() => { window.f6Harness.events = []; window.f6Harness.focusCalls = [] })
   if (typeof name === "string") await page.keyboard.press(name)
-  else await page.evaluate((init) => window.f6Harness.deep().dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, composed: true, cancelable: true, ...init })), name)
+  else await page.evaluate(({ init, target }) => (target ? document.getElementById(target)! : window.f6Harness.deep()).dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, composed: true, cancelable: true, ...init })), { init: name, target })
   await expect.poll(() => page.evaluate(() => window.f6Harness.events.length)).toBe(1)
   await expect.poll(() => page.evaluate(() => window.f6Harness.deep()?.id)).toBe(active)
   expect(await page.evaluate(() => window.f6Harness.events[0].prevented)).toBe(prevented)
@@ -489,6 +506,108 @@ test("f6: open Select and Menu suppress raw primitive arrow actions while preser
   await key(page, "Control+Alt+ArrowDown", "menu-sub-first")
   await key(page, "Meta+Alt+ArrowUp", "menu-sub-first")
   await expect(page.locator("[data-slot=menu-sub-content]")).toBeVisible()
+})
+
+const leafAliases = ["F6", "Shift+F6", "Control+Alt+ArrowDown", "Meta+Alt+ArrowDown", "Control+Alt+ArrowUp", "Meta+Alt+ArrowUp"]
+for (const widget of ["select", "menu", "open-select", "open-menu", "open-submenu"]) test(`f6: ${widget} keeps native alias events uncancelled without an installer or groups`, async ({ page }) => {
+  for (const mode of ["off", "empty"] as const) {
+    await mount(page, "")
+    await page.evaluate(({ widget, mode }) => {
+      const h = window.f6Harness
+      h.surface(`leaf-${widget}`)
+      if (mode === "empty") {
+        document.querySelectorAll("[data-sap-ui-fastnavgroup]").forEach((node) => node.removeAttribute("data-sap-ui-fastnavgroup"))
+        h.mode("ours")
+      }
+    }, { widget, mode })
+    const id = widget === "open-submenu" ? "leaf-sub-first" : widget.startsWith("open-") ? "leaf-second" : "leaf-trigger"
+    await expect(page.locator(`#${id}`)).toBeVisible()
+    const value = await page.locator("#leaf-trigger").textContent()
+    for (const alias of leafAliases) {
+      await focus(page, id)
+      await page.evaluate(() => { window.f6Harness.scheduled = 0 })
+      await key(page, alias, id, false, [])
+      expect(await page.evaluate(() => window.f6Harness.scheduled)).toBe(0)
+      await expect(page.locator("#leaf-trigger")).toHaveText(value!)
+      await expect(page.locator("#leaf-trigger")).toHaveAttribute("aria-expanded", widget.startsWith("open-") ? "true" : "false")
+    }
+    // Direct surface focus exercises Menu's separate raw arrow callback as well as Select's.
+    if (widget.startsWith("open-")) {
+      const surface = widget === "open-submenu" ? "leaf-sub-content" : "leaf-content"
+      // Menu's roving entry hook redirects actual surface focus into an item; dispatch on
+      // the surface to exercise that raw callback while keeping the real focused item.
+      for (const arrow of ["ArrowDown", "ArrowUp"]) for (const modifier of ["ctrlKey", "metaKey"]) {
+        await key(page, { key: arrow, altKey: true, [modifier]: true }, id, false, [], surface)
+      }
+    }
+  }
+})
+
+for (const widget of ["select", "menu", "open-select", "open-menu"]) test(`f6: ${widget} forwards caller cancellation and ref without cancelling on its own`, async ({ page }) => {
+  for (const cancel of [false, true]) {
+    await mount(page, "")
+    await page.evaluate(({ widget, cancel }) => window.f6Harness.surface(`leaf-${widget}`, { handlers: true, cancel }), { widget, cancel })
+    const id = widget.startsWith("open-") ? "leaf-second" : "leaf-trigger"
+    const handler = widget.startsWith("open-") ? "leaf-content" : "leaf-trigger"
+    await expect(page.locator(`#${id}`)).toBeVisible()
+    expect(await page.evaluate((handler) => window.f6Harness.refs[handler] === document.getElementById(handler), handler)).toBe(true)
+    await focus(page, id)
+    for (const alias of leafAliases) {
+      await page.evaluate(() => { window.f6Harness.calls = [] })
+      await key(page, alias, id, cancel, [])
+      expect(await page.evaluate(() => window.f6Harness.calls)).toEqual([handler])
+    }
+  }
+})
+
+test("f6: Menu public asChild retains child/caller handler order, composed refs and ordinary arrows", async ({ page }) => {
+  await mount(page, "")
+  await page.evaluate(() => window.f6Harness.surface("leaf-menu", { handlers: true, asChild: true }))
+  await expect(page.locator("#leaf-child")).toBeVisible()
+  expect(await page.evaluate(() => window.f6Harness.refs.child === window.f6Harness.refs["leaf-trigger"] && window.f6Harness.refs.child === document.getElementById("leaf-child"))).toBe(true)
+  await focus(page, "leaf-child")
+  await key(page, "Control+Alt+ArrowDown", "leaf-child", false, [])
+  expect(await page.evaluate(() => window.f6Harness.calls)).toEqual(["child", "leaf-trigger"])
+  await page.locator("#leaf-child").click()
+  await expect(page.locator("#leaf-first")).toBeFocused()
+  expect(await page.evaluate(() => window.f6Harness.refs.contentChild === window.f6Harness.refs["leaf-content"] && window.f6Harness.refs.contentChild === document.getElementById("leaf-content-child"))).toBe(true)
+  await page.evaluate(() => { window.f6Harness.calls = [] })
+  await key(page, "Meta+Alt+ArrowUp", "leaf-first", false, [])
+  expect(await page.evaluate(() => window.f6Harness.calls)).toEqual(["content-child", "leaf-content"])
+  await page.keyboard.press("ArrowDown")
+  await expect(page.locator("#leaf-second")).toBeFocused()
+})
+
+test("f6: SideNavigation More and overflow keep uncancelled aliases without an installer or groups", async ({ page }) => {
+  for (const mode of ["off", "empty"] as const) {
+    await mount(page, "")
+    await page.evaluate((mode) => {
+      window.f6Harness.surface("leaf-navigation")
+      if (mode === "empty") {
+        document.querySelectorAll("[data-sap-ui-fastnavgroup]").forEach((node) => node.removeAttribute("data-sap-ui-fastnavgroup"))
+        window.f6Harness.mode("ours")
+      }
+    }, mode)
+    const more = page.getByRole("menuitem", { name: "More Items", exact: true })
+    await expect(more).toBeVisible()
+    const id = await more.evaluate((node) => { node.id = "leaf-more"; return node.id })
+    await more.focus()
+    for (const alias of leafAliases) {
+      await key(page, alias, id, false, [])
+      await expect(page.locator("[data-sn-overflow-menu]")).toHaveCount(0)
+    }
+    await more.click()
+    const menu = page.locator("[data-sn-overflow-menu]")
+    await expect(menu).toBeVisible()
+    if (mode === "empty") await menu.evaluate((node) => node.removeAttribute("data-sap-ui-fastnavgroup"))
+    const item = menu.getByRole("menuitem").first()
+    const itemId = await item.evaluate((node) => { node.id = "leaf-overflow-first"; return node.id })
+    await item.focus()
+    for (const alias of leafAliases) {
+      await key(page, alias, itemId, false, [])
+      await expect(menu).toBeVisible()
+    }
+  }
 })
 
 test("f6: last token aliases do not schedule an input focus or open value help", async ({ page }) => {
