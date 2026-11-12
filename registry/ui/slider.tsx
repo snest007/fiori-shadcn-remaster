@@ -230,7 +230,10 @@ function Slider({
           e.preventDefault()
           atStart.current = valueRef.current
           if (atFocus.current === undefined) atFocus.current = valueRef.current
-          const onHandle = handleRef.current?.contains(e.target as Node)
+          // Slider.js _isHandlePressed: a press anywhere within the handle's horizontal span (above/below it too)
+          // keeps the value; only the column decides, not which element was hit.
+          const handleRect = handleRef.current?.getBoundingClientRect()
+          const onHandle = !!handleRect && e.clientX >= handleRect.left && e.clientX <= handleRect.right
           if (!onHandle) update(valueAt(e, scaleRef.current, min, max, step))
           handleRef.current?.focus()
           setActive(true)

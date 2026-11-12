@@ -87,3 +87,16 @@ test("range-slider: range then handles in tab order; keys move the range or one 
   await expect(v).toHaveText("0 – 1")
   await expect(start).toBeFocused()
 })
+
+test("slider: a press in the handle's column (above/below it) keeps the value (Slider.js _isHandlePressed)", async ({ page }) => {
+  const handle = page.locator("#slider-demo [role=slider]")
+  const root = page.locator("#slider-demo .fiori-slider__root")
+  await root.scrollIntoViewIfNeeded()
+  const before = await page.locator("#slider-demo-value").textContent()
+  const h = (await handle.boundingBox())!
+  const r = (await root.boundingBox())!
+  // Same x as the handle's right edge zone, but on the root's top edge — not on the handle element itself.
+  await page.mouse.click(h.x + h.width - 1, r.y + 1)
+  await expect(handle).toBeFocused()
+  await expect(page.locator("#slider-demo-value")).toHaveText(before!)
+})
