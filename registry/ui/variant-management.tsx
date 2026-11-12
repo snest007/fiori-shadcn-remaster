@@ -204,7 +204,11 @@ function useVariantSurfaceGeometry(ref: React.RefObject<HTMLDivElement | null>, 
     const bounds = getBounds()
     if (!bounds) return
     event.preventDefault(); event.stopPropagation()
-    apply(bounds, direction[0] * bounds.rem, direction[1] * bounds.rem, event.shiftKey)
+    // OpenUI5 Dialog.js _handleKeyboardDragResize uses physical width deltas and
+    // retains left in RTL, unlike its pointer resize handler. PopoverResize.js
+    // _keyboardResize instead delegates to its direction-aware pointer geometry.
+    const keyboardBounds = draggable && event.shiftKey ? { ...bounds, rtl: false } : bounds
+    apply(keyboardBounds, direction[0] * bounds.rem, direction[1] * bounds.rem, event.shiftKey)
   }
   return { style: geometry, manual: geometry ? "" : undefined, active,
     drag: (event: React.PointerEvent<HTMLElement>) => pointer(event, false),

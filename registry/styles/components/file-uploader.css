@@ -36,7 +36,9 @@
 .fiori-file-uploader > :not(.fiori-file-uploader__native) {
   position: relative;
 }
-.fiori-file-uploader__display {
+.fiori-field[data-icons].fiori-file-uploader .fiori-file-uploader__display {
+  /* FileUploader.css.js display input keeps full inner padding, including in RTL. */
+  padding: var(--fiori-input-inner-padding);
   cursor: pointer;
 }
 .fiori-file-uploader__icon {
