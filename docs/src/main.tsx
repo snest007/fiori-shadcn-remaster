@@ -252,7 +252,9 @@ function Docs() {
   // NavigationLayout.css's ".fiori-nl[data-side-collapsed] .fiori-nl__aside" also matches
   // nested light-DOM demos (UI5 isolates each layout in shadow DOM). Reset only the preview
   // layout's own expanded aside; the collapsed docs and preview transforms remain unchanged.
-  return <div data-docs-shell="" className="relative h-dvh">
+  // Contain NavigationLayout.css's header/aside stacking in this shell so body-hosted surfaces
+  // keep their own paint order above it.
+  return <div data-docs-shell="" className="relative isolate h-dvh">
     <style>{`[data-docs-shell] main .fiori-nl:not([data-side-collapsed]) > .fiori-nl__root > .fiori-nl__section > .fiori-nl__aside { transform: none; }`}</style>
     <NavigationLayout mode={mode} onModeChange={setMode} header={<DocsShell mode={mode} onModeChange={setMode} />} sideContent={
     <SideNavigation id="docs-navigation" accessibleName="Component library navigation" value={route} texts={{ primaryListLabel: "Components by category" }}>
