@@ -154,6 +154,7 @@ function MultiInput({
   placeholder,
   id,
   onKeyDown,
+  onMouseDown,
   onClick,
   onFocus,
   onBlur,
@@ -454,6 +455,12 @@ function MultiInput({
               setValue(next)
               if (!phone) setOpen(!!t)
             }}
+            onMouseDown={(e) => {
+              onMouseDown?.(e)
+              // Input.js/_click blurs the phone field before opening. Keep early
+              // pointer focus from expanding tokens and moving this click target.
+              if (phone && e.button === 0 && !disabled && !readOnly) e.preventDefault()
+            }}
             onClick={(e) => { onClick?.(e); if (!e.defaultPrevented && phone && !disabled && !readOnly) setOpen(true) }}
             onKeyDown={handleKeyDown}
             onFocus={(e) => {
@@ -549,25 +556,30 @@ function MultiInput({
             aria-label={suggestionsLabel}
             className="overflow-y-auto"
             onMouseDown={(e) => e.preventDefault()}
+            // Input.js/onAfterRendering disables its List's ItemNavigation,
+            // including MultiInput's phone token view. Rows do not receive arrows.
             onKeyDown={phone && showPhoneTokens && tokenCount > 0 ? (e) => {
-              // MultiInputTemplate.js uses ListItemStandard for token rows, which
-              // retain List's ItemNavigation. The SuggestionItem phone projection
-              // leaves arrows alone (SuggestionItem.js/_effectiveTabIndex -1).
-              if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || isF6NavigationKey(e)) return
-              const options = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="option"]')]
-              const index = options.indexOf(document.activeElement as HTMLElement)
-              const next = e.key === "ArrowDown" ? index + 1 : e.key === "ArrowUp" ? index - 1 : e.key === "Home" ? 0 : e.key === "End" ? options.length - 1 : e.key === "PageDown" ? index + 10 : e.key === "PageUp" ? index - 10 : -1
-              if (index >= 0 && ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(e.key)) {
-                e.preventDefault()
-                const target = options[Math.max(0, Math.min(next, options.length - 1))]
-                target?.focus(); target?.scrollIntoView({ block: "nearest" })
-              }
+              // List.js/_onkeydown + _navigateToAdjacentItem still move between
+              // internal Delete buttons independently of row ItemNavigation.
+              if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.key !== "ArrowDown" && e.key !== "ArrowUp")) return
+              const row = (e.target as HTMLElement).closest<HTMLElement>(".fiori-multi-input-phone__token")
+              if (!row || document.activeElement === row) return
+              const rows = [...e.currentTarget.querySelectorAll<HTMLElement>(".fiori-multi-input-phone__token")]
+              const next = rows[rows.indexOf(row) + (e.key === "ArrowDown" ? 1 : -1)]?.querySelector<HTMLButtonElement>("button")
+              if (next) { e.preventDefault(); next.focus(); next.scrollIntoView({ block: "nearest" }) }
             } : undefined}
           >
-            {phone && showPhoneTokens && tokenCount > 0 ? tokenItems.map((token, index) => <div key={index} role="option" aria-selected={false} tabIndex={index === 0 ? 0 : -1} className="fiori-list-item fiori-multi-input-phone__token"
-              onKeyDown={(e) => { if (e.key === "Delete") { e.preventDefault(); onTokenDelete?.([token.value ?? token.text ?? ""]) } }}>
+            {phone && showPhoneTokens && tokenCount > 0 ? <>
+              {/* ListTemplate.js keeps before/after tab stops even when Input.js
+                  disables ItemNavigation and token rows have no roving tabindex. */}
+              <div data-slot="multi-input-token-before" role="none" tabIndex={0} className="fixed" />
+              {tokenItems.map((token, index) => <div key={index} role="option" className="fiori-list-item fiori-multi-input-phone__token"
+              // ListItem.js/_onkeyup fires deletion when Delete is released.
+              onKeyUp={(e) => { if (e.key === "Delete" && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) onTokenDelete?.([token.value ?? token.text ?? ""]) }}>
               <span>{token.text}</span><Button variant="transparent" aria-label={tokenDeleteLabel} onClick={() => onTokenDelete?.([token.value ?? token.text ?? ""])}><Icon icon={decline} /></Button>
-            </div>) : visible.map((item, i) => (
+              </div>)}
+              <div data-slot="multi-input-token-after" role="none" tabIndex={0} className="fixed" />
+            </> : visible.map((item, i) => (
               <div
                 key={`${item.text}-${i}`}
                 id={optionId(i)}
@@ -578,7 +590,13 @@ function MultiInput({
                 data-highlighted={i === active ? "" : undefined}
                 className="fiori-list-item fiori-suggestions__item"
                 onClick={() => choose(item)}
-                onKeyDown={phone ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); choose(item) } } : undefined}
+                // ListItemBase.js activates Enter on keydown, Space on keyup.
+                onKeyDown={phone ? (e) => {
+                  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+                  if (e.key === "Enter" || e.key === " ") e.preventDefault()
+                  if (e.key === "Enter") choose(item)
+                } : undefined}
+                onKeyUp={phone ? (e) => { if (e.key === " " && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) choose(item) } : undefined}
               >
                 <span className="fiori-suggestions__text">{highlightAll(item.text, typed)}</span>
                 {item.additionalText && <span className="fiori-suggestions__additional">{item.additionalText}</span>}

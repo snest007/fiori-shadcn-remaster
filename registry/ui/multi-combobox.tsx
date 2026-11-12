@@ -680,7 +680,9 @@ function MultiComboBox({
         <Input ref={phoneInputRef} aria-label={dialogTitle} placeholder={placeholder} value={phoneInputValue} valueState={valueState} valueStateMessage={null}
           onChange={(e) => { const text = e.target.value; setPhoneInputValue(text); setValue(text); setTyped(text); setFiltering(true); setFilterSelected(false); setInvalid(!items.some((i) => filters[filter](text, i.text))) }}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            // MultiComboBox.js/_onMobileInputKeydown handles plain Enter only.
+            // The embedded phone Input does not forward arrows to this List.
+            if (e.key === "Enter" && !e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
               const matching = items.find((i) => i.text === phoneInputValue)
               if (matching) {
                 // MultiComboBox.js/_onMobileInputKeydown fires selection-change
@@ -691,7 +693,7 @@ function MultiComboBox({
                 setValue("")
                 setOpen(false)
               }
-            } else if (e.key === "ArrowDown" && !e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey) { e.preventDefault(); focusOption(0) }
+            }
           }} />
         <ToggleButton variant="transparent" pressed={filterSelected} disabled={!selectedItems.length} aria-label={showSelectedLabel}
           onPressedChange={(pressed) => { setFilterSelected(pressed); setFiltering(false) }}><Icon icon={multiselectAll} /></ToggleButton>

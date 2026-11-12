@@ -20,6 +20,7 @@ import set, { PHONE_OPTIONS, PHONE_LONG_OPTIONS } from "./popups"
 
 export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
   const options = longList ? PHONE_LONG_OPTIONS : PHONE_OPTIONS
+  const selected = Array.isArray(tokens) ? tokens : tokens ? ["Germany"] : []
   const frame = h("div") as Ui5FixtureElement
   frame.id = `${kind}-phone-demo`
   if (new URLSearchParams(location.search).has("nested-rtl")) frame.dir = "rtl"
@@ -28,8 +29,8 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
   const field = kind === "responsive-popover" ? h("ui5-responsive-popover", { "header-text": "Country" }, h("p", {}, "Choose a country."), h("ui5-button", {}, "Done"))
     : kind === "select" ? h("ui5-select", attrs, ...options.map((text) => h("ui5-option", { selected: text === "Germany" }, text)))
     : kind === "combobox" ? h("ui5-combobox", attrs, ...options.map((text) => h("ui5-cb-item", { text })))
-    : kind === "multi-combobox" ? h("ui5-multi-combobox", { ...attrs, "show-select-all": true, "no-validation": new URLSearchParams(location.search).has("external-open") }, ...options.map((text) => h("ui5-mcb-item", { text, selected: tokens && text === "Germany" })))
-    : h("ui5-multi-input", { ...attrs, "show-suggestions": true }, ...(tokens ? [h("ui5-token", { slot: "tokens", text: "Germany" })] : []), ...options.map((text) => h("ui5-suggestion-item", { text })))
+    : kind === "multi-combobox" ? h("ui5-multi-combobox", { ...attrs, "show-select-all": true, "no-validation": new URLSearchParams(location.search).has("external-open") }, ...options.map((text) => h("ui5-mcb-item", { text, selected: selected.includes(text) })))
+    : h("ui5-multi-input", { ...attrs, "show-suggestions": true }, ...selected.map((text) => h("ui5-token", { slot: "tokens", text })), ...options.map((text) => h("ui5-suggestion-item", { text })))
   field.id = `${kind}-phone-field`
   field.style.width = "13.125rem"
   if (new URLSearchParams(location.search).has("external-open")) {
