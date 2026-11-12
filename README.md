@@ -70,6 +70,7 @@ Fiori behaviour this library reproduces (beyond appearance):
 - **Value states** (negative, critical, positive, information): the field styling, and a message that appears
   while the field is focused, is linked with `aria-describedby`, and defaults to SAP's standard text.
 - **Focus**: the inner focus ring appears only for keyboard focus, never on mouse click.
+- **F6 navigation**: install `@fiori/f6-navigation` and call `useF6Navigation()` or `installF6Navigation()` to enable page-group navigation. The five main floorplan blocks opt in; Popup scopes keep navigation inside the open surface.
 - **Chinese text**: the 72 font has no CJK glyphs, so the font stack falls back to PingFang SC / Microsoft YaHei / Noto Sans CJK.
 
 ## Develop
@@ -106,7 +107,7 @@ Collected from all phases; none blocks using the library.
 - **Components:** ColorPalette / ColorPicker, MediaGallery, Adapt Filters dialog and variant management (planned as a full SAPUI5 port: `docs/plan`, wave F).
 - **Overflow handling:** Tabs / Toolbar / Breadcrumbs "More" overflow, AvatarGroup "+N", SideNavigation "More" item when collapsed and too tall.
 - **Features:** draggable/resizable Dialog, checkable menu items, ComboBox item groups, Table drag & drop and multi-column sorting, vertical Slider, ObjectPage subsection menus / lazy blocks, notification "growing".
-- **Platform:** phone-specific layouts (full-screen dialogs for pickers and value help), F6 fast navigation groups, RTL is implemented but not tested.
+- **Platform:** phone-specific layouts (full-screen dialogs for pickers and value help), RTL is implemented but not tested.
 - **Testing:** hover / active / focus states are verified by screenshot only, not pixel-diffed.
 
 ## License
