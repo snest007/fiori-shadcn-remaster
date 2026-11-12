@@ -48,7 +48,7 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 ## Wave C — new components
 
 - [x] [C1 ColorPalette + ColorPalettePopover](tasks/C1-color-palette.md) — M
-- [ ] [C2 ColorPicker](tasks/C2-color-picker.md) — M (after C1: shares the color utilities)
+- [x] [C2 ColorPicker](tasks/C2-color-picker.md) — M (after C1: shares the color utilities)
 - [x] [C3 MediaGallery](tasks/C3-media-gallery.md) — M
 
 ## Wave D — platform behaviour (after waves A–C are merged; touches many components)

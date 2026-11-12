@@ -1,6 +1,8 @@
 import * as React from "react"
 
 import { Button } from "@/components/ui/button"
+import { ColorPicker, ColorPickerStateProvider, type ColorPickerProps } from "@/components/ui/color-picker"
+import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle, type DialogContentProps } from "@/components/ui/dialog"
 import { updateRecentColors } from "@/lib/fiori-color"
 import { cn } from "@/lib/utils"
 
@@ -16,7 +18,8 @@ function usePaletteState() {
   const declarations = React.useRef<Map<string, boolean> | null>(null)
   const reopenTarget = React.useRef<Selection>(null)
   const focusRecent = React.useRef(false)
-  return { recent, setRecent, selection, setSelection, mainIndex, setMainIndex, recentIndex, setRecentIndex, declarations, reopenTarget, focusRecent }
+  const [pickerValue, setPickerValue] = React.useState("rgba(255,255,255,1)")
+  return { recent, setRecent, selection, setSelection, mainIndex, setMainIndex, recentIndex, setRecentIndex, declarations, reopenTarget, focusRecent, pickerValue, setPickerValue }
 }
 
 const StateContext = React.createContext<PaletteState | null>(null)
@@ -24,7 +27,8 @@ const StateContext = React.createContext<PaletteState | null>(null)
 /** Keeps local palette history and item identity alive when a popover's surface unmounts. */
 function ColorPaletteStateProvider({ children }: { children: React.ReactNode }) {
   const state = usePaletteState()
-  return <StateContext.Provider value={state}>{children}</StateContext.Provider>
+  // ColorPalettePopoverTemplate.js and ColorPaletteMoreColorsTemplate.js retain the palette and picker across both popup lifetimes.
+  return <StateContext.Provider value={state}><ColorPickerStateProvider>{children}</ColorPickerStateProvider></StateContext.Provider>
 }
 
 type ColorPaletteItemProps = Omit<React.ComponentProps<"div">, "children"> & {
@@ -99,9 +103,17 @@ type ColorPaletteProps = React.ComponentProps<"div"> & {
   showDefaultColor?: boolean
   defaultColor?: string
   showRecentColors?: boolean
-  /** Reserved for C2. No More Colors button or dialog is rendered yet. */
+  /** Opens the full picker in the shared Fiori Dialog. */
   showMoreColors?: boolean
   defaultColorText?: string
+  moreColorsText?: string
+  moreColorsDialogTitle?: string
+  moreColorsOkText?: string
+  moreColorsCancelText?: string
+  moreColorsOpen?: boolean
+  onMoreColorsOpenChange?: (open: boolean) => void
+  moreColorsDialogProps?: DialogContentProps
+  colorPickerProps?: Omit<ColorPickerProps, "value" | "defaultValue" | "onValueChange">
   containerLabel?: string
   colorLabel?: string
   accessibleName?: string
@@ -161,11 +173,14 @@ function referencedName(root: HTMLDivElement, reference: string) {
 }
 
 function ColorPalette({ children, className, showDefaultColor = false, defaultColor = "", showRecentColors = false,
-  showMoreColors: _showMoreColors, defaultColorText = "Default Color", containerLabel = "Color Palette - Predefined Colors",
+  showMoreColors = false, moreColorsText = "More Colors...", moreColorsDialogTitle = "Change Color", moreColorsOkText = "OK", moreColorsCancelText = "Cancel",
+  moreColorsOpen, onMoreColorsOpenChange, moreColorsDialogProps, colorPickerProps, defaultColorText = "Default Color", containerLabel = "Color Palette - Predefined Colors",
   colorLabel = "Color", accessibleName, accessibleNameRef, onItemClick, popupMode = false, ref, ...props }: ColorPaletteProps) {
   const local = usePaletteState()
   const shared = React.useContext(StateContext)
   const state = shared ?? local
+  // The popover's shared provider survives live/hidden palette replacement; inline palettes retain their own picker state.
+  const PickerStateProvider = shared ? React.Fragment : ColorPickerStateProvider
   const rootRef = React.useRef<HTMLDivElement | null>(null)
   const [name, setName] = React.useState(accessibleNameRef ? "" : accessibleName || "")
   React.useLayoutEffect(() => {
@@ -176,6 +191,12 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
     if (next !== name) setName(next)
   })
   const defaultRef = React.useRef<HTMLButtonElement | null>(null)
+  const moreRef = React.useRef<HTMLButtonElement | null>(null)
+  const pickerRef = React.useRef<HTMLDivElement | null>(null)
+  const [localDialogOpen, setLocalDialogOpen] = React.useState(false)
+  const dialogOpen = moreColorsOpen ?? localDialogOpen
+  const applied = React.useRef(false)
+  const changeDialogOpen = (open: boolean) => { if (moreColorsOpen === undefined) setLocalDialogOpen(open); onMoreColorsOpenChange?.(open) }
   const mainRefs = React.useRef<(HTMLDivElement | null)[]>([])
   const recentRefs = React.useRef<(HTMLDivElement | null)[]>([])
   const items = itemChildren(children)
@@ -226,6 +247,7 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
     defaultRef.current.focus()
     return true
   }
+  const focusMore = () => { if (!showMoreColors || !moreRef.current) return false; moreRef.current.focus(); return true }
   const firstMain = () => focus("main", 0)
   const lastMain = () => focus("main", displayed.length - 1)
   const lastFull = () => focus("main", Math.floor(displayed.length / 5) * 5 - 1)
@@ -277,14 +299,14 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
     // ColorPalette.js _onColorContainerKeyDown / _onRecentColorsContainerKeyDown fallback order.
     let handled = false
     if (area === "main") {
-      if (previousKey && index === 0) handled = firstAvailable(focusDefault, lastRecent, lastFull, lastMain)
-      else if ((key === "ArrowRight" && index === count - 1) || (key === "ArrowDown" && (index === Math.floor(count / 5) * 5 - 1 || (count <= 5 && index === count - 1)))) handled = firstAvailable(firstRecent, focusDefault, firstMain)
-      else if (key === "Home" && index % 5 === 0) handled = firstAvailable(focusDefault, firstMain)
-      else if (key === "End" && ((index + 1) % 5 === 0 || index === count - 1)) handled = firstAvailable(focusDefault, lastMain)
+      if (previousKey && index === 0) handled = firstAvailable(focusDefault, lastRecent, focusMore, lastFull, lastMain)
+      else if ((key === "ArrowRight" && index === count - 1) || (key === "ArrowDown" && (index === Math.floor(count / 5) * 5 - 1 || (count <= 5 && index === count - 1)))) handled = firstAvailable(focusMore, firstRecent, focusDefault, firstMain)
+      else if (key === "Home" && index % 5 === 0) handled = firstAvailable(focusDefault, focusMore, firstMain)
+      else if (key === "End" && ((index + 1) % 5 === 0 || index === count - 1)) handled = firstAvailable(focusMore, focusDefault, lastMain)
       else if (key === "End" && count % 5 && index >= count - count % 5) handled = lastMain()
     } else {
-      if (nextKey && index === count - 1) handled = firstAvailable(focusDefault, firstMain)
-      else if (previousKey && index === 0) handled = firstAvailable(lastFull, lastMain, focusDefault)
+      if (nextKey && index === count - 1) handled = firstAvailable(focusDefault, focusMore, firstMain)
+      else if (previousKey && index === 0) handled = firstAvailable(focusMore, lastFull, lastMain, focusDefault)
       else if (key === "End") handled = lastRecent()
     }
     if (handled) { event.preventDefault(); event.stopPropagation(); return }
@@ -317,9 +339,9 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
               if ((popupMode && key === "Tab") || key === "Enter") { event.preventDefault(); chooseDefault() }
               if (key === " " || key === "Spacebar") event.preventDefault()
               if (key === "ArrowRight" || key === "ArrowDown") { event.preventDefault(); event.stopPropagation(); firstMain() }
-              else if (key === "ArrowLeft") { event.preventDefault(); event.stopPropagation(); firstAvailable(lastRecent, lastMain) }
-              else if (key === "ArrowUp") { event.preventDefault(); event.stopPropagation(); firstAvailable(lastRecent, lastFull, lastMain) }
-              else if (key === "End") { event.preventDefault(); event.stopPropagation(); if (popupMode) lastMain() }
+              else if (key === "ArrowLeft") { event.preventDefault(); event.stopPropagation(); firstAvailable(lastRecent, focusMore, lastMain) }
+              else if (key === "ArrowUp") { event.preventDefault(); event.stopPropagation(); firstAvailable(lastRecent, focusMore, lastFull, lastMain) }
+              else if (key === "End") { event.preventDefault(); event.stopPropagation(); if (popupMode) firstAvailable(focusMore, lastMain) }
             }}
             onKeyUp={(event) => { if (isPlain(event) && (event.key === " " || event.key === "Spacebar")) { event.preventDefault(); chooseDefault() } }}>
             {defaultColorText}
@@ -337,6 +359,25 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
               onKeyUp={(event) => { item.props.onKeyUp?.(event); if (!event.isPropagationStopped()) handlers.onKeyUp(event) }} />
           })}
         </div>
+        {showMoreColors && <div className="fiori-color-palette__more-wrapper"><div className="fiori-color-palette__separator" />
+          <Button ref={moreRef} variant="transparent" className="fiori-color-palette__more w-full h-(--fiori-color-palette-button-height) border-0 rounded-none p-[.0625rem]" onClick={() => {
+            // ColorPalette.js _openMoreColorsDialog uses the runtime selected-item hint, not selected declarations.
+            const hint = state.reopenTarget.current
+            const color = hint?.area === "main" ? items.find((item) => String(item.key) === hint.key)?.props.value : hint ? state.recent[Number(hint.key)] : undefined
+            if (color) state.setPickerValue(color)
+            applied.current = false; changeDialogOpen(true)
+          }} onKeyDown={(event) => {
+            if (!isPlain(event)) return
+            const key = event.key
+            if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(key)) return
+            event.preventDefault(); event.stopPropagation()
+            // ColorPalette.js _onMoreColorsKeyDown: Home/End only navigate in popup mode.
+            if (key === "ArrowLeft") lastMain()
+            else if (key === "ArrowUp") firstAvailable(lastFull, lastMain)
+            else if (key === "ArrowRight" || key === "ArrowDown") firstAvailable(firstRecent, focusDefault, firstMain)
+            else if (key === "Home" && popupMode) firstAvailable(focusDefault, firstMain)
+          }}>{moreColorsText}</Button>
+        </div>}
         {showRecentColors && <div className="fiori-color-palette__recent-wrapper">
           <div className="fiori-color-palette__separator" />
           <div className="fiori-color-palette__recent">
@@ -346,6 +387,38 @@ function ColorPalette({ children, className, showDefaultColor = false, defaultCo
           </div>
         </div>}
       </div>
+      {showMoreColors && <PickerStateProvider><Dialog open={dialogOpen} modal={moreColorsDialogProps?.portal !== false} onOpenChange={changeDialogOpen}>
+        <DialogContent {...moreColorsDialogProps} data-slot="color-palette-dialog" className={cn("fiori-color-palette__dialog", moreColorsDialogProps?.className)}
+          onOpenAutoFocus={(event) => {
+            moreColorsDialogProps?.onOpenAutoFocus?.(event)
+            if (event.defaultPrevented) return
+            // ColorPalette.js _onColorPickerDialogOpen delegates through ColorPicker.js getFocusDomRef to Hue.
+            // SliderHandle.js getFocusDomRef returns its host; tabindex=-1 still allows programmatic focus.
+            event.preventDefault(); pickerRef.current?.querySelector<HTMLElement>('[role="slider"]')?.focus()
+          }} onEscapeKeyDown={(event) => {
+            moreColorsDialogProps?.onEscapeKeyDown?.(event)
+            // OpenedPopupsRegistry.js ignores modified Escape; the shared Dialog remains the layer owner.
+            if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) event.preventDefault()
+          }} onCloseAutoFocus={(event) => {
+            moreColorsDialogProps?.onCloseAutoFocus?.(event)
+            if (event.defaultPrevented) return
+            event.preventDefault()
+            if (applied.current && showRecentColors) { state.setSelection({ area: "recent", key: "0" }); state.reopenTarget.current = { area: "recent", key: "0" } }
+            if (!(applied.current && showRecentColors && firstRecent())) moreRef.current?.focus()
+            applied.current = false
+          }}>
+          <DialogHeader><DialogTitle>{moreColorsDialogTitle}</DialogTitle></DialogHeader>
+          <DialogBody><div className="fiori-color-palette__dialog-content"><ColorPicker {...colorPickerProps} ref={pickerRef} value={state.pickerValue} onValueChange={state.setPickerValue} /></div></DialogBody>
+          <DialogFooter><div className="fiori-color-palette__dialog-footer">
+            <Button variant="emphasized" onClick={() => {
+              // _chooseCustomColor/_setColor: apply exact draft; with recent colors onAfterRendering marks recent item 0.
+              applied.current = true
+              emit(state.pickerValue); changeDialogOpen(false)
+            }}>{moreColorsOkText}</Button>
+            <Button variant="transparent" onClick={() => changeDialogOpen(false)}>{moreColorsCancelText}</Button>
+          </div></DialogFooter>
+        </DialogContent>
+      </Dialog></PickerStateProvider>}
     </div>
   )
 }

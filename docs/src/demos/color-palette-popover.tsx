@@ -230,7 +230,7 @@ function ColorPalettePopoverDemo() {
     <Button id="color-palette-popover-name-case" onClick={() => setNameCase((value) => (value + 1) % 4)}>Change palette name</Button>
     <ColorPalettePopover id="color-palette-popover-surface" open={open} opener={opener} onOpenChange={setOpen} showDefaultColor={showDefault}
       accessibleName="Direct popup" accessibleNameRef={["color-palette-popover-name-label", "color-palette-popover-absent-label", "color-palette-popover-empty-label", ""][nameCase]}
-      defaultColor="rgb(1, 2, 3)" showRecentColors showMoreColors onItemClick={({ color }) => setEvents((history) => [...history, color])}>
+      defaultColor="rgb(1, 2, 3)" showRecentColors onItemClick={({ color }) => setEvents((history) => [...history, color])}>
       {paletteColors.slice(0, count).map((value, index) => <ColorPaletteItem key={index} value={value} />)}
     </ColorPalettePopover>
     <span id="color-palette-popover-name-label">{" Popup target "}</span><span id="color-palette-popover-empty-label" />

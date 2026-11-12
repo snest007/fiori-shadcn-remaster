@@ -1,4 +1,33 @@
 export type FioriColor = { r: number; g: number; b: number; a: number }
+export type FioriHslColor = { h: number; s: number; l: number }
+
+/** UI5 base ColorConversion.js RGBToHSL rounds all three channels to integers. */
+export function rgbToHsl({ r, g, b }: Pick<FioriColor, "r" | "g" | "b">): FioriHslColor {
+  const R = r / 255, G = g / 255, B = b / 255
+  const max = Math.max(R, G, B), min = Math.min(R, G, B), delta = max - min
+  const l = (max + min) / 2
+  let h = 0, s = 0
+  if (max !== min) {
+    s = l > .5 ? delta / (2 - max - min) : delta / (max + min)
+    h = max === R ? (G - B) / delta + (G < B ? 6 : 0) : max === G ? (B - R) / delta + 2 : (R - G) / delta + 4
+    h /= 6
+  }
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) }
+}
+
+/** UI5 base ColorConversion.js HSLToRGB, with the same sector calculation and rounding. */
+export function hslToRgb({ h, s, l }: FioriHslColor): Pick<FioriColor, "r" | "g" | "b"> {
+  const saturation = Math.min(100, Math.max(0, s)) / 100, lightness = Math.min(100, Math.max(0, l)) / 100
+  const hue = ((h % 360) + 360) % 360
+  const d = saturation * (1 - Math.abs(2 * lightness - 1)), m = 255 * (lightness - .5 * d)
+  const x = d * (1 - Math.abs((hue / 60) % 2 - 1))
+  const sectors = [[d, x, 0], [x, d, 0], [0, d, x], [0, x, d], [x, 0, d], [d, 0, x]]
+  const [r, g, b] = sectors[Math.floor(hue / 60)]
+  return { r: Math.round(m + 255 * r), g: Math.round(m + 255 * g), b: Math.round(m + 255 * b) }
+}
+
+export const rgbToHex = ({ r, g, b }: Pick<FioriColor, "r" | "g" | "b">) => [r, g, b].map((channel) => channel.toString(16).padStart(2, "0")).join("")
+export const colorToRgba = ({ r, g, b, a }: FioriColor) => `rgba(${r}, ${g}, ${b}, ${a})`
 
 /** ColorPalette.js _setColor/_addRecentColor compare the original CSS strings, not RGB values. */
 export function updateRecentColors(recent: readonly string[], color: string, enabled = true): string[] {

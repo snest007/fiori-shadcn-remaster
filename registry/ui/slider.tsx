@@ -164,11 +164,17 @@ function useControllable<T>(value: T | undefined, defaultValue: T, onChange?: (v
 
 const isRtl = (el: Element) => getComputedStyle(el).direction === "rtl"
 
-/** Value under the pointer, relative to the scale (stepped and clipped). */
-function valueAt(e: { clientX: number }, scale: HTMLElement, min: number, max: number, step: number) {
+/** SliderBase.js getValueFromInteraction: value relative to the supplied interaction host (stepped and clipped). */
+function sliderValueAt(e: { clientX: number }, scale: HTMLElement, min: number, max: number, step: number) {
   const r = scale.getBoundingClientRect()
   const x = isRtl(scale) ? r.right - e.clientX : e.clientX - r.left
   return round(clip(stepped(min + (x / r.width) * (max - min), step, min), min, max), step)
+}
+
+/** Slider.js _isHandlePressed uses the horizontal span, including presses above or below the handle. */
+function isSliderHandlePressed(clientX: number, handle: HTMLElement | null) {
+  const rect = handle?.getBoundingClientRect()
+  return !!rect && clientX >= rect.left && clientX <= rect.right
 }
 
 type SliderProps = SliderBaseProps & {
@@ -232,13 +238,12 @@ function Slider({
           if (atFocus.current === undefined) atFocus.current = valueRef.current
           // Slider.js _isHandlePressed: a press anywhere within the handle's horizontal span (above/below it too)
           // keeps the value; only the column decides, not which element was hit.
-          const handleRect = handleRef.current?.getBoundingClientRect()
-          const onHandle = !!handleRect && e.clientX >= handleRect.left && e.clientX <= handleRect.right
-          if (!onHandle) update(valueAt(e, scaleRef.current, min, max, step))
+          const onHandle = isSliderHandlePressed(e.clientX, handleRef.current)
+          if (!onHandle) update(sliderValueAt(e, scaleRef.current, min, max, step))
           handleRef.current?.focus()
           setActive(true)
           const scale = scaleRef.current
-          const move = (ev: PointerEvent) => update(valueAt(ev, scale, min, max, step))
+          const move = (ev: PointerEvent) => update(sliderValueAt(ev, scale, min, max, step))
           const up = () => {
             window.removeEventListener("pointermove", move)
             window.removeEventListener("pointerup", up)
@@ -419,7 +424,7 @@ function RangeSlider({
           const cur = valueRef.current
           atStart.current = cur
           atFocus.current ??= cur
-          const v = valueAt(ev, scale, min, max, step)
+          const v = sliderValueAt(ev, scale, min, max, step)
           const onStart = startRef.current?.contains(ev.target as Node)
           const onEnd = endRef.current?.contains(ev.target as Node)
           let mode: "range" | 0 | 1
@@ -437,7 +442,7 @@ function RangeSlider({
           const grab = v
           const base = cur
           const move = (pe: PointerEvent) => {
-            const n = valueAt(pe, scale, min, max, step)
+            const n = sliderValueAt(pe, scale, min, max, step)
             if (mode === "range") {
               const off = clip(n - grab, lo - base[0], hi - base[1])
               update([round(base[0] + off, step), round(base[1] + off, step)])
@@ -505,4 +510,4 @@ function RangeSlider({
   )
 }
 
-export { Slider, RangeSlider, type SliderProps, type RangeSliderProps }
+export { Slider, RangeSlider, sliderValueAt, isSliderHandlePressed, type SliderProps, type RangeSliderProps }
