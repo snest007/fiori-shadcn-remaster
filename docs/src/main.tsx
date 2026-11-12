@@ -15,6 +15,7 @@ import { SideNavigation, SideNavigationGroup, SideNavigationItem } from "@/compo
 import type { ComponentDocs, Demo, DemoCategory } from "./demos/types"
 import { FIELD_WIDTH, readPageOptions, snapSlots } from "./fixture-types"
 import { fixtureSets } from "./fixtures"
+import { phoneFixtureSets } from "./fixtures-phone"
 import { sapui5FixtureSets } from "./fixtures-sapui5"
 import iconNames from "./icon-names.json"
 import "./index.css"
@@ -33,7 +34,9 @@ document.documentElement.dataset.theme = opts.theme
 document.documentElement.dataset.density = opts.density
 
 const query = new URLSearchParams(location.search)
-const activeFixtureSets = query.has("fixtures-sapui5") ? sapui5FixtureSets : fixtureSets
+const phoneMode = query.has("fixtures-phone")
+if (phoneMode) document.documentElement.dataset.fioriDevice = "phone"
+const activeFixtureSets = phoneMode ? phoneFixtureSets : query.has("fixtures-sapui5") ? sapui5FixtureSets : fixtureSets
 
 function FixtureGrid() {
   React.useEffect(() => {
@@ -45,12 +48,12 @@ function FixtureGrid() {
     <div dir="ltr" className="flex flex-wrap items-start gap-4" style={{ "--w": FIELD_WIDTH } as React.CSSProperties}>
       {activeFixtureSets.flatMap((set) =>
         set.cases
-          .filter((c) => !opts.only || c.id === opts.only)
+          .filter((c) => opts.only ? c.id === opts.only : !phoneMode || c.id === "responsive-popover-phone")
           .map((c) => (
             // Each cell sits in a slot rounded up to whole pixels so one fractional-width cell can't shift
             // every following cell onto sub-pixel positions (which changes anti-aliasing).
             <div key={c.id} data-fixture-slot="" className="flex">
-              <div dir={opts.dir} data-fixture={c.id} className="inline-flex p-1 leading-[normal]">
+              <div dir={opts.dir} data-fixture={c.id} className={phoneMode ? "inline-flex leading-[normal]" : "inline-flex p-1 leading-[normal]"}>
                 {set.react(c.props)}
               </div>
             </div>
@@ -282,6 +285,6 @@ function Docs() {
   set.cases.filter((c) => (!opts.only || c.id === opts.only) && !set.skipCompare?.includes(c.id)).map((c) => ({ id: c.id, tolerance: set.tolerance ?? 0.02, interact: c.interact }))
 )
 
-const fixtureMode = query.has("fixtures") || query.has("fixtures-sapui5")
-if (fixtureMode) document.body.style.padding = "1rem"
+const fixtureMode = phoneMode || query.has("fixtures") || query.has("fixtures-sapui5")
+if (fixtureMode) document.body.style.padding = phoneMode ? "0" : "1rem"
 createRoot(document.getElementById("root")!).render(<React.StrictMode>{fixtureMode ? <FixtureGrid /> : <Docs />}</React.StrictMode>)
