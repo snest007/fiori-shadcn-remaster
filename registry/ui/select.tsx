@@ -43,12 +43,31 @@ function SelectContentHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React
   }} />
 }
 
+// UI5 getEffectiveDir/ItemNavigation follows the nearest DOM direction. Radix otherwise
+// writes dir=ltr even when its owner is RTL; observe ancestors to retain live inheritance.
+function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, explicit?: "ltr" | "rtl") {
+  const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr")
+  React.useLayoutEffect(() => {
+    const node = owner.current?.parentElement
+    if (!node) return
+    const update = () => setDirection(getComputedStyle(node).direction === "rtl" ? "rtl" : "ltr")
+    update()
+    const observer = new MutationObserver(update)
+    for (let ancestor: HTMLElement | null = node; ancestor; ancestor = ancestor.parentElement) {
+      observer.observe(ancestor, { attributes: true, attributeFilter: ["dir", "style", "class"] })
+    }
+    return () => observer.disconnect()
+  }, [owner])
+  return explicit ?? direction
+}
+
 type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root>
 
-function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, ...props }: SelectProps) {
+function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, ...props }: SelectProps) {
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolledValue
   const changeTarget = React.useRef<HTMLDivElement>(null)
+  const direction = useInheritedDirection(changeTarget, dir)
   const setValue = React.useCallback(
     (v: string) => {
       if (valueProp === undefined) setUncontrolledValue(v)
@@ -95,7 +114,7 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
   return (
     <SelectContext.Provider value={ctx}>
       <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget }}>
-        <SelectPrimitive.Root data-slot="select" value={value} onValueChange={setValue} open={open} onOpenChange={setOpen} {...props} />
+        <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={open} onOpenChange={setOpen} {...props} />
       </SelectOpenContext.Provider>
     </SelectContext.Provider>
   )
