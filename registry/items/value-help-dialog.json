@@ -1,5 +1,15 @@
 {
   "title": "ValueHelpDialog",
-  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/checkbox", "@fiori/dialog", "@fiori/filter-bar", "@fiori/input", "@fiori/select", "@fiori/tabs"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button",
+    "@fiori/checkbox",
+    "@fiori/dialog",
+    "@fiori/filter-bar",
+    "@fiori/input",
+    "@fiori/select",
+    "@fiori/tabs",
+    "@fiori/use-is-phone"
+  ],
   "description": "Fiori value help dialog (composite after the Fiori design guidelines): Search and Select with filters and a result table, Define Conditions, selected items and conditions as tokens, single/multi selection."
 }

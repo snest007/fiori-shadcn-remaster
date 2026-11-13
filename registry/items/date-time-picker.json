@@ -1,6 +1,22 @@
 {
   "title": "DateTimePicker",
   "description": "Fiori date-time picker: calendar and clocks side by side with OK / Cancel.",
-  "registryDependencies": ["@fiori/icons", "@fiori/input", "@fiori/button", "@fiori/calendar", "@fiori/date-picker", "@fiori/time-picker", "@fiori/picker-field"],
-  "files": [{ "path": "registry/lib/fiori-dates.ts", "type": "registry:lib" }]
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/input",
+    "@fiori/button",
+    "@fiori/calendar",
+    "@fiori/date-picker",
+    "@fiori/time-picker",
+    "@fiori/picker-field",
+    "@fiori/segmented-button",
+    "@fiori/responsive-popover",
+    "@fiori/use-is-phone"
+  ],
+  "files": [
+    {
+      "path": "registry/lib/fiori-dates.ts",
+      "type": "registry:lib"
+    }
+  ]
 }

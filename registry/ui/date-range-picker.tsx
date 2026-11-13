@@ -2,6 +2,8 @@ import * as React from "react"
 
 import { dayKey, formatDate, getWeekInfo, modifyDateBy, parseDate, resolvePattern, startOfDay } from "@/lib/fiori-dates"
 import { appointment2 } from "@/lib/fiori-icons"
+import { useIsPhone } from "@/lib/use-is-phone"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Calendar, type CalendarLabels, type SpecialDate } from "@/components/ui/calendar"
 import { usePickerState } from "@/components/ui/date-picker"
@@ -43,6 +45,11 @@ type DateRangePickerProps = Omit<React.ComponentProps<"input">, "value" | "defau
   openIconLabel?: string
   closeIconLabel?: string
   pickerLabel?: string
+  phoneHeaderText?: string
+  submitLabel?: string
+  cancelLabel?: string
+  /** Phone completed ranges update the value before OK; OK alone confirms the change. */
+  onConfirm?: (value: string, start: Date, end: Date) => void
 }
 
 function DateRangePicker({
@@ -69,9 +76,14 @@ function DateRangePicker({
   openIconLabel,
   closeIconLabel,
   pickerLabel,
+  phoneHeaderText,
+  submitLabel = "OK",
+  cancelLabel = "Cancel",
+  onConfirm,
   wrapperClassName,
   ...props
 }: DateRangePickerProps) {
+  const phone = useIsPhone()
   const pattern = resolvePattern(formatPattern, locale, "date")
   const inRange = (d: Date) => !(minDate && dayKey(d) < dayKey(minDate)) && !(maxDate && dayKey(d) > dayKey(maxDate))
   const parseOne = (t: string) => {
@@ -95,7 +107,7 @@ function DateRangePicker({
     if (dates.some((d) => !d)) return null
     return (dates as Date[]).sort((a, b) => dayKey(a) - dayKey(b))
   }
-  const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate })
+  const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate, controlledValueWins: phone })
   const dates = validate(s.text) ?? []
   const build = (ds: Date[]) => ds.map((d) => formatDate(d, pattern, locale)).join(` ${delimiter} `)
   const inputRef = React.useRef<HTMLInputElement>(null)
@@ -139,6 +151,8 @@ function DateRangePicker({
       closeIconLabel={closeIconLabel}
       roleDescription="Date Range Input"
       pickerLabel={pickerLabel ?? "Choose Date Range"}
+      phoneHeaderText={phoneHeaderText}
+      phoneFooter={phone ? <div className="fiori-dt-picker-footer"><Button variant="emphasized" className="fiori-dt-picker-ok" disabled={dates.length < 2} onClick={() => { if (dates.length > 1) onConfirm?.(s.value, dates[0], dates[1]); s.setOpen(false) }}>{submitLabel}</Button><Button variant="transparent" onClick={() => s.setOpen(false)}>{cancelLabel}</Button></div> : undefined}
       placeholder={placeholder ?? examplePlaceholder(example)}
       onPickerKeyDown={(e, inPopover) => {
         if (inPopover || s.open || (e.key !== "PageUp" && e.key !== "PageDown")) return
@@ -179,7 +193,9 @@ function DateRangePicker({
           onSelectedDatesChange={(ds) => {
             if (ds.length < 2) return // the start alone isn't committed
             commit(build(ds))
-            s.setOpen(false)
+            // DateRangePicker.js/onSelectedDatesChange updates completed ranges on phone,
+            // but waits for OK before emitting change; Cancel does not undo that public value.
+            if (!phone) s.setOpen(false)
           }}
         />
       )}

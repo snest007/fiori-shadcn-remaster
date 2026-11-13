@@ -1,6 +1,6 @@
 {
   "title": "DatePicker",
   "description": "Fiori date picker: a date field with lenient parsing, value states and a calendar value help.",
-  "registryDependencies": ["@fiori/icons", "@fiori/input", "@fiori/calendar", "@fiori/picker-field"],
+  "registryDependencies": ["@fiori/icons", "@fiori/input", "@fiori/calendar", "@fiori/picker-field", "@fiori/use-is-phone"],
   "files": [{ "path": "registry/lib/fiori-dates.ts", "type": "registry:lib" }]
 }

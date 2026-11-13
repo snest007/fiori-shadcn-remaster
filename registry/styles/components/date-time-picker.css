@@ -41,3 +41,10 @@
 .fiori-dt-picker-footer > .fiori-dt-picker-ok {
   width: 4rem;
 }
+/* DateTimePickerPopover.css.js phone content and source spacing (no parameter). */
+.fiori-dt-picker-header { display: flex; justify-content: center; width: 100%; margin-top: 1rem; box-sizing: border-box; }
+.fiori-dt-picker-header[hidden] { display: none; }
+.fiori-dt-picker-toggle-button { width: 8rem; }
+.fiori-dt-picker-content--phone { min-width: 20rem; height: calc(100% - 4rem); }
+.fiori-dt-picker-content--phone .fiori-dt-cal { width: 100%; margin-bottom: var(--fiori-datetime-dateview-phonemode-margin-bottom); }
+.fiori-dt-picker-content--phone .fiori-dt-time { min-width: var(--fiori-datetime-timeview-phonemode-width); width: auto; height: var(--fiori-datetime-timeview-phonemode-clocks-width); }

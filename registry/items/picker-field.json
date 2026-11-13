@@ -1,6 +1,16 @@
 {
   "title": "PickerField",
   "description": "Shared field + value-help popover of the Fiori date and time pickers (value states, F4 / Alt+Arrow keys).",
-  "dependencies": ["radix-ui"],
-  "registryDependencies": ["@fiori/icons", "@fiori/input", "@fiori/popover"]
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/input",
+    "@fiori/popover",
+    "@fiori/button",
+    "@fiori/responsive-popover",
+    "@fiori/use-is-phone",
+    "@fiori/f6-navigation"
+  ]
 }

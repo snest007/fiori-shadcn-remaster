@@ -250,3 +250,9 @@
     padding-inline: 1rem;
   }
 }
+/* Legacy sap.ui.comp.ValueHelpDialog is absent from pinned open-source libraries.
+   sap.ui.mdc/valuehelp/Dialog.js/createDialog sets stretch: Device.system.phone.
+   This ports sap.m.DialogRenderer.js/sapMDialogStretched and Dialog.js/_calcMaxSizes phone
+   stretch geometry only; the composite body remains guideline-based. */
+.fiori-vhd--phone.fiori-dialog { width: 100%; height: 100%; min-width: 0; min-height: 0; max-width: 100%; max-height: 100%; border-radius: 0; }
+.fiori-vhd--phone .fiori-vhd__main { min-height: 0; overflow: auto; }
