@@ -417,7 +417,9 @@ function ComboBox({
       onOpenAutoFocus={(e) => e.preventDefault()}
       onCloseAutoFocus={(e) => e.preventDefault()}
       onInteractOutside={(e) => {
-        if (inputRef.current?.parentElement?.contains(e.target as Node)) e.preventDefault()
+        // UI5's picker has no Radix focus sentinels. Modified Tab can reach
+        // these implementation guards without entering a real outside control.
+        if (inputRef.current?.parentElement?.contains(e.target as Node) || (e.target as HTMLElement)?.hasAttribute("data-radix-focus-guard")) e.preventDefault()
       }}
       className={phone ? undefined : cn(
         "fiori-popover fiori-combobox__popover z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col",
@@ -576,7 +578,10 @@ function ComboBox({
             onBlur={(e) => {
               if ((phone && open) || listRef.current?.contains(e.relatedTarget as Node)) return
               commit()
-              setOpen(false)
+              // ComboBox.js/_focusout commits without closing its picker.
+              // Alt/Meta+Tab can move browser focus to a Radix sentinel, which
+              // is not a native outside control and must not add a close path.
+              if (!(e.relatedTarget as HTMLElement)?.hasAttribute("data-radix-focus-guard")) setOpen(false)
               onBlur?.(e)
             }}
             {...props}
