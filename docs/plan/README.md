@@ -74,7 +74,7 @@ F1 and F2 can run in parallel after F0.
 
 - [x] [E1 Interaction-state visual fixtures](tasks/E1-interaction-fixtures.md) — M
 - [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
-- [ ] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/fiori-shadcn-remaster, Pages; run in the main checkout, not via RUN.md)
+- [ ] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/fiori-shadcn-remaster, Pages; push only, no gh; run in the main checkout, not via RUN.md)
 
 ## Out of scope (owner's decision)
 

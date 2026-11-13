@@ -16,28 +16,25 @@ repository itself, not a component) — don't use `RUN.md`'s worktree/sub-agent 
 
 ## 0. Preflight — stop and report if any of these fail
 
+**No `gh`, no GitHub API, no tokens.** The owner won't log in to `gh`; this card only uses `git` to push. Creating the
+repository and switching Pages on are the owner's clicks on github.com (see "Owner steps" at the end).
+
 ```bash
 git switch main && git status --short            # must be empty
 git log --oneline -1                             # note the hash
 node scripts/integrate.mjs status                # no pending codex/* branches, no worktrees
-ssh -T git@github.com                            # must greet "Hi snest007!" (SSH key auth works on this machine)
-gh auth status                                   # needed for creating the repo / enabling Pages / watching runs
+git ls-remote https://github.com/snest007/fiori-shadcn-remaster.git   # must succeed (empty output = empty repo, fine)
 ```
 
-Authentication on this machine (checked 2026-11-13): **SSH works** (`~/.ssh/id_ed25519`, GitHub user `snest007`);
-HTTPS has no credential helper and `gh` isn't installed. Use the **SSH remote** for all git operations:
-`git@github.com:snest007/fiori-shadcn-remaster.git`. For the GitHub API parts (create repo, enable Pages, watch runs),
-`gh` must be installed and logged in — if `gh auth status` fails, stop and ask the owner to run, in a terminal:
-`brew install gh && gh auth login -h github.com -p ssh -w` (browser login, reuses the SSH key). Don't ask for tokens in
-chat and don't write any token to a file.
+Git authentication: the owner's GitHub credentials are in the macOS keychain, which the sandbox can't read — a
+`could not read Username` error **inside the sandbox is expected**. Re-run that git command with escalated permissions
+(outside the sandbox) before concluding anything. SSH also works on this machine
+(`git@github.com:snest007/fiori-shadcn-remaster.git`); use whichever of the two succeeds.
 
-The repository URL returned 404 anonymously on 2026-11-13: it either doesn't exist yet or is private.
-- If it doesn't exist: create it **public**, empty (no README / license / .gitignore), description
-  "SAP Horizon (Fiori) look and interaction for React, as a shadcn/ui registry. Not an SAP product."
-  (`gh repo create snest007/fiori-shadcn-remaster --public --description "…"`, or the GitHub API with the configured token).
-- If it exists and is **private**: GitHub Pages on a free plan needs a public repository. Stop and ask the owner
-  before changing visibility.
-- If it exists and is **not empty**: stop and report its branches/commits; never force-push over someone's history.
+- `Repository not found` even outside the sandbox → the repository doesn't exist yet: do sections 1–3 and commit
+  locally, skip section 4, and in the final message ask the owner to create it (Owner steps). Don't try to create it.
+- `ls-remote` lists refs (repository not empty) → stop before pushing and report its branches/commits; never
+  force-push over someone's history.
 
 ## 1. Make the site and registry work under a sub-path
 
@@ -79,8 +76,8 @@ concurrency group `pages`:
   (it already supports `--registry`; retry its first fetch for up to 2 minutes while Pages propagates — add that wait to
   the script's `waitFor` for remote registries only).
 
-Enable Pages with source "GitHub Actions" (`gh api -X POST repos/snest007/fiori-shadcn-remaster/pages -f build_type=workflow`,
-or `PUT` if it already exists).
+Pages is switched on by the owner (Settings → Pages → Source "GitHub Actions"); don't call the API. Until then the
+Pages workflow fails at `configure-pages` — expected, not a finding.
 
 ## 3. Docs and repo hygiene
 
@@ -94,28 +91,33 @@ or `PUT` if it already exists).
   (`git grep -n '/Users/' -- ':!pnpm-lock.yaml'` → fix or remove any hit, e.g. in docs/plan evidence references).
 - Run the full local acceptance once more on the final commit: `node scripts/integrate.mjs verify` (3 runs + smoke).
 
-## 4. Push and deploy
+## 4. Push
 
 ```bash
-git remote add origin git@github.com:snest007/fiori-shadcn-remaster.git   # or set-url if it exists
-git push -u origin main
+git remote add origin https://github.com/snest007/fiori-shadcn-remaster.git   # or set-url; SSH URL if that's what worked
+git push -u origin main                                                        # escalated, outside the sandbox
 ```
 
-Push `main` only (no other branches, no tags). Then watch both workflows (`gh run watch`, or poll the API every 30 s,
-max 60 min). Both must be green. Open the deployed URLs and run, from a clean temp dir:
-
-```bash
-node scripts/smoke-install.mjs --registry=https://snest007.github.io/fiori-shadcn-remaster/r
-```
+Push `main` only (no other branches, no tags, no force). Then check the pushed state with
+`git ls-remote origin main` = local `git rev-parse main`. Don't watch workflows (that needs the API); the owner checks
+the Actions tab.
 
 ## Acceptance
 
-- Repository public at `snest007/fiori-shadcn-remaster`, `main` pushed, history intact (same commits as local `main`).
-- CI workflow green on the pushed commit; Pages workflow green; Pages smoke job green.
-- `https://snest007.github.io/fiori-shadcn-remaster/r/fiori.json` returns 200; the docs site, a component route,
-  `block.html?name=launchpad` and `ui5.html` load without 404s or console errors.
-- Local smoke against the public registry: `✔ smoke install OK: 81 components, 7 blocks …`.
-- Tick E3 in `docs/plan/README.md`, commit, push (CI runs again — must stay green).
+- Sections 1–3 done; `node scripts/integrate.mjs verify` green on the final commit (3 runs + local smoke).
+- `pnpm build:pages` output served under `/fiori-shadcn-remaster/` locally: docs, a component route,
+  `block.html?name=launchpad`, `ui5.html`, `r/fiori.json` load without 404s or console errors.
+- Tick E3 in `docs/plan/README.md` in the final commit, **then** push; remote `main` equals local `main`.
 
-Final message: the public URLs, the CI and Pages run links with their conclusions, the smoke output line, and anything
-that needs the owner (e.g. a CI-only failure, a visibility question). Keep it short.
+## Owner steps (after the push, on github.com — not for Codex)
+
+1. If the repository didn't exist: create `snest007/fiori-shadcn-remaster`, **public**, empty (no README/license),
+   then tell Codex "push E3" (it pushes the already-committed `main`).
+2. Settings → Pages → Source: **GitHub Actions**; then Actions → "Pages" → Re-run.
+   (Pages on a free plan needs a public repository.)
+3. Check the Actions tab: CI and Pages green. Then
+   `node scripts/smoke-install.mjs --registry=https://snest007.github.io/fiori-shadcn-remaster/r` should print
+   `✔ smoke install OK: 81 components, 7 blocks …`.
+
+Final message: what changed, the verify summary, whether the push happened (remote hash), and which Owner steps are
+left. Keep it short.
