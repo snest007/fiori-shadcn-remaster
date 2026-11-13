@@ -317,7 +317,9 @@ function MultiInput({
       }
       return
     }
-    if (key === "Tab" && isOpen) {
+    // Input.js/_onkeydown calls _handleTab -> Suggestions.onTab only for
+    // Keys.js/isTabNext: Shift/modified Tab must not accept the active item.
+    if (key === "Tab" && plain && isOpen) {
       const item = active >= 0 ? visible[active] : null
       if (item) onSuggestionSelect?.(item)
       setOpen(false)

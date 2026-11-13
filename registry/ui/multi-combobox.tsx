@@ -463,6 +463,8 @@ function MultiComboBox({
       return
     }
     if (key === "PageUp" || key === "PageDown") return e.preventDefault()
+    // MultiComboBox.js/_onkeydown deliberately forwards raw e.key === "Tab"
+    // to _handleTab, unlike its exact-predicate row/select-all handlers.
     if (key === "Tab") return setOpen(false)
     if (key === "Enter") {
       const match = items.find((i) => i.text.toLowerCase() === value.toLowerCase())
@@ -521,11 +523,16 @@ function MultiComboBox({
       e.preventDefault()
       return
     }
-    if (key === "Tab") {
+    // MultiComboBox.js/_onItemKeydown and _onListHeaderKeydown both call
+    // _onItemTab only for Keys.js/isTabNext/isTabPrevious (no Ctrl/Alt/Meta).
+    if (key === "Tab" && !alt && !ctrl) {
       inputRef.current?.focus()
       setOpen(false)
       return
     }
+    // Both native handlers prevent the remaining list/header keys before
+    // navigation, so a modified Tab also keeps browser focus on this surface.
+    if (key === "Tab") { e.preventDefault(); return }
     if ((key === "F4" && !alt && !ctrl && !shift) || ((key === "ArrowDown" || key === "ArrowUp") && alt)) {
       e.preventDefault()
       setOpen(false)

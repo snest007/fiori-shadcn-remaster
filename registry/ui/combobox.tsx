@@ -404,6 +404,8 @@ function ComboBox({
     phoneFooter: <><Button variant="emphasized" onClick={() => closePhone()}>{okText}</Button><Button variant="transparent" onClick={() => closePhone(true)}>{cancelText}</Button></>,
     onOpenAutoFocus: (e: Event) => { e.preventDefault(); phoneInputRef.current?.focus() },
     onEscapeKeyDown: () => closePhone(true),
+    // ComboBox.js/_handlePopoverKeydown uses isTabNext only; its phone
+    // header Input/footer do not share the outer field's _keydown handler.
     onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === "Tab" && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) closePhone() },
   } : {}
   const listContent = (
@@ -551,7 +553,9 @@ function ComboBox({
                   setValue(lastValue.current)
                 }
               }
-              if (key === "Tab" && open) setOpen(false)
+              // ComboBox.js/_keydown closes only for Keys.js/isTabNext or
+              // isTabPrevious: plain Tab/Shift+Tab, never Ctrl/Alt/Meta Tab.
+              if (key === "Tab" && !alt && !ctrl && !meta && open) setOpen(false)
               // ComboBox.js/_keydown uses Keys.isShow: Alt-only arrows exclude both Ctrl and Meta.
               const isShow = (key === "F4" && !alt && !ctrl && !shift && !meta) || ((key === "ArrowDown" || key === "ArrowUp") && alt && !ctrl && !shift && !meta)
               if (isShow && !readOnly && !disabled) {
