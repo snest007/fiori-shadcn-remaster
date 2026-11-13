@@ -35,7 +35,9 @@ document.documentElement.dataset.density = opts.density
 
 const query = new URLSearchParams(location.search)
 const phoneMode = query.has("fixtures-phone")
-if (phoneMode) document.documentElement.dataset.fioriDevice = "phone"
+// The paired interactive fixtures also exercise the same controls on desktop;
+// keep the default phone matrix and ordinary desktop fixture routes unchanged.
+if (phoneMode) document.documentElement.dataset.fioriDevice = query.get("device") === "desktop" ? "desktop" : "phone"
 const activeFixtureSets = phoneMode ? phoneFixtureSets : query.has("fixtures-sapui5") ? sapui5FixtureSets : fixtureSets
 
 function FixtureGrid() {

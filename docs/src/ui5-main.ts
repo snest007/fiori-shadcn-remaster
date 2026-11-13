@@ -13,7 +13,7 @@ import { fixtureSets } from "./fixtures"
 const phoneRenderers = import.meta.glob<{ default: Ui5Renderer }>("./fixtures-phone/*.ui5.ts", { eager: true })
 const phoneMode = new URLSearchParams(location.search).has("fixtures-phone")
 // Override only this isolated oracle page, before constructing any phone fixture.
-if (phoneMode) internals._isPhone = () => true
+if (phoneMode && new URLSearchParams(location.search).get("device") !== "desktop") internals._isPhone = () => true
 const renderers = import.meta.glob<{ default: Ui5Renderer }>("./fixtures/*.ui5.ts", { eager: true })
 const rendererFor = (name: string) => phoneMode ? phoneRenderers[`./fixtures-phone/${name}.ui5.ts`]?.default : renderers[`./fixtures/${name}.ui5.ts`]?.default
 

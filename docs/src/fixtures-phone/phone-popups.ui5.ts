@@ -37,7 +37,7 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
     : kind === "select" ? h("ui5-select", attrs, ...options.map((text) => h("ui5-option", { selected: text === "Germany", disabled: query.has("disabled-option") && text === "Australia" }, text)))
     : kind === "combobox" ? h("ui5-combobox", attrs, ...options.map((text) => h("ui5-cb-item", { text })))
     : kind === "multi-combobox" ? h("ui5-multi-combobox", { ...attrs, "show-select-all": true, "no-validation": new URLSearchParams(location.search).has("external-open") }, ...options.map((text) => h("ui5-mcb-item", { text, ...(controlled ? { value: itemValue(text) } : { selected: selected.includes(itemValue(text)) }) })))
-    : h("ui5-multi-input", { ...attrs, "show-suggestions": true, ...(query.has("email") ? { type: "Email" } : {}) }, ...selected.map((text) => h("ui5-token", { slot: "tokens", text })), ...options.map((text) => h("ui5-suggestion-item", { text })))
+    : h("ui5-multi-input", { ...attrs, "show-suggestions": true, ...(query.has("tab-active") ? { filter: "StartsWith", "no-typeahead": true } : {}), ...(query.has("email") ? { type: "Email" } : {}) }, ...selected.map((text) => h("ui5-token", { slot: "tokens", text })), ...options.map((text) => h("ui5-suggestion-item", { text })))
   field.id = `${kind}-phone-field`
   field.style.width = "13.125rem"
   const setSelected = (next: string[]) => {
@@ -88,7 +88,14 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
     await renderFinished()
     // Theme loaders and Input.js/enableSuggestions can defer the phone template
     // past renderFinished(). Await the real Dialog before opening any field.
-    const getDialog = () => kind === "responsive-popover" ? field.shadowRoot?.querySelector("ui5-dialog") : field.shadowRoot?.querySelector("ui5-responsive-popover")?.shadowRoot?.querySelector("ui5-dialog")
+    // device=desktop uses the genuine Popover template on this paired fixture
+    // page, without overriding native handlers or popup methods.
+    const getDialog = () => {
+      const picker = kind === "responsive-popover" ? field : field.shadowRoot?.querySelector("ui5-responsive-popover")
+      // ResponsivePopover is itself the desktop Popover subclass; only its
+      // phone template creates a nested ui5-dialog.
+      return query.get("device") === "desktop" ? picker : picker?.shadowRoot?.querySelector("ui5-dialog")
+    }
     const sourceReady = () => getDialog() && (kind !== "multi-input" || !!(field as any).Suggestions)
     for (let frame = 0; frame < 300 && !sourceReady(); frame++) {
       await new Promise((resolve) => requestAnimationFrame(resolve)); await renderFinished()
