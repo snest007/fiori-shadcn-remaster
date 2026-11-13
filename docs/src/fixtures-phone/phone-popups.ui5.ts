@@ -16,12 +16,15 @@ import "@ui5/webcomponents-icons/dist/multiselect-all.js"
 import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 import { defineUi5, h, type Ui5FixtureElement } from "../fixture-types"
 import { ui5State } from "../fixtures/ui5-helpers"
-import set, { PHONE_OPTIONS, PHONE_LONG_OPTIONS } from "./popups"
+import set, { PHONE_OPTIONS, PHONE_LONG_OPTIONS, PHONE_CODE_VALUES } from "./popups"
 
 export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
   const query = new URLSearchParams(location.search)
   const options = longList || query.has("long-list") ? PHONE_LONG_OPTIONS : PHONE_OPTIONS
-  const selected = Array.isArray(tokens) ? tokens : tokens ? ["Germany"] : []
+  const itemValue = (text: string) => query.has("explicit-values") ? PHONE_CODE_VALUES[text] ?? text : text
+  let selected = (query.get("controlled-start") === "pair" ? ["Germany", "Australia"] : Array.isArray(tokens) ? tokens : tokens ? ["Germany"] : []).map(itemValue)
+  const controlled = kind === "multi-combobox" && !query.has("uncontrolled")
+  const selectedOutput = h("output", { hidden: true }); selectedOutput.dataset.slot = "phone-selected"; selectedOutput.textContent = selected.join(",")
   const frame = h("div") as Ui5FixtureElement
   // Tests await UI5's supported render lifecycle after dynamic phone Lists
   // appear; this hook lives on the fixture wrapper, outside the native oracle.
@@ -33,19 +36,28 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
   const field = kind === "responsive-popover" ? h("ui5-responsive-popover", { "header-text": "Country", ...(query.has("consumer-props") ? { "accessible-description": "Choose one country for delivery." } : {}) }, h("p", {}, "Choose a country."), h("ui5-button", {}, "Done"))
     : kind === "select" ? h("ui5-select", attrs, ...options.map((text) => h("ui5-option", { selected: text === "Germany", disabled: query.has("disabled-option") && text === "Australia" }, text)))
     : kind === "combobox" ? h("ui5-combobox", attrs, ...options.map((text) => h("ui5-cb-item", { text })))
-    : kind === "multi-combobox" ? h("ui5-multi-combobox", { ...attrs, "show-select-all": true, "no-validation": new URLSearchParams(location.search).has("external-open") }, ...options.map((text) => h("ui5-mcb-item", { text, selected: selected.includes(text) })))
+    : kind === "multi-combobox" ? h("ui5-multi-combobox", { ...attrs, "show-select-all": true, "no-validation": new URLSearchParams(location.search).has("external-open") }, ...options.map((text) => h("ui5-mcb-item", { text, ...(controlled ? { value: itemValue(text) } : { selected: selected.includes(itemValue(text)) }) })))
     : h("ui5-multi-input", { ...attrs, "show-suggestions": true, ...(query.has("email") ? { type: "Email" } : {}) }, ...selected.map((text) => h("ui5-token", { slot: "tokens", text })), ...options.map((text) => h("ui5-suggestion-item", { text })))
   field.id = `${kind}-phone-field`
   field.style.width = "13.125rem"
-  if (query.has("controlled-echo")) {
-    // This adapter echoes the selected flags used by our text-key API. It does
-    // not assign item.value or normalize UI5's separate selectedValues contract.
+  const setSelected = (next: string[]) => {
+    selected = [...next]
+    ;(field as any).selectedValues = [...selected]
+    selectedOutput.textContent = selected.join(",")
+  }
+  if (controlled) {
+    // MultiComboBox.js/_syncSelection owns the real value/selectedValues API.
+    // React's omitted item.value uses text as its key, so give native items that
+    // value too. Never write selected flags for the controlled comparison.
+    setSelected(selected)
     field.addEventListener("selection-change", (event: any) => {
-      field.querySelectorAll("ui5-mcb-item").forEach((item: any) => { item.selected = event.detail.items.includes(item) })
+      setSelected(query.has("reject-selection") ? selected : event.detail.items.map((item: any) => item.value))
     })
-    for (const [label, selection] of [["Replace selection", ["Australia"]], ["Reset selection", []]] as const) {
+  }
+  if (query.has("controlled-echo")) {
+    for (const [label, selection] of [["Reorder selection", () => [...selected].reverse()], ["Replace selection", () => [itemValue("Australia")]], ["Reset selection", () => []]] as const) {
       const button = h("ui5-button", {}, label)
-      button.addEventListener("click", () => field.querySelectorAll("ui5-mcb-item").forEach((item: any) => { item.selected = (selection as readonly string[]).includes(item.text) }))
+      button.addEventListener("click", () => setSelected(selection()))
       frame.append(button)
     }
   }
@@ -53,17 +65,21 @@ export default defineUi5(set, ({ kind, valueState, tokens, longList }) => {
     const trigger = h("ui5-button", {}, "Open changed field")
     trigger.addEventListener("click", () => {
       ;(field as any).value = "Australia"
-      field.querySelectorAll("ui5-mcb-item").forEach((item: any) => { item.selected = item.text === "Australia" })
+      if (controlled) setSelected([itemValue("Australia")])
+      else field.querySelectorAll("ui5-mcb-item").forEach((item: any) => { item.selected = item.text === "Australia" })
       ;(field as any).open = true
     })
     frame.append(trigger)
   }
-  frame.append(field)
+  frame.append(field, selectedOutput)
   const events: string[] = []
   const output = h("output", { hidden: true }); output.dataset.slot = "phone-events"; output.textContent = "[]"; frame.append(output)
   const record = (event: string) => { events.push(event); output.textContent = JSON.stringify(events) }
   field.addEventListener("change", () => record(`change:${(field as any).value}`))
-  field.addEventListener("selection-change", (event: any) => record(`selection:${event.detail.items?.map((item: any) => item.text).join(",") ?? event.detail.item?.text ?? ""}`))
+  field.addEventListener("selection-change", (event: any) => record(`selection:${event.detail.items?.map((item: any) => controlled ? item.value : item.text).join(",") ?? event.detail.item?.text ?? ""}`))
+  const openEvents: string[] = []
+  const openOutput = h("output", { hidden: true }); openOutput.dataset.slot = "phone-open-events"; openOutput.textContent = "[]"; frame.append(openOutput)
+  for (const event of ["open", "close"]) field.addEventListener(event, () => { openEvents.push(event); openOutput.textContent = JSON.stringify(openEvents) })
   field.addEventListener("suggestion-item-select", (event: any) => record(`suggestion:${event.detail.item.text}`))
   field.addEventListener("value-help-trigger", () => record("value-help"))
   field.addEventListener("token-delete", (event: any) => { event.detail.tokens.forEach((token: HTMLElement) => token.remove()); record(`delete:${event.detail.tokens.map((token: any) => token.text).join(",")}`) })

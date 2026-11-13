@@ -45,6 +45,20 @@ async function openField(page: Page, holder: Locator, kind: string, native: bool
   await awaitPhoneRender(holder, native)
 }
 
+const mcbRow = (page: Page, holder: Locator, native: boolean, text: string) => native
+  ? holder.locator(`ui5-mcb-item[text="${text}"]`).getByRole("option")
+  : dialog(page, false).getByRole("option", { name: new RegExp(text) })
+async function expectCommittedSelection(holder: Locator, native: boolean, texts: string[], values: string[]) {
+  await expect(holder.locator('[data-slot="phone-selected"]')).toHaveText(values.join(","))
+  if (native) {
+    await expect(holder.locator("ui5-multi-combobox")).toHaveJSProperty("selectedValues", values)
+    await expect.poll(() => holder.locator("ui5-mcb-item").evaluateAll((nodes: any[]) => nodes.filter((item) => item.selected).map((item) => item.text))).toEqual(texts)
+    await expect.poll(() => holder.locator("ui5-multi-combobox ui5-token").evaluateAll((nodes: any[]) => nodes.map((token) => token.text))).toEqual(texts)
+  } else {
+    await expect(holder.locator('[data-slot="multi-combobox"] .fiori-token__text')).toHaveText(texts)
+  }
+}
+
 test.describe("D1a phone popup contracts", () => {
   test.use({ viewport: { width: 375, height: 667 }, hasTouch: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1" })
   for (const native of [false, true]) {
@@ -76,6 +90,50 @@ test.describe("D1a phone popup contracts", () => {
       await surface(page, holder, native).getByRole("option", { name: "Australia", exact: true }).click()
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(trigger).toHaveText("Australia")
+    })
+    for (const key of ["Tab", "Shift+Tab"]) test(`${label} Select ${key} closes from its selected row and commits the normal draft`, async ({ page }) => {
+      const holder = await visit(page, "select", native)
+      const trigger = holder.getByRole("combobox", { includeHidden: true }).first()
+      await openField(page, holder, "select", native)
+      await expect(surface(page, holder, native).getByRole("option", { name: "Germany", exact: true })).toBeFocused()
+      await page.keyboard.press(key)
+      await expect(dialog(page, native)).toHaveCount(0)
+      await expect(trigger).toHaveText("Germany")
+      await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
+      await expect(holder.locator('[data-slot="phone-open-events"]')).toHaveText('["open","close"]')
+      await openField(page, holder, "select", native)
+      await expect(surface(page, holder, native).getByRole("option", { name: "Germany", exact: true })).toBeFocused()
+      await page.keyboard.press("ArrowDown")
+      await expect(surface(page, holder, native).getByRole("option", { name: "United Kingdom", exact: true })).toBeFocused()
+      await page.keyboard.press(key)
+      await expect(dialog(page, native)).toHaveCount(0)
+      await expect(trigger).toHaveText("United Kingdom")
+      await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["change:United Kingdom"]')
+      await expect(holder.locator('[data-slot="phone-open-events"]')).toHaveText('["open","close","open","close"]')
+      await openField(page, holder, "select", native)
+      await surface(page, holder, native).getByRole("option", { name: "Australia", exact: true }).click()
+      await expect(dialog(page, native)).toHaveCount(0)
+      await expect(trigger).toHaveText("Australia")
+      await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["change:United Kingdom","change:Australia"]')
+    })
+    test(`${label} Select owns Tab on its footer and ignores Ctrl Alt Meta Tab modifiers`, async ({ page }) => {
+      const holder = await visit(page, "select", native)
+      await openField(page, holder, "select", native)
+      const row = surface(page, holder, native).getByRole("option", { name: "Germany", exact: true })
+      for (const modifier of ["Control", "Alt", "Meta"]) for (const shift of ["", "Shift+"]) {
+        await row.focus()
+        await expect(row).toBeFocused()
+        await row.press(`${modifier}+${shift}Tab`)
+        await expect(dialog(page, native)).toBeVisible()
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
+        await expect(holder.locator('[data-slot="phone-open-events"]')).toHaveText('["open"]')
+      }
+      const cancel = surface(page, holder, native).getByRole("button", { name: "Cancel", exact: true })
+      await cancel.focus()
+      await expect(cancel).toBeFocused()
+      await cancel.press("Tab")
+      await expect(dialog(page, native)).toHaveCount(0)
+      await expect(holder.locator('[data-slot="phone-open-events"]')).toHaveText('["open","close"]')
     })
     test(`${label} ComboBox edits, filters, cancels, accepts and selects`, async ({ page }) => {
       const holder = await visit(page, "combobox", native)
@@ -177,6 +235,10 @@ test.describe("D1a phone popup contracts", () => {
       await phoneInput(page, native).press("Enter")
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["selection:"]')
+      // The flag-only uncontrolled API keeps the post-event toggle, unlike
+      // value-bearing native items synchronized from controlled selectedValues.
+      if (native) await expect(holder.locator("ui5-multi-combobox ui5-token")).toHaveJSProperty("text", "Germany")
+      else await expect(holder.locator('[data-slot="multi-combobox"] .fiori-token__text')).toHaveText(["Germany"])
       await openField(page, holder, "multi-combobox", native)
       await expect(native ? holder.locator("ui5-mcb-item").filter({ has: page.getByRole("option", { name: /Germany/ }) }).getByRole("option") : dialog(page, false).getByRole("option", { name: /Germany/ })).toHaveAttribute("aria-selected", "true")
     })
@@ -676,30 +738,95 @@ test.describe("D1a reviewed phone keyboard and consumer contracts", () => {
       await expect(dialog(page, native)).toHaveCount(0)
       await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["selection:Germany","change:Germany"]')
     })
-    test(`${label} MultiComboBox retains Enter draft across selection echo and accepts external replacement/reset`, async ({ page }) => {
-      const holder = await visit(page, "multi-combobox", native, "&controlled-echo")
-      await openField(page, holder, "multi-combobox", native)
-      await fillPhone(page, holder, native, "Germany")
-      await phoneInput(page, native).press("Enter")
-      await expect(dialog(page, native)).toHaveCount(0)
-      await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["selection:"]')
-      await openField(page, holder, "multi-combobox", native)
-      const row = (name: string) => native ? holder.locator("ui5-mcb-item").filter({ has: page.getByRole("option", { name: new RegExp(name) }) }).getByRole("option") : dialog(page, false).getByRole("option", { name: new RegExp(name) })
-      await expect(row("Germany")).toHaveAttribute("aria-selected", "true")
-      await page.keyboard.press("Escape")
-      await expect(dialog(page, native)).toHaveCount(0)
-      await holder.getByRole("button", { name: "Replace selection", exact: true }).click()
-      await awaitPhoneRender(holder, native)
-      await openField(page, holder, "multi-combobox", native)
-      await fillPhone(page, holder, native, "")
-      await expect(row("Australia")).toHaveAttribute("aria-selected", "true")
-      await page.keyboard.press("Escape")
-      await expect(dialog(page, native)).toHaveCount(0)
-      await holder.getByRole("button", { name: "Reset selection", exact: true }).click()
-      await awaitPhoneRender(holder, native)
-      await openField(page, holder, "multi-combobox", native)
-      await expect(row("Australia")).toHaveAttribute("aria-selected", "false")
-    })
+    for (const explicit of [false, true]) {
+      const keyLabel = explicit ? "code values" : "text keys"
+      const key = (text: string) => explicit ? ({ Argentina: "AR", Australia: "AU", Germany: "DE" }[text] ?? text) : text
+      const controlledQuery = `&controlled-echo${explicit ? "&explicit-values" : ""}`
+      test(`${label} controlled MultiComboBox ${keyLabel} rejects unchanged empty Enter echoes and accepts replacement/reset`, async ({ page }) => {
+        const holder = await visit(page, "multi-combobox", native, controlledQuery)
+        await expectCommittedSelection(holder, native, [], [])
+        await openField(page, holder, "multi-combobox", native)
+        await fillPhone(page, holder, native, "Germany")
+        await expect(phoneInput(page, native)).toHaveValue("Germany")
+        await phoneInput(page, native).press("Enter")
+        await expect(dialog(page, native)).toHaveCount(0)
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["selection:"]')
+        await expectCommittedSelection(holder, native, [], [])
+        await openField(page, holder, "multi-combobox", native)
+        await expect(mcbRow(page, holder, native, "Germany")).toHaveAttribute("aria-selected", "false")
+        await page.keyboard.press("Escape")
+        await expect(dialog(page, native)).toHaveCount(0)
+        await holder.getByRole("button", { name: "Replace selection", exact: true }).click()
+        await expectCommittedSelection(holder, native, ["Australia"], [key("Australia")])
+        await openField(page, holder, "multi-combobox", native)
+        await fillPhone(page, holder, native, "")
+        await expect(mcbRow(page, holder, native, "Australia")).toHaveAttribute("aria-selected", "true")
+        await expect(mcbRow(page, holder, native, "Germany")).toHaveAttribute("aria-selected", "false")
+        await page.keyboard.press("Escape")
+        await expect(dialog(page, native)).toHaveCount(0)
+        await holder.getByRole("button", { name: "Reset selection", exact: true }).click()
+        await expectCommittedSelection(holder, native, [], [])
+        await openField(page, holder, "multi-combobox", native)
+        await expect(mcbRow(page, holder, native, "Australia")).toHaveAttribute("aria-selected", "false")
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText('["selection:"]')
+      })
+      test(`${label} controlled MultiComboBox ${keyLabel} keeps caller authority for nonempty echoes and reordered arrays`, async ({ page }) => {
+        const holder = await visit(page, "multi-combobox", native, `${controlledQuery}&controlled-start=pair`)
+        const initial = [key("Germany"), key("Australia")]
+        const ordered = [key("Australia"), key("Germany")]
+        await expectCommittedSelection(holder, native, ["Australia", "Germany"], initial)
+        // Native _onMobileInputKeydown reports the item-order pre-toggle
+        // selection. The first callback reorders the initial caller array;
+        // the second is an unchanged nonempty echo, with no approved Argentina.
+        for (let count = 1; count <= 2; count++) {
+          await openField(page, holder, "multi-combobox", native)
+          await fillPhone(page, holder, native, "Argentina")
+          await expect(phoneInput(page, native)).toHaveValue("Argentina")
+          await expect(mcbRow(page, holder, native, "Argentina")).toHaveAttribute("aria-selected", "false")
+          await phoneInput(page, native).press("Enter")
+          await expect(dialog(page, native)).toHaveCount(0)
+          await expect(holder.locator('[data-slot="phone-events"]')).toHaveText(JSON.stringify(Array(count).fill(`selection:${ordered.join(",")}`)))
+          await expectCommittedSelection(holder, native, ["Australia", "Germany"], ordered)
+        }
+        await holder.getByRole("button", { name: "Reorder selection", exact: true }).click()
+        await expectCommittedSelection(holder, native, ["Australia", "Germany"], initial)
+        await openField(page, holder, "multi-combobox", native)
+        await fillPhone(page, holder, native, "")
+        await expect(mcbRow(page, holder, native, "Argentina")).toHaveAttribute("aria-selected", "false")
+        for (const text of ["Australia", "Germany"]) await expect(mcbRow(page, holder, native, text)).toHaveAttribute("aria-selected", "true")
+        await page.keyboard.press("Escape")
+        await expect(dialog(page, native)).toHaveCount(0)
+        await holder.getByRole("button", { name: "Replace selection", exact: true }).click()
+        await expectCommittedSelection(holder, native, ["Australia"], [key("Australia")])
+        await openField(page, holder, "multi-combobox", native)
+        await expect(mcbRow(page, holder, native, "Germany")).toHaveAttribute("aria-selected", "false")
+        await expect(mcbRow(page, holder, native, "Australia")).toHaveAttribute("aria-selected", "true")
+      })
+      test(`${label} controlled MultiComboBox ${keyLabel} follows the caller after rejected row and OK proposals`, async ({ page }) => {
+        const holder = await visit(page, "multi-combobox", native, `${controlledQuery}&controlled-start=pair&reject-selection`)
+        const initial = [key("Germany"), key("Australia")]
+        const proposed = [key("Argentina"), key("Australia"), key("Germany")]
+        await expectCommittedSelection(holder, native, ["Australia", "Germany"], initial)
+        await openField(page, holder, "multi-combobox", native)
+        await mcbRow(page, holder, native, "Argentina").click()
+        await expect(dialog(page, native)).toHaveCount(0)
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText(JSON.stringify([`selection:${proposed.join(",")}`]))
+        await expectCommittedSelection(holder, native, ["Australia", "Germany"], initial)
+        await openField(page, holder, "multi-combobox", native)
+        const row = mcbRow(page, holder, native, "Argentina")
+        await expect(row).toHaveAttribute("aria-selected", "false")
+        await (native ? row.locator("ui5-checkbox") : row.getByRole("checkbox", { includeHidden: true })).click()
+        await expect(row).toHaveAttribute("aria-selected", "true")
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText(JSON.stringify([`selection:${proposed.join(",")}`]))
+        await surface(page, holder, native).getByRole("button", { name: "OK", exact: true }).click()
+        await expect(dialog(page, native)).toHaveCount(0)
+        await expect(holder.locator('[data-slot="phone-events"]')).toHaveText(JSON.stringify(Array(2).fill(`selection:${proposed.join(",")}`)))
+        await expectCommittedSelection(holder, native, ["Australia", "Germany"], initial)
+        await openField(page, holder, "multi-combobox", native)
+        await expect(mcbRow(page, holder, native, "Argentina")).toHaveAttribute("aria-selected", "false")
+        for (const text of ["Australia", "Germany"]) await expect(mcbRow(page, holder, native, text)).toHaveAttribute("aria-selected", "true")
+      })
+    }
     test(`${label} MultiInput preserves email type in the phone header`, async ({ page }) => {
       const holder = await visit(page, "multi-input", native, "&email")
       await expect(fieldInput(holder, "multi-input", native)).toHaveAttribute("type", "email")
