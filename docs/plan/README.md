@@ -53,9 +53,9 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 
 ## Wave D — platform behaviour (after waves A–C are merged; touches many components)
 
-- [ ] [D1 Phone layouts for popups](tasks/D1-phone-popups.md) — L
+- [x] [D1 Phone layouts for popups](tasks/D1-phone-popups.md) — L
   - [x] D1a ResponsivePopover, phone detection, Select, ComboBox, MultiComboBox and MultiInput
-  - [ ] D1b Pickers, ValueHelpDialog, Menu and Search
+  - [x] D1b Pickers, ValueHelpDialog, Menu and Search
 - [x] [D2 F6 fast navigation](tasks/D2-f6-navigation.md) — M
 - [x] [D3 RTL verification](tasks/D3-rtl.md) — M
 

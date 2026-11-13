@@ -1,2 +1,4 @@
 import set from "./popups"
-export const phoneFixtureSets = [set]
+import d1b from "./d1b-popups"
+import navigation from "./d1b-navigation"
+export const phoneFixtureSets = [set, d1b, navigation]

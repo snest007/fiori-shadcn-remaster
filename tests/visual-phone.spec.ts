@@ -25,10 +25,14 @@ for (const theme of THEMES) for (const density of DENSITIES) {
         await page.goto(`/${index ? "ui5" : "index"}.html?${query}&only=${fixture.id}`)
         await page.waitForSelector("html[data-ready=true]")
         await expect(page.locator(`[data-fixture="${fixture.id}"]`)).toHaveCount(1)
-        const dialog = index ? page.locator("ui5-dialog[open]") : page.locator('[role="dialog"]')
+        // Nested native menus keep their parent phone dialog open below the active surface.
+        const dialog = (index ? page.locator("ui5-dialog[open]") : page.locator('[role="dialog"]')).last()
         await expect(dialog).toBeVisible()
         await expect(dialog).toHaveCSS("width", "375px")
         await expect(dialog).toHaveCSS("height", "667px")
+        // Popup.js/openPopup temporarily sets .ui5-popup-opening; Popup.css.js
+        // paints that host at opacity .1 even when animations are disabled.
+        if (index) await expect(dialog).toHaveCSS("opacity", "1")
         await page.mouse.move(0, 666)
         return PNG.sync.read(await page.screenshot({ animations: "disabled", caret: "hide" }))
       }))
@@ -44,6 +48,48 @@ for (const theme of THEMES) for (const density of DENSITIES) {
         writeFileSync(`${directory}/${fixture.id}-ours.png`, PNG.sync.write(a))
         writeFileSync(`${directory}/${fixture.id}-ui5.png`, PNG.sync.write(b))
         writeFileSync(`${directory}/${fixture.id}-diff.png`, PNG.sync.write(diff))
+      }
+    }
+    // Secondary surfaces use their real focus/button APIs; numeric time entry is
+    // a Popover, while Search scopes are a separate full-screen phone Dialog.
+    for (const state of ["time-picker-inputs", "search-scopes", "shellbar-search-scopes"]) {
+      const buffers = await Promise.all([ours, oracle].map(async (page, index) => {
+        const kind = state === "time-picker-inputs" ? "time-picker" : state === "search-scopes" ? "search" : "shellbar-search"
+        await page.goto(`/${index ? "ui5" : "index"}.html?${query}&interactive&only=${kind}-phone${kind === "time-picker" ? "" : "-scopes"}`)
+        await page.waitForSelector("html[data-ready=true]")
+        const holder = page.locator(`#${kind}-phone-demo`)
+        if (kind === "time-picker") {
+          await holder.locator("input").first().click()
+          await expect(index ? holder.locator("ui5-time-selection-inputs") : page.locator('[data-slot="time-selection-inputs"]')).toBeVisible()
+          // The numeric entry surface is its own Popup, with the same genuine
+          // .ui5-popup-opening opacity state as the full-screen Dialog above.
+          if (index) await expect(holder.locator("ui5-popover[open]")).toHaveCSS("opacity", "1")
+        } else {
+          if (kind === "shellbar-search") {
+            await holder.getByRole("button", { name: "Open Search", exact: true }).click()
+            await expect(index ? page.locator("ui5-dialog[open]") : page.locator('[role="dialog"]')).toBeVisible()
+            if (index) await expect(page.locator("ui5-dialog[open]")).toHaveCSS("opacity", "1")
+          }
+          await (index ? holder : kind === "search" ? holder : page.locator('[role="dialog"]')).getByRole("button", { name: "Select Scope", exact: true }).click()
+          // Target the scope's own Dialog: the still-open parent Search Dialog
+          // already has full-size geometry before the nested template renders.
+          const active = index ? holder.locator('ui5-responsive-popover[id$="-scope-popover"] ui5-dialog[open]') : page.locator('[role="dialog"].fiori-search-phone-scope')
+          await expect(active).toHaveCSS("width", "375px"); await expect(active).toHaveCSS("height", "667px")
+          if (index) await expect(active).toHaveCSS("opacity", "1")
+        }
+        if (index) await holder.evaluate(async (node: any) => node.phoneRenderFinished())
+        await page.evaluate(() => document.fonts.ready)
+        await page.mouse.move(0, 666)
+        return PNG.sync.read(await page.screenshot({ animations: "disabled", caret: "hide" }))
+      }))
+      const [a, b] = buffers
+      expect([a.width, a.height]).toEqual([375, 667]); expect([b.width, b.height]).toEqual([375, 667])
+      const diff = new PNG({ width: a.width, height: a.height })
+      const ratio = pixelmatch(a.data, b.data, diff.data, a.width, a.height, { threshold: 0.1 }) / (a.width * a.height)
+      report[state] = { ratio, size: `${a.width}x${a.height}` }
+      if (ratio > 0.02) {
+        failures.push(`${state}: ${(ratio * 100).toFixed(1)}% pixels differ`)
+        writeFileSync(`${directory}/${state}-ours.png`, PNG.sync.write(a)); writeFileSync(`${directory}/${state}-ui5.png`, PNG.sync.write(b)); writeFileSync(`${directory}/${state}-diff.png`, PNG.sync.write(diff))
       }
     }
     writeFileSync(`${directory}/report.json`, JSON.stringify(report, null, 2))
