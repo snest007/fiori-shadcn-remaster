@@ -6,33 +6,40 @@ import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js"
 import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 
 import { readPageOptions, snapSlots, type Ui5Renderer } from "./fixture-types"
+import { internals } from "@ui5/webcomponents-base/dist/Device.js"
+import { phoneFixtureSets } from "./fixtures-phone"
 import { fixtureSets } from "./fixtures"
 
+const phoneRenderers = import.meta.glob<{ default: Ui5Renderer }>("./fixtures-phone/*.ui5.ts", { eager: true })
+const phoneMode = new URLSearchParams(location.search).has("fixtures-phone")
+// Override only this isolated oracle page, before constructing any phone fixture.
+if (phoneMode && new URLSearchParams(location.search).get("device") !== "desktop") internals._isPhone = () => true
 const renderers = import.meta.glob<{ default: Ui5Renderer }>("./fixtures/*.ui5.ts", { eager: true })
-const rendererFor = (name: string) => renderers[`./fixtures/${name}.ui5.ts`]?.default
+const rendererFor = (name: string) => phoneMode ? phoneRenderers[`./fixtures-phone/${name}.ui5.ts`]?.default : renderers[`./fixtures/${name}.ui5.ts`]?.default
 
 const opts = readPageOptions()
 // UI5 locale/getEffectiveDir.js reads :dir(rtl) before its first render.
 document.documentElement.dir = opts.dir
 await setTheme(opts.theme)
 if (opts.density === "compact") document.body.setAttribute("data-ui5-compact-size", "")
-document.body.style.cssText = "margin:0;padding:1rem;background:var(--sapBackgroundColor);font-family:var(--sapFontFamily)"
+document.body.style.cssText = `margin:0;padding:${phoneMode ? "0" : "1rem"};background:var(--sapBackgroundColor);font-family:var(--sapFontFamily)`
 
 const root = document.getElementById("root")!
 // Match the React grid: direction belongs to each fixture, not grid positioning.
 root.dir = "ltr"
 root.style.cssText = "display:flex;flex-wrap:wrap;gap:1rem;align-items:flex-start"
 const fixtureReadiness: Promise<void>[] = []
-for (const set of fixtureSets) {
+;(window as any).__fixtures = (phoneMode ? phoneFixtureSets : fixtureSets).flatMap((set) => set.cases.map((c) => ({ id: c.id, tolerance: set.tolerance ?? 0.02 })))
+for (const set of phoneMode ? phoneFixtureSets : fixtureSets) {
   const render = rendererFor(set.name)
   if (!render) continue
   for (const c of set.cases) {
-    if (opts.only && c.id !== opts.only) continue
+    if (opts.only ? c.id !== opts.only : phoneMode && c.id !== "responsive-popover-phone") continue
     if (set.skipCompare?.includes(c.id)) continue
     const cell = document.createElement("div")
     cell.dir = opts.dir
     cell.dataset.fixture = c.id
-    cell.style.cssText = "display:inline-flex;padding:0.25rem;line-height:normal"
+    cell.style.cssText = `display:inline-flex;padding:${phoneMode ? "0" : "0.25rem"};line-height:normal`
     const fixture = render(c.props)
     cell.append(fixture)
     if (fixture.fixtureReady) fixtureReadiness.push(fixture.fixtureReady)

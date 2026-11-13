@@ -8,7 +8,11 @@
     "@fiori/input",
     "@fiori/token",
     "@fiori/tokenizer",
-    "@fiori/f6-navigation"
+    "@fiori/f6-navigation",
+    "@fiori/use-is-phone",
+    "@fiori/responsive-popover",
+    "@fiori/button",
+    "@fiori/toggle-button"
   ],
   "description": "Fiori multi input: a text field with tokens, value help and suggestions, plus the SAP token keyboard model."
 }

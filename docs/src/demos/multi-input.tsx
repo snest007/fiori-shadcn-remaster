@@ -61,6 +61,8 @@ export default defineDemo({
         { name: "MultiInput.onTokenDelete", type: "(values: string[]) => void", description: "Receive deleted token values; remove them in the caller." },
         { name: "MultiInput.showValueHelpIcon", type: "boolean", description: "Show the value-help action." },
         { name: "MultiInput.onValueHelpTrigger", type: "() => void", description: "Handle value-help activation." },
+        { name: "MultiInput.dialogTitle / okText / cancelText", type: "string", description: "Override phone suggestion dialog strings. Existing tokens initially appear in the dialog; Cancel restores its opening text.", defaultValue: "All Items / OK / Cancel" },
+        { name: "MultiInput.showTokensLabel", type: "string", description: "Accessible name of the phone tokens/suggestions toggle.", defaultValue: "Show selected tokens" },
       ],
     },
   ],

@@ -5,6 +5,11 @@ import { Popover as PopoverPrimitive } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
+import { useIsPhone } from "@/lib/use-is-phone"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { ResponsivePopover, ResponsivePopoverAnchor, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
+
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
@@ -65,6 +70,10 @@ type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue
   /** Render the list in place instead of in a portal on document.body. */
   portal?: boolean
   wrapperClassName?: string
+  /** Phone dialog title and action labels (UI5 ComboBoxPopoverTemplate). */
+  dialogTitle?: string
+  okText?: string
+  cancelText?: string
 }
 
 const SKIP_ITEMS = 10
@@ -142,10 +151,14 @@ function ComboBox({
   arrowLabel = "Select Options",
   listLabel = "Available Options",
   portal = true,
+  dialogTitle = "All Items",
+  okText = "OK",
+  cancelText = "Cancel",
   disabled,
   readOnly,
   id,
   onKeyDown,
+  onClick,
   onKeyUp,
   onFocus,
   onBlur,
@@ -153,6 +166,11 @@ function ComboBox({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: ComboBoxProps) {
+  const phone = useIsPhone()
+  const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
+  const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
+  const Content = phone ? ResponsivePopoverContent : PopoverPrimitive.Content
+  const phoneInputRef = React.useRef<HTMLInputElement>(null)
   const entries = collectEntries(children)
   const items = entries.flatMap((entry) => isGroup(entry) ? entry.items : [entry])
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
@@ -162,6 +180,7 @@ function ComboBox({
   const [filterValue, setFilterValue] = React.useState("")
   /** Index (in the visible list) of the item that has virtual focus, -1 = the input has it. */
   const [active, setActive] = React.useState(-1)
+  const [phoneFocused, setPhoneFocused] = React.useState(0)
 
   const inputRef = React.useRef<HTMLInputElement>(null)
   React.useImperativeHandle(ref, () => inputRef.current!, [])
@@ -230,7 +249,8 @@ function ComboBox({
 
   React.useLayoutEffect(() => {
     const sel = pendingSelection.current
-    if (sel && inputRef.current && document.activeElement === inputRef.current) inputRef.current.setSelectionRange(sel[0], sel[1])
+    const input = phone && open ? phoneInputRef.current : inputRef.current
+    if (sel && input && document.activeElement === input) input.setSelectionRange(sel[0], sel[1])
     pendingSelection.current = null
   })
   React.useEffect(() => {
@@ -291,6 +311,7 @@ function ComboBox({
     userTyped.current = ""
     pendingSelection.current = [0, value.length]
     setOpen(true)
+    if (phone) return
     const allRows = rowsFor(items, true)
     const sel = allRows.findIndex((i) => !isGroup(i) && i.text.toLowerCase() === value.toLowerCase())
     if (sel >= 0) setActive(sel)
@@ -310,6 +331,13 @@ function ComboBox({
     if (!item || isGroup(item)) return
     pendingSelection.current = [item.text.length, item.text.length]
     setValue(item.text)
+    // ComboBox.js/_selectItem reports selection-change before _fireChangeEvent.
+    // Report synchronously on phones and mark it reported to avoid effect echo.
+    if (phone && prevSelected.current?.text !== item.text) {
+      prevSelected.current = item
+      onSelectionChange?.(item)
+      inputRef.current?.dispatchEvent(new Event("fiori-control-selection-change", { bubbles: true }))
+    }
     commit(item.text)
     setOpen(false)
   }
@@ -324,19 +352,64 @@ function ComboBox({
       key={`${item.text}-${i}`}
       id={optionId(i)}
       role="option"
+      tabIndex={phone ? (i === phoneFocused || i === selected ? 0 : -1) : undefined}
       aria-selected={i === selected}
       data-state={i === selected ? "checked" : undefined}
       data-highlighted={i === active ? "" : undefined}
       className="fiori-list-item fiori-combobox__item"
       onClick={() => choose(i)}
+      onFocus={phone ? () => setPhoneFocused(i) : undefined}
+      onKeyDown={phone ? (event) => {
+        // ComboBoxItem.js inherits ListItemBase's exact-key activation phases.
+        if (event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+        if (event.key === " ") event.preventDefault()
+        if (event.key === "Enter") { event.preventDefault(); choose(i) }
+      } : undefined}
+      onKeyUp={phone ? (event) => {
+        if (event.target === event.currentTarget && event.key === " " && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) choose(i)
+      } : undefined}
     >
       <span className="fiori-combobox__item-text">{highlight(item.text, filterValue)}</span>
       {item.additionalText && <span className="fiori-combobox__item-additional">{item.additionalText}</span>}
     </div>
   )
 
+  // ComboBox.js/_handleMobileInput edits live; Cancel/Escape restore _lastValue,
+  // OK commits, and selecting a row commits and closes immediately.
+  const closePhone = (cancel = false) => {
+    const next = cancel ? lastValue.current : value
+    if (cancel) setValue(next)
+    else commit(next)
+    setOpen(false)
+    phoneInputRef.current?.blur()
+  }
+  const phoneProps = phone ? {
+    headerText: dialogTitle, phoneField: true, phoneOwnerRef: inputRef, preventFocusRestore: true,
+    phoneClassName: "fiori-combobox-phone",
+    phoneHeader: <div className="fiori-responsive-popover__rows">
+      <div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
+      <div className="fiori-responsive-popover__row fiori-responsive-popover__row--input">
+        <Input ref={phoneInputRef} aria-label={dialogTitle} placeholder={props.placeholder} value={value} valueState={valueState} valueStateMessage={null}
+          role="combobox" aria-expanded={open} aria-controls={listId} aria-autocomplete="both" aria-activedescendant={active >= 0 ? optionId(active) : undefined}
+          onChange={(e) => { setValue(e.target.value); setFilterValue(e.target.value); userTyped.current = e.target.value; setActive(-1) }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") { e.preventDefault(); closePhone(true) }
+            // ComboBox.js/_handleMobileKeydown handles only Escape. Its phone
+            // Input's Enter/change does not close or commit the owning dialog.
+            // The embedded phone Input does not navigate the owning list from
+            // its arrow keys (ComboBoxPopoverTemplate.js has no key forwarding).
+          }} />
+      </div>
+    </div>,
+    phoneFooter: <><Button variant="emphasized" onClick={() => closePhone()}>{okText}</Button><Button variant="transparent" onClick={() => closePhone(true)}>{cancelText}</Button></>,
+    onOpenAutoFocus: (e: Event) => { e.preventDefault(); phoneInputRef.current?.focus() },
+    onEscapeKeyDown: () => closePhone(true),
+    // ComboBox.js/_handlePopoverKeydown uses isTabNext only; its phone
+    // header Input/footer do not share the outer field's _keydown handler.
+    onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => { if (e.key === "Tab" && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) closePhone() },
+  } : {}
   const listContent = (
-    <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
+    <Content data-sap-ui-fastnavgroup-container="true"
       data-slot="combobox-popover"
       align="start"
       sideOffset={4}
@@ -344,12 +417,15 @@ function ComboBox({
       onOpenAutoFocus={(e) => e.preventDefault()}
       onCloseAutoFocus={(e) => e.preventDefault()}
       onInteractOutside={(e) => {
-        if (inputRef.current?.parentElement?.contains(e.target as Node)) e.preventDefault()
+        // UI5's picker has no Radix focus sentinels. Modified Tab can reach
+        // these implementation guards without entering a real outside control.
+        if (inputRef.current?.parentElement?.contains(e.target as Node) || (e.target as HTMLElement)?.hasAttribute("data-radix-focus-guard")) e.preventDefault()
       }}
-      className={cn(
+      className={phone ? undefined : cn(
         "fiori-popover fiori-combobox__popover z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col",
         !visible.length && !showHeader && "hidden"
       )}
+      {...phoneProps}
     >
       {showHeader && (
         <div data-value-state={valueState} className="fiori-value-state-message fiori-combobox__header">
@@ -366,6 +442,23 @@ function ComboBox({
           aria-label={listLabel}
           className="overflow-y-auto"
           onMouseDown={(e) => e.preventDefault()}
+          onKeyDown={phone ? (event) => {
+            if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return
+            const rows = [...(listRef.current?.querySelectorAll<HTMLElement>('[role="option"], [data-slot="combobox-group-header"]') ?? [])]
+            const index = rows.indexOf(event.target as HTMLElement)
+            if (index < 0) return
+            // List.js/ItemNavigation uses actual row focus, a ten-item Page step,
+            // and static boundaries. List Tab forwards around every row.
+            if (event.key === "Tab" && event.shiftKey) {
+              // List.js/onForwardBefore stops propagation after forwarding.
+              // Otherwise Dialog's FocusScope sees the newly focused first
+              // control and wraps the same Shift+Tab to its last footer button.
+              event.preventDefault(); event.stopPropagation(); phoneInputRef.current?.focus(); return
+            }
+            if (event.shiftKey) return
+            const next = event.key === "ArrowDown" ? Math.min(index + 1, rows.length - 1) : event.key === "ArrowUp" ? Math.max(index - 1, 0) : event.key === "Home" ? 0 : event.key === "End" ? rows.length - 1 : event.key === "PageDown" ? Math.min(index + SKIP_ITEMS, rows.length - 1) : event.key === "PageUp" ? Math.max(index - SKIP_ITEMS, 0) : -1
+            if (next >= 0) { event.preventDefault(); rows[next]?.focus(); rows[next]?.scrollIntoView({ block: "nearest" }) }
+          } : undefined}
         >
           {orderedEntries.map((entry, index) => {
             if (!isGroup(entry)) return visible.includes(entry) ? renderItem(entry, visible.indexOf(entry)) : null
@@ -375,6 +468,7 @@ function ComboBox({
               <div key={`group-${index}`} data-slot="combobox-item-group" role="group">
                 {entry.headerText && (
                   <div id={optionId(visible.indexOf(entry))} data-slot="combobox-group-header" role="group" aria-label={entry.headerText}
+                    tabIndex={phone ? (visible.indexOf(entry) === phoneFocused ? 0 : -1) : undefined} onFocus={phone ? () => setPhoneFocused(visible.indexOf(entry)) : undefined}
                     data-highlighted={active === visible.indexOf(entry) ? "" : undefined} className="fiori-combobox__group-header">
                     <span>{entry.headerText}</span>
                   </div>
@@ -385,12 +479,12 @@ function ComboBox({
           })}
         </div>
       )}
-    </PopoverPrimitive.Content>
+    </Content>
   )
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
-      <PopoverPrimitive.Anchor asChild>
+    <Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
+      <Anchor asChild>
         <div
           data-slot="combobox"
           data-value-state={hasState ? valueState : undefined}
@@ -407,7 +501,7 @@ function ComboBox({
             role="combobox"
             autoComplete="off"
             aria-autocomplete="both"
-            aria-haspopup="listbox"
+            aria-haspopup={phone ? "dialog" : "listbox"}
             aria-expanded={open}
             aria-controls={open ? listId : undefined}
             aria-activedescendant={open && active >= 0 ? optionId(active) : undefined}
@@ -434,6 +528,7 @@ function ComboBox({
                 }
               }
               setValue(next)
+              if (phone) return
               if (!matches.length || typed === "") setOpen(false)
               else setOpen(true)
             }}
@@ -460,7 +555,9 @@ function ComboBox({
                   setValue(lastValue.current)
                 }
               }
-              if (key === "Tab" && open) setOpen(false)
+              // ComboBox.js/_keydown closes only for Keys.js/isTabNext or
+              // isTabPrevious: plain Tab/Shift+Tab, never Ctrl/Alt/Meta Tab.
+              if (key === "Tab" && !alt && !ctrl && !meta && open) setOpen(false)
               // ComboBox.js/_keydown uses Keys.isShow: Alt-only arrows exclude both Ctrl and Meta.
               const isShow = (key === "F4" && !alt && !ctrl && !shift && !meta) || ((key === "ArrowDown" || key === "ArrowUp") && alt && !ctrl && !shift && !meta)
               if (isShow && !readOnly && !disabled) {
@@ -472,15 +569,19 @@ function ComboBox({
               onKeyUp?.(e)
               userTyped.current = e.currentTarget.value.slice(0, e.currentTarget.selectionStart ?? 0)
             }}
+            onClick={(e) => { onClick?.(e); if (!e.defaultPrevented && phone && !disabled && !readOnly) { lastValue.current = value; setOpen(true) } }}
             onFocus={(e) => {
               lastValue.current = e.currentTarget.value
-              e.currentTarget.setSelectionRange(0, e.currentTarget.value.length)
+              if (!phone) e.currentTarget.setSelectionRange(0, e.currentTarget.value.length)
               onFocus?.(e)
             }}
             onBlur={(e) => {
-              if (listRef.current?.contains(e.relatedTarget as Node)) return
+              if ((phone && open) || listRef.current?.contains(e.relatedTarget as Node)) return
               commit()
-              setOpen(false)
+              // ComboBox.js/_focusout commits without closing its picker.
+              // Alt/Meta+Tab can move browser focus to a Radix sentinel, which
+              // is not a native outside control and must not add a close path.
+              if (!(e.relatedTarget as HTMLElement)?.hasAttribute("data-radix-focus-guard")) setOpen(false)
               onBlur?.(e)
             }}
             {...props}
@@ -516,9 +617,9 @@ function ComboBox({
             </div>
           )}
         </div>
-      </PopoverPrimitive.Anchor>
-      {portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
-    </PopoverPrimitive.Root>
+      </Anchor>
+      {!phone && portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
+    </Root>
   )
 }
 

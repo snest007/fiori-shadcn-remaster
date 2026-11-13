@@ -6,7 +6,13 @@ import { Popover as PopoverPrimitive } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
-import { slimArrowDown } from "@/lib/fiori-icons"
+import { useIsPhone } from "@/lib/use-is-phone"
+import { ResponsivePopover, ResponsivePopoverAnchor, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
+import { Button } from "@/components/ui/button"
+import { ToggleButton } from "@/components/ui/toggle-button"
+import { Input } from "@/components/ui/input"
+
+import { multiselectAll, slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Icon } from "@/components/ui/icon"
@@ -45,7 +51,7 @@ function MultiComboBoxItemGroup(_props: MultiComboBoxItemGroupProps): React.Reac
 type MultiComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
   /** <MultiComboBoxItem> and <MultiComboBoxItemGroup> elements (fragments and arrays are fine). */
   children?: React.ReactNode
-  /** Values (item `value`, else `text`) of the selected items; each one shows as a token. */
+  /** Controlled UI5 `selectedValues` (item `value`, else `text`); only caller-approved values become tokens after a phone commit. */
   selectedValues?: string[]
   defaultSelectedValues?: string[]
   onSelectionChange?: (values: string[]) => void
@@ -86,6 +92,10 @@ type MultiComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "default
   /** Render the list in place instead of in a portal on document.body. */
   portal?: boolean
   wrapperClassName?: string
+  dialogTitle?: string
+  okText?: string
+  cancelText?: string
+  showSelectedLabel?: string
 }
 
 type Item = MultiComboBoxItemProps & { key: string }
@@ -178,11 +188,16 @@ function MultiComboBox({
   nMoreText,
   tokensCountText = defaultTokensCountText,
   portal = true,
+  dialogTitle = "All Items",
+  okText = "OK",
+  cancelText = "Cancel",
+  showSelectedLabel = "Show Selected Items Only",
   disabled,
   readOnly,
   placeholder,
   id,
   onKeyDown,
+  onClick,
   onFocus,
   onBlur,
   onPaste,
@@ -190,15 +205,30 @@ function MultiComboBox({
   "aria-label": ariaLabel,
   ...props
 }: MultiComboBoxProps) {
+  const phone = useIsPhone()
+  const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
+  const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
+  const Content = phone ? ResponsivePopoverContent : PopoverPrimitive.Content
+  const phoneInputRef = React.useRef<HTMLInputElement>(null)
+  const [phoneInputValue, setPhoneInputValue] = React.useState("")
   const entries = collectEntries(children)
   const items = entries.flatMap((entry) => isGroup(entry) ? entry.items : [entry])
   const [uncontrolledSelected, setUncontrolledSelected] = React.useState(defaultSelectedValues)
-  const selectedValues = selectedProp ?? uncontrolledSelected
+  const committedValues = selectedProp ?? uncontrolledSelected
+  const [phoneSelected, setPhoneSelected] = React.useState(committedValues)
+  const previousCommittedValues = React.useRef(committedValues)
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
+  const open = (openProp ?? uncontrolledOpen) && !disabled
+  // MultiComboBox.js/_syncSelection (called by onBeforeRendering) makes
+  // selectedValues authoritative for value-bearing items. The phone List may
+  // stage checkbox edits, but collapsed tokens always use the caller's array.
+  const selectedValues = phone && open && committedValues === previousCommittedValues.current ? phoneSelected : committedValues
+  const latestPhoneSelected = React.useRef(selectedValues)
+  latestPhoneSelected.current = selectedValues
+  const phoneSnapshot = React.useRef({ selected: committedValues, value: valueProp ?? defaultValue })
   const selectedSet = new Set(selectedValues)
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolledValue
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
-  const open = (openProp ?? uncontrolledOpen) && !disabled
   const [typed, setTyped] = React.useState("")
   const [filtering, setFiltering] = React.useState(false)
   const [filterSelected, setFilterSelected] = React.useState(false)
@@ -254,8 +284,13 @@ function MultiComboBox({
     if (valueProp === undefined) setUncontrolledValue(v)
     if (v !== value) onValueChange?.(v)
   }
-  const setSelected = (next: string[]) => {
+  const setSelected = (next: string[], immediate = false) => {
     const ordered = items.map((i) => i.key).filter((k) => next.includes(k))
+    if (phone) {
+      latestPhoneSelected.current = ordered
+      setPhoneSelected(immediate && selectedProp !== undefined ? committedValues : ordered)
+    }
+    if (phone && open && !immediate) return
     if (selectedProp === undefined) setUncontrolledSelected(ordered)
     onSelectionChange?.(ordered)
     // UI5 MultiComboBox.js/fireSelectionChange also emits for unchanged Shift ranges.
@@ -263,6 +298,8 @@ function MultiComboBox({
   }
   const setOpen = (o: boolean) => {
     if (o === open) return
+    if (phone && o) { setPhoneSelected(committedValues); phoneSnapshot.current = { selected: [...committedValues], value } }
+    if (phone && !o && selectedProp === undefined) setUncontrolledSelected(latestPhoneSelected.current)
     if (openProp === undefined) setUncontrolledOpen(o)
     onOpenChange?.(o)
     if (!o) {
@@ -270,6 +307,22 @@ function MultiComboBox({
       setIconPressed(false)
     }
   }
+  React.useLayoutEffect(() => {
+    if (previousCommittedValues.current !== committedValues) {
+      previousCommittedValues.current = committedValues
+      setPhoneSelected(committedValues)
+    }
+  })
+  const previousPhoneOpen = React.useRef(false)
+  React.useLayoutEffect(() => {
+    // MultiComboBox.js/_beforeOpen also snapshots when the public open property
+    // changes, rather than only when the field itself requests the dialog.
+    if (phone && open && !previousPhoneOpen.current) {
+      setPhoneSelected(committedValues)
+      phoneSnapshot.current = { selected: [...committedValues], value }
+    }
+    previousPhoneOpen.current = phone && open
+  }, [phone, open, committedValues, value])
   const commit = (v = value) => {
     if (v !== lastCommitted.current) {
       lastCommitted.current = v
@@ -282,7 +335,8 @@ function MultiComboBox({
 
   React.useLayoutEffect(() => {
     const sel = pendingSelection.current
-    if (sel && inputRef.current && document.activeElement === inputRef.current) inputRef.current.setSelectionRange(sel[0], sel[1])
+    const input = phone && open ? phoneInputRef.current : inputRef.current
+    if (sel && input && document.activeElement === input) input.setSelectionRange(sel[0], sel[1])
     pendingSelection.current = null
   })
 
@@ -303,8 +357,8 @@ function MultiComboBox({
     requestAnimationFrame(() => (target === "select-all" ? selectAllEl()?.focus() : focusOption(target)))
   })
 
-  const toggleItem = (key: string) => {
-    setSelected(selectedSet.has(key) ? selectedValues.filter((k) => k !== key) : [...selectedValues, key])
+  const toggleItem = (key: string, immediate = false) => {
+    setSelected(selectedSet.has(key) ? selectedValues.filter((k) => k !== key) : [...selectedValues, key], immediate)
     if (invalid) setInvalid(false)
   }
 
@@ -409,6 +463,8 @@ function MultiComboBox({
       return
     }
     if (key === "PageUp" || key === "PageDown") return e.preventDefault()
+    // MultiComboBox.js/_onkeydown deliberately forwards raw e.key === "Tab"
+    // to _handleTab, unlike its exact-predicate row/select-all handlers.
     if (key === "Tab") return setOpen(false)
     if (key === "Enter") {
       const match = items.find((i) => i.text.toLowerCase() === value.toLowerCase())
@@ -455,17 +511,28 @@ function MultiComboBox({
     const onSelectAll = (e.target as HTMLElement).dataset.slot === "multi-combobox-select-all"
     const { key, altKey: alt, shiftKey: shift } = e
     const ctrl = e.ctrlKey || e.metaKey
+    // Phone MultiComboBoxItem -> ComboBoxItem -> ListItemBase rejects all
+    // modified Enter/Space keys; desktop's existing selection model is retained.
+    if (phone && (key === " " || key === "Enter") && (alt || ctrl || shift)) return
+    // MultiComboBox.js/_onItemKeydown uses Keys.js/isShow: extra modifiers
+    // neither close the phone list nor fall through to range selection.
+    if (phone && alt && (ctrl || shift) && (key === "ArrowDown" || key === "ArrowUp")) return
     // UI5 Keys.js/isDownShift and isUpShift require Shift without Ctrl/Meta/Alt.
     // In grouped lists these modified arrows neither range-select nor toggle.
     if (shift && (ctrl || alt) && (key === "ArrowDown" || key === "ArrowUp") && entries.some(isGroup)) {
       e.preventDefault()
       return
     }
-    if (key === "Tab") {
+    // MultiComboBox.js/_onItemKeydown and _onListHeaderKeydown both call
+    // _onItemTab only for Keys.js/isTabNext/isTabPrevious (no Ctrl/Alt/Meta).
+    if (key === "Tab" && !alt && !ctrl) {
       inputRef.current?.focus()
       setOpen(false)
       return
     }
+    // Both native handlers prevent the remaining list/header keys before
+    // navigation, so a modified Tab also keeps browser focus on this surface.
+    if (key === "Tab") { e.preventDefault(); return }
     if ((key === "F4" && !alt && !ctrl && !shift) || ((key === "ArrowDown" || key === "ArrowUp") && alt)) {
       e.preventDefault()
       setOpen(false)
@@ -536,6 +603,7 @@ function MultiComboBox({
         return focusOption(key === "PageUp" ? Math.max(index - SKIP_ITEMS, 0) : Math.min(index + SKIP_ITEMS, els.length - 1))
       case " ":
         e.preventDefault()
+        if (phone) return // ListItemBase.js/_onkeyup presses Space only on release
         if (readOnly || isGroup(item)) return
         toggleItem(item.key)
         if (!selectedSet.has(item.key) || selectedItems.length > 1 || !filterSelected) return
@@ -549,25 +617,25 @@ function MultiComboBox({
   /** Click on the row / Enter: toggle, close, clear the text (UI5 non-checkbox item press). */
   const pressItem = (item: Item) => {
     if (readOnly) return
-    toggleItem(item.key)
+    toggleItem(item.key, true)
     setOpen(false)
     setValue("")
     setTyped("")
     setFiltering(false)
     lastCommitted.current = ""
-    inputRef.current?.focus()
+    if (!phone) inputRef.current?.focus()
   }
 
   const toggleAll = () => {
     if (readOnly) return
     if (filterSelected) {
-      setSelected(allSelected ? [] : items.map((i) => i.key))
+      setSelected(allSelected ? [] : items.map((i) => i.key), phone)
       if (allSelected) setFilterSelected(false)
       return
     }
     const keys = filtered.map((i) => i.key)
     const all = keys.every((k) => selectedSet.has(k))
-    setSelected(all ? selectedValues.filter((k) => !keys.includes(k)) : [...new Set([...selectedValues, ...keys])])
+    setSelected(all ? selectedValues.filter((k) => !keys.includes(k)) : [...new Set([...selectedValues, ...keys])], phone)
   }
 
   const iconCount = readOnly ? 0 : 1
@@ -584,6 +652,11 @@ function MultiComboBox({
         className="fiori-list-item fiori-multi-combobox__item"
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => pressItem(item)}
+        onKeyUp={phone ? (event) => {
+          if (event.target !== event.currentTarget || event.key !== " " || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || readOnly) return
+          toggleItem(item.key)
+          if (isSelected && selectedItems.length === 1 && filterSelected) setFilterSelected(false)
+        } : undefined}
       >
         <Checkbox
           tabIndex={-1}
@@ -606,8 +679,70 @@ function MultiComboBox({
     )
   }
 
+  // MultiComboBox.js/_beforeOpen, handleCancel, handleOK and
+  // _listSelectionChange: checkbox edits stay provisional; row press commits.
+  const cancelPhone = () => {
+    setPhoneSelected(phoneSnapshot.current.selected)
+    if (selectedProp === undefined) setUncontrolledSelected(phoneSnapshot.current.selected)
+    setValue(phoneSnapshot.current.value)
+    // MultiComboBox.js/handleCancel restores the owning value. Its next
+    // onBeforeRendering filters the restored source when the field reopens;
+    // the dialog-local Input independently retains its previous edit text.
+    setTyped(phoneSnapshot.current.value)
+    if (openProp === undefined) setUncontrolledOpen(false)
+    onOpenChange?.(false)
+    setFilterSelected(false)
+    setInvalid(false)
+  }
+  const acceptPhone = () => {
+    setSelected(selectedValues, true)
+    if (!noValidation) setValue("")
+    setOpen(false)
+    setInvalid(false)
+  }
+  const phoneProps = phone ? {
+    headerText: dialogTitle, phoneField: true, phoneOwnerRef: inputRef, phoneClassName: "fiori-multi-combobox-phone",
+    phoneHeader: <div className="fiori-responsive-popover__rows">
+      <div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
+      <div className="fiori-responsive-popover__row fiori-responsive-popover__row--input">
+        {/* MultiComboBoxPopoverTemplate.js omits Input.value. _beforeOpen writes
+            only the raw _innerInput, so a first external-open render leaves the
+            header blank while retaining the source value and Cancel snapshot.
+            Preserve the phone Input's own edit state across dialog openings. */}
+        <Input ref={phoneInputRef} aria-label={dialogTitle} placeholder={placeholder} value={phoneInputValue} valueState={valueState} valueStateMessage={null}
+          onChange={(e) => { const text = e.target.value; setPhoneInputValue(text); setValue(text); setTyped(text); setFiltering(true); setFilterSelected(false); setInvalid(!items.some((i) => filters[filter](text, i.text))) }}
+          onKeyDown={(e) => {
+            // MultiComboBox.js/_onMobileInputKeydown handles plain Enter only.
+            // The embedded phone Input does not forward arrows to this List.
+            if (e.key === "Enter" && !e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
+              const matching = items.find((i) => i.text === phoneInputValue)
+              if (matching) {
+                // MultiComboBox.js/_onMobileInputKeydown fires selection-change
+                // before toggling the matching item, unlike row selection.
+                e.preventDefault()
+                setSelected(selectedValues, true)
+                // _syncSelection resets this post-event toggle for controlled
+                // item.value/selectedValues; the flag-only uncontrolled path
+                // retains it without emitting a second selection-change.
+                if (selectedProp === undefined) toggleItem(matching.key)
+                setValue("")
+                setOpen(false)
+              }
+            }
+          }} />
+        <ToggleButton variant="transparent" pressed={filterSelected} disabled={!selectedItems.length} aria-label={showSelectedLabel}
+          onPressedChange={(pressed) => { setFilterSelected(pressed); setFiltering(false) }}><Icon icon={multiselectAll} /></ToggleButton>
+      </div>
+    </div>,
+    phoneFooter: <><Button variant="emphasized" onClick={acceptPhone}>{okText}</Button><Button variant="transparent" onClick={cancelPhone}>{cancelText}</Button></>,
+    onOpenAutoFocus: (e: Event) => { e.preventDefault(); contentRef.current?.focus() },
+    onEscapeKeyDown: () => setOpen(false),
+    // MultiComboBox.js/_afterClose closes the phone keyboard; pointer-opened
+    // dialogs leave focus on the document rather than reopening the field.
+    onCloseAutoFocus: (e: Event) => { e.preventDefault(); phoneInputRef.current?.blur() },
+  } : {}
   const listContent = (
-    <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
+    <Content data-sap-ui-fastnavgroup-container="true"
       ref={contentRef}
       data-slot="multi-combobox-popover"
       align="start"
@@ -625,10 +760,11 @@ function MultiComboBox({
       onFocusOutside={(e) => {
         if (fieldRef.current?.contains(e.target as Node)) e.preventDefault()
       }}
-      className={cn(
+      className={phone ? undefined : cn(
         "fiori-popover fiori-multi-combobox__popover z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col",
         !visible.length && !showHeader && !showSelectAll && "hidden"
       )}
+      {...phoneProps}
     >
       {showHeader && (
         <div data-value-state={valueState} className="fiori-value-state-message fiori-multi-combobox__header">
@@ -686,12 +822,12 @@ function MultiComboBox({
           })}
         </div>
       </div>
-    </PopoverPrimitive.Content>
+    </Content>
   )
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
-      <PopoverPrimitive.Anchor asChild>
+    <Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
+      <Anchor asChild>
         <div
           ref={fieldRef}
           data-slot="multi-combobox"
@@ -716,7 +852,7 @@ function MultiComboBox({
             className="fiori-tokenized-field__tokenizer"
             readOnly={readOnly}
             disabled={disabled}
-            expanded={focused || open}
+            expanded={!phone && (focused || open)}
             preventInitialFocus
             hidePopoverArrow
             popoverAnchor={fieldRef}
@@ -746,7 +882,9 @@ function MultiComboBox({
                 e.preventDefault()
                 setTimeout(() => inputRef.current?.focus())
               }
-              if ((e.key === "F4" || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp"))) && !readOnly && !disabled) {
+              const isShow = (e.key === "F4" || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")))
+                && (!phone || (!e.ctrlKey && !e.metaKey && !e.shiftKey && (e.key !== "F4" || !e.altKey)))
+              if (isShow && !readOnly && !disabled) {
                 e.preventDefault()
                 toggleByKeyboard((e.target as HTMLElement).querySelector(".fiori-token__text")?.textContent ?? undefined)
               }
@@ -760,7 +898,7 @@ function MultiComboBox({
             role="combobox"
             autoComplete="off"
             aria-label={ariaLabel}
-            aria-haspopup="listbox"
+            aria-haspopup={phone ? "dialog" : "listbox"}
             aria-expanded={open}
             aria-autocomplete="both"
             aria-controls={open ? listId : undefined}
@@ -789,7 +927,7 @@ function MultiComboBox({
                 }
               }
               setValue(next)
-              setOpen(matches.length > 0 && !readOnly)
+              if (!phone) setOpen(matches.length > 0 && !readOnly)
             }}
             onPaste={(e) => {
               onPaste?.(e)
@@ -802,15 +940,30 @@ function MultiComboBox({
               }
             }}
             onKeyDown={handleInputKeyDown}
+            onClick={(e) => {
+              onClick?.(e)
+              if (!e.defaultPrevented && phone && !disabled && !readOnly) {
+                // The native phone source blurs before _click opens the dialog.
+                // Touch browsers can omit focus on click, so apply the same
+                // inputFocusOut value contract explicitly at this boundary.
+                if (noValidation) commit()
+                else if (value) { setValue(""); lastCommitted.current = "" }
+                setOpen(true)
+              }
+            }}
             onFocus={(e) => {
               setFocused(true)
-              e.currentTarget.setSelectionRange(0, e.currentTarget.value.length)
+              // MultiComboBox.js/inputFocusIn blurs the phone source field.
+              // Its ordinary blur path clears validated text or commits free
+              // text before a field-click opens the dialog.
+              if (phone && !readOnly) e.currentTarget.blur()
+              if (!phone) e.currentTarget.setSelectionRange(0, e.currentTarget.value.length)
               tokenizer.current?.deselectAll()
               onFocus?.(e)
             }}
             onBlur={(e) => {
               const to = e.relatedTarget as Node | null
-              if (fieldRef.current?.contains(to) || contentRef.current?.contains(to)) return onBlur?.(e)
+              if ((phone && open) || fieldRef.current?.contains(to) || contentRef.current?.contains(to)) return onBlur?.(e)
               if (!noValidation && value) {
                 setValue("")
                 setTyped("")
@@ -860,9 +1013,9 @@ function MultiComboBox({
             </div>
           )}
         </div>
-      </PopoverPrimitive.Anchor>
-      {portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
-    </PopoverPrimitive.Root>
+      </Anchor>
+      {!phone && portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
+    </Root>
   )
 }
 

@@ -6,7 +6,10 @@
   "registryDependencies": [
     "@fiori/icons",
     "@fiori/input",
-    "@fiori/f6-navigation"
+    "@fiori/f6-navigation",
+    "@fiori/use-is-phone",
+    "@fiori/responsive-popover",
+    "@fiori/button"
   ],
-  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open)."
+  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+\u2193 open)."
 }

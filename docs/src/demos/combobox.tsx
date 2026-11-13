@@ -85,6 +85,7 @@ export default defineDemo({
         { name: "ComboBox.onCommit", type: "(value: string) => void", description: "Receive committed text on Enter, blur or selection." },
         { name: "ComboBox.onSelectionChange", type: "(item: ComboBoxItemProps | null) => void", description: "Receive the matching item or null." },
         { name: "ComboBox.filter", type: "startsWithPerTerm | startsWith | contains | none", description: "Filtering strategy.", defaultValue: "startsWithPerTerm" },
+        { name: "ComboBox.dialogTitle / okText / cancelText", type: "string", description: "Override the phone dialog title and actions. Cancel/Escape restores the last committed text; OK or a row commits it.", defaultValue: "All Items / OK / Cancel" },
       ],
     },
   ],

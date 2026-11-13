@@ -6,6 +6,10 @@ import { Select as SelectPrimitive, Slot } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
+import { useIsPhone } from "@/lib/use-is-phone"
+import { Button } from "@/components/ui/button"
+import { ResponsivePopover, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
+
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
@@ -64,6 +68,9 @@ function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, expli
 type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root>
 
 function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, ...props }: SelectProps) {
+  const phone = useIsPhone()
+  const phoneListId = React.useId()
+  const [phoneState, setPhoneState] = React.useState<{ valueState: ValueState; message: React.ReactNode; accessibleName?: string }>({ valueState: "none", message: null })
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolledValue
   const changeTarget = React.useRef<HTMLDivElement>(null)
@@ -113,8 +120,8 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
 
   return (
     <SelectContext.Provider value={ctx}>
-      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget }}>
-        <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={open} onOpenChange={setOpen} {...props} />
+      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction }}>
+        <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={!phone && open} onOpenChange={setOpen} {...props} />
       </SelectOpenContext.Provider>
     </SelectContext.Provider>
   )
@@ -126,6 +133,11 @@ const SelectOpenContext = React.createContext<{
   value: string | undefined
   setValue: (v: string) => void
   changeTarget: React.RefObject<HTMLDivElement | null>
+  phone: boolean
+  phoneListId: string
+  direction: "ltr" | "rtl"
+  phoneState: { valueState: ValueState; message: React.ReactNode; accessibleName?: string }
+  setPhoneState: React.Dispatch<React.SetStateAction<{ valueState: ValueState; message: React.ReactNode; accessibleName?: string }>>
 } | null>(null)
 
 function SelectGroup(props: React.ComponentProps<typeof SelectPrimitive.Group>) {
@@ -140,6 +152,8 @@ type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger> &
   valueState?: ValueState
   /** Shown below the field while focused; defaults to SAP's standard text. `null` hides it. */
   valueStateMessage?: React.ReactNode | null
+  /** UI5 Select.js/valueStateTypeMappings; prefix of the phone state message. */
+  valueStateTypeText?: Partial<Record<Exclude<ValueState, "none">, string>>
   readOnly?: boolean
   wrapperClassName?: string
 }
@@ -150,9 +164,11 @@ function SelectTrigger({
   children,
   valueState = "none",
   valueStateMessage,
+  valueStateTypeText,
   readOnly,
   disabled,
   onKeyDown,
+  onKeyUp,
   onPointerDown,
   onClick,
   asChild,
@@ -164,6 +180,8 @@ function SelectTrigger({
   const hasState = valueState !== "none"
   const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
+
+  React.useLayoutEffect(() => { state?.setPhoneState({ valueState, accessibleName: props["aria-label"], message: showMessage ? (valueStateMessage === undefined && hasState ? `${valueStateTypeText?.[valueState] ?? ({ negative: "Value State Error", critical: "Value State Warning", positive: "Value State Success", information: "Value State Information" }[valueState])} ${message}` : message) : null }) }, [valueState, message, showMessage, valueStateTypeText, props["aria-label"]])
 
   return (
     <div
@@ -179,6 +197,7 @@ function SelectTrigger({
     >
       <SelectPrimitive.Trigger
         data-slot="select-trigger"
+        {...(state?.phone ? { "aria-expanded": state.open, "aria-controls": state.phoneListId, tabIndex: state.open ? -1 : 0 } : {})}
         disabled={disabled || readOnly}
         aria-readonly={readOnly || undefined}
         aria-invalid={valueState === "negative" || undefined}
@@ -192,6 +211,20 @@ function SelectTrigger({
         onKeyDown={(e) => {
           onKeyDown?.(e)
           if (e.defaultPrevented || !items || !state || state.open) return
+          // Select.js/_onkeydown/_onkeyup: phone Space opens only on release;
+          // Keys.js/isEnter/isSpace/isShow reject every extra modifier.
+          if (state.phone) {
+            const plain = !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey
+            if (e.key === " " || e.key === "Enter") {
+              e.preventDefault() // also suppress Radix's raw-key opener for modified keys
+              if (plain && e.key === "Enter" && !disabled && !readOnly) state.setOpen(true)
+              return
+            }
+            if (!plain && !(e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && (e.key === "ArrowDown" || e.key === "ArrowUp"))) {
+              if (["ArrowDown", "ArrowUp", "Home", "End", "F4"].includes(e.key)) e.preventDefault()
+              return
+            }
+          }
           if ((e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp")) || e.key === "F4") {
             e.preventDefault()
             state.setOpen(true)
@@ -201,6 +234,13 @@ function SelectTrigger({
             e.preventDefault()
             const next = items.step(state.value, e.key)
             if (next !== undefined && next !== state.value) state.setValue(next)
+          }
+        }}
+        onKeyUp={(e) => {
+          onKeyUp?.(e)
+          if (!e.defaultPrevented && state?.phone && e.key === " " && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && !disabled && !readOnly) {
+            e.preventDefault()
+            state.setOpen(true)
           }
         }}
         onPointerDown={(e) => {
@@ -248,16 +288,45 @@ function SelectTrigger({
   )
 }
 
+type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content> & {
+  onOpenAutoFocus?: (event: Event) => void
+  dialogTitle?: string
+  cancelText?: string
+  dialogLabel?: string
+  dialogNamePrefix?: string
+}
+const PhoneSelectItems = React.createContext<{ value: string | undefined; select: (value: string, close?: boolean) => void } | null>(null)
+
 function SelectContent({
   className,
   children,
   position = "popper",
   sideOffset = 4,
   onKeyDown,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
+  onEscapeKeyDown,
+  ref,
   asChild,
+  dialogTitle = "All Items",
+  cancelText = "Cancel",
+  dialogLabel,
+  dialogNamePrefix = "Select",
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
-  return (
+}: SelectContentProps) {
+  const state = React.useContext(SelectOpenContext)
+  const [draft, setDraft] = React.useState(state?.value)
+  const phoneList = React.useRef<HTMLDivElement>(null)
+  const typedChars = React.useRef("")
+  const typingTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+  React.useEffect(() => () => clearTimeout(typingTimer.current), [])
+  React.useLayoutEffect(() => { if (state?.open) setDraft(state.value) }, [state?.open])
+  const closePhone = (escape = false, selected = draft) => {
+    typedChars.current = ""
+    if (!escape && selected !== undefined && selected !== state?.value) state?.setValue(selected)
+    state?.setOpen(false)
+  }
+  const desktop = (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         data-slot="select-content"
@@ -268,7 +337,7 @@ function SelectContent({
           position === "popper" && "w-(--radix-select-trigger-width)",
           className
         )}
-        {...props} data-sap-ui-fastnavgroup-container="true"
+        {...props} ref={state?.phone ? undefined : ref} onCloseAutoFocus={state?.phone ? undefined : onCloseAutoFocus} onEscapeKeyDown={state?.phone ? undefined : onEscapeKeyDown} data-sap-ui-fastnavgroup-container="true"
         onKeyDown={onKeyDown}
         asChild
       >
@@ -284,6 +353,65 @@ function SelectContent({
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )
+  if (!state?.phone) return desktop
+  // Keep Radix's hidden item collection for SelectValue, form integration and
+  // closed keyboard navigation; the real phone list lives in a stretch Dialog.
+  return <>{desktop}<ResponsivePopover dir={state.direction} open={state.open} onOpenChange={(open) => !open && closePhone(true)}>
+    <ResponsivePopoverContent {...props} ref={ref} className={className} aria-label={props["aria-label"] ?? dialogLabel ?? (state.phoneState.accessibleName ? `${dialogNamePrefix} ${state.phoneState.accessibleName}` : undefined)} headerText={dialogTitle} phoneField phoneClassName="fiori-select-phone"
+      phoneHeader={<div className="fiori-responsive-popover__rows"><div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
+        {state.phoneState.valueState !== "none" && state.phoneState.valueState !== "positive" && state.phoneState.message != null &&
+          <div data-value-state={state.phoneState.valueState} className="fiori-value-state-message fiori-select-phone__message">{state.phoneState.message}</div>}
+      </div>}
+      phoneFooter={<Button variant="transparent" onClick={() => closePhone()}>{cancelText}</Button>}
+      onOpenAutoFocus={(event) => { onOpenAutoFocus?.(event); if (event.defaultPrevented) return; event.preventDefault(); phoneList.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus() }}
+      onCloseAutoFocus={(event) => { onCloseAutoFocus?.(event); if (event.defaultPrevented) return; event.preventDefault(); state.changeTarget.current?.querySelector<HTMLElement>('[data-slot="select-trigger"]')?.focus() }}
+      onEscapeKeyDown={(event) => { onEscapeKeyDown?.(event); if (!event.defaultPrevented) closePhone(true) }}
+      onKeyDown={(event) => {
+        onKeyDown?.(event)
+        if (event.defaultPrevented) return
+        // Select.js/_onkeydown, attached to ResponsivePopover in
+        // SelectPopoverTemplate.js, closes for Keys.js/isTabNext/isTabPrevious
+        // anywhere on the picker. Use the normal close path to commit its draft.
+        if (event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey) { closePhone(); return }
+        if (!phoneList.current?.contains(event.target as Node)) return
+        if ((event.key === "F4" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) || ((event.key === "ArrowDown" || event.key === "ArrowUp") && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey)) { event.preventDefault(); closePhone(); return }
+        const allOptions = [...(phoneList.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
+        const options = allOptions.filter((option) => option.getAttribute("aria-disabled") !== "true")
+        // Select.js/_handleKeyboardNavigation/_searchNextItemByText: Shift is
+        // allowed for printable text, repeated letters cycle, timeout is 1000ms.
+        if (event.key.length === 1 && event.key !== " " && !event.altKey && !event.ctrlKey && !event.metaKey) {
+          typedChars.current += event.key.toLowerCase()
+          const text = /^(.)\1+$/i.test(typedChars.current) ? event.key.toLowerCase() : typedChars.current
+          clearTimeout(typingTimer.current)
+          typingTimer.current = setTimeout(() => { typedChars.current = "" }, 1000)
+          const selected = allOptions.findIndex((option) => option.dataset.value === draft)
+          const ordered = [...allOptions.slice(selected + 1), ...allOptions.slice(0, Math.max(selected, 0))]
+          const next = ordered.find((option) => (option.dataset.textValue ?? option.textContent ?? "").toLowerCase().startsWith(text))
+          // _changeSelectedItem changes selected/focused properties, but does
+          // not move DOM focus. List's own ItemNavigation owns actual focus.
+          if (next) { setDraft(next.dataset.value); next.scrollIntoView({ block: "nearest" }) }
+          return
+        }
+        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+        const index = options.indexOf(document.activeElement as HTMLElement)
+        // List.js/ItemNavigation: Page keys skip ten enabled items and clamp.
+        const next = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : event.key === "ArrowDown" ? Math.min(index + 1, options.length - 1) : event.key === "ArrowUp" ? Math.max(index - 1, 0) : event.key === "PageDown" ? Math.min(index + 10, options.length - 1) : event.key === "PageUp" ? Math.max(index - 10, 0) : -1
+        if (index >= 0 && next >= 0) {
+          event.preventDefault(); options[next]?.focus(); options[next]?.scrollIntoView({ block: "nearest" })
+          // Select.js has no Page selection handler: those keys move List focus
+          // only, and the focused row is committed later by Enter/Space.
+          if (event.key !== "PageDown" && event.key !== "PageUp") {
+            const selected = allOptions.findIndex((option) => option.dataset.value === draft)
+            const selectedIndex = event.key === "Home" ? 0 : event.key === "End" ? allOptions.length - 1 : event.key === "ArrowDown" ? Math.min(selected + 1, allOptions.length - 1) : Math.max(selected - 1, 0)
+            setDraft(allOptions[selectedIndex]?.dataset.value)
+          }
+        }
+      }}>
+      <PhoneSelectItems.Provider value={{ value: draft, select: (value, close = true) => { setDraft(value); if (close) closePhone(false, value) } }}>
+        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true">{children}</div>
+      </PhoneSelectItems.Provider>
+    </ResponsivePopoverContent>
+  </ResponsivePopover></>
 }
 
 function SelectLabel({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Label>) {
@@ -300,16 +428,33 @@ function SelectLabel({ className, ...props }: React.ComponentProps<typeof Select
   )
 }
 
-function SelectItem({ className, children, value, disabled = false, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) {
+function SelectItem({ className, children, value, disabled = false, asChild, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) {
   const ctx = React.useContext(SelectContext)
+  const phoneItems = React.useContext(PhoneSelectItems)
   const ref = React.useCallback(
     (node: HTMLDivElement | null) => ctx?.register(value, node, disabled),
     [ctx, value, disabled]
   )
+  const PhoneHost = asChild ? Slot.Root : "div"
+  if (phoneItems) return <PhoneHost {...props} data-slot="select-item" data-value={value} data-text-value={props.textValue} role="option" aria-selected={phoneItems.value === value} aria-disabled={disabled || undefined}
+    tabIndex={!disabled && phoneItems.value === value ? 0 : -1} data-state={phoneItems.value === value ? "checked" : "unchecked"}
+    className={cn("fiori-list-item", className)} onMouseDown={(event) => { props.onMouseDown?.(event); event.preventDefault() }}
+    onClick={(event) => { props.onClick?.(event); if (!event.defaultPrevented && !disabled) phoneItems.select(value) }} onKeyDown={(event) => {
+      props.onKeyDown?.(event)
+      // Option.js inherits ListItemBase: Enter presses on keydown; plain Space
+      // only prevents scrolling here and presses on keyup.
+      if (event.defaultPrevented || disabled || event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
+      if (event.key === " ") event.preventDefault()
+      if (event.key === "Enter") { event.preventDefault(); phoneItems.select(value) }
+    }} onKeyUp={(event) => {
+      props.onKeyUp?.(event)
+      if (!event.defaultPrevented && !disabled && event.target === event.currentTarget && event.key === " " && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) phoneItems.select(value)
+    }}>{children}</PhoneHost>
   return (
     <SelectPrimitive.Item
       ref={ref}
       data-slot="select-item"
+      asChild={asChild}
       value={value}
       disabled={disabled}
       className={cn("fiori-list-item", className)}

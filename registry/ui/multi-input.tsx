@@ -7,6 +7,12 @@ import { Popover as PopoverPrimitive } from "radix-ui"
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
 import { valueHelp } from "@/lib/fiori-icons"
+import { useIsPhone } from "@/lib/use-is-phone"
+import { ResponsivePopover, ResponsivePopoverAnchor, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
+import { Button } from "@/components/ui/button"
+import { ToggleButton } from "@/components/ui/toggle-button"
+import { Input } from "@/components/ui/input"
+import { multiselectAll, decline } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
@@ -62,6 +68,12 @@ type MultiInputProps = Omit<React.ComponentProps<"input">, "value" | "defaultVal
   /** Screen-reader text for the token count. */
   tokensCountText?: (count: number) => string
   wrapperClassName?: string
+  dialogTitle?: string
+  okText?: string
+  cancelText?: string
+  showTokensLabel?: string
+  tokenDeleteLabel?: string
+  suggestionsLabel?: string
 }
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
@@ -131,17 +143,34 @@ function MultiInput({
   roleDescription = "Multi Value Input",
   nMoreText,
   tokensCountText = defaultTokensCountText,
+  dialogTitle = "All Items",
+  okText = "OK",
+  cancelText = "Cancel",
+  showTokensLabel = "Show selected tokens",
+  tokenDeleteLabel = "Delete",
+  suggestionsLabel = "Suggestions",
   disabled,
   readOnly,
   placeholder,
   id,
   onKeyDown,
+  onMouseDown,
+  onClick,
   onFocus,
   onBlur,
   "aria-describedby": ariaDescribedBy,
   "aria-label": ariaLabel,
   ...props
 }: MultiInputProps) {
+  const phone = useIsPhone()
+  const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
+  const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
+  const Content = phone ? ResponsivePopoverContent : PopoverPrimitive.Content
+  const phoneInputRef = React.useRef<HTMLInputElement>(null)
+  const phoneSuggestionSelected = React.useRef(false)
+  const phoneBeforeOpen = React.useRef(valueProp ?? defaultValue)
+  const [showPhoneTokens, setShowPhoneTokens] = React.useState(false)
+  const tokenItems = collectItems(tokens, Token)
   const items = collectItems(children, SuggestionItem)
   const tokenCount = countTokens(tokens)
   const hasTokens = tokenCount > 0
@@ -174,13 +203,14 @@ function MultiInput({
 
   const showSuggestions = items.length > 0
   const visible = items.filter((i) => filters[filter](typed, i.text))
-  const isOpen = open && showSuggestions && visible.length > 0 && !disabled && !readOnly
+  const isOpen = open && showSuggestions && (phone || visible.length > 0) && !disabled && !readOnly
 
   const setValue = (v: string) => {
     if (valueProp === undefined) setUncontrolledValue(v)
     if (v !== value) onValueChange?.(v)
   }
   const setOpen = (o: boolean) => {
+    if (phone && o && !open) { phoneBeforeOpen.current = value; setShowPhoneTokens(tokenCount > 0) }
     setOpenState(o)
     if (!o) setActive(-1)
   }
@@ -193,7 +223,8 @@ function MultiInput({
 
   React.useLayoutEffect(() => {
     const sel = pendingSelection.current
-    if (sel && inputRef.current && document.activeElement === inputRef.current) inputRef.current.setSelectionRange(sel[0], sel[1])
+    const input = phone && isOpen ? phoneInputRef.current : inputRef.current
+    if (sel && input && document.activeElement === input) input.setSelectionRange(sel[0], sel[1])
     pendingSelection.current = null
   })
   React.useEffect(() => {
@@ -202,6 +233,7 @@ function MultiInput({
   }, [isOpen, active])
 
   const choose = (item: SuggestionItemProps) => {
+    if (phone) phoneSuggestionSelected.current = true
     pendingSelection.current = [item.text.length, item.text.length]
     setValue(item.text)
     onSuggestionSelect?.(item)
@@ -285,7 +317,9 @@ function MultiInput({
       }
       return
     }
-    if (key === "Tab" && isOpen) {
+    // Input.js/_onkeydown calls _handleTab -> Suggestions.onTab only for
+    // Keys.js/isTabNext: Shift/modified Tab must not accept the active item.
+    if (key === "Tab" && plain && isOpen) {
       const item = active >= 0 ? visible[active] : null
       if (item) onSuggestionSelect?.(item)
       setOpen(false)
@@ -303,9 +337,33 @@ function MultiInput({
   const showHeader = isOpen && showMessage && valueState !== "positive"
   const iconCount = showValueHelpIcon ? 1 : 0
 
+  // Input.js/_afterOpenPicker, _confirmMobileValue, _cancelMobileValue and
+  // MultiInputTemplate.js/mobileHeader: token view starts selected on phones.
+  const cancelPhone = () => { setValue(phoneBeforeOpen.current); setOpen(false) }
+  const acceptPhone = () => { commit(); setOpen(false) }
+  const phoneProps = phone ? {
+    headerText: dialogTitle, phoneField: true, phoneOwnerRef: inputRef, preventFocusRestore: true,
+    phoneClassName: "fiori-multi-input-phone",
+    phoneHeader: <div className="fiori-responsive-popover__rows">
+      <div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
+      <div className="fiori-responsive-popover__row fiori-responsive-popover__row--input">
+        <Input ref={phoneInputRef} type={props.type} wrapperClassName="fiori-multi-input-phone__input my-0" aria-label={dialogTitle} placeholder={placeholder} value={value}
+          // InputSuggestionsTemplate.js supplies no suggestions to this Input.
+          // Enter/arrows leave the owning dialog alone; Dialog handles Escape.
+          onChange={(e) => { const text = e.target.value; setTyped(text); setValue(text); setActive(-1) }} />
+        <ToggleButton variant="transparent" aria-label={showTokensLabel} disabled={!tokenCount} pressed={showPhoneTokens && tokenCount > 0}
+          onPressedChange={setShowPhoneTokens}><Icon icon={multiselectAll} /></ToggleButton>
+      </div>
+      {showHeader && <div data-value-state={valueState} className="fiori-value-state-message"><Icon icon={valueStateIcons[valueState]} />{message}</div>}
+    </div>,
+    phoneFooter: <><Button variant="emphasized" onClick={acceptPhone}>{okText}</Button><Button variant="transparent" onClick={cancelPhone}>{cancelText}</Button></>,
+    onOpenAutoFocus: (e: Event) => { e.preventDefault(); phoneInputRef.current?.focus() },
+    onEscapeKeyDown: () => setOpen(false),
+    onCloseAutoFocus: (e: Event) => { e.preventDefault(); if (phoneSuggestionSelected.current) { phoneSuggestionSelected.current = false; inputRef.current?.focus() } },
+  } : {}
   return (
-    <PopoverPrimitive.Root open={isOpen} onOpenChange={(o) => !o && setOpen(false)}>
-      <PopoverPrimitive.Anchor asChild>
+    <Root open={isOpen} onOpenChange={(o) => !o && setOpen(false)}>
+      <Anchor asChild>
         <div
           ref={fieldRef}
           data-slot="multi-input"
@@ -350,11 +408,13 @@ function MultiInput({
               // key, but requires the last token to remain focused after ItemNavigation.
               // RTL Right moves to the preceding token, so Down/End exit from the last.
               const toInput = e.key === "ArrowDown" || e.key === "End" || e.key === "ArrowRight"
-              if (toInput && !e.shiftKey && e.target === last && document.activeElement === last) {
+              if (toInput && !e.shiftKey && (!phone || (!e.altKey && (!(e.ctrlKey || e.metaKey) || e.key === "ArrowRight"))) && e.target === last && document.activeElement === last) {
                 e.preventDefault()
                 setTimeout(() => inputRef.current?.focus())
               }
-              if ((e.key === "F4" || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp"))) && !disabled) {
+              // MultiInput.js/_onTokenizerKeydown has no value-help branch;
+              // InputTemplate.js attaches _onkeydown only to the source input.
+              if (!phone && (e.key === "F4" || (e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp"))) && !disabled) {
                 e.preventDefault()
                 onValueHelpTrigger?.()
               }
@@ -370,7 +430,7 @@ function MultiInput({
             aria-label={ariaLabel}
             aria-roledescription={roleDescription}
             aria-autocomplete={showSuggestions ? "list" : undefined}
-            aria-haspopup={showSuggestions ? "listbox" : undefined}
+            aria-haspopup={showSuggestions ? (phone ? "dialog" : "listbox") : undefined}
             aria-expanded={showSuggestions ? isOpen : undefined}
             aria-controls={isOpen ? listId : undefined}
             aria-activedescendant={isOpen && active >= 0 ? optionId(active) : undefined}
@@ -397,8 +457,15 @@ function MultiInput({
                 }
               }
               setValue(next)
-              setOpen(!!t)
+              if (!phone) setOpen(!!t)
             }}
+            onMouseDown={(e) => {
+              onMouseDown?.(e)
+              // Input.js/_click blurs the phone field before opening. Keep early
+              // pointer focus from expanding tokens and moving this click target.
+              if (phone && e.button === 0 && !disabled && !readOnly) e.preventDefault()
+            }}
+            onClick={(e) => { onClick?.(e); if (!e.defaultPrevented && phone && !disabled && !readOnly) setOpen(true) }}
             onKeyDown={handleKeyDown}
             onFocus={(e) => {
               setFocused(true)
@@ -409,7 +476,7 @@ function MultiInput({
             }}
             onBlur={(e) => {
               const to = e.relatedTarget as Node | null
-              if (listRef.current?.contains(to)) return
+              if ((phone && isOpen) || listRef.current?.contains(to)) return
               setFocused(!!fieldRef.current?.contains(to))
               // Moving into the tokens doesn't commit (UI5 skips change while focus is in the tokenizer).
               if (!fieldRef.current?.contains(to)) {
@@ -454,12 +521,12 @@ function MultiInput({
             </div>
           )}
         </div>
-      </PopoverPrimitive.Anchor>
-      <PopoverPrimitive.Portal>
-        <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
+      </Anchor>
+      <PhoneSuggestionPortal phone={phone}>
+        <Content data-sap-ui-fastnavgroup-container="true"
           align="start"
           sideOffset={4}
-          aria-label="Suggestions"
+          aria-label={suggestionsLabel}
           onOpenAutoFocus={(e) => e.preventDefault()}
           onCloseAutoFocus={(e) => e.preventDefault()}
           // Radix catches Escape on the document before the input sees it: restore the typed text here.
@@ -476,9 +543,10 @@ function MultiInput({
           onInteractOutside={(e) => {
             if (fieldRef.current?.contains(e.target as Node)) e.preventDefault()
           }}
-          className="fiori-popover fiori-suggestions z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col"
+          className={phone ? undefined : "fiori-popover fiori-suggestions z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col"}
+          {...phoneProps}
         >
-          {showHeader && (
+          {!phone && showHeader && (
             <div data-value-state={valueState} className="fiori-value-state-message fiori-suggestions__header">
               <Icon icon={valueStateIcons[valueState]} />
               {message}
@@ -489,30 +557,64 @@ function MultiInput({
             id={listId}
             data-slot="multi-input-suggestions" data-sap-ui-fastnavgroup="true"
             role="listbox"
-            aria-label="Suggestions"
+            aria-label={suggestionsLabel}
             className="overflow-y-auto"
             onMouseDown={(e) => e.preventDefault()}
+            // Input.js/onAfterRendering disables its List's ItemNavigation,
+            // including MultiInput's phone token view. Rows do not receive arrows.
+            onKeyDown={phone && showPhoneTokens && tokenCount > 0 ? (e) => {
+              // List.js/_onkeydown + _navigateToAdjacentItem still move between
+              // internal Delete buttons independently of row ItemNavigation.
+              if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || (e.key !== "ArrowDown" && e.key !== "ArrowUp")) return
+              const row = (e.target as HTMLElement).closest<HTMLElement>(".fiori-multi-input-phone__token")
+              if (!row || document.activeElement === row) return
+              const rows = [...e.currentTarget.querySelectorAll<HTMLElement>(".fiori-multi-input-phone__token")]
+              const next = rows[rows.indexOf(row) + (e.key === "ArrowDown" ? 1 : -1)]?.querySelector<HTMLButtonElement>("button")
+              if (next) { e.preventDefault(); next.focus(); next.scrollIntoView({ block: "nearest" }) }
+            } : undefined}
           >
-            {visible.map((item, i) => (
+            {phone && showPhoneTokens && tokenCount > 0 ? <>
+              {/* ListTemplate.js keeps before/after tab stops even when Input.js
+                  disables ItemNavigation and token rows have no roving tabindex. */}
+              <div data-slot="multi-input-token-before" role="none" tabIndex={0} className="fixed" />
+              {tokenItems.map((token, index) => <div key={index} role="option" className="fiori-list-item fiori-multi-input-phone__token"
+              // ListItem.js/_onkeyup fires deletion when Delete is released.
+              onKeyUp={(e) => { if (e.key === "Delete" && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) onTokenDelete?.([token.value ?? token.text ?? ""]) }}>
+              <span>{token.text}</span><Button variant="transparent" aria-label={tokenDeleteLabel} onClick={() => onTokenDelete?.([token.value ?? token.text ?? ""])}><Icon icon={decline} /></Button>
+              </div>)}
+              <div data-slot="multi-input-token-after" role="none" tabIndex={0} className="fixed" />
+            </> : visible.map((item, i) => (
               <div
                 key={`${item.text}-${i}`}
                 id={optionId(i)}
                 role="option"
+                tabIndex={phone ? (i === 0 ? 0 : -1) : undefined}
                 aria-selected={i === active}
                 data-state={i === active ? "checked" : undefined}
                 data-highlighted={i === active ? "" : undefined}
                 className="fiori-list-item fiori-suggestions__item"
                 onClick={() => choose(item)}
+                // ListItemBase.js activates Enter on keydown, Space on keyup.
+                onKeyDown={phone ? (e) => {
+                  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+                  if (e.key === "Enter" || e.key === " ") e.preventDefault()
+                  if (e.key === "Enter") choose(item)
+                } : undefined}
+                onKeyUp={phone ? (e) => { if (e.key === " " && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) choose(item) } : undefined}
               >
                 <span className="fiori-suggestions__text">{highlightAll(item.text, typed)}</span>
                 {item.additionalText && <span className="fiori-suggestions__additional">{item.additionalText}</span>}
               </div>
             ))}
           </div>
-        </PopoverPrimitive.Content>
-      </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
+        </Content>
+      </PhoneSuggestionPortal>
+    </Root>
   )
+}
+
+function PhoneSuggestionPortal({ phone, children }: { phone: boolean; children: React.ReactNode }) {
+  return phone ? <>{children}</> : <PopoverPrimitive.Portal>{children}</PopoverPrimitive.Portal>
 }
 
 export { MultiInput, SuggestionItem, type MultiInputProps, type SuggestionFilter, type SuggestionItemProps }
