@@ -601,7 +601,9 @@ function TimePicker({
     </PickerField>
     {phone && <Popover open={inputsOpen} onOpenChange={setInputsOpen}><PopoverAnchor virtualRef={virtualAnchor} />
       <PopoverContent ref={inputsRef} data-slot="time-picker-inputs-popover" hideArrow side="bottom" align="start" sideOffset={0} className="fiori-picker-popover"
-        onOpenAutoFocus={(event) => { event.preventDefault(); requestAnimationFrame(() => inputsRef.current?.querySelector<HTMLInputElement>('[data-slot="time-selection-inputs"] input')?.focus()) }}
+        // UI5 Popup.js/openPopup applies initial focus before firing open.
+        // FocusScope has mounted the inputs here; deferring can overwrite a later user focus move.
+        onOpenAutoFocus={(event) => { event.preventDefault(); inputsRef.current?.querySelector<HTMLInputElement>('[data-slot="time-selection-inputs"] input')?.focus() }}
         onCloseAutoFocus={(event) => {
           // TimePickerPopoverTemplate.js's ordinary Popover restores the input;
           // _handleInputClick returns on mobile, so tapping it again is a no-op
