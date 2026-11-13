@@ -17,8 +17,9 @@ import { defineUi5, h, type Ui5FixtureElement } from "../fixture-types"
 import set, { SEARCH_OPTIONS } from "./d1b-navigation"
 export default defineUi5(set, ({ kind, nested, scopes, longList }) => {
   const frame = h("div") as Ui5FixtureElement
+  const query = new URLSearchParams(location.search)
   frame.id = `${kind}-phone-demo`; frame.style.cssText = "width:375px;height:667px;overflow:hidden"
-  const field = kind === "menu" ? h("ui5-menu", { "header-text": "Actions" }, h("ui5-menu-item", { text: "New" }), h("ui5-menu-item", { text: "Unavailable", disabled: true }), h("ui5-menu-item", { text: "More" }, h("ui5-menu-item", { text: "Copy" }), h("ui5-menu-item", { text: "Paste" })), ...(longList ? Array.from({ length: 30 }, (_, index) => h("ui5-menu-item", { text: `Action ${index + 1}` })) : [])) as any
+  const field = kind === "menu" ? h("ui5-menu", { "header-text": "Actions" }, h("ui5-menu-item", { text: "New" }), h("ui5-menu-item", { text: "Unavailable", disabled: true }), h("ui5-menu-item", { text: "More" }, h("ui5-menu-item", { text: "Copy" }), h("ui5-menu-item", { text: "Paste" }), ...(query.has("deep") ? [h("ui5-menu-item", { text: "Advanced" }, h("ui5-menu-item", { text: "Archive" }))] : [])), ...(longList ? Array.from({ length: 30 }, (_, index) => h("ui5-menu-item", { text: `Action ${index + 1}` })) : [])) as any
     : h(kind === "search" ? "ui5-search" : "ui5-shellbar-search", { value: "Notebook", "accessible-name": "Product Search", "show-clear-icon": true }, ...(scopes ? [h("ui5-search-scope", { slot: "scopes", value: "all", text: "All" }), h("ui5-search-scope", { slot: "scopes", value: "products", text: "Products" })] : []), ...SEARCH_OPTIONS.map((text) => h("ui5-search-item", { text }))) as any
   field.id = `${kind}-phone-field`
   if (kind === "menu") {
@@ -39,6 +40,20 @@ export default defineUi5(set, ({ kind, nested, scopes, longList }) => {
   const events: string[] = []
   const output = h("output", { hidden: true }); output.dataset.slot = "phone-events"; output.textContent = "[]"; frame.append(output)
   const record = (event: string) => { events.push(event); output.textContent = JSON.stringify(events) }
+  if (kind === "menu") {
+    if (query.has("close-events")) field.addEventListener("close", (event: Event) => { if (event.target === field) record("closed") })
+    if (query.has("prevent-escape")) for (const control of [field, ...field.querySelectorAll("ui5-menu-item")]) control.addEventListener("before-close", (event: CustomEvent) => { if (event.target === control && event.detail.escPressed) { record("escape-prevented"); event.preventDefault() } })
+    if (query.has("two-trees")) {
+      const secondFrame = h("div", { id: "menu-phone-second-demo" })
+      const second = h("ui5-menu", { "header-text": "Secondary", id: "menu-phone-second-field" }, h("ui5-menu-item", { text: "Other" })) as any
+      const secondOpener = h("ui5-button", {}, "Open Second Menu"); second.opener = secondOpener
+      secondOpener.addEventListener("click", (event: Event) => { if (query.has("prevent-opener")) { record("opener-prevented"); event.preventDefault(); return }; second.open = query.has("toggle-opener") ? !second.open : true })
+      second.addEventListener("close", (event: Event) => { if (event.target === second) record("second-closed") })
+      secondFrame.append(secondOpener, second); frame.append(secondFrame)
+      const firstConsumer = h("ui5-button", { id: "menu-phone-open-first-consumer" }, "Open first from consumer")
+      firstConsumer.addEventListener("click", () => { field.open = true }); frame.append(firstConsumer)
+    }
+  }
   field.addEventListener("input", () => record(`input:${field.value}`))
   field.addEventListener("search", () => record(`search:${field.value}`))
   field.addEventListener("scope-change", (event: any) => record(`scope:${event.detail.scope.value}`))

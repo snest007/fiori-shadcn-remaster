@@ -53,9 +53,12 @@ function Menu({ open: openProp, defaultOpen, onOpenChange, children, dir, ...pro
   const [, update] = React.useReducer((n) => n + 1, 0)
   const state = React.useRef<MenuState>({ setOpen: () => {}, checked: new Map(), update, surfaces: new Set(), nativeTab: false, triggerSpace: false, phone, open: false, trigger }).current
   const setOpen = React.useCallback((open: boolean) => {
+    // Phone Menu.js/_afterPopoverClose publishes one root close. Its Dialog
+    // and nested Radix menu share this state; don't notify twice for one close.
+    if (state.phone) { if (state.open === open) return; state.open = open; state.update() }
     if (openProp === undefined) setUncontrolled(open)
     onOpenChange?.(open)
-  }, [openProp, onOpenChange])
+  }, [openProp, onOpenChange, state])
   state.setOpen = setOpen
   state.phone = phone
   state.open = openProp ?? uncontrolled
@@ -88,7 +91,9 @@ function Menu({ open: openProp, defaultOpen, onOpenChange, children, dir, ...pro
         if (!modified(e)) {
           const top = surfaces.sort((a, b) => a.depth - b.depth).at(-1)
           top?.escape?.(e)
-          if (!e.defaultPrevented) top?.close()
+          // MenuItem.js/_beforePopoverClose emits close-menu on phone Escape;
+          // MenuTemplate.js bubbles it to the same tree's root _close.
+          if (!e.defaultPrevented) { if (state.phone) state.setOpen(false); else top?.close() }
         }
       }
       if (e.key === "Tab" && (e.altKey || e.ctrlKey || e.metaKey)) {
@@ -131,9 +136,25 @@ function MenuContentHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.C
     else onKeyDown?.(event)
   }} />
 }
-function MenuTrigger({ onKeyDown, children, asChild, ref, ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
+function MenuTrigger({ onKeyDown, onPointerDown, onClick, children, asChild, ref, ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
   const root = React.useContext(MenuContext)
-  return <MenuPrimitive.Trigger ref={(node) => { if (root) root.trigger.current = node; if (typeof ref === "function") ref(node); else if (ref) ref.current = node }} data-slot="menu-trigger" {...props} onKeyDown={(e) => {
+  const pointerPrevented = React.useRef(false)
+  return <MenuPrimitive.Trigger ref={(node) => { if (root) root.trigger.current = node; if (typeof ref === "function") ref(node); else if (ref) ref.current = node }} data-slot="menu-trigger" {...props}
+    onPointerDown={root?.phone ? (event) => {
+      onPointerDown?.(event)
+      pointerPrevented.current = event.defaultPrevented
+      // ButtonTemplate.js/onclick completes the opener gesture before Menu
+      // paints. Radix's pointerdown opening can retarget the same pointerup to
+      // a phone row now covering a lower-positioned opener.
+      event.preventDefault()
+    } : onPointerDown}
+    onClick={root?.phone ? (event) => {
+      onClick?.(event)
+      const prevented = pointerPrevented.current && event.detail !== 0
+      pointerPrevented.current = false
+      if (!event.defaultPrevented && !prevented && !props.disabled) root.setOpen(!root.open)
+    } : onClick}
+    onKeyDown={(e) => {
     onKeyDown?.(e)
     // Radix opens on Space down; its following keyup belongs to the opener, not the
     // newly focused item. UI5 button openers open on Space up instead.
@@ -260,11 +281,12 @@ function MenuContent({ className, side = "bottom", align = "start", sideOffset =
     <MenuPrimitive.Content ref={mergedRef} data-slot="menu-content" data-sap-ui-fastnavgroup="true" side={side} align={align} sideOffset={sideOffset} collisionPadding={collisionPadding}
       className={cn("fiori-menu z-50 max-h-(--radix-dropdown-menu-content-available-height)", root?.phone && "fiori-menu-phone__list", className)}
       onKeyDownCapture={(e) => { onKeyDownCapture?.(e); surfaceKeyDown(e, surface) }}
-      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }} {...autoFocus} {...props} onKeyDown={onKeyDown} data-sap-ui-fastnavgroup-container="true" style={root?.phone ? { ...props.style, pointerEvents: "auto" } : props.style} asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.Content>
+      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab || root?.phone) e.preventDefault() }} {...autoFocus} {...props} onKeyDown={onKeyDown} data-sap-ui-fastnavgroup-container="true" style={root?.phone ? { ...props.style, pointerEvents: "auto" } : props.style} asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.Content>
   </GroupContext.Provider></HoverContext.Provider></SurfaceContext.Provider>
   if (root?.phone) return <ResponsivePopoverContent portal={portal} headerText={headerText} phoneField phoneClassName="fiori-menu-phone"
     phoneHeader={<div className="fiori-menu-phone__header"><div className="fiori-menu-phone__title"><h1>{headerText}</h1></div></div>}
     phoneFooter={<div className="fiori-menu-phone__footer"><Button variant="transparent" onClick={() => root.setOpen(false)}>{cancelLabel}</Button></div>}
+    onEscapeKeyDown={(event) => { if (modified(event)) { event.preventDefault(); return }; onEscapeKeyDown?.(event) }}
     onOpenAutoFocus={(event) => event.preventDefault()} onCloseAutoFocus={(event) => { event.preventDefault(); root.trigger.current?.focus() }}>
     {content}
   </ResponsivePopoverContent>
@@ -422,13 +444,14 @@ function MenuSubContent({ className, headerText, cancelLabel = "Cancel", backLab
       className={cn("fiori-menu z-50 max-h-(--radix-dropdown-menu-content-available-height)", className)}
       onKeyDownCapture={(e) => { onKeyDownCapture?.(e); surfaceKeyDown(e, surface) }}
       {...entryFocus}
-      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }}
-      onEscapeKeyDown={(e) => { onEscapeKeyDown?.(e); if (!e.defaultPrevented) { e.preventDefault(); if (!modified(e)) close() } }} onKeyDown={onKeyDown} style={root?.phone ? { ...props.style, pointerEvents: "auto" } : props.style} asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.SubContent>
+      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab || root?.phone) e.preventDefault() }}
+      onEscapeKeyDown={(e) => { onEscapeKeyDown?.(e); if (!e.defaultPrevented) { e.preventDefault(); if (!modified(e)) { if (root?.phone) root.setOpen(false); else close() } } }} onKeyDown={onKeyDown} style={root?.phone ? { ...props.style, pointerEvents: "auto" } : props.style} asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.SubContent>
   </GroupContext.Provider></HoverContext.Provider></SurfaceContext.Provider>
   if (root?.phone) return <ResponsivePopoverContent headerText={headerText ?? sub?.trigger.current?.textContent ?? ""} phoneField phoneClassName="fiori-menu-phone"
     phoneHeader={<div className="fiori-menu-phone__header"><Button variant="transparent" aria-label={backLabel} className="fiori-menu-phone__back" onClick={() => close()}><Icon icon={navBack} /></Button><div className="fiori-menu-phone__title">{headerText ?? sub?.trigger.current?.textContent}</div></div>}
     phoneFooter={<div className="fiori-menu-phone__footer"><Button variant="transparent" onClick={() => root.setOpen(false)}>{cancelLabel}</Button></div>}
-    onOpenAutoFocus={(event) => event.preventDefault()} onCloseAutoFocus={(event) => { event.preventDefault(); sub?.trigger.current?.focus() }}>
+    onEscapeKeyDown={(event) => { if (modified(event)) { event.preventDefault(); return }; onEscapeKeyDown?.(event); if (!event.defaultPrevented) { event.preventDefault(); root.setOpen(false) } }}
+    onOpenAutoFocus={(event) => event.preventDefault()} onCloseAutoFocus={(event) => { event.preventDefault(); if (root.open) sub?.trigger.current?.focus(); else root.trigger.current?.focus() }}>
     {content}
   </ResponsivePopoverContent>
   return <MenuPrimitive.Portal>{content}</MenuPrimitive.Portal>
