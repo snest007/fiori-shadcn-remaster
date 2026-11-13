@@ -1,6 +1,14 @@
 {
   "title": "Menu",
-  "dependencies": ["radix-ui"],
-  "registryDependencies": ["@fiori/icons", "@fiori/f6-navigation"],
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/f6-navigation",
+    "@fiori/responsive-popover",
+    "@fiori/button",
+    "@fiori/use-is-phone"
+  ],
   "description": "Fiori menu with single/multiple checkable groups, icons, additional text, submenus, separators and disabled items (ui5-menu)."
 }

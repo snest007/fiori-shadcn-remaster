@@ -6,15 +6,18 @@ import { DropdownMenu as MenuPrimitive, Slot } from "radix-ui"
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
 import type { FioriIconData } from "@/lib/fiori-icons"
-import { accept, slimArrowRight } from "@/lib/fiori-icons"
+import { accept, slimArrowRight, navBack } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
+import { useIsPhone } from "@/lib/use-is-phone"
+import { Button } from "@/components/ui/button"
+import { ResponsivePopover, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
 import { Icon } from "@/components/ui/icon"
 
 type CheckMode = "none" | "single" | "multiple"
 type CheckProps = { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void }
 type StateKey = { /** @internal Stable identity assigned by Menu before Radix unmounts popup rows. */ _menuStateKey?: string }
 type Surface = { element: HTMLDivElement | null; close: (nativeTab?: boolean) => void; escape?: (e: KeyboardEvent) => void; nested: boolean; depth: number; submenus: Map<HTMLElement, { close: () => void; open: (mouse?: boolean) => void }> }
-type MenuState = { setOpen: (open: boolean) => void; checked: Map<string, boolean>; update: () => void; surfaces: Set<Surface>; nativeTab: boolean; triggerSpace: boolean }
+type MenuState = { setOpen: (open: boolean) => void; checked: Map<string, boolean>; update: () => void; surfaces: Set<Surface>; nativeTab: boolean; triggerSpace: boolean; phone: boolean; open: boolean; trigger: React.RefObject<HTMLButtonElement | null> }
 const MenuContext = React.createContext<MenuState | null>(null)
 const SurfaceContext = React.createContext<Surface | null>(null)
 const GroupContext = React.createContext<{ mode: CheckMode; keys: string[] } | null>(null)
@@ -42,16 +45,20 @@ function persistentChildren(children: React.ReactNode, path = "menu"): React.Rea
 }
 
 function Menu({ open: openProp, defaultOpen, onOpenChange, children, dir, ...props }: React.ComponentProps<typeof MenuPrimitive.Root>) {
+  const phone = useIsPhone()
+  const trigger = React.useRef<HTMLButtonElement>(null)
   const scope = React.useRef<HTMLSpanElement>(null)
   const [direction, setDirection] = React.useState<"ltr" | "rtl">("ltr")
   const [uncontrolled, setUncontrolled] = React.useState(defaultOpen ?? false)
   const [, update] = React.useReducer((n) => n + 1, 0)
-  const state = React.useRef<MenuState>({ setOpen: () => {}, checked: new Map(), update, surfaces: new Set(), nativeTab: false, triggerSpace: false }).current
+  const state = React.useRef<MenuState>({ setOpen: () => {}, checked: new Map(), update, surfaces: new Set(), nativeTab: false, triggerSpace: false, phone, open: false, trigger }).current
   const setOpen = React.useCallback((open: boolean) => {
     if (openProp === undefined) setUncontrolled(open)
     onOpenChange?.(open)
   }, [openProp, onOpenChange])
   state.setOpen = setOpen
+  state.phone = phone
+  state.open = openProp ?? uncontrolled
   React.useLayoutEffect(() => {
     // Menu.js isRtl reads UI5Element.effectiveDir on the Menu itself, independently
     // of opener direction. Radix Root has no host: retain its declaration scope
@@ -97,7 +104,8 @@ function Menu({ open: openProp, defaultOpen, onOpenChange, children, dir, ...pro
       if (tabFrame !== undefined) cancelAnimationFrame(tabFrame)
     }
   }, [state])
-  return <MenuContext.Provider value={state}><MenuPrimitive.Root dir={dir ?? direction} data-slot="menu" open={openProp ?? uncontrolled} onOpenChange={setOpen} {...props}><span ref={scope} data-slot="menu-scope" hidden aria-hidden="true" />{persistentChildren(children)}</MenuPrimitive.Root></MenuContext.Provider>
+  const content = <MenuPrimitive.Root dir={dir ?? direction} data-slot="menu" open={state.open} onOpenChange={setOpen} {...props} modal={phone ? false : props.modal}><span ref={scope} data-slot="menu-scope" hidden aria-hidden="true" />{persistentChildren(children)}</MenuPrimitive.Root>
+  return <MenuContext.Provider value={state}>{phone ? <ResponsivePopover dir={dir ?? direction} open={state.open} onOpenChange={setOpen}>{content}</ResponsivePopover> : content}</MenuContext.Provider>
 }
 
 // UI5 Menu opener/List ItemNavigation do not cancel F6 aliases. Filtering Radix's
@@ -123,9 +131,9 @@ function MenuContentHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.C
     else onKeyDown?.(event)
   }} />
 }
-function MenuTrigger({ onKeyDown, children, asChild, ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
+function MenuTrigger({ onKeyDown, children, asChild, ref, ...props }: React.ComponentProps<typeof MenuPrimitive.Trigger>) {
   const root = React.useContext(MenuContext)
-  return <MenuPrimitive.Trigger data-slot="menu-trigger" {...props} onKeyDown={(e) => {
+  return <MenuPrimitive.Trigger ref={(node) => { if (root) root.trigger.current = node; if (typeof ref === "function") ref(node); else if (ref) ref.current = node }} data-slot="menu-trigger" {...props} onKeyDown={(e) => {
     onKeyDown?.(e)
     // Radix opens on Space down; its following keyup belongs to the opener, not the
     // newly focused item. UI5 button openers open on Space up instead.
@@ -236,19 +244,30 @@ function surfaceKeyDown(e: React.KeyboardEvent<HTMLDivElement>, surface: Surface
 type MenuContentProps = React.ComponentProps<typeof MenuPrimitive.Content> & {
   /** Render in place instead of in a portal on document.body. */ portal?: boolean
   /** Don't move focus into the menu on open. UI5 normally focuses the first item for mouse too. */ preventInitialFocus?: boolean
+  /** Phone MenuTemplate title and footer action. */
+  headerText?: string
+  cancelLabel?: string
 }
-function MenuContent({ className, side = "bottom", align = "start", sideOffset = 0, collisionPadding = 10, portal = true, preventInitialFocus = false, ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: MenuContentProps) {
+function MenuContent({ className, side = "bottom", align = "start", sideOffset = 0, collisionPadding = 10, portal = true, preventInitialFocus = false, headerText = "", cancelLabel = "Cancel", ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: MenuContentProps) {
   const root = React.useContext(MenuContext)
   const { surface, setRef, hover } = useSurface(false, () => root?.setOpen(false))
   surface.escape = onEscapeKeyDown
   const mergedRef = React.useCallback((node: HTMLDivElement | null) => { setRef(node); if (typeof ref === "function") ref(node); else if (ref) ref.current = node }, [ref, setRef])
   const autoFocus = { onOpenAutoFocus: (e: Event) => { e.preventDefault(); if (!preventInitialFocus && surface.element) rows(surface.element)[0]?.focus({ preventScroll: true }) } } as object
+  // The phone Dialog owns the modal layer. Keep its nested Radix menu interactive:
+  // DismissableLayer otherwise writes pointer-events:none below the Dialog layer.
   const content = <SurfaceContext.Provider value={surface}><HoverContext.Provider value={hover}><GroupContext.Provider value={null}>
     <MenuPrimitive.Content ref={mergedRef} data-slot="menu-content" data-sap-ui-fastnavgroup="true" side={side} align={align} sideOffset={sideOffset} collisionPadding={collisionPadding}
-      className={cn("fiori-menu z-50 max-h-(--radix-dropdown-menu-content-available-height)", className)}
+      className={cn("fiori-menu z-50 max-h-(--radix-dropdown-menu-content-available-height)", root?.phone && "fiori-menu-phone__list", className)}
       onKeyDownCapture={(e) => { onKeyDownCapture?.(e); surfaceKeyDown(e, surface) }}
-      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }} {...autoFocus} {...props} onKeyDown={onKeyDown} data-sap-ui-fastnavgroup-container="true" asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.Content>
+      onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }} {...autoFocus} {...props} onKeyDown={onKeyDown} data-sap-ui-fastnavgroup-container="true" style={root?.phone ? { ...props.style, pointerEvents: "auto" } : props.style} asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.Content>
   </GroupContext.Provider></HoverContext.Provider></SurfaceContext.Provider>
+  if (root?.phone) return <ResponsivePopoverContent portal={portal} headerText={headerText} phoneField phoneClassName="fiori-menu-phone"
+    phoneHeader={<div className="fiori-menu-phone__header"><div className="fiori-menu-phone__title"><h1>{headerText}</h1></div></div>}
+    phoneFooter={<div className="fiori-menu-phone__footer"><Button variant="transparent" onClick={() => root.setOpen(false)}>{cancelLabel}</Button></div>}
+    onOpenAutoFocus={(event) => event.preventDefault()} onCloseAutoFocus={(event) => { event.preventDefault(); root.trigger.current?.focus() }}>
+    {content}
+  </ResponsivePopoverContent>
   return portal ? <MenuPrimitive.Portal>{content}</MenuPrimitive.Portal> : content
 }
 
@@ -313,8 +332,9 @@ function MenuSeparator({ className, ...props }: React.ComponentProps<typeof Menu
   return <MenuPrimitive.Separator data-slot="menu-separator" className={cn("fiori-menu-separator", className)} {...props} />
 }
 
-const MenuSubContext = React.createContext<{ close: () => void; open: (mouse?: boolean) => void; trigger: React.RefObject<HTMLDivElement | null>; mouse: React.RefObject<boolean> } | null>(null)
+const MenuSubContext = React.createContext<{ close: () => void; open: (mouse?: boolean) => void; trigger: React.RefObject<HTMLDivElement | null>; mouse: React.RefObject<boolean>; isOpen: boolean } | null>(null)
 function MenuSub({ open: openProp, defaultOpen, onOpenChange, ...props }: React.ComponentProps<typeof MenuPrimitive.Sub>) {
+  const root = React.useContext(MenuContext)
   const [uncontrolled, setUncontrolled] = React.useState(defaultOpen ?? false)
   // MenuItem.js hasSubmenu returns false for disabled owners; its template omits
   // the popup entirely, even if the owner has child items.
@@ -324,8 +344,8 @@ function MenuSub({ open: openProp, defaultOpen, onOpenChange, ...props }: React.
   const setOpen = React.useCallback((open: boolean) => { if (openProp === undefined) setUncontrolled(open); onOpenChange?.(open) }, [openProp, onOpenChange])
   const trigger = React.useRef<HTMLDivElement>(null)
   const mouse = React.useRef(false)
-  const ctx = React.useMemo(() => ({ close: () => setOpen(false), open: (byMouse = false) => { if (!disabledOwner) { mouse.current = byMouse; setOpen(true) } }, trigger, mouse }), [setOpen, disabledOwner])
-  return <MenuSubContext.Provider value={ctx}><MenuPrimitive.Sub data-slot="menu-sub" open={!disabledOwner && (openProp ?? uncontrolled)} onOpenChange={setOpen} {...props} /></MenuSubContext.Provider>
+  const ctx = React.useMemo(() => ({ close: () => setOpen(false), open: (byMouse = false) => { if (!disabledOwner) { mouse.current = byMouse; setOpen(true) } }, trigger, mouse, isOpen: !disabledOwner && (openProp ?? uncontrolled) }), [setOpen, disabledOwner, openProp, uncontrolled])
+  return <MenuSubContext.Provider value={ctx}><MenuPrimitive.Sub data-slot="menu-sub" open={ctx.isOpen} onOpenChange={setOpen}>{root?.phone ? <ResponsivePopover open={ctx.isOpen} onOpenChange={setOpen}>{props.children}</ResponsivePopover> : props.children}</MenuPrimitive.Sub></MenuSubContext.Provider>
 }
 type MenuSubTriggerProps = React.ComponentProps<typeof MenuPrimitive.SubTrigger> & Omit<ItemExtras, "additionalText"> & CheckProps & StateKey
 function MenuSubTrigger({ className, icon, children, ref, checked: _checked, defaultChecked: _defaultChecked, onCheckedChange: _onCheckedChange, _menuStateKey: _key, disabled, onKeyDown, onKeyUp, onClick, onPointerMove, onPointerLeave, ...props }: MenuSubTriggerProps) {
@@ -367,7 +387,9 @@ function MenuSubTrigger({ className, icon, children, ref, checked: _checked, def
   </MenuPrimitive.SubTrigger>
 }
 
-function MenuSubContent({ className, sideOffset = 0, alignOffset = 4, collisionPadding = 10, ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: React.ComponentProps<typeof MenuPrimitive.SubContent>) {
+// MenuItemTemplate.js passes aria-label="Back" to the host; ButtonTemplate.js
+// names the rendered inner button from the nav-back icon tooltip ("Navigate Back").
+function MenuSubContent({ className, headerText, cancelLabel = "Cancel", backLabel = "Navigate Back", sideOffset = 0, alignOffset = 4, collisionPadding = 10, ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: React.ComponentProps<typeof MenuPrimitive.SubContent> & { headerText?: string; cancelLabel?: string; backLabel?: string }) {
   const sub = React.useContext(MenuSubContext)
   const root = React.useContext(MenuContext)
   const close = (nativeTab = false) => {
@@ -395,14 +417,21 @@ function MenuSubContent({ className, sideOffset = 0, alignOffset = 4, collisionP
   const entryFocus = { onEntryFocus: (e: Event) => {
     if (sub?.mouse.current && !surface.element?.hasAttribute("data-sn-overflow-menu")) { e.preventDefault(); sub.trigger.current?.focus({ preventScroll: true }) }
   } } as object
-  return <MenuPrimitive.Portal><SurfaceContext.Provider value={surface}><HoverContext.Provider value={hover}><GroupContext.Provider value={null}>
+  const content = <SurfaceContext.Provider value={surface}><HoverContext.Provider value={hover}><GroupContext.Provider value={null}>
     <MenuPrimitive.SubContent data-sap-ui-fastnavgroup="true" {...props} data-sap-ui-fastnavgroup-container="true" ref={mergedRef} data-slot="menu-sub-content" sideOffset={sideOffset} alignOffset={alignOffset} collisionPadding={collisionPadding}
       className={cn("fiori-menu z-50 max-h-(--radix-dropdown-menu-content-available-height)", className)}
       onKeyDownCapture={(e) => { onKeyDownCapture?.(e); surfaceKeyDown(e, surface) }}
       {...entryFocus}
       onFocusOutside={(e) => { onFocusOutside?.(e); if (root?.nativeTab) e.preventDefault() }}
-      onEscapeKeyDown={(e) => { onEscapeKeyDown?.(e); if (!e.defaultPrevented) { e.preventDefault(); if (!modified(e)) close() } }} onKeyDown={onKeyDown} asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.SubContent>
-  </GroupContext.Provider></HoverContext.Provider></SurfaceContext.Provider></MenuPrimitive.Portal>
+      onEscapeKeyDown={(e) => { onEscapeKeyDown?.(e); if (!e.defaultPrevented) { e.preventDefault(); if (!modified(e)) close() } }} onKeyDown={onKeyDown} style={root?.phone ? { ...props.style, pointerEvents: "auto" } : props.style} asChild><MenuContentHost asChild={asChild} aliasKeyDown={onKeyDown}>{children}</MenuContentHost></MenuPrimitive.SubContent>
+  </GroupContext.Provider></HoverContext.Provider></SurfaceContext.Provider>
+  if (root?.phone) return <ResponsivePopoverContent headerText={headerText ?? sub?.trigger.current?.textContent ?? ""} phoneField phoneClassName="fiori-menu-phone"
+    phoneHeader={<div className="fiori-menu-phone__header"><Button variant="transparent" aria-label={backLabel} className="fiori-menu-phone__back" onClick={() => close()}><Icon icon={navBack} /></Button><div className="fiori-menu-phone__title">{headerText ?? sub?.trigger.current?.textContent}</div></div>}
+    phoneFooter={<div className="fiori-menu-phone__footer"><Button variant="transparent" onClick={() => root.setOpen(false)}>{cancelLabel}</Button></div>}
+    onOpenAutoFocus={(event) => event.preventDefault()} onCloseAutoFocus={(event) => { event.preventDefault(); sub?.trigger.current?.focus() }}>
+    {content}
+  </ResponsivePopoverContent>
+  return <MenuPrimitive.Portal>{content}</MenuPrimitive.Portal>
 }
 
 export { Menu, MenuContent, MenuGroup, MenuItem, MenuSeparator, MenuSub, MenuSubContent, MenuSubTrigger, MenuTrigger, type MenuContentProps, type MenuGroupProps, type MenuItemProps, type MenuSubTriggerProps }

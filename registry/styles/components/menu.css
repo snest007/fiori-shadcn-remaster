@@ -109,3 +109,14 @@
   min-height: 0.125rem;
   border-top: 0.0625rem solid var(--sapGroup_ContentBorderColor);
 }
+/* MenuTemplate.js/MenuItemTemplate.js phone headers/footer; spacing comes from
+   Menu.css.js (no generated parameters for these literal source values). */
+.fiori-menu-phone__header { display: flex; height: var(--fiori-x-responsive-popover-header-height); align-items: center; justify-content: space-between; padding: 0 1rem; width: 100%; overflow: hidden; }
+.fiori-menu-phone__title { display: flex; align-items: center; justify-content: flex-start; width: calc(100% - 6.5rem); padding-right: 1rem; font-family: var(--sapFontHeaderFamily); }
+.fiori-menu-phone__title > h1 { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--sapFontHeader5Size); margin: 0; }
+.fiori-menu-phone__back { margin-right: 1rem; }
+.fiori-menu-phone__footer { display: flex; align-items: center; justify-content: flex-end; padding: 0 1rem; width: 100%; border-top: .0625rem solid var(--sapPageFooter_BorderColor); }
+.fiori-menu-phone .fiori-responsive-popover__footer { padding: 0; border-top: 0; }
+.fiori-menu-phone [data-radix-popper-content-wrapper] { display: contents; }
+.fiori-menu-phone .fiori-menu { border-radius: 0; box-shadow: none; max-height: none; width: 100%; }
+.fiori-menu-phone .fiori-popup__content { display: block; overflow: auto; }

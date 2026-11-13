@@ -326,3 +326,17 @@
   font-size: var(--sapFontSize);
   font-weight: 700;
 }
+/* SearchPopoverTemplate.js and Search.css.js phone header. Native uses the
+   standard Input, with these fixed source dimensions rather than SearchField. */
+.fiori-search-phone__header { display: flex; gap: .5rem; width: 100%; align-items: center; padding: .5rem 1rem; box-sizing: border-box; }
+.fiori-search-phone__input.fiori-field { flex: 1; height: 2.25rem; margin-block: var(--fiori-input-margin-top-bottom); border-radius: var(--fiori-search-input-border-radius); }
+.fiori-search-phone__input .fiori-field__input { padding-inline-start: .875rem; }
+.fiori-search-phone .fiori-popup__header { box-shadow: none; }
+.fiori-search-phone .fiori-popup__header::before { display: none; }
+.fiori-search-phone .fiori-popup__content { overflow: auto; }
+.fiori-search-phone .fiori-search__popover-content { height: 100%; display: flex; flex-direction: column; }
+.fiori-search-phone__shell-field.fiori-search:not([data-collapsed]) { flex: 1; min-width: 0; }
+/* SearchFieldTemplate.js phone scopes use an icon and their own ResponsivePopover. */
+.fiori-search-phone__scope-button { min-width: 2rem; width: 2rem; height: var(--fiori-x-search-select-height); margin: var(--fiori-x-search-scope-spacing); border-radius: var(--fiori-search-input-border-radius); border: var(--fiori-x-search-border); box-shadow: none; background: var(--fiori-x-search-elements-background); color: var(--sapShell_InteractiveTextColor); }
+.fiori-search-phone__scope-button:hover { box-shadow: var(--fiori-x-search-input-scope-hover-shadow); background: var(--sapShell_Hover_Background); }
+.fiori-search-phone__scope-list { margin: 0; padding: 0; }

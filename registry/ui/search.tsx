@@ -3,12 +3,15 @@ import { isF6NavigationKey } from "@/lib/fiori-f6"
 
 // UI5 2.28 SearchPopoverTemplate.js renders an internal List (fastNavigation metadata).
 
-import { decline, search as searchIcon, type FioriIconData } from "@/lib/fiori-icons"
+import { decline, slimArrowDown, search as searchIcon, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { BusyIndicator } from "@/components/ui/busy-indicator"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
-import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
+import { useIsPhone } from "@/lib/use-is-phone"
+import { Input, InputIcon } from "@/components/ui/input"
+import { List, ListItem } from "@/components/ui/list"
+import { ResponsivePopover as Popover, ResponsivePopoverAnchor as PopoverAnchor, ResponsivePopoverContent as PopoverContent } from "@/components/ui/responsive-popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tag } from "@/components/ui/tag"
 
@@ -17,7 +20,7 @@ import { Tag } from "@/components/ui/tag"
 // Keyboard (as UI5): typing opens the suggestions and completes the first match; ↓ moves into the
 // list, ↑ from the first item returns to the field (restoring what was typed), Enter searches,
 // Escape closes the list and restores the typed value. Focus leaving the field closes the list.
-// Not ported: message area, illustration and "show more" item slots, phone full-screen dialog.
+// Not ported: message area, illustration and "show more" item slots, phone message-area/illustration slots.
 
 type SearchScope = { value: string; text: string }
 
@@ -40,9 +43,13 @@ type SearchTexts = {
   collapse: string
   /** Tooltip of an item's delete button (default "Remove Suggestion"). */
   remove: string
+  /** Phone dialog cancellation. */
+  cancel?: string
+  /** Phone scope dialog close button. */
+  scopeClose?: string
 }
 
-const defaultTexts: SearchTexts = {
+const defaultTexts: Required<SearchTexts> = {
   field: "Search Field",
   search: "Search",
   clear: "Clear Search",
@@ -52,7 +59,15 @@ const defaultTexts: SearchTexts = {
   open: "Open Search",
   collapse: "Collapse Search",
   remove: "Remove Suggestion",
+  cancel: "Cancel",
+  scopeClose: "Decline",
 }
+
+// Popup.js/blockPageScrolling uses a Set so the final popup releases the html lock.
+// Ordinary phone Search allows programmatic outer-input focus, so it cannot use
+// Radix's strict modal FocusScope/RemoveScroll pair for this source behavior.
+const phoneSearchScrollLocks = new Set<symbol>()
+let phoneSearchOriginalOverflow = ""
 
 /** Provided by ShellBar: drives ShellBarSearch's collapsed state, which the bar owns (show-search-field). */
 const ShellBarSearchContext = React.createContext<{ expanded: boolean; toggle: () => void } | null>(null)
@@ -65,6 +80,9 @@ const SearchItemContext = React.createContext<{
   /** Keeps the field's value in step with the item the arrow keys are on. */
   preview: (text: string) => void
   onItemKeyDown: (e: React.KeyboardEvent<HTMLElement>) => void
+  phone: boolean
+  phoneTabStop?: string
+  focusItem: (text: string) => void
 } | null>(null)
 
 type SearchProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onInput" | "onChange"> & {
@@ -132,6 +150,10 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     className,
     ...rootProps
   } = props
+  const phone = useIsPhone()
+  const mobileRef = React.useRef<HTMLInputElement>(null)
+  const beforeOpen = React.useRef(valueProp ?? defaultValue)
+  const escapedPhoneDialog = React.useRef(false)
   const texts = { ...defaultTexts, ...textsProp }
   const inputRef = React.useRef<HTMLInputElement>(null)
   const rootRef = React.useRef<HTMLDivElement>(null)
@@ -141,13 +163,33 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
   const [matched, setMatched] = React.useState<string | undefined>()
   const [focused, setFocused] = React.useState(false)
   const [openState, setOpenState] = React.useState(false)
-  const [scopeState, setScopeState] = React.useState(scopes?.[0]?.value)
+  const [scopeOpen, setScopeOpen] = React.useState(false)
+  const [phoneItem, setPhoneItem] = React.useState<string>()
+  const phoneBefore = React.useRef<HTMLDivElement>(null)
+  const phoneAfter = React.useRef<HTMLDivElement>(null)
+  const forwardingPhoneTab = React.useRef(false)
+  // SearchFieldScopePopoverTemplate.js compares each option against scopeValue;
+  // its phone list has no initial selection unless the caller supplies one.
+  const [scopeState, setScopeState] = React.useState(phone ? undefined : scopes?.[0]?.value)
   const scopeValue = scopeProp ?? scopeState
   const open = openProp ?? openState
   const selectFrom = React.useRef<number | null>(null)
   const beforeArrows = React.useRef<string | undefined>(undefined)
   const texts_ = React.useMemo(() => itemTexts(children), [children])
   const hasContent = texts_.length > 0 || React.Children.count(children) > 0 || !!loading || !!action
+  React.useEffect(() => {
+    if (!phone || collapsedApi || !open) return
+    const lock = Symbol()
+    if (!phoneSearchScrollLocks.size) {
+      phoneSearchOriginalOverflow = document.documentElement.style.overflow
+      document.documentElement.style.overflow = "hidden"
+    }
+    phoneSearchScrollLocks.add(lock)
+    return () => {
+      phoneSearchScrollLocks.delete(lock)
+      if (!phoneSearchScrollLocks.size) document.documentElement.style.overflow = phoneSearchOriginalOverflow
+    }
+  }, [phone, !!collapsedApi, open])
 
   // The controlled value wins whenever it changes from outside.
   React.useEffect(() => {
@@ -167,6 +209,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
 
   const setOpen = (o: boolean) => {
     if (o === open) return
+    if (o) beforeOpen.current = shown
     if (openProp === undefined) setOpenState(o)
     onOpenChange?.(o)
   }
@@ -198,13 +241,15 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     } else {
       setShown(v)
     }
-    setOpen(v.length > 0 && hasContent)
+    if (!phone) setOpen(v.length > 0 && hasContent)
   }
 
   const iconPress = () => {
+    if (phone && !open) { setOpen(true); return }
     const value = inputRef.current?.value ?? shown
     fire(value, matched)
-    collapsedApi?.afterIconPress?.(value)
+    if (phone) closeAndReset()
+    else collapsedApi?.afterIconPress?.(value)
     setTimeout(() => inputRef.current?.focus(), 0)
   }
 
@@ -212,6 +257,11 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     inputProps?.onKeyDown?.(e)
     // Search.js/_onkeydown uses Keys.isDown; F6 aliases must reach document before focus changes.
     if (e.defaultPrevented || isF6NavigationKey(e)) return
+    // SearchField.js/_onkeydown and Search.js/_handleDown use exact Keys predicates.
+    if (phone && ["Enter", "ArrowDown", "ArrowUp", "Escape"].includes(e.key) && (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) return
+    // Search.js/_onFocusOutSearch: Tab from the outer phone field reaches the
+    // popup's shadow boundary (outside its light DOM) and closes ordinary Search.
+    if (phone && !collapsedApi && open && e.key === "Tab" && !e.altKey && !e.ctrlKey && !e.metaKey && (!e.shiftKey || !scopes?.length)) { closeAndReset(); return }
     if (e.key === "Enter") {
       e.preventDefault()
       const input = e.currentTarget
@@ -253,6 +303,9 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
   }
 
   const itemCtx = {
+    phone,
+    phoneTabStop: matched ?? phoneItem ?? texts_[0],
+    focusItem: (text: string) => { if (phone) setPhoneItem(text) },
     highlight: typed,
     matched,
     removeText: texts.remove,
@@ -271,6 +324,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     onItemKeyDown: (e: React.KeyboardEvent<HTMLElement>) => {
       // Search.js/_onListItemKeyDown uses exact isUp/isDown modifier guards.
       if (isF6NavigationKey(e)) return
+      if (phone && (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey && e.key !== "Tab")) { e.preventDefault(); return }
       const list = [...(popRef.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
       const i = list.indexOf(e.currentTarget)
       if (e.key === "ArrowDown") {
@@ -286,6 +340,17 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
         }
       } else if (e.key === "Tab") {
         e.preventDefault()
+        if (phone) {
+          // ListItemBase.js/_handleTabNext/_handleTabPrevious forwards to List's
+          // focus area; Search.js/_onItemKeydown then cancels browser Tab.
+          // Stop here so Radix's bubbling FocusScope does not reinterpret the
+          // newly focused last area as a request to loop back to the header.
+          e.stopPropagation()
+          forwardingPhoneTab.current = true
+          ;(e.shiftKey ? phoneBefore.current : phoneAfter.current)?.focus()
+          if (!e.shiftKey) popRef.current?.querySelector<HTMLElement>('.fiori-search__action button')?.focus()
+          return
+        }
         closeAndReset()
         backToInput()
       }
@@ -294,6 +359,19 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
 
   const effectivePlaceholder =
     placeholder ?? (scopes?.length && scopeValue ? texts.searchIn(scopes.find((s) => s.value === scopeValue)?.text ?? "") : undefined)
+
+  const focusPhoneItem = () => {
+    const rows = [...(popRef.current?.querySelectorAll<HTMLElement>('[data-slot="search-item"]') ?? [])]
+    ;(rows.find((row) => row.dataset.searchText === (matched ?? phoneItem)) ?? rows[0])?.focus()
+  }
+  const phoneFocusArea = (side: "before" | "after") => <div ref={side === "before" ? phoneBefore : phoneAfter} role="none" tabIndex={0} data-slot={`search-list-${side}`} className="fiori-list__focusarea"
+    onFocus={() => {
+      if (forwardingPhoneTab.current) { forwardingPhoneTab.current = false; return }
+      focusPhoneItem()
+    }}
+    // Search.js/_onItemKeydown also receives focus-area key events and prevents
+    // every Tab even when no footer action exists; the area remains focused.
+    onKeyDown={(event) => { if (event.key === "Tab") { event.preventDefault(); event.stopPropagation() } }} />
 
   const field = (
     <BusyIndicator active={fieldLoading} delay={0} className="fiori-search__busy">
@@ -304,13 +382,16 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
         onBlur={(e) => {
           const to = e.relatedTarget as Node | null
           if (to && (rootRef.current?.contains(to) || popRef.current?.contains(to))) return
-          closeAndReset()
+          if (!phone || !collapsedApi) closeAndReset()
         }}
       >
         <div className="fiori-search__content">
           {!!scopes?.length && (
             <>
-              <Select
+              {phone ? <Popover open={scopeOpen} onOpenChange={setScopeOpen}><PopoverAnchor asChild><Button variant="transparent" aria-label={scopeValue ? `${texts.scope}, ${scopes.find((scope) => scope.value === scopeValue)?.text ?? ""}` : texts.scope} title={scopeValue ? `${texts.scope}, ${scopes.find((scope) => scope.value === scopeValue)?.text ?? ""}` : texts.scope} aria-haspopup="dialog" aria-expanded={scopeOpen} className="fiori-search-phone__scope-button" onClick={() => setScopeOpen(true)}><Icon icon={slimArrowDown} /></Button></PopoverAnchor>
+                {/* SearchFieldScopePopoverTemplate.js uses an ordinary List with no separators. */}
+                <PopoverContent phoneField headerText="" closeLabel={texts.scopeClose} aria-label={texts.scope} phoneClassName="fiori-search-phone-scope"><List className="fiori-search-phone__scope-list" separators="none" value={scopeValue ? [scopeValue] : []} onItemClick={(value) => { if (scopeProp === undefined) setScopeState(value); onScopeChange?.(value); setScopeOpen(false) }}>{scopes.map((scope) => <ListItem key={scope.value} value={scope.value}>{scope.text}</ListItem>)}</List></PopoverContent>
+              </Popover> : <Select
                 value={scopeValue}
                 onValueChange={(v) => {
                   if (scopeProp === undefined) setScopeState(v)
@@ -332,7 +413,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select>}
               <div className="fiori-search__separator" />
             </>
           )}
@@ -346,6 +427,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
             value={shown}
             placeholder={effectivePlaceholder}
             onChange={onInput}
+            onClick={phone ? () => setOpen(true) : undefined}
             onKeyDown={onKeyDown}
             onFocus={(e) => {
               inputProps?.onFocus?.(e)
@@ -402,10 +484,33 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
       align="start"
       sideOffset={4}
       aria-label={texts.suggestions}
-      className="fiori-search__popover"
-      onOpenAutoFocus={(e) => e.preventDefault()}
-      onCloseAutoFocus={(e) => e.preventDefault()}
-      onEscapeKeyDown={() => {
+      aria-modal={phone ? true : undefined}
+      onKeyDownCapture={phone ? (event) => {
+        // PopupTemplate.js's first boundary calls forwardToLast; List's last
+        // focus area immediately forwards back to its selected/previous item.
+        if (event.target === (collapsedApi ? inputRef.current : mobileRef.current) && (!collapsedApi || !scopes?.length) && event.key === "Tab" && event.shiftKey && !event.altKey && !event.ctrlKey && !event.metaKey) { event.preventDefault(); focusPhoneItem() }
+      } : undefined}
+      className={phone ? "fiori-search-phone" : "fiori-search__popover"}
+      phoneField preventFocusRestore headerText={accessibleName ?? texts.field}
+      phoneHeader={<div className="fiori-search-phone__header">{collapsedApi ? <div data-slot="search" className="fiori-search fiori-search-phone__shell-field">{field}</div> : <Input ref={mobileRef} aria-label={accessibleName ?? texts.field} value={shown} onChange={onInput} icon={showClearIcon && shown ? <InputIcon role="button" aria-label={texts.clear} title={texts.clear} onClick={() => { setShown(""); setTyped(""); setMatched(undefined); onValueChange?.(""); mobileRef.current?.focus() }}><Icon icon={decline} /></InputIcon> : undefined} wrapperClassName="fiori-search-phone__input" enterKeyHint="search"
+        onKeyDown={(event) => { if (event.key === "Enter" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) { event.preventDefault(); if (!fire(event.currentTarget.value, matched)) { closeAndReset(); inputRef.current?.blur() } } }} />}
+        <Button variant="transparent" onClick={() => { /* Search.js/_handleCancel restores exactly the pre-open value. */ setShown(beforeOpen.current); setTyped(beforeOpen.current); setMatched(undefined); onValueChange?.(beforeOpen.current); closeAndReset() }}>{texts.cancel}</Button></div>}
+      onOpenAutoFocus={(e) => { e.preventDefault(); if (phone) requestAnimationFrame(() => (collapsedApi ? inputRef.current : mobileRef.current)?.focus()) }}
+      onCloseAutoFocus={(e) => {
+        e.preventDefault()
+        if (!phone || !escapedPhoneDialog.current) return
+        escapedPhoneDialog.current = false
+        if (collapsedApi) rootRef.current?.querySelector<HTMLButtonElement>("button")?.focus()
+        else inputRef.current?.focus()
+      }}
+      onEscapeKeyDown={(event) => {
+        if (phone) {
+          // Search.js/_handleBeforeClose focuses the host on a genuine Escape;
+          // Dialog uses Keys.isEscape, so modified aliases leave it open.
+          if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) event.preventDefault()
+          else escapedPhoneDialog.current = true
+          return
+        }
         restoreTyped()
         if (popRef.current?.contains(document.activeElement)) inputRef.current?.focus()
       }}
@@ -416,9 +521,9 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
       <SearchItemContext.Provider value={itemCtx}>
         <div className="fiori-search__popover-content" data-loading={loading ? "" : undefined}>
           {React.Children.count(children) > 0 && (
-            <ul role="listbox" aria-label={texts.suggestions} className="fiori-search__list" data-sap-ui-fastnavgroup="true">
+            <>{phone && phoneFocusArea("before")}<ul role="listbox" aria-label={texts.suggestions} className="fiori-search__list" data-sap-ui-fastnavgroup="true">
               {children}
-            </ul>
+            </ul>{phone && phoneFocusArea("after")}</>
           )}
           {loading && (
             <div className="fiori-search__popover-busy">
@@ -431,14 +536,17 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     </PopoverContent>
   )
 
-  return { rootRef, inputRef, rootProps, className, field, popover, open, setOpen, texts, fieldLoading, shown, iconPress, fire }
+  return { phone, rootRef, inputRef, rootProps, className, field, popover, open, setOpen, texts, fieldLoading, shown, iconPress, fire }
 }
 
 /** ui5-search: an always-expanded search field with suggestions. */
 function Search(props: SearchProps) {
   const core = useSearchCore(props)
   return (
-    <Popover open={core.open} onOpenChange={core.setOpen}>
+    // PopupTemplate.js traps Tab at boundary markers, while Search.js can focus
+    // its outer input programmatically. Radix's strict modal FocusScope would
+    // undo that native ArrowUp target; the full-screen surface retains aria-modal.
+    <Popover modal={core.phone ? false : undefined} open={core.open} onOpenChange={core.setOpen}>
       <PopoverAnchor asChild>
         <div ref={core.rootRef} data-slot="search" className={cn("fiori-search", core.className)} {...core.rootProps}>
           {core.field}
@@ -497,9 +605,8 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
     focusInput.current = false
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collapsed])
-  if (collapsed) {
-    return (
-      <div data-slot="search" data-collapsed="" className={cn("fiori-search", core.className)} {...core.rootProps}>
+  if (collapsed || core.phone) {
+    const button = <div ref={core.phone ? core.rootRef : undefined} data-slot="search" data-collapsed="" className={cn("fiori-search", core.className)} {...core.rootProps}>
         <Button
           ref={buttonRef}
           variant="transparent"
@@ -510,6 +617,7 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
           disabled={core.fieldLoading}
           className="fiori-search__button h-(--fiori-search-icon-size-default) w-9 min-w-(--fiori-search-icon-size-default) rounded-(--fiori-shellbar-button-border-radius) bg-(--fiori-x-search-elements-background) text-(--sapShell_InteractiveTextColor) hover:border-(--sapButton_Lite_Hover_BorderColor) hover:bg-(--sapShell_Hover_Background) hover:text-(--sapShell_InteractiveTextColor)"
           onClick={() => {
+            if (core.phone) { core.setOpen(true); return }
             core.fire(core.shown)
             focusInput.current = true
             toggle()
@@ -518,7 +626,7 @@ function ShellBarSearch({ collapsed: collapsedProp, defaultCollapsed = false, on
           <Icon icon={searchIcon} />
         </Button>
       </div>
-    )
+    return core.phone ? <Popover open={core.open} onOpenChange={core.setOpen}><PopoverAnchor asChild>{button}</PopoverAnchor>{core.popover}</Popover> : button
   }
   return (
     <Popover open={core.open} onOpenChange={core.setOpen}>
@@ -572,14 +680,15 @@ function SearchItem({ text, description, icon, image, scopeName, value, deletabl
     <li
       data-slot="search-item"
       role="option"
-      tabIndex={-1}
+      tabIndex={ctx?.phone && ctx.phoneTabStop === text ? 0 : -1}
+      data-search-text={ctx?.phone ? text : undefined}
       aria-selected={ctx?.matched === text}
       data-selected={ctx?.matched === text ? "" : undefined}
       data-description={description ? "" : undefined}
       className={cn("fiori-search-item", className)}
       onFocus={(e) => {
         onFocus?.(e)
-        if (e.target === e.currentTarget) ctx?.preview(text)
+        if (e.target === e.currentTarget) { ctx?.focusItem(text); ctx?.preview(text) }
       }}
       onClick={(e) => {
         onClick?.(e)
