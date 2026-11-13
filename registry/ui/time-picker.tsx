@@ -628,16 +628,21 @@ function TimeSelectionInputs({ value, onValueChange, pattern, locale, onSubmit, 
   const fields = patternFields(pattern)
   const twelve = fields.twelveHour
   const root = React.useRef<HTMLDivElement>(null)
+  const currentValue = React.useRef(value)
+  currentValue.current = value
   const [draft, setDraft] = React.useState<{ entity: ClockEntity; value: string } | null>(null)
   const buffer = React.useRef("")
   const timer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const entities = (['hours', 'minutes', 'seconds'] as const).filter((entity) => fields[entity]).map((entity) => ({ entity, min: entity === 'hours' && twelve ? 1 : 0, max: entity === 'hours' ? twelve ? 12 : 23 : 59, value: entity === 'hours' ? twelve ? value.getHours() % 12 || 12 : value.getHours() : entity === 'minutes' ? value.getMinutes() : value.getSeconds() }))
   React.useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
   const setEntity = (entity: ClockEntity, number: number) => {
-    const next = new Date(value)
-    if (entity === 'hours') next.setHours(twelve ? number % 12 + (value.getHours() >= 12 ? 12 : 0) : number)
+    const next = new Date(currentValue.current)
+    // TimePickerInternals.js/_hoursChange/_shiftHours special-case exactly 12;
+    // Date.setHours itself carries pasted overflow into the next day/period.
+    if (entity === 'hours') next.setHours(twelve ? next.getHours() < 12 ? number === 12 ? 0 : number : number === 12 ? 12 : number + 12 : number)
     else if (entity === 'minutes') next.setMinutes(number)
     else next.setSeconds(number)
+    currentValue.current = next
     onValueChange(next)
   }
   const nextInput = (index: number) => root.current?.querySelectorAll<HTMLInputElement>('input')[Math.min(index + 1, entities.length - 1)]?.focus()
@@ -656,7 +661,15 @@ function TimeSelectionInputs({ value, onValueChange, pattern, locale, onSubmit, 
       if (timer.current) clearTimeout(timer.current)
       const combined = buffer.current + event.key
       const number = Number(combined)
-      if (number > item.max) { nextInput(index); buffer.current = event.key; const next = entities[Math.min(index + 1, entities.length - 1)]; setEntity(next.entity, Number(event.key)) }
+      if (number > item.max) {
+        setEntity(item.entity, Number(buffer.current))
+        nextInput(index)
+        buffer.current = event.key
+        // TimeSelectionInputs.js/_onkeydown calls _switchNextInput then
+        // _inputChange synchronously. UI5Element.focus is asynchronous: the
+        // second update still belongs to the original active entity.
+        setEntity(item.entity, Number(event.key))
+      }
       else { buffer.current = combined; setEntity(item.entity, number); if (combined.length === 2 || Number(`${combined}0`) > item.max) { buffer.current = ''; nextInput(index) } }
       timer.current = setTimeout(() => { buffer.current = '' }, 1000)
     }} /></React.Fragment>)}{twelve && <><span className="fiori-time-selection-separator" /><SegmentedButton value={value.getHours() >= 12 ? "1" : "0"} aria-label={labels.period} onValueChange={(period) => { const next = new Date(value); next.setHours(value.getHours() % 12 + Number(period) * 12); onValueChange(next) }}>{getDayPeriods(locale).map((period, index) => <SegmentedButtonItem key={period} value={String(index)}>{period.toUpperCase()}</SegmentedButtonItem>)}</SegmentedButton></>}</div>

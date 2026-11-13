@@ -95,6 +95,22 @@ function DateTimePicker({
   }
   const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate, controlledValueWins: phone })
   const lastValid = React.useRef<Date | null>(null)
+  const pendingPhoneUpdate = React.useRef(false)
+  const [, finishPhoneUpdate] = React.useReducer((version) => version + 1, 0)
+  const cachePhoneCanonicalValue = () => {
+    if (!phone) return
+    pendingPhoneUpdate.current = true
+    finishPhoneUpdate()
+  }
+  React.useLayoutEffect(() => {
+    if (!pendingPhoneUpdate.current) return
+    pendingPhoneUpdate.current = false
+    // DateTimePicker.js/_updateValueAndFireEvents caches valid this.value AFTER
+    // super fires consumer events. React batches those caller updates: read the
+    // committed canonical prop here, only after an actual input/commit path.
+    const canonical = s.value && parseDate(s.value, pattern, locale, "datetime")
+    if (canonical) lastValid.current = canonical
+  })
   const current = validate(s.text)
   if (current && !phone) lastValid.current = current
   const [previewDay, setPreviewDay] = React.useState<Date | null>(null)
@@ -107,8 +123,9 @@ function DateTimePicker({
     s.updateState(d !== null)
     s.setEditing(false)
     s.setValue(next)
-    if (d) lastValid.current = d
+    if (d && !phone) lastValid.current = d
     if (next !== s.value) onValueChange?.(next, d ?? null)
+    cachePhoneCanonicalValue()
   }
   const setOpen = (o: boolean) => {
     if (o) {
@@ -123,7 +140,13 @@ function DateTimePicker({
     if (!previewDay) return
     const d = new Date(previewDay)
     d.setHours(previewTime.getHours(), previewTime.getMinutes(), previewTime.getSeconds())
-    commit(formatDate(d, pattern, locale))
+    const next = formatDate(d, pattern, locale)
+    // DatePicker.js/onBeforeRendering canonicalizes external values; native
+    // DateTimePicker.js/_submitClick compares formatted strings, not timestamps
+    // (seconds/milliseconds omitted by the format must not seed the cache).
+    const accepted = s.value && parseDate(s.value, pattern, locale, "datetime")
+    const canonical = accepted ? formatDate(accepted, pattern, locale) : s.value
+    if (!phone || canonical !== next) commit(next)
     setOpen(false)
     if (!phone) fieldRef.current?.focus()
   }
@@ -138,8 +161,10 @@ function DateTimePicker({
         s.setEditing(true)
         s.setText(t)
         onInput?.(t)
+        cachePhoneCanonicalValue()
       }}
-      onCommit={commit}
+      // The phone icon merely opens; external property echoes are not input changes.
+      onCommit={(text) => { if (!phone || s.editing) commit(text) }}
       open={s.open}
       onOpenChange={setOpen}
       valueState={s.valueState}
