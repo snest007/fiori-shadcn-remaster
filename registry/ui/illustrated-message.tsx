@@ -96,6 +96,7 @@ function IllustratedMessage({
   const [autoMedia, setAutoMedia] = React.useState<Media | undefined>(undefined)
   // Content height needed per media, recorded only when it overflowed a height-constrained container.
   const needed = React.useRef<Partial<Record<Media, number>>>({})
+  const measuredWidth = React.useRef<number | undefined>(undefined)
 
   const fixed: Media | undefined = design === "Auto" ? undefined : (design.toLowerCase() as Media)
   const media = fixed ?? autoMedia
@@ -103,12 +104,20 @@ function IllustratedMessage({
   const apply = React.useCallback(() => {
     const el = ref.current
     if (!el || fixed) return
+    const width = el.offsetWidth
+    // IllustratedMessage.js:_checkHeightConstraints records real overflow, but
+    // wrapped content heights belong to the width at which they were measured.
+    // Remeasure after a resize instead of retaining a narrower layout's downgrade.
+    if (measuredWidth.current !== width) {
+      needed.current = {}
+      measuredWidth.current = width
+    }
     const current = el.dataset.media as Media | undefined
     if (current && el.scrollHeight > el.clientHeight) {
       const inner = el.querySelector<HTMLElement>(".fiori-illustrated-message__inner")
       if (inner?.scrollHeight) needed.current[current] = inner.scrollHeight
     }
-    let i = MEDIA.indexOf(mediaForWidth(el.offsetWidth))
+    let i = MEDIA.indexOf(mediaForWidth(width))
     while (i > 0 && (needed.current[MEDIA[i]] ?? 0) > el.clientHeight) i--
     setAutoMedia(MEDIA[i])
   }, [fixed])
@@ -117,7 +126,21 @@ function IllustratedMessage({
     if (fixed || !ref.current) return
     const ro = new ResizeObserver(apply)
     ro.observe(ref.current)
-    return () => ro.disconnect()
+    let active = true
+    // UI5's _handleThemeLoaded invalidates cached text heights when font metrics
+    // change. A late web font can rewrap our content without resizing the host.
+    const fontsChanged = () => {
+      if (!active) return
+      needed.current = {}
+      apply()
+    }
+    document.fonts.addEventListener("loadingdone", fontsChanged)
+    document.fonts.ready.then(fontsChanged)
+    return () => {
+      active = false
+      ro.disconnect()
+      document.fonts.removeEventListener("loadingdone", fontsChanged)
+    }
   }, [fixed, apply])
 
   // New content: recorded heights are stale.

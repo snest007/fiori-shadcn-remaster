@@ -11,6 +11,7 @@ import { defineDemo } from "./types"
 function IllustratedMessageDemo() {
   const [width, setWidth] = React.useState(480)
   const [retries, setRetries] = React.useState(0)
+  const [concise, setConcise] = React.useState(false)
   return (
     <div className="grid gap-4">
       <div className="flex items-center gap-4">
@@ -20,6 +21,12 @@ function IllustratedMessageDemo() {
       <div id="illustrated-message-auto" className="border border-dashed border-(--sapGroup_ContentBorderColor)" style={{ width }}>
         <IllustratedMessage illustration={NoSearchResults} />
       </div>
+      <div id="illustrated-message-wrapping" style={{ width: 340, height: 260 }}>
+        <IllustratedMessage illustration={UnableToLoad} subtitleText={concise ? "Try again." : undefined} />
+      </div>
+      <Button id="illustrated-message-description" onClick={() => setConcise((value) => !value)}>
+        Use {concise ? "full" : "short"} description
+      </Button>
       <div id="illustrated-message-actions" className="w-[30rem]">
         <IllustratedMessage illustration={UnableToLoad} design="Dialog">
           <Button variant="emphasized" onClick={() => setRetries((n) => n + 1)}>Retry ({retries})</Button>
