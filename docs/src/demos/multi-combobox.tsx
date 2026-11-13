@@ -97,7 +97,7 @@ export default defineDemo({
       name: "multi-combobox",
       description: "Multiple selected options as tokens, with separate editable field text.",
       props: [
-        { name: "MultiComboBox.selectedValues", type: "string[]", description: "Controlled values of selected items." },
+        { name: "MultiComboBox.selectedValues", type: "string[]", description: "Controlled UI5 selectedValues array: item.value codes, or text when value is omitted. Phone commits propose a selection; tokens and reopening use the caller's array." },
         { name: "MultiComboBox.onSelectionChange", type: "(values: string[]) => void", description: "Receive selected option values." },
         { name: "MultiComboBox.value", type: "string", description: "Controlled text typed in the field." },
         { name: "MultiComboBox.showSelectAll", type: "boolean", description: "Show the select-all checkbox." },

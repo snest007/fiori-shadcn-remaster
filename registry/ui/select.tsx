@@ -368,7 +368,12 @@ function SelectContent({
       onEscapeKeyDown={(event) => { onEscapeKeyDown?.(event); if (!event.defaultPrevented) closePhone(true) }}
       onKeyDown={(event) => {
         onKeyDown?.(event)
-        if (event.defaultPrevented || !phoneList.current?.contains(event.target as Node)) return
+        if (event.defaultPrevented) return
+        // Select.js/_onkeydown, attached to ResponsivePopover in
+        // SelectPopoverTemplate.js, closes for Keys.js/isTabNext/isTabPrevious
+        // anywhere on the picker. Use the normal close path to commit its draft.
+        if (event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey) { closePhone(); return }
+        if (!phoneList.current?.contains(event.target as Node)) return
         if ((event.key === "F4" && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) || ((event.key === "ArrowDown" || event.key === "ArrowUp") && event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey)) { event.preventDefault(); closePhone(); return }
         const allOptions = [...(phoneList.current?.querySelectorAll<HTMLElement>('[role="option"]') ?? [])]
         const options = allOptions.filter((option) => option.getAttribute("aria-disabled") !== "true")

@@ -51,7 +51,7 @@ function MultiComboBoxItemGroup(_props: MultiComboBoxItemGroupProps): React.Reac
 type MultiComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
   /** <MultiComboBoxItem> and <MultiComboBoxItemGroup> elements (fragments and arrays are fine). */
   children?: React.ReactNode
-  /** Values (item `value`, else `text`) of the selected items; each one shows as a token. */
+  /** Controlled UI5 `selectedValues` (item `value`, else `text`); only caller-approved values become tokens after a phone commit. */
   selectedValues?: string[]
   defaultSelectedValues?: string[]
   onSelectionChange?: (values: string[]) => void
@@ -217,17 +217,18 @@ function MultiComboBox({
   const committedValues = selectedProp ?? uncontrolledSelected
   const [phoneSelected, setPhoneSelected] = React.useState(committedValues)
   const previousCommittedValues = React.useRef(committedValues)
-  const phoneEnterEcho = React.useRef<string[] | null>(null)
-  const ignoresPhoneEnterEcho = phone && phoneEnterEcho.current !== null && committedValues.length === phoneEnterEcho.current.length && committedValues.every((key, index) => key === phoneEnterEcho.current![index])
-  const selectedValues = phone ? (committedValues !== previousCommittedValues.current && !ignoresPhoneEnterEcho ? committedValues : phoneSelected) : committedValues
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
+  const open = (openProp ?? uncontrolledOpen) && !disabled
+  // MultiComboBox.js/_syncSelection (called by onBeforeRendering) makes
+  // selectedValues authoritative for value-bearing items. The phone List may
+  // stage checkbox edits, but collapsed tokens always use the caller's array.
+  const selectedValues = phone && open && committedValues === previousCommittedValues.current ? phoneSelected : committedValues
   const latestPhoneSelected = React.useRef(selectedValues)
   latestPhoneSelected.current = selectedValues
   const phoneSnapshot = React.useRef({ selected: committedValues, value: valueProp ?? defaultValue })
   const selectedSet = new Set(selectedValues)
   const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolledValue
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen)
-  const open = (openProp ?? uncontrolledOpen) && !disabled
   const [typed, setTyped] = React.useState("")
   const [filtering, setFiltering] = React.useState(false)
   const [filterSelected, setFilterSelected] = React.useState(false)
@@ -285,7 +286,10 @@ function MultiComboBox({
   }
   const setSelected = (next: string[], immediate = false) => {
     const ordered = items.map((i) => i.key).filter((k) => next.includes(k))
-    if (phone) { latestPhoneSelected.current = ordered; setPhoneSelected(ordered) }
+    if (phone) {
+      latestPhoneSelected.current = ordered
+      setPhoneSelected(immediate && selectedProp !== undefined ? committedValues : ordered)
+    }
     if (phone && open && !immediate) return
     if (selectedProp === undefined) setUncontrolledSelected(ordered)
     onSelectionChange?.(ordered)
@@ -294,7 +298,7 @@ function MultiComboBox({
   }
   const setOpen = (o: boolean) => {
     if (o === open) return
-    if (phone && o) phoneSnapshot.current = { selected: [...selectedValues], value }
+    if (phone && o) { setPhoneSelected(committedValues); phoneSnapshot.current = { selected: [...committedValues], value } }
     if (phone && !o && selectedProp === undefined) setUncontrolledSelected(latestPhoneSelected.current)
     if (openProp === undefined) setUncontrolledOpen(o)
     onOpenChange?.(o)
@@ -306,17 +310,19 @@ function MultiComboBox({
   React.useLayoutEffect(() => {
     if (previousCommittedValues.current !== committedValues) {
       previousCommittedValues.current = committedValues
-      if (!ignoresPhoneEnterEcho) setPhoneSelected(committedValues)
+      setPhoneSelected(committedValues)
     }
-    phoneEnterEcho.current = null
   })
   const previousPhoneOpen = React.useRef(false)
   React.useLayoutEffect(() => {
     // MultiComboBox.js/_beforeOpen also snapshots when the public open property
     // changes, rather than only when the field itself requests the dialog.
-    if (phone && open && !previousPhoneOpen.current) phoneSnapshot.current = { selected: [...selectedValues], value }
+    if (phone && open && !previousPhoneOpen.current) {
+      setPhoneSelected(committedValues)
+      phoneSnapshot.current = { selected: [...committedValues], value }
+    }
     previousPhoneOpen.current = phone && open
-  }, [phone, open, selectedValues, value])
+  }, [phone, open, committedValues, value])
   const commit = (v = value) => {
     if (v !== lastCommitted.current) {
       lastCommitted.current = v
@@ -707,14 +713,11 @@ function MultiComboBox({
                 // MultiComboBox.js/_onMobileInputKeydown fires selection-change
                 // before toggling the matching item, unlike row selection.
                 e.preventDefault()
-                // Our text-key API maps native item.selected flags. That native
-                // handler reports their pre-toggle state, then toggles locally.
-                // Consume only this callback's unchanged echo; later controlled
-                // replacements still synchronize. UI5 selectedValues+item.value
-                // has a different _syncSelection contract and is not normalized.
-                phoneEnterEcho.current = [...selectedValues]
                 setSelected(selectedValues, true)
-                toggleItem(matching.key)
+                // _syncSelection resets this post-event toggle for controlled
+                // item.value/selectedValues; the flag-only uncontrolled path
+                // retains it without emitting a second selection-change.
+                if (selectedProp === undefined) toggleItem(matching.key)
                 setValue("")
                 setOpen(false)
               }
