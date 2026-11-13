@@ -53,7 +53,7 @@ Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 
 ## Wave D — platform behaviour (after waves A–C are merged; touches many components)
 
-- [ ] [D1 Phone layouts for popups](tasks/D1-phone-popups.md) — L
+- [ ] [D1 Phone layouts for popups](tasks/D1-phone-popups.md) — L — D1a returned: [fix list](returns/D1.md); D1b after D1a
 - [x] [D2 F6 fast navigation](tasks/D2-f6-navigation.md) — M
 - [x] [D3 RTL verification](tasks/D3-rtl.md) — M
 
