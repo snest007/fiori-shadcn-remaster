@@ -1,6 +1,8 @@
 import * as React from "react"
 
 import { dayKey, formatDate, getWeekInfo, modifyDateBy, parseDate, patternFields, resolvePattern, startOfDay } from "@/lib/fiori-dates"
+import { useIsPhone } from "@/lib/use-is-phone"
+import { SegmentedButton, SegmentedButtonItem } from "@/components/ui/segmented-button"
 import { cn } from "@/lib/utils"
 import { dateTime } from "@/lib/fiori-icons"
 import { Button } from "@/components/ui/button"
@@ -43,6 +45,9 @@ type DateTimePickerProps = Omit<React.ComponentProps<"input">, "value" | "defaul
   openIconLabel?: string
   closeIconLabel?: string
   pickerLabel?: string
+  phoneHeaderText?: string
+  dateLabel?: string
+  timeLabel?: string
 }
 
 function DateTimePicker({
@@ -71,9 +76,14 @@ function DateTimePicker({
   openIconLabel,
   closeIconLabel,
   pickerLabel,
+  phoneHeaderText,
+  dateLabel = "Date",
+  timeLabel = "Time",
   wrapperClassName,
   ...props
 }: DateTimePickerProps) {
+  const phone = useIsPhone()
+  const [phoneView, setPhoneView] = React.useState("date")
   // UI5 falls back to the locale's medium date-time pattern when the pattern has no hours.
   const resolved = resolvePattern(formatPattern, locale, "datetime")
   const pattern = patternFields(resolved).hours ? resolved : resolvePattern("medium", locale, "datetime")
@@ -83,10 +93,26 @@ function DateTimePicker({
     const d = parseDate(text, pattern, locale, "datetime")
     return d && inRange(d) ? d : null
   }
-  const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate })
+  const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate, controlledValueWins: phone })
   const lastValid = React.useRef<Date | null>(null)
+  const pendingPhoneUpdate = React.useRef(false)
+  const [, finishPhoneUpdate] = React.useReducer((version) => version + 1, 0)
+  const cachePhoneCanonicalValue = () => {
+    if (!phone) return
+    pendingPhoneUpdate.current = true
+    finishPhoneUpdate()
+  }
+  React.useLayoutEffect(() => {
+    if (!pendingPhoneUpdate.current) return
+    pendingPhoneUpdate.current = false
+    // DateTimePicker.js/_updateValueAndFireEvents caches valid this.value AFTER
+    // super fires consumer events. React batches those caller updates: read the
+    // committed canonical prop here, only after an actual input/commit path.
+    const canonical = s.value && parseDate(s.value, pattern, locale, "datetime")
+    if (canonical) lastValid.current = canonical
+  })
   const current = validate(s.text)
-  if (current) lastValid.current = current
+  if (current && !phone) lastValid.current = current
   const [previewDay, setPreviewDay] = React.useState<Date | null>(null)
   const [previewTime, setPreviewTime] = React.useState<Date>(() => new Date())
   const fieldRef = React.useRef<HTMLInputElement>(null)
@@ -97,10 +123,13 @@ function DateTimePicker({
     s.updateState(d !== null)
     s.setEditing(false)
     s.setValue(next)
+    if (d && !phone) lastValid.current = d
     if (next !== s.value) onValueChange?.(next, d ?? null)
+    cachePhoneCanonicalValue()
   }
   const setOpen = (o: boolean) => {
     if (o) {
+      setPhoneView("date")
       const base = validate(s.text) ?? lastValid.current
       setPreviewDay(base ? startOfDay(base) : null)
       setPreviewTime(base ?? new Date())
@@ -111,9 +140,15 @@ function DateTimePicker({
     if (!previewDay) return
     const d = new Date(previewDay)
     d.setHours(previewTime.getHours(), previewTime.getMinutes(), previewTime.getSeconds())
-    commit(formatDate(d, pattern, locale))
+    const next = formatDate(d, pattern, locale)
+    // DatePicker.js/onBeforeRendering canonicalizes external values; native
+    // DateTimePicker.js/_submitClick compares formatted strings, not timestamps
+    // (seconds/milliseconds omitted by the format must not seed the cache).
+    const accepted = s.value && parseDate(s.value, pattern, locale, "datetime")
+    const canonical = accepted ? formatDate(accepted, pattern, locale) : s.value
+    if (!phone || canonical !== next) commit(next)
     setOpen(false)
-    fieldRef.current?.focus()
+    if (!phone) fieldRef.current?.focus()
   }
   const year = new Date().getFullYear()
 
@@ -126,8 +161,10 @@ function DateTimePicker({
         s.setEditing(true)
         s.setText(t)
         onInput?.(t)
+        cachePhoneCanonicalValue()
       }}
-      onCommit={commit}
+      // The phone icon merely opens; external property echoes are not input changes.
+      onCommit={(text) => { if (!phone || s.editing) commit(text) }}
       open={s.open}
       onOpenChange={setOpen}
       valueState={s.valueState}
@@ -137,6 +174,7 @@ function DateTimePicker({
       closeIconLabel={closeIconLabel}
       roleDescription="Date Time Input"
       pickerLabel={pickerLabel ?? "Choose Date and Time"}
+      phoneHeaderText={phoneHeaderText}
       placeholder={placeholder ?? examplePlaceholder(formatDate(new Date(year, 11, 31, 23, 59, 59), pattern, locale))}
       popoverClassName="fiori-date-time-picker-popover"
       onPickerKeyDown={(e, inPopover) => {
@@ -168,11 +206,20 @@ function DateTimePicker({
     >
       {s.open && (
         <DateTimeSelection
+          phone={phone} phoneView={phoneView} onPhoneViewChange={setPhoneView} dateLabel={dateLabel} timeLabel={timeLabel}
           locale={locale}
           pattern={pattern}
           day={previewDay}
           time={previewTime}
-          onDayChange={setPreviewDay}
+          onDayChange={(day) => {
+            setPreviewDay(day)
+            if (phone) {
+              // DateTimePicker.js/onSelectedDatesChange: Date-only view has no clocks;
+              // fall back to the last committed valid value, or the current time.
+              if (phoneView === "date") setPreviewTime(lastValid.current ?? new Date())
+              setPhoneView("time")
+            }
+          }}
           onTimeChange={setPreviewTime}
           minDate={minDate}
           maxDate={maxDate}
@@ -206,6 +253,11 @@ type DateTimeSelectionProps = {
   /** Enter in the clocks. */
   onSubmit?: () => void
   autoFocus?: boolean
+  phone?: boolean
+  phoneView?: string
+  onPhoneViewChange?: (view: string) => void
+  dateLabel?: string
+  timeLabel?: string
 }
 
 /** The popover content: calendar | separator | clocks (ui5-dt-picker-content). */
@@ -225,10 +277,9 @@ function DateTimeSelection({
   clockLabels,
   onSubmit,
   autoFocus,
+  phone, phoneView = "date", onPhoneViewChange, dateLabel = "Date", timeLabel = "Time",
 }: DateTimeSelectionProps) {
-  return (
-    <div data-slot="date-time-selection" className="fiori-dt-picker-content">
-      <Calendar
+  const calendar = <Calendar
         autoFocus={autoFocus}
         className="fiori-dt-cal"
         locale={locale}
@@ -242,9 +293,13 @@ function DateTimeSelection({
         defaultFocusedDate={day ?? undefined}
         onSelectedDatesChange={(ds) => ds.length && onDayChange(ds[ds.length - 1])}
       />
-      <span className="fiori-dt-picker-separator" />
-      <TimeSelectionClocks className="fiori-dt-time" value={time} onValueChange={onTimeChange} formatPattern={pattern} locale={locale} onSubmit={onSubmit} labels={clockLabels} />
-    </div>
+  return (
+    <>{phone && <div data-slot="date-time-toggle" className="fiori-dt-picker-header"><SegmentedButton className="fiori-dt-picker-toggle-button" value={phoneView} onValueChange={onPhoneViewChange} aria-label={`${dateLabel} / ${timeLabel}`}><SegmentedButtonItem value="date">{dateLabel}</SegmentedButtonItem><SegmentedButtonItem data-phone-view="time" value="time">{timeLabel}</SegmentedButtonItem></SegmentedButton></div>}
+    <div data-slot="date-time-selection" className={cn("fiori-dt-picker-content", phone && "fiori-dt-picker-content--phone")}>
+      {phone ? <div hidden={phoneView === "time"}>{calendar}</div> : calendar}
+      {!phone && <span className="fiori-dt-picker-separator" />}
+      {(!phone || phoneView === "time") && <TimeSelectionClocks autoFocus={phone && phoneView === "time"} className="fiori-dt-time" value={time} onValueChange={onTimeChange} formatPattern={pattern} locale={locale} onSubmit={onSubmit} labels={clockLabels} />}
+    </div></>
   )
 }
 

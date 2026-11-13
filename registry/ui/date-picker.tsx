@@ -11,6 +11,7 @@ import {
   startOfDay,
 } from "@/lib/fiori-dates"
 import { appointment2 } from "@/lib/fiori-icons"
+import { useIsPhone } from "@/lib/use-is-phone"
 import { Calendar, type CalendarLabels, type SpecialDate } from "@/components/ui/calendar"
 import type { ValueState } from "@/components/ui/input"
 import { examplePlaceholder, PickerField } from "@/components/ui/picker-field"
@@ -54,6 +55,8 @@ type DatePickerProps = Omit<React.ComponentProps<"input">, "value" | "defaultVal
   closeIconLabel?: string
   /** Accessible name of the popover. */
   pickerLabel?: string
+  phoneHeaderText?: string
+  cancelLabel?: string
 }
 
 /** Shared state for the date-like pickers: value (controlled or not), auto value state, open state. */
@@ -66,6 +69,7 @@ function usePickerState<T>({
   defaultOpen,
   onOpenChange,
   validate,
+  controlledValueWins = false,
 }: {
   value?: string
   defaultValue?: string
@@ -75,6 +79,8 @@ function usePickerState<T>({
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
   validate: (text: string) => T | null | undefined
+  /** Phone callers retain authority over the public value after committing a draft. */
+  controlledValueWins?: boolean
 }) {
   const [inner, setInner] = React.useState(defaultValue ?? "")
   const value = valueProp ?? inner
@@ -101,7 +107,7 @@ function usePickerState<T>({
   }
   const setValue = (v: string) => {
     if (valueProp === undefined) setInner(v)
-    setText(v)
+    setText(controlledValueWins && valueProp !== undefined ? valueProp : v)
   }
   return { value, text, setText, editing, setEditing, valueState, open, setOpen, updateState, setValue }
 }
@@ -129,9 +135,12 @@ function DatePicker({
   openIconLabel,
   closeIconLabel,
   pickerLabel,
+  phoneHeaderText,
+  cancelLabel,
   ref,
   ...props
 }: DatePickerProps) {
+  const phone = useIsPhone()
   const changeTarget = React.useRef<HTMLInputElement>(null)
   React.useImperativeHandle(ref, () => changeTarget.current!, [])
   const pattern = resolvePattern(formatPattern, locale, "date")
@@ -143,7 +152,7 @@ function DatePicker({
     const d = parse(text)
     return d && inRange(d) ? startOfDay(d) : null
   }
-  const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate })
+  const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate, controlledValueWins: phone })
   const date = validate(s.text) ?? null
   const fields = patternFields(pattern)
   const selectionLevel = fields.day ? "day" : fields.month ? "month" : "year"
@@ -184,6 +193,7 @@ function DatePicker({
       closeIconLabel={closeIconLabel}
       roleDescription="Date Input"
       pickerLabel={pickerLabel ?? "Choose Date"}
+      phoneHeaderText={phoneHeaderText} cancelLabel={cancelLabel}
       placeholder={placeholder ?? examplePlaceholder(formatDate(yearEnd, pattern, locale))}
       onPickerKeyDown={(e, inPopover) => {
         if (inPopover || s.open || e.key !== "PageUp" && e.key !== "PageDown") return

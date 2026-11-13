@@ -149,3 +149,9 @@
 .fiori-picker-popover__footer[data-media-range="XL"] {
   padding-inline: var(--fiori-popup-header-footer-padding-xl);
 }
+/* DatePickerPopoverTemplate.js/defaultHeader and DatePickerPopover.css.js: title-only
+   phone header, centered calendar, fixed footer. Source spacing has no parameters. */
+.fiori-picker-phone .fiori-picker-phone__title { justify-content: flex-start; font-family: var(--sapFontHeaderFamily); color: var(--sapPageHeader_TextColor); }
+.fiori-picker-phone .fiori-popup__content { overflow: auto; display: block; }
+.fiori-picker-phone .fiori-picker-popover__content > [data-slot="calendar"] { display: flex; justify-content: center; width: auto; }
+.fiori-picker-phone .fiori-responsive-popover__footer { padding-inline: var(--fiori-popup-header-footer-padding-s); }

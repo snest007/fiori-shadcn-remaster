@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useIsPhone } from "@/lib/use-is-phone"
 
 import { decline, search as searchIcon } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -169,6 +170,7 @@ function ValueHelpDialog({
   className,
   children,
 }: ValueHelpDialogProps) {
+  const phone = useIsPhone()
   const t = { ...defaultTexts, ...texts }
   const opLabel = { ...operatorLabels, ...operatorTexts }
   const multi = selectionMode === "multiple"
@@ -526,7 +528,7 @@ function ValueHelpDialog({
         portal={portal}
         aria-describedby={undefined}
         data-slot="value-help-dialog"
-        className={cn("fiori-vhd", !multi && "fiori-vhd--single", className)}
+        className={cn("fiori-vhd", phone && "fiori-vhd--phone", !multi && "fiori-vhd--single", className)}
         onOpenAutoFocus={(e) => {
           if (!portal) e.preventDefault()
         }}

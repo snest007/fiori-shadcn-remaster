@@ -3,10 +3,14 @@ import { Popover as PopoverPrimitive } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
 
+import { isF6NavigationKey } from "@/lib/fiori-f6"
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useIsPhone } from "@/lib/use-is-phone"
+import { Button } from "@/components/ui/button"
+import { ResponsivePopover, ResponsivePopoverAnchor, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
 import { usePopupMediaRange } from "@/components/ui/popover"
 
 // The field + value-help popover that ui5-date-picker, ui5-daterange-picker, ui5-datetime-picker and
@@ -46,6 +50,13 @@ type PickerFieldProps = Omit<React.ComponentProps<"input">, "value" | "defaultVa
   inputRef?: React.Ref<HTMLInputElement>
   /** F4 also closes the open popover (TimePicker). Off for the date pickers, where F4 is the calendar's. */
   f4Closes?: boolean
+  /** Phone title, defaulting to the field name. */
+  phoneHeaderText?: string
+  phoneFooter?: React.ReactNode
+  /** TimePicker owns the numeric popover opened by phone input focus. */
+  phoneInputFocus?: () => void
+  phonePreventInitialFocus?: boolean
+  cancelLabel?: string
 }
 
 // UI5 Keys.js/isShowByArrows is Alt-only; Meta+Alt belongs to F6 navigation.
@@ -74,15 +85,24 @@ function PickerField({
   onPickerKeyDown,
   inputRef: inputRefProp,
   f4Closes,
+  phoneHeaderText,
+  phoneFooter,
+  phoneInputFocus,
+  phonePreventInitialFocus,
+  cancelLabel = "Cancel",
   disabled,
   readOnly,
   id,
   onKeyDown,
   onBlur,
   onFocus,
+  onClick,
   "aria-describedby": ariaDescribedBy,
   ...props
 }: PickerFieldProps) {
+  const phone = useIsPhone()
+  const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
+  const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
   const open = openProp && !disabled && !readOnly
   const inputRef = React.useRef<HTMLInputElement>(null)
   const contentRef = React.useRef<HTMLDivElement>(null)
@@ -117,12 +137,16 @@ function PickerField({
   const wasOpen = React.useRef(open)
   React.useEffect(() => {
     const active = document.activeElement
-    if (wasOpen.current && !open && (!active || active === document.body || contentRef.current?.contains(active))) inputRef.current?.focus()
+    if (wasOpen.current && !open) {
+      // DatePicker.js/TimePicker.js onResponsivePopoverAfterClose closes the phone keyboard.
+      if (phone) inputRef.current?.blur()
+      else if (!active || active === document.body || contentRef.current?.contains(active)) inputRef.current?.focus()
+    }
     wasOpen.current = open
   }, [open])
   const close = () => {
     setOpen(false)
-    inputRef.current?.focus()
+    if (!phone) inputRef.current?.focus()
   }
 
   const handleKey = (e: React.KeyboardEvent<HTMLElement>, inPopover: boolean) => {
@@ -140,8 +164,8 @@ function PickerField({
   }
 
   return (
-    <PopoverPrimitive.Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
-      <PopoverPrimitive.Anchor asChild>
+    <Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
+      <Anchor asChild>
         <div
           data-slot="picker-field"
           data-value-state={hasState ? valueState : undefined}
@@ -170,12 +194,18 @@ function PickerField({
               onKeyDown?.(e)
               if (e.defaultPrevented) return
               if (e.key === "Enter") commit(e.currentTarget.value)
-              if (e.key === "Tab" && open) setOpen(false)
+              // DatePicker.js/_onkeydown closes only for Keys.isTabNext/isTabPrevious.
+              if (open && (phone ? (e.key === "Tab" && !e.altKey && !e.ctrlKey && !e.metaKey) || isF6NavigationKey(e) : e.key === "Tab")) setOpen(false)
               handleKey(e, false)
             }}
+            onClick={phone ? (e) => {
+              onClick?.(e)
+              if (e.defaultPrevented || disabled || readOnly) return
+            } : onClick}
             onFocus={(e) => {
               lastValue.current = e.currentTarget.value
               onFocus?.(e)
+              if (phone && phoneInputFocus && !open) phoneInputFocus()
             }}
             onBlur={(e) => {
               if (contentRef.current?.contains(e.relatedTarget as Node)) return
@@ -196,7 +226,7 @@ function PickerField({
               className="fiori-picker-field__icon"
               onMouseDown={(e) => {
                 e.preventDefault()
-                if (!disabled) inputRef.current?.focus()
+                if (!disabled && !phone) inputRef.current?.focus()
               }}
               onClick={() => {
                 if (disabled) return
@@ -222,8 +252,21 @@ function PickerField({
             </div>
           )}
         </div>
-      </PopoverPrimitive.Anchor>
-      <PopoverPrimitive.Portal>
+      </Anchor>
+      {/* DatePicker.js/_headerTitleText uses DATEPICKER_MOBILE_HEADER_TITLE;
+          TimePicker.js/_headerTitleText uses INPUT_SUGGESTIONS_TITLE. */}
+      {phone ? <ResponsivePopoverContent
+        ref={contentRef} data-slot="picker-popover" aria-label={pickerLabel}
+        headerText={phoneHeaderText ?? props["aria-label"] ?? (f4Closes ? "All Items" : "Enter date")}
+        phoneField phoneClassName={cn("fiori-picker-phone", popoverClassName)} preventFocusRestore
+        phoneOwnerRef={inputRef}
+        phoneHeader={<div className="fiori-responsive-popover__rows"><div className="fiori-responsive-popover__row fiori-picker-phone__title"><span>{phoneHeaderText ?? props["aria-label"] ?? (f4Closes ? "All Items" : "Enter date")}</span></div></div>}
+        phoneFooter={phoneFooter ?? footer ?? <div className="fiori-dt-picker-footer"><Button variant="transparent" onClick={close}>{cancelLabel}</Button></div>}
+        onOpenAutoFocus={(e) => { e.preventDefault(); if (!phonePreventInitialFocus) requestAnimationFrame(() => contentRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus()) }}
+        onCloseAutoFocus={(e) => { e.preventDefault(); inputRef.current?.blur() }}
+        onEscapeKeyDown={(e) => { if (!e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey) { e.preventDefault(); close() } else e.preventDefault() }}
+        onKeyDown={(e) => handleKey(e, true)}
+      ><PickerPopoverBody valueState={showHeader ? valueState : "none"} message={message}>{children}</PickerPopoverBody></ResponsivePopoverContent> : <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content data-sap-ui-fastnavgroup-container="true"
           ref={contentRef}
           data-slot="picker-popover"
@@ -253,8 +296,8 @@ function PickerField({
             {children}
           </PickerPopoverBody>
         </PopoverPrimitive.Content>
-      </PopoverPrimitive.Portal>
-    </PopoverPrimitive.Root>
+      </PopoverPrimitive.Portal>}
+    </Root>
   )
 }
 
