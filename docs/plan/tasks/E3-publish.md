@@ -20,8 +20,16 @@ repository itself, not a component) — don't use `RUN.md`'s worktree/sub-agent 
 git switch main && git status --short            # must be empty
 git log --oneline -1                             # note the hash
 node scripts/integrate.mjs status                # no pending codex/* branches, no worktrees
-gh auth status || git ls-remote https://github.com/snest007/fiori-shadcn-remaster.git   # credentials work
+ssh -T git@github.com                            # must greet "Hi snest007!" (SSH key auth works on this machine)
+gh auth status                                   # needed for creating the repo / enabling Pages / watching runs
 ```
+
+Authentication on this machine (checked 2026-11-13): **SSH works** (`~/.ssh/id_ed25519`, GitHub user `snest007`);
+HTTPS has no credential helper and `gh` isn't installed. Use the **SSH remote** for all git operations:
+`git@github.com:snest007/fiori-shadcn-remaster.git`. For the GitHub API parts (create repo, enable Pages, watch runs),
+`gh` must be installed and logged in — if `gh auth status` fails, stop and ask the owner to run, in a terminal:
+`brew install gh && gh auth login -h github.com -p ssh -w` (browser login, reuses the SSH key). Don't ask for tokens in
+chat and don't write any token to a file.
 
 The repository URL returned 404 anonymously on 2026-11-13: it either doesn't exist yet or is private.
 - If it doesn't exist: create it **public**, empty (no README / license / .gitignore), description
@@ -89,7 +97,7 @@ or `PUT` if it already exists).
 ## 4. Push and deploy
 
 ```bash
-git remote add origin https://github.com/snest007/fiori-shadcn-remaster.git   # or set-url if it exists
+git remote add origin git@github.com:snest007/fiori-shadcn-remaster.git   # or set-url if it exists
 git push -u origin main
 ```
 
