@@ -1,0 +1,25 @@
+shadcn-fiori
+Copyright 2026 snest007
+
+This project includes theme values, fonts, icon paths, illustrations, and
+reference-derived styling and behavior from SAP's open-source packages:
+
+- @sap-theming/theming-base-content
+- @ui5/webcomponents
+- @ui5/webcomponents-base
+- @ui5/webcomponents-fiori
+- @ui5/webcomponents-icons
+- @ui5/webcomponents-theming
+- @openui5/sap.ui.core
+- @openui5/sap.m
+- @openui5/sap.ui.mdc
+- @openui5/sap.ui.fl
+- @openui5/sap.ui.layout
+- @openui5/sap.ui.unified
+- @openui5/themelib_sap_horizon
+
+These packages are copyright SAP SE or an SAP affiliate company and are
+licensed under the Apache License, Version 2.0. The OpenUI5 packages are used
+only as development-time references and are not included in the registry.
+
+SAP and Fiori are trademarks of SAP SE. This project is not an SAP product.

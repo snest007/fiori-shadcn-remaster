@@ -87,8 +87,8 @@ Pages workflow fails at `configure-pages` — expected, not a finding.
 - `LICENSE` file: Apache-2.0 full text, copyright "2026 snest007"; keep README's SAP third-party notice
   (theme values, fonts, icons, illustrations © SAP SE under Apache-2.0). Add `NOTICE` listing those SAP packages.
 - Make sure nothing private or local ends up in git: `git ls-files | grep -E '\.integration|\.worktrees|\.env|test-results|/\.claude/'`
-  must be empty except `.claude/launch.json` (fine to keep). No absolute `/Users/...` paths in tracked files
-  (`git grep -n '/Users/' -- ':!pnpm-lock.yaml'` → fix or remove any hit, e.g. in docs/plan evidence references).
+  must be empty except `.claude/launch.json` (fine to keep). No absolute macOS home-directory paths in tracked files
+  (`git grep -n -E '/[U]sers/' -- ':!pnpm-lock.yaml'` → fix or remove any hit, e.g. in docs/plan evidence references).
 - Run the full local acceptance once more on the final commit: `node scripts/integrate.mjs verify` (3 runs + smoke).
 
 ## 4. Push

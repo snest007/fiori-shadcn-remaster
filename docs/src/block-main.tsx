@@ -21,7 +21,7 @@ function Index() {
       <h1 className="mb-4 font-(family-name:--sapFontBoldFamily) text-(length:--sapFontHeader3Size)">Blocks</h1>
       <ul className="grid gap-2">
         {Object.keys(byName).map((n) => (
-          <li key={n}><a className="text-(--sapLinkColor) underline" href={`block.html?name=${n}`}>{n}</a></li>
+          <li key={n}><a className="text-(--sapLinkColor) underline" href={`${import.meta.env.BASE_URL}block.html?name=${n}`}>{n}</a></li>
         ))}
       </ul>
     </main>

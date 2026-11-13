@@ -5,7 +5,11 @@ The colors, sizes, shadows, fonts and icons are not hand-tuned. They are generat
 packages, and each component is screenshot-compared against [UI5 Web Components](https://github.com/UI5/webcomponents),
 SAP's official implementation.
 
+[![CI](https://github.com/snest007/fiori-shadcn-remaster/actions/workflows/ci.yml/badge.svg)](https://github.com/snest007/fiori-shadcn-remaster/actions/workflows/ci.yml)
+
 > Built on the SAP Horizon design language. This is not an SAP product. "SAP" and "Fiori" are trademarks of SAP SE.
+
+Browse the [component docs and floorplans](https://snest007.github.io/fiori-shadcn-remaster/).
 
 ## Status: all four phases done (foundation, core, complex controls, layouts & floorplans)
 
@@ -25,7 +29,7 @@ SAP's official implementation.
 Requires Tailwind CSS v4 and React 19.
 
 ```bash
-npx shadcn@latest init https://<your-host>/r/fiori.json
+npx shadcn@latest init https://snest007.github.io/fiori-shadcn-remaster/r/fiori.json
 ```
 
 This writes the theme to `src/styles/fiori/`, adds the imports to your Tailwind CSS entry, maps shadcn's
@@ -97,6 +101,11 @@ Upgrading SAP's packages: bump `@sap-theming/theming-base-content` / `@ui5/webco
 The visual tests will show any component whose reference changed.
 
 Adding a component: see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for component ownership and reference fixtures, and
+[AGENTS.md](AGENTS.md) for task-card workflow and acceptance checks.
 
 ## Not done yet
 

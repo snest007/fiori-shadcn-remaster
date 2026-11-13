@@ -34,7 +34,7 @@ async function waitFor(url, ms = 60_000) {
   const end = Date.now() + ms
   while (Date.now() < end) {
     try {
-      if ((await fetch(url)).ok) return
+      if ((await fetch(url, { signal: AbortSignal.timeout(Math.min(10_000, end - Date.now())) })).ok) return
     } catch {}
     await new Promise((r) => setTimeout(r, 300))
   }
@@ -54,7 +54,9 @@ try {
     await serve(`pnpm exec vite preview --port ${REG_PORT} --strictPort`, root, REG_PORT)
     registry = `http://localhost:${REG_PORT}/r`
   }
-  await waitFor(`${registry}/fiori.json`)
+  // GitHub Pages may take up to two minutes to propagate a new deployment. Keep local
+  // server startup's existing timeout; only the first remote registry fetch waits longer.
+  await waitFor(`${registry}/fiori.json`, remote ? 120_000 : 60_000)
 
   step(`create consumer app in ${dir}`)
   writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fiori-smoke", private: true, type: "module", scripts: { build: "tsc --noEmit && vite build" } }))

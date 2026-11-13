@@ -6,6 +6,7 @@ import { defineConfig } from "vite"
 const r = (p: string) => fileURLToPath(new URL(p, import.meta.url))
 
 export default defineConfig({
+  base: process.env.BASE_PATH ?? "/",
   root: "docs",
   publicDir: r("public"),
   plugins: [react(), tailwindcss()],

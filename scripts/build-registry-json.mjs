@@ -57,7 +57,7 @@ for (const b of blocks) {
 const registry = {
   $schema: "https://ui.shadcn.com/schema/registry.json",
   name: "fiori",
-  homepage: "https://github.com/snest007/shadcn-fiori",
+  homepage: "https://github.com/snest007/fiori-shadcn-remaster",
   items: [
     {
       name: "fiori",

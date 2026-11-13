@@ -5,6 +5,11 @@
   "type": "module",
   "description": "SAP Fiori (Horizon) look and interaction for React, distributed as a shadcn registry.",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/snest007/fiori-shadcn-remaster.git"
+  },
+  "homepage": "https://snest007.github.io/fiori-shadcn-remaster/",
   "packageManager": "pnpm@10.26.2",
   "scripts": {
     "tokens": "node scripts/generate-tokens.mjs",
@@ -13,6 +18,7 @@
     "generate": "pnpm tokens && pnpm icons && pnpm illustrations && pnpm css",
     "dev": "pnpm css && vite",
     "build": "pnpm css && vite build",
+    "build:pages": "REGISTRY_URL=https://snest007.github.io/fiori-shadcn-remaster/r BASE_PATH=/fiori-shadcn-remaster/ pnpm registry:build && BASE_PATH=/fiori-shadcn-remaster/ pnpm build && node -e \"require('node:fs').writeFileSync('dist/.nojekyll', '')\"",
     "preview": "vite preview --port 4173 --strictPort",
     "sapui5:serve": "cd sapui5 && ui5 serve --port ${SAPUI5_PORT:-4174}",
     "registry:build": "pnpm css && node scripts/build-registry-json.mjs && shadcn build registry.json --output public/r",

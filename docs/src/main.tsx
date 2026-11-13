@@ -230,8 +230,8 @@ function FixtureLinks({ docs }: { docs: ComponentDocs }) {
   const reference = pageQuery()
   reference.set("only", fixture.id)
   return <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-(--sapContent_LabelColor)">
-    <a className="text-(--sapLinkColor) underline" data-docs-fixture={fixture.id} href={`/index.html?${q}`}>Fixtures</a>
-    {hasUi5 ? <a className="text-(--sapLinkColor) underline" data-docs-reference={fixture.id} href={`/ui5.html?${reference}`}>UI5 reference</a> : <span>Reference: {sapui5FixtureSets.includes(set) ? "SAPUI5 local comparison harness" : "Fiori guideline review"}; no UI5 Web Components reference.</span>}
+    <a className="text-(--sapLinkColor) underline" data-docs-fixture={fixture.id} href={`${import.meta.env.BASE_URL}index.html?${q}`}>Fixtures</a>
+    {hasUi5 ? <a className="text-(--sapLinkColor) underline" data-docs-reference={fixture.id} href={`${import.meta.env.BASE_URL}ui5.html?${reference}`}>UI5 reference</a> : <span>Reference: {sapui5FixtureSets.includes(set) ? "SAPUI5 local comparison harness" : "Fiori guideline review"}; no UI5 Web Components reference.</span>}
   </div>
 }
 
@@ -244,7 +244,7 @@ function ComponentContent({ page }: { page: ComponentPage }) {
   </div>
 }
 
-const blockHref = (name: string) => `/block.html?${new URLSearchParams({ name, theme: opts.theme, density: opts.density })}`
+const blockHref = (name: string) => `${import.meta.env.BASE_URL}block.html?${new URLSearchParams({ name, theme: opts.theme, density: opts.density })}`
 function Floorplans() {
   return <div className="grid gap-6">{blocks.map((block) => <Section key={block.name} title={block.title}><div className="grid gap-4"><p>{block.description}</p><Install name={block.name} /><a className="text-(--sapLinkColor) underline" href={blockHref(block.name)}>Open {block.title}</a></div></Section>)}</div>
 }
