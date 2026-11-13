@@ -232,6 +232,17 @@ test.describe("D1b phone native contracts", () => {
       await (native ? holder : page.locator('[data-slot="time-picker-inputs-popover"]')).getByRole('button', { name: 'OK', exact: true }).click()
       await expect(numeric.first()).not.toBeVisible(); await expect(field(holder, native)).toHaveValue(native ? '11:15:30 AM' : '11:15:30\u202fAM')
     })
+    // TimeSelectionInputs.js/_oninput only edits (and seeds the keyboard buffer) when the parsed value changes:
+    // pasting "010" over 10 is a no-op, so the next digits start a fresh buffer ("1" then "2" → 12).
+    for (const [pasted, expected] of [["010", "12:15:30 AM"], ["10", "12:15:30 AM"]] as const) test(`${label} TimePicker numeric input ignores an equivalent pasted value ("${pasted}")`, async ({ page }) => {
+      const holder = await visit(page, "time-picker", native)
+      const numeric = await openNumeric(page, holder, native)
+      await numeric.first().fill(pasted); await settled(holder, native)
+      await page.keyboard.type('1'); await settled(holder, native)
+      await page.keyboard.type('2'); await settled(holder, native)
+      await expectDeepFocus(numeric.nth(1))
+      await submitNumeric(page, holder, native, numeric, 'OK', expected)
+    })
     test(`${label} TimePicker numeric inputs preserve an empty draft, Cancel resets it, and manual focus keeps the native number buffer`, async ({ page }) => {
       const holder = await visit(page, "time-picker", native)
       await field(holder, native).click(); await settled(holder, native)

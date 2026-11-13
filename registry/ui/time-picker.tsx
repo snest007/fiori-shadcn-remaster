@@ -651,7 +651,9 @@ function TimeSelectionInputs({ value, onValueChange, pattern, locale, onSubmit, 
     // _oninput keeps the raw editing string until _onfocusout normalizes it.
     onFocus={(event) => { event.currentTarget.select(); setDraft(null) }}
     onBlur={() => setDraft(null)}
-    onChange={(event) => { const text = event.currentTarget.value; setDraft({ entity: item.entity, value: text }); buffer.current = text; setEntity(item.entity, Number(text)) }}
+    // TimeSelectionInputs.js/_oninput: only a parsed value that differs from the entity's current value edits the
+    // field and seeds the keyboard buffer ("" counts as 0); an equal value (e.g. pasting "010" over 10) changes nothing.
+    onChange={(event) => { const text = event.currentTarget.value; const number = text === "" ? 0 : parseInt(text, 10); if (number === item.value) return; setDraft({ entity: item.entity, value: text }); buffer.current = text; setEntity(item.entity, number) }}
     onKeyDown={(event) => {
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
       if (event.key === 'Enter') { event.preventDefault(); onSubmit(); return }
