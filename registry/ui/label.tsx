@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 import { Label as LabelPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
@@ -12,12 +13,14 @@ type LabelProps = React.ComponentProps<typeof LabelPrimitive.Root> & {
   required?: boolean
   /** Appends a colon, as Fiori forms do for labels placed beside their field. */
   showColon?: boolean
+  texts?: Partial<LabelTexts>
   /** Truncate to one line with an ellipsis instead of wrapping. */
   truncate?: boolean
 }
 
 // Mirrors ui5-label (Horizon).
-function Label({ className, children, required, showColon, truncate, ...props }: LabelProps) {
+function Label({ className, children, required, showColon, truncate, texts, ...props }: LabelProps) {
+  const resolvedTexts = useFioriTexts(defaultLabelTexts, defaultLabelTextsKeys, texts)
   return (
     <LabelPrimitive.Root
       data-slot="label"
@@ -32,7 +35,7 @@ function Label({ className, children, required, showColon, truncate, ...props }:
       <span className={cn("pe-[0.075rem]", truncate && "min-w-0 overflow-hidden text-ellipsis")}>{children}</span>
       {(showColon || required) && (
         <span aria-hidden className={cn("whitespace-pre", showColon && "-ms-[0.05rem]")}>
-          {showColon && ":"}
+          {showColon && resolvedTexts.colon}
           {required && (
             <span
               className={cn(
@@ -50,3 +53,8 @@ function Label({ className, children, required, showColon, truncate, ...props }:
 }
 
 export { Label, type LabelProps }
+
+type LabelTexts = { colon: string }
+const defaultLabelTexts: LabelTexts = { colon: ":" /* UI5 LABEL_COLON */ }
+const defaultLabelTextsKeys = { colon: "LABEL_COLON" } as const
+export type { LabelTexts }
