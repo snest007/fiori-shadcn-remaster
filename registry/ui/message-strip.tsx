@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 MessageStrip fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -57,16 +58,23 @@ function MessageStrip({
   onClose,
   closeButtonText,
   designText,
-  closableText = "Closable",
+  closableText: closableTextProp,
   className,
   style,
   children,
   ...props
 }: MessageStripProps) {
+  const defaultDesignTextLocalized = useFioriTexts(defaultDesignText, defaultDesignTextKeys)
+
+  const defaultCloseTextLocalized = useFioriTexts(defaultCloseText, defaultCloseTextKeys)
+
+  const { t } = useFioriLocale()
+  const closableText = closableTextProp ?? t("MESSAGE_STRIP_CLOSABLE", "Closable") // UI5 MESSAGE_STRIP_CLOSABLE
+
   const id = React.useId()
   const isColorSet = design === "color-set-1" || design === "color-set-2"
   const shouldHideIcon = hideIcon || (isColorSet && !icon)
-  const closeText = closeButtonText ?? defaultCloseText[design]
+  const closeText = closeButtonText ?? defaultCloseTextLocalized[design]
   const schemeVars = isColorSet
     ? design === "color-set-1"
       ? { "--fiori-ms-bg": `var(--sapIndicationColor_${colorScheme}_Background)`, "--fiori-ms-border": `var(--sapIndicationColor_${colorScheme}_BorderColor)` }
@@ -93,7 +101,7 @@ function MessageStrip({
         </div>
       )}
       <span id={`${id}-hidden`} className="sr-only">
-        {`${designText ?? defaultDesignText[design]} ${hideCloseButton ? "" : closableText}`}
+        {`${designText ?? defaultDesignTextLocalized[design]} ${hideCloseButton ? "" : closableText}`}
       </span>
       <span id={`${id}-text`} className="fiori-message-strip__text">
         {children}
@@ -123,3 +131,21 @@ function MessageStrip({
 }
 
 export { MessageStrip, type MessageStripProps, type MessageStripDesign }
+
+const defaultDesignTextKeys = {
+  "information": "MESSAGE_STRIP_INFORMATION",
+  "positive": "MESSAGE_STRIP_SUCCESS",
+  "negative": "MESSAGE_STRIP_ERROR",
+  "critical": "MESSAGE_STRIP_WARNING",
+  "color-set-1": "MESSAGE_STRIP_CUSTOM",
+  "color-set-2": "MESSAGE_STRIP_CUSTOM"
+} as const
+
+const defaultCloseTextKeys = {
+  "information": "MESSAGE_STRIP_CLOSE_BUTTON_INFORMATION",
+  "positive": "MESSAGE_STRIP_CLOSE_BUTTON_POSITIVE",
+  "negative": "MESSAGE_STRIP_CLOSE_BUTTON_NEGATIVE",
+  "critical": "MESSAGE_STRIP_CLOSE_BUTTON_CRITICAL",
+  "color-set-1": "MESSAGE_STRIP_CLOSE_BUTTON_CUSTOM",
+  "color-set-2": "MESSAGE_STRIP_CLOSE_BUTTON_CUSTOM"
+} as const
