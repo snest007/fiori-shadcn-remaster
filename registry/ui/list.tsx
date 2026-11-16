@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 List fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -297,12 +298,24 @@ type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> 
   /** Screen-reader texts used to announce selection on list items. */
   selectedText?: string
   notSelectedText?: string
+  texts?: Partial<ListTexts>
+  locale?: string
 }
 
-const modeLabel: Partial<Record<ListSelectionMode, string>> = {
-  multiple: "Contains Multi-Selectable Items",
-  delete: "Contains Deletable Items",
+type ListTexts = { selectable: string; multiSelectable: string; deletable: string; delete: string; selected: string; notSelected: string; growing: string; interactiveDescription: string; groups: (count: number, items: number) => string; listboxGroups: (count: number) => string }
+const defaultTexts: ListTexts = {
+  selectable: "Contains Selectable Items", // UI5 ARIA_LABEL_LIST_SELECTABLE
+  multiSelectable: "Contains Multi-Selectable Items", // UI5 ARIA_LABEL_LIST_MULTISELECTABLE
+  deletable: "Contains Deletable Items", // UI5 ARIA_LABEL_LIST_DELETABLE
+  delete: "Delete", // UI5 DELETE
+  selected: "Selected", // UI5 LIST_ITEM_SELECTED
+  notSelected: "Not Selected", // UI5 LIST_ITEM_NOT_SELECTED
+  growing: "More", // UI5 LOAD_MORE_TEXT
+  interactiveDescription: "List with interactive items. To move to the content, press F2.", // UI5 LIST_ROLE_DESCRIPTION
+  groups: (count, items) => `contains ${count} sub groups with ${items} items`, // UI5 LIST_ROLE_LIST_GROUP_DESCRIPTION
+  listboxGroups: count => `contains ${count} sub groups`, // UI5 LIST_ROLE_LISTBOX_GROUP_DESCRIPTION
 }
+const defaultTextsKeys = { selectable: "ARIA_LABEL_LIST_SELECTABLE", multiSelectable: "ARIA_LABEL_LIST_MULTISELECTABLE", deletable: "ARIA_LABEL_LIST_DELETABLE", delete: "DELETE", selected: "LIST_ITEM_SELECTED", notSelected: "LIST_ITEM_NOT_SELECTED", growing: "LOAD_MORE_TEXT", interactiveDescription: "LIST_ROLE_DESCRIPTION", groups: "LIST_ROLE_LIST_GROUP_DESCRIPTION", listboxGroups: "LIST_ROLE_LISTBOX_GROUP_DESCRIPTION" } as const
 
 function List({
   selectionMode = "none",
@@ -321,14 +334,16 @@ function List({
   indent,
   stickyHeader,
   growing = "none",
-  growingButtonText = "More",
+  growingButtonText: growingButtonTextProp,
   onLoadMore,
   loading,
   loadingDelay = 1000,
   accessibleRole = "list",
-  deleteText = "Delete",
-  selectedText = "Selected",
-  notSelectedText = "Not Selected",
+  deleteText: deleteTextProp,
+  selectedText: selectedTextProp,
+  notSelectedText: notSelectedTextProp,
+  texts: textsProp,
+  locale: localeProp,
   className,
   children,
   "aria-label": ariaLabel,
@@ -341,6 +356,13 @@ function List({
   onDrop,
   ...props
 }: ListProps) {
+  const { t, hasProvider, localized } = useFioriLocale(localeProp)
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp, localeProp)
+  const growingButtonText = growingButtonTextProp ?? texts.growing
+  const selectedText = selectedTextProp ?? texts.selected
+  const notSelectedText = notSelectedTextProp ?? texts.notSelected
+  const deleteText = deleteTextProp ?? texts.delete
+
   const id = React.useId()
   const growingRef = React.useRef<HTMLDivElement>(null)
   const { core, focusArea } = useListCoreValue({
@@ -369,7 +391,18 @@ function List({
   const hasData = React.Children.toArray(children).length > 0
   const headerId = `${id}-header`
   const modeId = `${id}-mode`
-  const modeText = hasData ? (isSingle(selectionMode) ? "Contains Selectable Items" : modeLabel[selectionMode]) : undefined
+  const modeText = hasData ? (isSingle(selectionMode) ? texts.selectable : selectionMode === "multiple" ? texts.multiSelectable : selectionMode === "delete" ? texts.deletable : undefined) : undefined
+  const [nativeDescription, setNativeDescription] = React.useState("")
+  React.useLayoutEffect(() => {
+    // List.js/ariaDescriptionText/_getDescriptionForGroups: description belongs to
+    // the inner list, and includes group counts in addition to interactive-item guidance.
+    if (!hasProvider && !localized && !textsProp) { setNativeDescription(""); return }
+    const root = core.rootRef.current
+    const groups = [...(root?.querySelectorAll<HTMLElement>('[data-slot="list-item-group"]') ?? [])]
+    const groupedItems = groups.reduce((count, group) => count + group.querySelectorAll('[data-slot="list-item"]').length, 0)
+    const interactive = selectionMode === "delete" || !!root?.querySelector('.fiori-li__detailbtn, [data-custom] button, [data-custom] a[href], [data-custom] input, [data-custom] select, [data-custom] textarea, [data-custom] [tabindex]:not([tabindex="-1"])')
+    setNativeDescription([accessibleRole === "list" && interactive ? texts.interactiveDescription : "", groups.length ? accessibleRole === "listbox" ? texts.listboxGroups(groups.length) : texts.groups(groups.length, groupedItems) : ""].filter(Boolean).join(" "))
+  }, [hasProvider, localized, textsProp, core.rootRef, children, accessibleRole, selectionMode, texts])
   const labelledBy =
     ariaLabelledBy ?? (ariaLabel ? undefined : cn(modeText && modeId, !header && headerText && headerId) || undefined)
 
@@ -420,6 +453,7 @@ function List({
           role={accessibleRole}
           aria-label={ariaLabel}
           aria-labelledby={labelledBy}
+          aria-description={nativeDescription || undefined}
           aria-multiselectable={accessibleRole === "listbox" && selectionMode === "multiple" ? true : undefined}
           className="fiori-list__ul"
           onKeyDown={(e) => {
@@ -730,7 +764,7 @@ function ListItemRoot({
   disabled,
   movable = false,
   onDetailClick,
-  detailText = "Edit",
+  detailText: detailTextProp,
   flags,
   content,
   afterContent,
@@ -743,6 +777,9 @@ function ListItemRoot({
   onPointerDown,
   ...props
 }: ItemRenderOptions) {
+  const { t } = useFioriLocale()
+  const detailText = detailTextProp ?? t("UPLOADCOLLECTIONITEM_EDIT_BUTTON_TEXT", "Edit") // UI5 UPLOADCOLLECTIONITEM_EDIT_BUTTON_TEXT
+
   const { core, value, selected, active, actionable, inactive, handlers } = useListItemBehaviour({
     value: valueProp,
     type,
@@ -899,10 +936,13 @@ function ListItemCustom({ children, ...props }: ListItemCustomProps) {
 type ListItemGroupHeaderProps = Omit<React.ComponentProps<"li">, "value"> & {
   /** Identifies the header for keyboard navigation. */
   value?: string
+  texts?: { groupHeader?: string }
 }
 
 /** ui5-li-group-header: focusable in the arrow-key order, never selectable. */
-function ListItemGroupHeader({ value: valueProp, className, children, onFocus, ...props }: ListItemGroupHeaderProps) {
+function ListItemGroupHeader({ value: valueProp, texts, className, children, onFocus, ...props }: ListItemGroupHeaderProps) {
+  const { t } = useFioriLocale()
+  const groupHeader = texts?.groupHeader ?? t("GROUP_HEADER_TEXT", "Group Header") // UI5 ListItemGroupHeader.js/groupHeaderText
   const core = useListCore()
   const autoId = React.useId()
   const key = valueProp ?? autoId
@@ -912,7 +952,7 @@ function ListItemGroupHeader({ value: valueProp, className, children, onFocus, .
       data-nav-key={key}
       data-has-border={core.hasBorder(key) ? "" : undefined}
       role={core.itemRole === "option" ? undefined : "listitem"}
-      aria-roledescription="Group Header"
+      aria-roledescription={groupHeader}
       tabIndex={core.currentKey === key ? 0 : -1}
       className={cn("fiori-li-group-header", className)}
       onFocus={(e) => {
@@ -979,6 +1019,7 @@ export {
   isSingle,
   navItems,
   type ListProps,
+  type ListTexts,
   type ListItemStandardProps,
   type ListItemCustomProps,
   type ListItemGroupProps,
