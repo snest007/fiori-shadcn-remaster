@@ -18,9 +18,10 @@
         ]
       },
       {
-        "when": "Guide users through 3–8 task steps instead of editing fields together.",
+        "when": "Guide users through 3–8 steps: use Wizard within an existing page or Wizard Page for a complete creation page.",
         "use": [
-          "wizard"
+          "wizard",
+          "wizard-page"
         ]
       },
       {

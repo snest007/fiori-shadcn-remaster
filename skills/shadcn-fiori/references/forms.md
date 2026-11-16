@@ -145,7 +145,7 @@ Arrange related labels and fields for one record in responsive groups.
 ### Don't use when
 
 - Compare repeated records in rows rather than fields of one record. → [table](data.md#table), [data-table](data.md#data-table)
-- Guide users through 3–8 task steps instead of editing fields together. → [wizard](navigation.md#wizard)
+- Guide users through 3–8 steps: use Wizard within an existing page or Wizard Page for a complete creation page. → [wizard](navigation.md#wizard), [wizard-page](floorplans.md#wizard-page)
 - Submit or validate data automatically; provide caller-owned submission and validation.
 
 Main exports: `Form`, `FormGroup`, `FormItem`.
