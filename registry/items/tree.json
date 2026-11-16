@@ -1,5 +1,36 @@
 {
   "title": "Tree",
   "registryDependencies": ["@fiori/icons", "@fiori/list"],
-  "description": "Fiori tree: nested items with expand/collapse (→ / ←), indentation levels and the List selection modes."
+  "description": "Fiori tree: nested items with expand/collapse (→ / ←), indentation levels and the List selection modes.",
+  "usage": {
+    "summary": "Browse or select hierarchical items through expandable parent-child nodes.",
+    "useWhen": [
+      "Expose a meaningful nested hierarchy that users need to expand and collapse.",
+      "Allow one or several node selections with selectionMode=\"single\" or \"multiple\".",
+      "Handle expansion with onItemToggle; control a TreeItem with expanded and onExpandedChange when the application owns its state."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Present flat items or a collection with only group headers and one item level.",
+        "use": [
+          "list"
+        ]
+      },
+      {
+        "when": "Choose one value from a short nonhierarchical list.",
+        "use": [
+          "select",
+          "combobox"
+        ]
+      },
+      {
+        "when": "Compare attributes of flat records in columns.",
+        "use": [
+          "table",
+          "data-table"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

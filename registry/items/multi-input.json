@@ -14,5 +14,35 @@
     "@fiori/button",
     "@fiori/toggle-button"
   ],
-  "description": "Fiori multi input: a text field with tokens, value help and suggestions, plus the SAP token keyboard model."
+  "description": "Fiori multi input: a text field with tokens, value help and suggestions, plus the SAP token keyboard model.",
+  "usage": {
+    "summary": "Collect several values as caller-managed tokens, with suggestions and optional value help.",
+    "useWhen": [
+      "Accept multiple free-form or application-validated entries; create tokens in onCommit and supply them through tokens.",
+      "Suggest values with SuggestionItem; set filter when the component should narrow the supplied suggestions.",
+      "Remove caller-managed tokens in onTokenDelete, and connect showValueHelpIcon and onValueHelpTrigger to a separate selection surface."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Select only from a predefined option set and let the control manage selected option tokens.",
+        "use": [
+          "multi-combobox"
+        ]
+      },
+      {
+        "when": "Collect one value without tokens.",
+        "use": [
+          "input",
+          "combobox"
+        ]
+      },
+      {
+        "when": "Provide the actual multiattribute search or condition editor; the value-help callback only opens a surface supplied by the caller.",
+        "use": [
+          "value-help-dialog"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

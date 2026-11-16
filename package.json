@@ -21,11 +21,12 @@
     "build:pages": "REGISTRY_URL=https://snest007.github.io/fiori-shadcn-remaster/r BASE_PATH=/fiori-shadcn-remaster/ pnpm registry:build && BASE_PATH=/fiori-shadcn-remaster/ pnpm build && node -e \"require('node:fs').writeFileSync('dist/.nojekyll', '')\"",
     "preview": "vite preview --port 4173 --strictPort",
     "sapui5:serve": "cd sapui5 && ui5 serve --port ${SAPUI5_PORT:-4174}",
-    "registry:build": "pnpm css && node scripts/build-registry-json.mjs && shadcn build registry.json --output public/r",
+    "registry:build": "pnpm css && node scripts/build-registry-json.mjs && shadcn build registry.json --output public/r && pnpm skill:build",
     "typecheck": "tsc --noEmit",
     "test": "playwright test",
     "check": "pnpm generate && pnpm typecheck && pnpm registry:build && pnpm build && pnpm test",
-    "css": "node scripts/build-components-css.mjs"
+    "css": "node scripts/build-components-css.mjs",
+    "skill:build": "node scripts/build-skill.mjs"
   },
   "dependencies": {
     "@tanstack/react-table": "9.3.1",

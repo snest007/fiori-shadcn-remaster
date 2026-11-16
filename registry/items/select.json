@@ -11,5 +11,46 @@
     "@fiori/responsive-popover",
     "@fiori/button"
   ],
-  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+\u2193 open)."
+  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+\u2193 open).",
+  "usage": {
+    "summary": "Choose one value from a short predefined list without entering free text.",
+    "useWhen": [
+      "Offer a short set of mutually exclusive choices whose option labels are sufficient.",
+      "Keep choices collapsed until needed in a form, table or toolbar.",
+      "Provide a useful initial choice with defaultValue, or control the selected value with value and onValueChange."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Type to narrow a longer list or accept a value outside the supplied options.",
+        "use": [
+          "combobox"
+        ]
+      },
+      {
+        "when": "Select several predefined values.",
+        "use": [
+          "multi-combobox"
+        ]
+      },
+      {
+        "when": "Enter multiple caller-validated values or create tokens from suggestions.",
+        "use": [
+          "multi-input"
+        ]
+      },
+      {
+        "when": "Search across business keys and descriptions or define filter conditions.",
+        "use": [
+          "value-help-dialog"
+        ]
+      },
+      {
+        "when": "Keep every single-choice option visible at once.",
+        "use": [
+          "radio-group"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

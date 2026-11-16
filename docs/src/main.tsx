@@ -72,7 +72,15 @@ const THEMES = [
   ["sap_horizon_hcw", "High Contrast White"],
 ] as const
 
-type RegistryItem = { title: string; description?: string }
+type Usage = {
+  summary: string
+  useWhen: string[]
+  avoidWhen: { when: string; use?: string[] }[]
+  source: "sap-fiori-guidelines" | "ui5-apidoc"
+  layout?: string[]
+  variations?: string[]
+}
+type RegistryItem = { title: string; description?: string; usage?: Usage }
 const itemName = (path: string) => path.split("/").pop()!.replace(/\.json$/, "")
 const registryItems = Object.fromEntries(
   Object.entries(import.meta.glob<RegistryItem>("../../registry/items/*.json", { eager: true, import: "default" }))
@@ -98,7 +106,7 @@ for (const name of Object.keys(registryItems)) {
   if (!pageByName.has(name)) throw new Error(`Missing component docs: ${name}`)
 }
 const pages = [...pageByName.values()].sort((a, b) => a.title.localeCompare(b.title))
-const publicRoutes = [...pages.map(({ name, title }) => ({ name, title })), { name: "icons", title: "SAP Horizon icons" }, { name: "floorplans", title: "Floorplans" }]
+const publicRoutes = [...pages.map(({ name, title }) => ({ name, title })), ...blocks.map(({ name, title }) => ({ name, title })), { name: "icons", title: "SAP Horizon icons" }, { name: "floorplans", title: "Floorplans" }]
 const validRoutes = new Set([...publicRoutes.map(({ name }) => name), "all"])
 
 function routeFromHash(fallback = "button") {
@@ -240,13 +248,24 @@ function ComponentContent({ page }: { page: ComponentPage }) {
   return <div className="grid gap-6">
     <Install name={page.name} />
     {page.examples.map(({ demo, docs }) => <React.Fragment key={demo.title}><p>{docs.description}</p><FixtureLinks docs={docs} /><Section title={demo.title}><demo.Demo /></Section></React.Fragment>)}
+    {registryItems[page.name].usage && <Section title="When to use"><UsageGuidance usage={registryItems[page.name].usage!} /></Section>}
     <PropsTable props={props} />
   </div>
 }
 
+function UsageGuidance({ usage }: { usage: Usage }) {
+  return <div className="grid gap-4" data-usage-guidance="">
+    <p>{usage.summary}</p>
+    <div><h3 className="mb-2 font-bold">Use when</h3><ul className="list-disc space-y-2 ps-6">{usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul></div>
+    <div><h3 className="mb-2 font-bold">Don't use when</h3><ul className="list-disc space-y-2 ps-6">{usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when}{!!entry.use?.length && <> → {entry.use.map((name, index) => <React.Fragment key={name}>{index > 0 && ", "}<a className="text-(--sapLinkColor) underline" href={`#/${name}`}>{registryItems[name]?.title ?? blocks.find((block) => block.name === name)?.title ?? name}</a></React.Fragment>)}</>}</li>)}</ul></div>
+    {usage.layout && <div><h3 className="mb-2 font-bold">Layout</h3><pre className="overflow-x-auto rounded-(--sapElement_BorderCornerRadius) bg-(--sapBackgroundColor) p-4"><code>{usage.layout.join("\n")}</code></pre></div>}
+    {usage.variations && <div><h3 className="mb-2 font-bold">Variations</h3><ul className="list-disc space-y-2 ps-6">{usage.variations.map((text) => <li key={text}>{text}</li>)}</ul></div>}
+  </div>
+}
+
 const blockHref = (name: string) => `${import.meta.env.BASE_URL}block.html?${new URLSearchParams({ name, theme: opts.theme, density: opts.density })}`
-function Floorplans() {
-  return <div className="grid gap-6">{blocks.map((block) => <Section key={block.name} title={block.title}><div className="grid gap-4"><p>{block.description}</p><Install name={block.name} /><a className="text-(--sapLinkColor) underline" href={blockHref(block.name)}>Open {block.title}</a></div></Section>)}</div>
+function Floorplans({ name }: { name?: string }) {
+  return <div className="grid gap-6">{blocks.filter((block) => !name || block.name === name).map((block) => <Section key={block.name} title={block.title}><div className="grid gap-4"><p>{block.description}</p><Install name={block.name} /><a className="text-(--sapLinkColor) underline" href={blockHref(block.name)}>Open {block.title}</a>{block.usage && <UsageGuidance usage={block.usage} />}</div></Section>)}</div>
 }
 
 function Docs() {
@@ -256,7 +275,8 @@ function Docs() {
     document.fonts.ready.then(() => (document.documentElement.dataset.ready = "true"))
   }, [])
   const page = pageByName.get(route)
-  const title = page?.title ?? (route === "icons" ? "SAP Horizon icons" : route === "floorplans" ? "Floorplans" : "All component demos")
+  const block = blocks.find((block) => block.name === route)
+  const title = page?.title ?? block?.title ?? (route === "icons" ? "SAP Horizon icons" : route === "floorplans" ? "Floorplans" : "All component demos")
   // NavigationLayout.css's ".fiori-nl[data-side-collapsed] .fiori-nl__aside" also matches
   // nested light-DOM demos (UI5 isolates each layout in shadow DOM). Reset only the preview
   // layout's own expanded aside; the collapsed docs and preview transforms remain unchanged.
@@ -275,7 +295,7 @@ function Docs() {
   }>
     <main key={route} data-docs-route={route} className="mx-auto grid max-w-6xl gap-6 p-6 text-(--sapTextColor)">
       <h1 className="font-(family-name:--sapFontHeaderFamily) text-(length:--sapFontHeader2Size)">{title}</h1>
-      {page ? <ComponentContent page={page} /> : route === "icons" ? <IconsPage /> : route === "floorplans" ? <Floorplans /> : <>{demos.map(({ title, Demo }) => <Section key={title} title={title}><Demo /></Section>)}<IconsPage /></>}
+      {page ? <ComponentContent page={page} /> : route === "icons" ? <IconsPage /> : route === "floorplans" || block ? <Floorplans name={block?.name} /> : <>{demos.map(({ title, Demo }) => <Section key={title} title={title}><Demo /></Section>)}<IconsPage /></>}
     </main>
     </NavigationLayout>
   </div>

@@ -2,5 +2,40 @@
   "title": "DataTable",
   "dependencies": ["@tanstack/react-table", "@tanstack/react-virtual"],
   "registryDependencies": ["@fiori/table", "@fiori/icons", "@fiori/menu"],
-  "description": "Data-driven Fiori table from TanStack Table column definitions: sorting via header menu or click, selection, popin, growing and row virtualization."
+  "description": "Data-driven Fiori table from TanStack Table column definitions: sorting via header menu or click, selection, popin, growing and row virtualization.",
+  "usage": {
+    "summary": "Render data-driven responsive tables with TanStack columns, sorting and optional row virtualization.",
+    "useWhen": [
+      "Define repeated business rows with data and columns; provide getRowId when selection needs stable keys.",
+      "Offer column sorting with sortTrigger=\"menu\" or \"click\" and control it with sorting and onSortingChange when needed.",
+      "Render a large flat row set with virtualize, a fixed rowHeight and virtualHeight; use overflowMode=\"popin\" for narrower screens."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Compose a small table directly from custom JSX rows and cells without data-driven sorting.",
+        "use": [
+          "table"
+        ]
+      },
+      {
+        "when": "Show a simple sequence of items with only a few attributes.",
+        "use": [
+          "list"
+        ]
+      },
+      {
+        "when": "Expand and collapse a parent-child hierarchy; this wrapper renders flat rows.",
+        "use": [
+          "tree"
+        ]
+      },
+      {
+        "when": "Collect fields for one object rather than compare repeated records.",
+        "use": [
+          "form"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

@@ -19,5 +19,47 @@
     "@fiori/variant-management",
     "@fiori/variants",
     "@fiori/f6-navigation"
-  ]
+  ],
+  "usage": {
+    "summary": "Find and act on business records with saved views, applied filters and a responsive results table.",
+    "useWhen": [
+      "Search and filter a record collection before reviewing relevant rows and taking item or mass actions.",
+      "Reuse saved FilterBar states through VariantManagement; replace the sample storage and data flow for the application.",
+      "Keep page filters in a collapsing header and reveal the action footer only after rows are selected."
+    ],
+    "avoidWhen": [
+      {
+        "when": "View or edit one record with all of its details.",
+        "use": [
+          "object-page-floorplan"
+        ]
+      },
+      {
+        "when": "Keep a record list and its selected detail visible in adjacent columns.",
+        "use": [
+          "master-detail"
+        ]
+      },
+      {
+        "when": "Guide users through sequential data entry steps.",
+        "use": [
+          "wizard-page"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines",
+    "layout": [
+      "DynamicPage",
+      "  title: DynamicPageTitle with VariantManagement and snapped filter summary",
+      "  header: DynamicPageHeader with FilterBar",
+      "  content: Toolbar with Title and row actions, then DataTable",
+      "    cells: ObjectIdentifier, ObjectStatus, ObjectNumber",
+      "  footer: Bar with Button mass actions (shown on selection)"
+    ],
+    "variations": [
+      "Replace the inline products and applyState handler with application records and a search service; keep filters separate from applied results.",
+      "Adapt columns, row actions and mass actions to the business object; retain stable row keys and selection-driven footer visibility.",
+      "Replace localStorageAdapter with a VariantStorage implementation when saved views must persist outside this browser."
+    ]
+  }
 }

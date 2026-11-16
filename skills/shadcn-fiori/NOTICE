@@ -1,0 +1,7 @@
+shadcn-fiori usage guidance
+
+Guidance adapted in original wording from SAP/ai-skills-library (Apache-2.0).
+Source: https://github.com/SAP/ai-skills-library/tree/cd0bb455ec68db3f83db94b200546618c32f8ab2/skills/sap-fiori-guidelines
+Pinned commit: cd0bb455ec68db3f83db94b200546618c32f8ab2
+Copyright SAP SE and ai-skills-library contributors.
+The adaptation describes the APIs available in this registry.

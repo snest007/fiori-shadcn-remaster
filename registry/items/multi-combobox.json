@@ -15,5 +15,35 @@
     "@fiori/button",
     "@fiori/toggle-button"
   ],
-  "description": "Fiori multi combo box: tokens plus a filterable check box list, \"show selected\" via n more, select all and the SAP keyboard model."
+  "description": "Fiori multi combo box: tokens plus a filterable check box list, \"show selected\" via n more, select all and the SAP keyboard model.",
+  "usage": {
+    "summary": "Select several predefined options from a filterable list and display selections as tokens.",
+    "useWhen": [
+      "Choose multiple supplied MultiComboBoxItem values while typing narrows the list.",
+      "Control selectedValues and onSelectionChange separately from the typed value.",
+      "Offer showSelectAll when selecting the whole option set is useful; keep the default validation when entries must match supplied items."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Choose just one value.",
+        "use": [
+          "select",
+          "combobox"
+        ]
+      },
+      {
+        "when": "Create arbitrary or application-validated tokens; noValidation permits unmatched text but does not turn it into a selected option.",
+        "use": [
+          "multi-input"
+        ]
+      },
+      {
+        "when": "Search a large business dataset by several attributes or define ranges and conditions.",
+        "use": [
+          "value-help-dialog"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

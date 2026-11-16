@@ -83,7 +83,7 @@ for this registry's components. One `usage` object per item JSON feeds the regis
 generated agent skill `skills/shadcn-fiori/`. G0 first (pipeline + pilot); G1–G4 are content-only and run in parallel
 (each touches different item JSONs; regenerate `skills/` after merge); G5 last.
 
-- [ ] [G0 Schema, pipeline, docs, skill generator + pilot](tasks/G0-usage-guidance-pipeline.md) — M
+- [x] [G0 Schema, pipeline, docs, skill generator + pilot](tasks/G0-usage-guidance-pipeline.md) — M
 - [ ] [G1 Forms and dates](tasks/G1-usage-forms-dates.md) — M (after G0)
 - [ ] [G2 Data and display](tasks/G2-usage-data-display.md) — M (after G0)
 - [ ] [G3 Overlays and navigation](tasks/G3-usage-overlays-navigation.md) — M (after G0)
