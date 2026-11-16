@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": "：",
   "LINK_EMPHASIZED": "加重",
   "LINK_SUBTLE": "隐蔽",
+  "LIST_ITEM_GROUP_HEADER": "组抬头",
   "LIST_ITEM_NOT_SELECTED": "未选择",
+  "LIST_ITEM_POSITION": "列表项目 {0}/{1}",
   "LIST_ITEM_SELECTED": "已选择",
   "LIST_NO_DATA": "无数据",
   "LIST_ROLE_DESCRIPTION": "含有交互式项目的列表。要移动到内容，请按 F2。",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "已选择此值。",
   "VALUE_STATE_INFORMATION": "信息输入",
   "VALUE_STATE_SUCCESS": "已成功验证输入",
+  "VALUE_STATE_TYPE_ERROR": "值状态错误",
+  "VALUE_STATE_TYPE_INFORMATION": "值状态信息",
+  "VALUE_STATE_TYPE_WARNING": "值状态警告",
   "VALUE_STATE_WARNING": "已发出警告",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "操作",
   "VARIANT_MANAGEMENT_AUTHOR": "创建者",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "确定",
   "p13nDialog.RESET": "重置",
   "valuehelp.CANCEL": "取消",
+  "valuehelp.DEFINECONDITIONS": "定义条件 ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "定义条件",
   "valuehelp.DEFINECONDITIONS_FROM": "从",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "操作符",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "值",
   "valuehelp.HIDEADVSEARCH": "隐藏过滤器",
   "valuehelp.OK": "确定",
+  "valuehelp.SELECTFROMLIST": "搜索并选择 ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "搜索并选择",
   "valuehelp.SHOWADVSEARCH": "显示过滤器",
-  "valuehelp.TABLETITLENONUMBER": "项目"
+  "valuehelp.TABLETITLE": "项目 ({0})",
+  "valuehelp.TABLETITLENONUMBER": "项目",
+  "valuehelp.TOKENIZERTITLE": "所选项目和条件 ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "未选择任何项目或条件"
 } satisfies FioriTexts
 export default texts
 export { texts }

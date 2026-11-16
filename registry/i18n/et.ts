@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Rõhutatud",
   "LINK_SUBTLE": "Peenike",
+  "LIST_ITEM_GROUP_HEADER": "Grupipäis",
   "LIST_ITEM_NOT_SELECTED": "Pole valitud",
+  "LIST_ITEM_POSITION": "Loetle rida {0} / {1}",
   "LIST_ITEM_SELECTED": "Valitud",
   "LIST_NO_DATA": "Andmeid pole",
   "LIST_ROLE_DESCRIPTION": "Interaktiivsete üksustega loend. Sisule liikumiseks vajutage klahvi F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "See väärtus on juba valitud.",
   "VALUE_STATE_INFORMATION": "Teavitav kirje",
   "VALUE_STATE_SUCCESS": "Kirje on valideeritud",
+  "VALUE_STATE_TYPE_ERROR": "Väärtuse olek Tõrge",
+  "VALUE_STATE_TYPE_INFORMATION": "Väärtuse olek Teave",
+  "VALUE_STATE_TYPE_WARNING": "Väärtuse olek Hoiatus",
   "VALUE_STATE_WARNING": "Väljastati hoiatus",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Toiming",
   "VARIANT_MANAGEMENT_AUTHOR": "Autor",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Lähtesta",
   "valuehelp.CANCEL": "Tühista",
+  "valuehelp.DEFINECONDITIONS": "Määratle tingimused ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Määratle tingimused",
   "valuehelp.DEFINECONDITIONS_FROM": "Alates",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Tehtemärk",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Väärtus",
   "valuehelp.HIDEADVSEARCH": "Peida filtrid",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Otsi ja vali ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Otsi ja vali",
   "valuehelp.SHOWADVSEARCH": "Kuva filtrid",
-  "valuehelp.TABLETITLENONUMBER": "Üksused"
+  "valuehelp.TABLETITLE": "Üksused ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Üksused",
+  "valuehelp.TOKENIZERTITLE": "Valitud read ja tingimused ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Ridu ega tingimusi pole valitud"
 } satisfies FioriTexts
 export default texts
 export { texts }

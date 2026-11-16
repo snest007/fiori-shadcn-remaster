@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Нагласено",
   "LINK_SUBTLE": "Суптилно",
+  "LIST_ITEM_GROUP_HEADER": "Заглавие на групата",
   "LIST_ITEM_NOT_SELECTED": "Не е избрано",
+  "LIST_ITEM_POSITION": "Ставки на список {0} од {1}",
   "LIST_ITEM_SELECTED": "Избрано",
   "LIST_NO_DATA": "Нема податоци",
   "LIST_ROLE_DESCRIPTION": "Список со интерактивни ставки. За да преминете на содржината, притиснете F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Оваа вредност е веќе избрана",
   "VALUE_STATE_INFORMATION": "Информативен внес",
   "VALUE_STATE_SUCCESS": "Успешна потврда на внес",
+  "VALUE_STATE_TYPE_ERROR": "Статус на вредностите на грешката",
+  "VALUE_STATE_TYPE_INFORMATION": "Статус на вредностите на информациите",
+  "VALUE_STATE_TYPE_WARNING": "Статус на вредностите на предупредувањето",
   "VALUE_STATE_WARNING": "Издадено е предупредување",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Дејство",
   "VARIANT_MANAGEMENT_AUTHOR": "Создадено од",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "Во ред",
   "p13nDialog.RESET": "Ресетирај",
   "valuehelp.CANCEL": "Откажи",
+  "valuehelp.DEFINECONDITIONS": "Дефинирај услови ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Дефинирај услови",
   "valuehelp.DEFINECONDITIONS_FROM": "Од",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Оператор",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Вредност",
   "valuehelp.HIDEADVSEARCH": "Скриј ги филтрите",
   "valuehelp.OK": "Во ред",
+  "valuehelp.SELECTFROMLIST": "Пребарај и избери ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Пребарај и избери",
   "valuehelp.SHOWADVSEARCH": "Покажи филтри",
-  "valuehelp.TABLETITLENONUMBER": "Ставки"
+  "valuehelp.TABLETITLE": "Ставки ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Ставки",
+  "valuehelp.TOKENIZERTITLE": "Избрани ставки и услови ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Не се избрани ставки или услови."
 } satisfies FioriTexts
 export default texts
 export { texts }

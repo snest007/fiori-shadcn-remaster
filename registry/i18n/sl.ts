@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Poudarjeno",
   "LINK_SUBTLE": "Neizpostavljeno",
+  "LIST_ITEM_GROUP_HEADER": "Glava skupine",
   "LIST_ITEM_NOT_SELECTED": "Ni izbrano",
+  "LIST_ITEM_POSITION": "Element seznama {0} od {1}",
   "LIST_ITEM_SELECTED": "Izbrano",
   "LIST_NO_DATA": "Ni podatkov",
   "LIST_ROLE_DESCRIPTION": "Seznam z interaktivnimi postavkami. Pritisnite F2, da se pomaknete do vsebine.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Ta vrednost je že izbrana.",
   "VALUE_STATE_INFORMATION": "Informativni vnos",
   "VALUE_STATE_SUCCESS": "Veljavnost vnosa uspešno preverjena",
+  "VALUE_STATE_TYPE_ERROR": "Status vrednosti Napaka",
+  "VALUE_STATE_TYPE_INFORMATION": "Status vrednosti Informacije",
+  "VALUE_STATE_TYPE_WARNING": "Status vrednosti Opozorilo",
   "VALUE_STATE_WARNING": "Opozorilo izdano",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Akcija",
   "VARIANT_MANAGEMENT_AUTHOR": "Ustvaril uporabnik",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "V redu",
   "p13nDialog.RESET": "Ponastavi",
   "valuehelp.CANCEL": "Preklic",
+  "valuehelp.DEFINECONDITIONS": "Določitev pogojev ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Določitev pogojev",
   "valuehelp.DEFINECONDITIONS_FROM": "Od",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operator",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Vrednost",
   "valuehelp.HIDEADVSEARCH": "Skrij filtre",
   "valuehelp.OK": "V redu",
+  "valuehelp.SELECTFROMLIST": "Iskanje in izbira ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Iskanje in izbira",
   "valuehelp.SHOWADVSEARCH": "Prikaži filtre",
-  "valuehelp.TABLETITLENONUMBER": "Postavke"
+  "valuehelp.TABLETITLE": "Postavke ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Postavke",
+  "valuehelp.TOKENIZERTITLE": "Izbrane postavke in pogoji ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Postavke ali pogoji niso izbrani"
 } satisfies FioriTexts
 export default texts
 export { texts }

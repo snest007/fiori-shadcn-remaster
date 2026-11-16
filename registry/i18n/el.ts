@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Τονισμένο",
   "LINK_SUBTLE": "Διακριτικό",
+  "LIST_ITEM_GROUP_HEADER": "Κεφαλίδα Ομάδας",
   "LIST_ITEM_NOT_SELECTED": "Δεν Επιλέχτηκε",
+  "LIST_ITEM_POSITION": "Αναλ.γραμ.λίστας {0} από {1}",
   "LIST_ITEM_SELECTED": "Επιλεγμένο",
   "LIST_NO_DATA": "Χωρίς δεδομένα",
   "LIST_ROLE_DESCRIPTION": "Λίστα με διαδραστικά στοιχεία. Για μετακίνηση στο περιεχόμενο πατήστε F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Αυτή η τιμή επιλέχθηκε ήδη.",
   "VALUE_STATE_INFORMATION": "Πληροφοριακή καταχώριση",
   "VALUE_STATE_SUCCESS": "Καταχώριση ελέγχθηκε επιτυχώς",
+  "VALUE_STATE_TYPE_ERROR": "Λάθος Κατάστασης Τιμής",
+  "VALUE_STATE_TYPE_INFORMATION": "Πληροφορίες Κατάστασης Τιμής",
+  "VALUE_STATE_TYPE_WARNING": "Προειδ.Κατάστ.Τιμής",
   "VALUE_STATE_WARNING": "Προειδοποίηση εκδόθηκε",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Ενέργεια",
   "VARIANT_MANAGEMENT_AUTHOR": "Δημιουργήθηκε Από",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "ΟΚ",
   "p13nDialog.RESET": "Επαναφορά",
   "valuehelp.CANCEL": "Ακύρωση",
+  "valuehelp.DEFINECONDITIONS": "Ορισμός Συνθηκών ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Ορισμός Συνθηκών",
   "valuehelp.DEFINECONDITIONS_FROM": "Από",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Χειριστής",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Τιμή",
   "valuehelp.HIDEADVSEARCH": "Απόκρυψη Φίλτρων",
   "valuehelp.OK": "ΟΚ",
+  "valuehelp.SELECTFROMLIST": "Αναζήτηση και Επιλογή ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Αναζήτηση και Επιλογή",
   "valuehelp.SHOWADVSEARCH": "Εμφάνιση Φίλτρων",
-  "valuehelp.TABLETITLENONUMBER": "Αναλ.Γραμ."
+  "valuehelp.TABLETITLE": "Είδη ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Αναλ.Γραμ.",
+  "valuehelp.TOKENIZERTITLE": "Επιλεγμένες Αναλ.Γραμ.και Προϋποθέσεις ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Δεν επιλέχθηκαν Αναλ.Γραμ.ή Προϋποθέσεις"
 } satisfies FioriTexts
 export default texts
 export { texts }

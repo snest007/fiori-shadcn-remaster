@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Uzsvērts",
   "LINK_SUBTLE": "Smalks",
+  "LIST_ITEM_GROUP_HEADER": "Grupas galvene",
   "LIST_ITEM_NOT_SELECTED": "Nav atlasīts",
+  "LIST_ITEM_POSITION": "Atsevišķā pozīcija {0} no {1}",
   "LIST_ITEM_SELECTED": "Atlasīts",
   "LIST_NO_DATA": "Nav datu",
   "LIST_ROLE_DESCRIPTION": "Saraksts ar interaktīviem elementiem. Lai pārvietotos uz saturu, nospiediet F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Šī vērtība ir jau atlasīta.",
   "VALUE_STATE_INFORMATION": "Informatīvs ieraksts",
   "VALUE_STATE_SUCCESS": "Ieraksts sekmīgi pārbaudīts",
+  "VALUE_STATE_TYPE_ERROR": "Vērtības statuss: kļūda",
+  "VALUE_STATE_TYPE_INFORMATION": "Vērtības statusa informācija",
+  "VALUE_STATE_TYPE_WARNING": "Vērtības statuss: brīdinājums",
   "VALUE_STATE_WARNING": "Izsniegts brīdinājums",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Darbība",
   "VARIANT_MANAGEMENT_AUTHOR": "Izveidoja",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "Labi",
   "p13nDialog.RESET": "Atiestatīt",
   "valuehelp.CANCEL": "Atcelt",
+  "valuehelp.DEFINECONDITIONS": "Definēt nosacījumus {0}",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Definēt nosacījumus",
   "valuehelp.DEFINECONDITIONS_FROM": "No",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operators",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Vērtība",
   "valuehelp.HIDEADVSEARCH": "Paslēpt filtrus",
   "valuehelp.OK": "Labi",
+  "valuehelp.SELECTFROMLIST": "Meklēt un atlasīt ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Meklēt un atlasīt",
   "valuehelp.SHOWADVSEARCH": "Rādīt filtrus",
-  "valuehelp.TABLETITLENONUMBER": "Pozīcijas"
+  "valuehelp.TABLETITLE": "Pozīcijas ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Pozīcijas",
+  "valuehelp.TOKENIZERTITLE": "Atlasītās pozīcijas un nosacījumi ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Neviena pozīcija vai nosacījums nav atlasīts"
 } satisfies FioriTexts
 export default texts
 export { texts }

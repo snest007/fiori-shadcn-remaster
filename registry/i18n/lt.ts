@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Išryškintas",
   "LINK_SUBTLE": "Subtilus",
+  "LIST_ITEM_GROUP_HEADER": "Grupės antraštė",
   "LIST_ITEM_NOT_SELECTED": "Nepasirinkta",
+  "LIST_ITEM_POSITION": "Parodyti elementą {0} iš {1}",
   "LIST_ITEM_SELECTED": "Pasirinkta",
   "LIST_NO_DATA": "Nėra duomenų",
   "LIST_ROLE_DESCRIPTION": "Interaktyvių pozicijų sąrašas. Norėdami pereiti prie turinio spustelėkite F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Ši reikšmė jau pasirinkta.",
   "VALUE_STATE_INFORMATION": "Informacinis įrašas",
   "VALUE_STATE_SUCCESS": "Įrašas sėkmingai patikrintas",
+  "VALUE_STATE_TYPE_ERROR": "Reikšmės būsenos klaida",
+  "VALUE_STATE_TYPE_INFORMATION": "Reikšmės būsenos informacija",
+  "VALUE_STATE_TYPE_WARNING": "Reikšmės būsenos įspėjimas",
   "VALUE_STATE_WARNING": "Pateiktas įspėjimas",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Veiksmas",
   "VARIANT_MANAGEMENT_AUTHOR": "Autorius",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "Gerai",
   "p13nDialog.RESET": "Nustatyti iš naujo",
   "valuehelp.CANCEL": "Atšaukti",
+  "valuehelp.DEFINECONDITIONS": "Apibrėžkite sąlygas ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Apibrėžti sąlygas",
   "valuehelp.DEFINECONDITIONS_FROM": "Nuo",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operatorius",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Reikšmė",
   "valuehelp.HIDEADVSEARCH": "Slėpti filtrus",
   "valuehelp.OK": "Gerai",
+  "valuehelp.SELECTFROMLIST": "Ieškoti ir pasirinkti ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Ieškoti ir pasirinkti",
   "valuehelp.SHOWADVSEARCH": "Rodyti filtrus",
-  "valuehelp.TABLETITLENONUMBER": "Pozicijos"
+  "valuehelp.TABLETITLE": "Pozicijos ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Pozicijos",
+  "valuehelp.TOKENIZERTITLE": "Pasirinktos pozicijos ir sąlygos ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Nėra pasirinktų pozicijų arba sąlygų"
 } satisfies FioriTexts
 export default texts
 export { texts }

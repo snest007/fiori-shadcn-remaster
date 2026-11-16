@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "מודגש",
   "LINK_SUBTLE": "עדין",
+  "LIST_ITEM_GROUP_HEADER": "כותרת קבוצה",
   "LIST_ITEM_NOT_SELECTED": "לא נבחר",
+  "LIST_ITEM_POSITION": "פריט רשימה {0} מתוך {1}",
   "LIST_ITEM_SELECTED": "נבחר",
   "LIST_NO_DATA": "אין נתונים",
   "LIST_ROLE_DESCRIPTION": "רשימה עם פריטים אינטראקטיביים. למעבר לתוכן לחץ F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "ערך זה כבר נבחר.",
   "VALUE_STATE_INFORMATION": "הזנה אינפורמטיבית",
   "VALUE_STATE_SUCCESS": "הזנה אומתה בהצלחה",
+  "VALUE_STATE_TYPE_ERROR": "מצב הערך – שגיאה",
+  "VALUE_STATE_TYPE_INFORMATION": "מידע על מצב ערך",
+  "VALUE_STATE_TYPE_WARNING": "מצב הערך – אזהרה",
   "VALUE_STATE_WARNING": "הונפקה שגיאה",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "פעולה",
   "VARIANT_MANAGEMENT_AUTHOR": "נוצר על-ידי",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "אפס",
   "valuehelp.CANCEL": "בטל",
+  "valuehelp.DEFINECONDITIONS": "הגדר תנאים ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "הגדר תנאים",
   "valuehelp.DEFINECONDITIONS_FROM": "מתאריך",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "אופרטור",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "ערך",
   "valuehelp.HIDEADVSEARCH": "הסתר מסננים",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "חפש ובחר ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "חפש ובחר",
   "valuehelp.SHOWADVSEARCH": "הצג מסננים",
-  "valuehelp.TABLETITLENONUMBER": "פריטים"
+  "valuehelp.TABLETITLE": "פריטים ({0})",
+  "valuehelp.TABLETITLENONUMBER": "פריטים",
+  "valuehelp.TOKENIZERTITLE": "פריטים ותנאים שנבחרו ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "לא נבחרו פריטים ותנאים"
 } satisfies FioriTexts
 export default texts
 export { texts }

@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "강조",
   "LINK_SUBTLE": "미약",
+  "LIST_ITEM_GROUP_HEADER": "그룹 헤더",
   "LIST_ITEM_NOT_SELECTED": "선택되지 않음",
+  "LIST_ITEM_POSITION": "{1}의 리스트 항목 {0}",
   "LIST_ITEM_SELECTED": "선택됨",
   "LIST_NO_DATA": "데이터 없음",
   "LIST_ROLE_DESCRIPTION": "대화형 항목이 포함된 리스트입니다. 컨텐트로 이동하려면 F2를 누르십시오.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "이 값은 이미 선택되어 있습니다.",
   "VALUE_STATE_INFORMATION": "정보 엔트리",
   "VALUE_STATE_SUCCESS": "유효한 엔트리입니다.",
+  "VALUE_STATE_TYPE_ERROR": "값 상태 오류",
+  "VALUE_STATE_TYPE_INFORMATION": "값 상태 정보",
+  "VALUE_STATE_TYPE_WARNING": "값 상태 경고",
   "VALUE_STATE_WARNING": "경고 발생",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "액션",
   "VARIANT_MANAGEMENT_AUTHOR": "생성자",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "확인",
   "p13nDialog.RESET": "재설정",
   "valuehelp.CANCEL": "취소",
+  "valuehelp.DEFINECONDITIONS": "조건({0}) 정의",
   "valuehelp.DEFINECONDITIONSNONUMBER": "조건 정의",
   "valuehelp.DEFINECONDITIONS_FROM": "시작",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "연산자",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "값",
   "valuehelp.HIDEADVSEARCH": "필터 숨기기",
   "valuehelp.OK": "확인",
+  "valuehelp.SELECTFROMLIST": "검색 및 선택({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "검색 및 선택",
   "valuehelp.SHOWADVSEARCH": "필터 표시",
-  "valuehelp.TABLETITLENONUMBER": "항목"
+  "valuehelp.TABLETITLE": "항목({0})",
+  "valuehelp.TABLETITLENONUMBER": "항목",
+  "valuehelp.TOKENIZERTITLE": "선택된 항목 및 조건({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "항목 또는 조건이 선택되지 않음"
 } satisfies FioriTexts
 export default texts
 export { texts }

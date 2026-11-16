@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Wedi’i Bwysleisio",
   "LINK_SUBTLE": "Cynnil",
+  "LIST_ITEM_GROUP_HEADER": "Pennyn Grŵp",
   "LIST_ITEM_NOT_SELECTED": "Heb ei Ddewis",
+  "LIST_ITEM_POSITION": "Rhestru eitem {0} o {1}",
   "LIST_ITEM_SELECTED": "Wedi''i Ddewis",
   "LIST_NO_DATA": "Dim data",
   "LIST_ROLE_DESCRIPTION": "Rhestr gydag eitemau rhyngweithiol. Er mwyn symud i''r cynnwys, pwyswch F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Mae''r gwerth hwn wedi''i ddewis yn barod.",
   "VALUE_STATE_INFORMATION": "Cofnod gwybodaeth",
   "VALUE_STATE_SUCCESS": "Cofnod wedi’i ddilysu’n llwyddiannus",
+  "VALUE_STATE_TYPE_ERROR": "Gwall Cyflwr Gwerth",
+  "VALUE_STATE_TYPE_INFORMATION": "Gwybodaeth Cyflwr Gwerth",
+  "VALUE_STATE_TYPE_WARNING": "Rhybudd Cyflwr Gwerth",
   "VALUE_STATE_WARNING": "Rhoddwyd rhybudd",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Gweithred",
   "VARIANT_MANAGEMENT_AUTHOR": "Wedi’i Greu Gan",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "Iawn",
   "p13nDialog.RESET": "Ailosod",
   "valuehelp.CANCEL": "Canslo",
+  "valuehelp.DEFINECONDITIONS": "Diffinio Amodau ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Diffinio Amodau",
   "valuehelp.DEFINECONDITIONS_FROM": "O",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Gweithredwr",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Gwerth",
   "valuehelp.HIDEADVSEARCH": "Cuddio Hidlyddion",
   "valuehelp.OK": "Iawn",
+  "valuehelp.SELECTFROMLIST": "Chwilio a Dewis ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Chwilio a Dewis",
   "valuehelp.SHOWADVSEARCH": "Dangos Hidlyddion",
-  "valuehelp.TABLETITLENONUMBER": "Eitemau"
+  "valuehelp.TABLETITLE": "Eitemau ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Eitemau",
+  "valuehelp.TOKENIZERTITLE": "Eitemau ac Amodau a Ddewiswyd ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Does dim Eitemau nac Amodau wedi'u Dewis"
 } satisfies FioriTexts
 export default texts
 export { texts }

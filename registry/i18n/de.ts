@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Hervorgehoben",
   "LINK_SUBTLE": "Dezent",
+  "LIST_ITEM_GROUP_HEADER": "Gruppenkopf",
   "LIST_ITEM_NOT_SELECTED": "Nicht ausgewählt",
+  "LIST_ITEM_POSITION": "Listenelement {0} von {1}",
   "LIST_ITEM_SELECTED": "Ausgewählt",
   "LIST_NO_DATA": "Keine Daten",
   "LIST_ROLE_DESCRIPTION": "Liste mit interaktiven Elementen. Um zum Inhalt zu springen, drücken Sie F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Wert ist bereits ausgewählt.",
   "VALUE_STATE_INFORMATION": "Informationseintrag",
   "VALUE_STATE_SUCCESS": "Eintrag erfolgreich validiert",
+  "VALUE_STATE_TYPE_ERROR": "Wertzustand Fehler",
+  "VALUE_STATE_TYPE_INFORMATION": "Wertzustand Information",
+  "VALUE_STATE_TYPE_WARNING": "Wertzustand Warnung",
   "VALUE_STATE_WARNING": "Warnung ausgegeben",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Aktion",
   "VARIANT_MANAGEMENT_AUTHOR": "Angelegt von",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Zurücksetzen",
   "valuehelp.CANCEL": "Abbrechen",
+  "valuehelp.DEFINECONDITIONS": "Bedingungen definieren ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Bedingungen definieren",
   "valuehelp.DEFINECONDITIONS_FROM": "Von",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operator",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Wert",
   "valuehelp.HIDEADVSEARCH": "Filter ausblenden",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Suchen und auswählen ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Suchen und auswählen",
   "valuehelp.SHOWADVSEARCH": "Filter einblenden",
-  "valuehelp.TABLETITLENONUMBER": "Elemente"
+  "valuehelp.TABLETITLE": "Elemente ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Elemente",
+  "valuehelp.TOKENIZERTITLE": "Ausgewählte Elemente und Bedingungen ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Keine Elemente oder Bedingungen ausgewählt"
 } satisfies FioriTexts
 export default texts
 export { texts }

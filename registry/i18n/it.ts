@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Evidenziato",
   "LINK_SUBTLE": "Discreto",
+  "LIST_ITEM_GROUP_HEADER": "Testata gruppo",
   "LIST_ITEM_NOT_SELECTED": "Non selezionato",
+  "LIST_ITEM_POSITION": "Posizione della lista {0} di {1}",
   "LIST_ITEM_SELECTED": "Selezionato",
   "LIST_NO_DATA": "Nessun dato",
   "LIST_ROLE_DESCRIPTION": "Lista con elementi interattivi. Per passare al contenuto, premere F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Questo valore è già selezionato.",
   "VALUE_STATE_INFORMATION": "Inserimento informativo",
   "VALUE_STATE_SUCCESS": "Inserimento validato correttamente",
+  "VALUE_STATE_TYPE_ERROR": "Stato valore Errore",
+  "VALUE_STATE_TYPE_INFORMATION": "Stato valore Informazione",
+  "VALUE_STATE_TYPE_WARNING": "Stato valore Avvertimento",
   "VALUE_STATE_WARNING": "Messaggio di avvertimento emesso",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Azione",
   "VARIANT_MANAGEMENT_AUTHOR": "Autore creazione",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Resetta",
   "valuehelp.CANCEL": "Annulla",
+  "valuehelp.DEFINECONDITIONS": "Definisci condizioni ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Definisci condizioni",
   "valuehelp.DEFINECONDITIONS_FROM": "Da",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operatore",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Valore",
   "valuehelp.HIDEADVSEARCH": "Nascondi filtri",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Cerca e seleziona ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Cerca e seleziona",
   "valuehelp.SHOWADVSEARCH": "Mostra filtri",
-  "valuehelp.TABLETITLENONUMBER": "Posizioni"
+  "valuehelp.TABLETITLE": "Posizioni ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Posizioni",
+  "valuehelp.TOKENIZERTITLE": "Condizioni e posizioni selezionate ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Nessuna posizione o condizione selezionata"
 } satisfies FioriTexts
 export default texts
 export { texts }

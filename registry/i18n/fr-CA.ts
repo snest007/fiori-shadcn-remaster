@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Accentué",
   "LINK_SUBTLE": "Discret",
+  "LIST_ITEM_GROUP_HEADER": "En-tête du groupe",
   "LIST_ITEM_NOT_SELECTED": "Non sélectionné",
+  "LIST_ITEM_POSITION": "Élément de liste {0} sur {1}",
   "LIST_ITEM_SELECTED": "Sélectionné",
   "LIST_NO_DATA": "Aucune donnée",
   "LIST_ROLE_DESCRIPTION": "Liste avec des éléments interactifs. Pour déplacer le contenu, appuyez sur la touche F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Cette valeur a déjà été sélectionnée.",
   "VALUE_STATE_INFORMATION": "Entrée informative",
   "VALUE_STATE_SUCCESS": "Entrée validée avec succès",
+  "VALUE_STATE_TYPE_ERROR": "Statut de valeur Erreur",
+  "VALUE_STATE_TYPE_INFORMATION": "Statut de valeur Information",
+  "VALUE_STATE_TYPE_WARNING": "Statut de valeur Avertissement",
   "VALUE_STATE_WARNING": "Avertissement généré",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Action",
   "VARIANT_MANAGEMENT_AUTHOR": "Auteur",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Réinitialiser",
   "valuehelp.CANCEL": "Annuler",
+  "valuehelp.DEFINECONDITIONS": "Définir les conditions ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Définir des conditions",
   "valuehelp.DEFINECONDITIONS_FROM": "Du",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Opérateur",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Valeur",
   "valuehelp.HIDEADVSEARCH": "Masquer les filtres",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Rechercher et sélectionner ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Rechercher et sélectionner",
   "valuehelp.SHOWADVSEARCH": "Afficher les filtres",
-  "valuehelp.TABLETITLENONUMBER": "Éléments"
+  "valuehelp.TABLETITLE": "Éléments ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Éléments",
+  "valuehelp.TOKENIZERTITLE": "Éléments et conditions sélectionnés ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Aucun élément ou condition sélectionné"
 } satisfies FioriTexts
 export default texts
 export { texts }

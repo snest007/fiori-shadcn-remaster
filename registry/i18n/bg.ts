@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Подчертано",
   "LINK_SUBTLE": "Блед",
+  "LIST_ITEM_GROUP_HEADER": "Заглавие на група",
   "LIST_ITEM_NOT_SELECTED": "Неизбрано",
+  "LIST_ITEM_POSITION": "Позиция от списък {0} от {1}",
   "LIST_ITEM_SELECTED": "Избрано",
   "LIST_NO_DATA": "Няма данни",
   "LIST_ROLE_DESCRIPTION": "Списък с интерактивни позиции. За да преминете към съдържанието, натиснете F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Тази стойност вече е избрана.",
   "VALUE_STATE_INFORMATION": "Информативен запис",
   "VALUE_STATE_SUCCESS": "Записът е успешно проверен",
+  "VALUE_STATE_TYPE_ERROR": "Статус стойност \"Грешка”",
+  "VALUE_STATE_TYPE_INFORMATION": "Статус стойност “Информация”",
+  "VALUE_STATE_TYPE_WARNING": "Статус стойност \"Предупреждение\"",
   "VALUE_STATE_WARNING": "Изведено предупреждение",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Действие",
   "VARIANT_MANAGEMENT_AUTHOR": "Създал",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Изчистване",
   "valuehelp.CANCEL": "Отказ",
+  "valuehelp.DEFINECONDITIONS": "Дефиниране на условия: ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Дефиниране на условия",
   "valuehelp.DEFINECONDITIONS_FROM": "От",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Оператор",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Стойност",
   "valuehelp.HIDEADVSEARCH": "Скриване на филтрите",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Търсене и избор ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Търсене и избор",
   "valuehelp.SHOWADVSEARCH": "Показване на филтрите",
-  "valuehelp.TABLETITLENONUMBER": "Позиции"
+  "valuehelp.TABLETITLE": "Позиции ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Позиции",
+  "valuehelp.TOKENIZERTITLE": "Избрани позиции и условия ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Няма избрани позиции или условия"
 } satisfies FioriTexts
 export default texts
 export { texts }

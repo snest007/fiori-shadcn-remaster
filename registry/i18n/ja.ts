@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "強調",
   "LINK_SUBTLE": "淡色",
+  "LIST_ITEM_GROUP_HEADER": "グループヘッダ",
   "LIST_ITEM_NOT_SELECTED": "未選択",
+  "LIST_ITEM_POSITION": "{0} の一覧アイテム {1}",
   "LIST_ITEM_SELECTED": "選択",
   "LIST_NO_DATA": "データなし",
   "LIST_ROLE_DESCRIPTION": "インタラクティブアイテムを含む一覧です。コンテンツに移動するには、F2 を押します。",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "この値はすでに選択されています。",
   "VALUE_STATE_INFORMATION": "情報エントリ",
   "VALUE_STATE_SUCCESS": "エントリが正常にチェックされました",
+  "VALUE_STATE_TYPE_ERROR": "値ステータス: エラー",
+  "VALUE_STATE_TYPE_INFORMATION": "値ステータス: 情報",
+  "VALUE_STATE_TYPE_WARNING": "値ステータス: 警告",
   "VALUE_STATE_WARNING": "警告が発行されました",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "アクション",
   "VARIANT_MANAGEMENT_AUTHOR": "作成者",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "リセット",
   "valuehelp.CANCEL": "キャンセル",
+  "valuehelp.DEFINECONDITIONS": "条件を定義 ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "条件定義",
   "valuehelp.DEFINECONDITIONS_FROM": "開始",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "演算子",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "値",
   "valuehelp.HIDEADVSEARCH": "フィルタ非表示",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "検索して選択 ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "検索して選択",
   "valuehelp.SHOWADVSEARCH": "フィルタ表示",
-  "valuehelp.TABLETITLENONUMBER": "アイテム"
+  "valuehelp.TABLETITLE": "アイテム ({0})",
+  "valuehelp.TABLETITLENONUMBER": "アイテム",
+  "valuehelp.TOKENIZERTITLE": "選択されたアイテムと条件 ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "アイテムと条件が選択されていません"
 } satisfies FioriTexts
 export default texts
 export { texts }

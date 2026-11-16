@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Korostettu",
   "LINK_SUBTLE": "Hillitty",
+  "LIST_ITEM_GROUP_HEADER": "Ryhmäotsikko",
   "LIST_ITEM_NOT_SELECTED": "Ei valittu",
+  "LIST_ITEM_POSITION": "Luetteloelementti {0} / {1}",
   "LIST_ITEM_SELECTED": "Valittu",
   "LIST_NO_DATA": "Ei tietoja",
   "LIST_ROLE_DESCRIPTION": "Vuorovaikutteisten kohteiden luettelo. Siirry sisältöön painamalla F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Tämä arvo on jo valittu.",
   "VALUE_STATE_INFORMATION": "Informatiivinen merkintä",
   "VALUE_STATE_SUCCESS": "Merkinnän validointi onnistui",
+  "VALUE_STATE_TYPE_ERROR": "Arvon tila Virhe",
+  "VALUE_STATE_TYPE_INFORMATION": "Arvon tila Informaatio",
+  "VALUE_STATE_TYPE_WARNING": "Arvon tila Varoitus",
   "VALUE_STATE_WARNING": "Varoitus tulostettu",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Toimi",
   "VARIANT_MANAGEMENT_AUTHOR": "Tekijä",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Nollaa",
   "valuehelp.CANCEL": "Peruuta",
+  "valuehelp.DEFINECONDITIONS": "Määritä ehdot ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Määritä ehdot",
   "valuehelp.DEFINECONDITIONS_FROM": "Alku",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operaattori",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Arvo",
   "valuehelp.HIDEADVSEARCH": "Piilota suodattimet",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Hae ja valitse ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Hae ja valitse",
   "valuehelp.SHOWADVSEARCH": "Näytä suodattimet",
-  "valuehelp.TABLETITLENONUMBER": "Elementit"
+  "valuehelp.TABLETITLE": "Elementit ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Elementit",
+  "valuehelp.TOKENIZERTITLE": "Valitut elementit ja ehdot ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Elementtejä tai ehtoja ei valittu"
 } satisfies FioriTexts
 export default texts
 export { texts }

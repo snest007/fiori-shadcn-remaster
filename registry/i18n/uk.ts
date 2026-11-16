@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Виділено",
   "LINK_SUBTLE": "Прихований",
+  "LIST_ITEM_GROUP_HEADER": "Заголовок групи",
   "LIST_ITEM_NOT_SELECTED": "Не вибрано",
+  "LIST_ITEM_POSITION": "Позиція списку {0} з {1}",
   "LIST_ITEM_SELECTED": "Вибрано",
   "LIST_NO_DATA": "Немає даних",
   "LIST_ROLE_DESCRIPTION": "Список з інтерактивними елементами. Для переходу до вмісту натисніть F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Це значення вже вибрано.",
   "VALUE_STATE_INFORMATION": "Інформативний запис",
   "VALUE_STATE_SUCCESS": "Запис успішно перевірено",
+  "VALUE_STATE_TYPE_ERROR": "Стан значення: помилка",
+  "VALUE_STATE_TYPE_INFORMATION": "Стан значення: інформація",
+  "VALUE_STATE_TYPE_WARNING": "Стан значення: застереження",
   "VALUE_STATE_WARNING": "Застереження видано",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Операція",
   "VARIANT_MANAGEMENT_AUTHOR": "Автор створення",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Скинути",
   "valuehelp.CANCEL": "Скасувати",
+  "valuehelp.DEFINECONDITIONS": "Визначити умови ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Визначити умови",
   "valuehelp.DEFINECONDITIONS_FROM": "З",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Оператор",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Значення",
   "valuehelp.HIDEADVSEARCH": "Приховати фільтри",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Шукати та вибрати ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Шукати та вибрати",
   "valuehelp.SHOWADVSEARCH": "Показати фільтри",
-  "valuehelp.TABLETITLENONUMBER": "Позиції"
+  "valuehelp.TABLETITLE": "Позиції ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Позиції",
+  "valuehelp.TOKENIZERTITLE": "Вибрані позиції та умови ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Немає вибраних позицій або умов"
 } satisfies FioriTexts
 export default texts
 export { texts }

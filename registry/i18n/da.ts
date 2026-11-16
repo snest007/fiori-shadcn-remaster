@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Fremhævet",
   "LINK_SUBTLE": "Diskret",
+  "LIST_ITEM_GROUP_HEADER": "Gruppetop",
   "LIST_ITEM_NOT_SELECTED": "Ikke valgt",
+  "LIST_ITEM_POSITION": "Listeelement {0} af {1}",
   "LIST_ITEM_SELECTED": "Valgt",
   "LIST_NO_DATA": "Ingen data",
   "LIST_ROLE_DESCRIPTION": "Liste med interaktive elementer. Tryk på F2 for at flytte hen til indholdet.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Denne værdi er allerede valgt.",
   "VALUE_STATE_INFORMATION": "Informativ entry",
   "VALUE_STATE_SUCCESS": "Entry valideret uden fejl",
+  "VALUE_STATE_TYPE_ERROR": "Værdistatus fejl",
+  "VALUE_STATE_TYPE_INFORMATION": "Informationer om værdistatus",
+  "VALUE_STATE_TYPE_WARNING": "Værdistatus advarsel",
   "VALUE_STATE_WARNING": "Advarsel udlæst",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Handling",
   "VARIANT_MANAGEMENT_AUTHOR": "Oprettet af",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Nulstil",
   "valuehelp.CANCEL": "Afbryd",
+  "valuehelp.DEFINECONDITIONS": "Definer betingelser ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Definer betingelser",
   "valuehelp.DEFINECONDITIONS_FROM": "Fra",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operator",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Værdi",
   "valuehelp.HIDEADVSEARCH": "Skjul filtre",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Søg og vælg ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Søg og vælg",
   "valuehelp.SHOWADVSEARCH": "Vis filtre",
-  "valuehelp.TABLETITLENONUMBER": "Elementer"
+  "valuehelp.TABLETITLE": "Elementer ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Elementer",
+  "valuehelp.TOKENIZERTITLE": "Valgte elementer og betingelser ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Ingen elementer eller betingelser valgt"
 } satisfies FioriTexts
 export default texts
 export { texts }

@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Vurgulu",
   "LINK_SUBTLE": "İnce",
+  "LIST_ITEM_GROUP_HEADER": "Grup başlığı",
   "LIST_ITEM_NOT_SELECTED": "Seçilmedi",
+  "LIST_ITEM_POSITION": "{0} / {1} liste öğesi",
   "LIST_ITEM_SELECTED": "Seçilenler",
   "LIST_NO_DATA": "Veri yok",
   "LIST_ROLE_DESCRIPTION": "Etkileşimli öğeler içeren liste. İçeriği taşımak için F2''ye basın.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Bu değer zaten seçildi.",
   "VALUE_STATE_INFORMATION": "Bilgilendirici giriş",
   "VALUE_STATE_SUCCESS": "Giriş başarıyla doğrulandı",
+  "VALUE_STATE_TYPE_ERROR": "Hata değer durumu",
+  "VALUE_STATE_TYPE_INFORMATION": "Bilgi değer durumu",
+  "VALUE_STATE_TYPE_WARNING": "Uyarı değer durumu",
   "VALUE_STATE_WARNING": "Uyarı verildi",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "İşlem",
   "VARIANT_MANAGEMENT_AUTHOR": "Yaratan",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "Tamam",
   "p13nDialog.RESET": "Sıfırla",
   "valuehelp.CANCEL": "İptal et",
+  "valuehelp.DEFINECONDITIONS": "Koşulları tanımla ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Koşulları tanımla",
   "valuehelp.DEFINECONDITIONS_FROM": "Başlangıç",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "İşleç",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Değer",
   "valuehelp.HIDEADVSEARCH": "Filtreleri gizle",
   "valuehelp.OK": "Tamam",
+  "valuehelp.SELECTFROMLIST": "Ara ve seç ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Ara ve seç",
   "valuehelp.SHOWADVSEARCH": "Filtreleri göster",
-  "valuehelp.TABLETITLENONUMBER": "Öğeler"
+  "valuehelp.TABLETITLE": "Öğeler ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Öğeler",
+  "valuehelp.TOKENIZERTITLE": "Seçilen öğeler ve koşullar ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Öğe veya koşul seçilmedi"
 } satisfies FioriTexts
 export default texts
 export { texts }

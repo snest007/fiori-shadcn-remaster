@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Destacat",
   "LINK_SUBTLE": "Discret",
+  "LIST_ITEM_GROUP_HEADER": "Capçalera de grup",
   "LIST_ITEM_NOT_SELECTED": "No seleccionats",
+  "LIST_ITEM_POSITION": "Element de llista {0} de {1}",
   "LIST_ITEM_SELECTED": "Seleccionat",
   "LIST_NO_DATA": "No hi ha dades",
   "LIST_ROLE_DESCRIPTION": "Llista amb elements interactius. Per anar al contingut, premeu F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Aquest valor ja està seleccionat.",
   "VALUE_STATE_INFORMATION": "Entrada informativa",
   "VALUE_STATE_SUCCESS": "Entrada validada correctament",
+  "VALUE_STATE_TYPE_ERROR": "Estat de valor: Error",
+  "VALUE_STATE_TYPE_INFORMATION": "Estat de valor: Informació",
+  "VALUE_STATE_TYPE_WARNING": "Estat de valor: Advertència",
   "VALUE_STATE_WARNING": "Advertència emesa",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Acció",
   "VARIANT_MANAGEMENT_AUTHOR": "Creat per",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "D'acord",
   "p13nDialog.RESET": "Reinicialitzar",
   "valuehelp.CANCEL": "Cancel·lar",
+  "valuehelp.DEFINECONDITIONS": "Definir condicions ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Definir condicions",
   "valuehelp.DEFINECONDITIONS_FROM": "De",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operador",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Valor",
   "valuehelp.HIDEADVSEARCH": "Ocultar filtres",
   "valuehelp.OK": "D'acord",
+  "valuehelp.SELECTFROMLIST": "Cercar i seleccionar ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Cercar i seleccionar",
   "valuehelp.SHOWADVSEARCH": "Mostrar filtres",
-  "valuehelp.TABLETITLENONUMBER": "Elements"
+  "valuehelp.TABLETITLE": "Elements ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Elements",
+  "valuehelp.TOKENIZERTITLE": "Elements i condicions seleccionats ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "No s'ha seleccionat cap element ni condició"
 } satisfies FioriTexts
 export default texts
 export { texts }

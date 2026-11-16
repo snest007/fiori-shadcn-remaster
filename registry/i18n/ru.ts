@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Выделенная",
   "LINK_SUBTLE": "Незаметная",
+  "LIST_ITEM_GROUP_HEADER": "Заголовок группы",
   "LIST_ITEM_NOT_SELECTED": "Не выбрано",
+  "LIST_ITEM_POSITION": "Позиция списка {0} из {1}",
   "LIST_ITEM_SELECTED": "Выбрано",
   "LIST_NO_DATA": "Нет данных",
   "LIST_ROLE_DESCRIPTION": "Список интерактивных позиций. Для перемещения в контент нажмите F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Это значение уже выбрано.",
   "VALUE_STATE_INFORMATION": "Информативная запись",
   "VALUE_STATE_SUCCESS": "Запись успешно валидирована",
+  "VALUE_STATE_TYPE_ERROR": "Статус значения \"Ошибка\"",
+  "VALUE_STATE_TYPE_INFORMATION": "Статус значения \"Информация\"",
+  "VALUE_STATE_TYPE_WARNING": "Статус значения \"Предупреждение\"",
   "VALUE_STATE_WARNING": "Выдано предупреждение",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Операция",
   "VARIANT_MANAGEMENT_AUTHOR": "Создал",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "ОК",
   "p13nDialog.RESET": "Сбросить",
   "valuehelp.CANCEL": "Отменить",
+  "valuehelp.DEFINECONDITIONS": "Определить условия ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Определить условия",
   "valuehelp.DEFINECONDITIONS_FROM": "С",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Оператор",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Значение",
   "valuehelp.HIDEADVSEARCH": "Скрыть фильтры",
   "valuehelp.OK": "ОК",
+  "valuehelp.SELECTFROMLIST": "Найти и выбрать ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Найти и выбрать",
   "valuehelp.SHOWADVSEARCH": "Показать фильтры",
-  "valuehelp.TABLETITLENONUMBER": "Позиции"
+  "valuehelp.TABLETITLE": "Позиции ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Позиции",
+  "valuehelp.TOKENIZERTITLE": "Выбранные позиции и условия ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Позиции или условия не выбраны"
 } satisfies FioriTexts
 export default texts
 export { texts }

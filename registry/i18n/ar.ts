@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "مؤكد",
   "LINK_SUBTLE": "غامض",
+  "LIST_ITEM_GROUP_HEADER": "مقدمة المجموعة",
   "LIST_ITEM_NOT_SELECTED": "غير محدد",
+  "LIST_ITEM_POSITION": "بند القائمة {0} لـ {1}",
   "LIST_ITEM_SELECTED": "محدد",
   "LIST_NO_DATA": "لا توجد بيانات",
   "LIST_ROLE_DESCRIPTION": "قائمة ببنود تفاعلية. للانتقال إلى المحتوى، اضغط F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "هذه القيمة محددة بالفعل.",
   "VALUE_STATE_INFORMATION": "إدخال معلوماتي",
   "VALUE_STATE_SUCCESS": "تم التحقق من صحة الإدخال بنجاح",
+  "VALUE_STATE_TYPE_ERROR": "حالة القيمة ’خطأ‘",
+  "VALUE_STATE_TYPE_INFORMATION": "حالة القيمة ’معلومات‘",
+  "VALUE_STATE_TYPE_WARNING": "حالة القيمة ’تحذير‘",
   "VALUE_STATE_WARNING": "تم إصدار تحذير",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "الإجراء",
   "VARIANT_MANAGEMENT_AUTHOR": "تم الإنشاء بواسطة",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "موافق",
   "p13nDialog.RESET": "إعادة تعيين",
   "valuehelp.CANCEL": "إلغاء",
+  "valuehelp.DEFINECONDITIONS": "تحديد الشروط ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "تحديد الشروط",
   "valuehelp.DEFINECONDITIONS_FROM": "من",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "المعامل",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "القيمة",
   "valuehelp.HIDEADVSEARCH": "إخفاء عوامل التصفية",
   "valuehelp.OK": "موافق",
+  "valuehelp.SELECTFROMLIST": "بحث وتحديد ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "بحث وتحديد",
   "valuehelp.SHOWADVSEARCH": "إظهار عوامل التصفية",
-  "valuehelp.TABLETITLENONUMBER": "البنود"
+  "valuehelp.TABLETITLE": "البنود ({0})",
+  "valuehelp.TABLETITLENONUMBER": "البنود",
+  "valuehelp.TOKENIZERTITLE": "الشروط والبنود المحددة ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "لم يتم تحديد أي شروط أو بنود"
 } satisfies FioriTexts
 export default texts
 export { texts }

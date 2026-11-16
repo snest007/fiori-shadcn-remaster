@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Emphasized",
   "LINK_SUBTLE": "Subtle",
+  "LIST_ITEM_GROUP_HEADER": "Group Header",
   "LIST_ITEM_NOT_SELECTED": "Not Selected",
+  "LIST_ITEM_POSITION": "List item {0} of {1}",
   "LIST_ITEM_SELECTED": "Selected",
   "LIST_NO_DATA": "No data",
   "LIST_ROLE_DESCRIPTION": "List with interactive items. To move to the content, press F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "This value is already selected.",
   "VALUE_STATE_INFORMATION": "Informative entry",
   "VALUE_STATE_SUCCESS": "Entry successfully validated",
+  "VALUE_STATE_TYPE_ERROR": "Value State Error",
+  "VALUE_STATE_TYPE_INFORMATION": "Value State Information",
+  "VALUE_STATE_TYPE_WARNING": "Value State Warning",
   "VALUE_STATE_WARNING": "Warning issued",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Action",
   "VARIANT_MANAGEMENT_AUTHOR": "Created By",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Reset",
   "valuehelp.CANCEL": "Cancel",
+  "valuehelp.DEFINECONDITIONS": "Define Conditions ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Define Conditions",
   "valuehelp.DEFINECONDITIONS_FROM": "From",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operator",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Value",
   "valuehelp.HIDEADVSEARCH": "Hide Filters",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Search and Select ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Search and Select",
   "valuehelp.SHOWADVSEARCH": "Show Filters",
-  "valuehelp.TABLETITLENONUMBER": "Items"
+  "valuehelp.TABLETITLE": "Items ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Items",
+  "valuehelp.TOKENIZERTITLE": "Selected Items and Conditions ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "No Items or Conditions Selected"
 } satisfies FioriTexts
 export default texts
 export { texts }

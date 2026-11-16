@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Наглашено",
   "LINK_SUBTLE": "Суптилно",
+  "LIST_ITEM_GROUP_HEADER": "Заглавље групе",
   "LIST_ITEM_NOT_SELECTED": "Није одабрано",
+  "LIST_ITEM_POSITION": "Ставке листе {0} од {1}",
   "LIST_ITEM_SELECTED": "Одабрано",
   "LIST_NO_DATA": "Нема података",
   "LIST_ROLE_DESCRIPTION": "Листа са интерактивним ставкама. Да бисте померили садржај, притисните F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Ова вредност је већ одабрана.",
   "VALUE_STATE_INFORMATION": "Информативни унос",
   "VALUE_STATE_SUCCESS": "Унос успешно валидиран",
+  "VALUE_STATE_TYPE_ERROR": "Статус вредности - Грешка",
+  "VALUE_STATE_TYPE_INFORMATION": "Статус вредности - Информације",
+  "VALUE_STATE_TYPE_WARNING": "Статус вредности - Упозорење",
   "VALUE_STATE_WARNING": "Упозорења издато",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Радња",
   "VARIANT_MANAGEMENT_AUTHOR": "Креирао",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "ОК",
   "p13nDialog.RESET": "Поново постави",
   "valuehelp.CANCEL": "Одустани",
+  "valuehelp.DEFINECONDITIONS": "Дефиниши услове ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Дефиниши услове",
   "valuehelp.DEFINECONDITIONS_FROM": "Од",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Оператор",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Вредност",
   "valuehelp.HIDEADVSEARCH": "Сакриј филтере",
   "valuehelp.OK": "ОК",
+  "valuehelp.SELECTFROMLIST": "Тражи и одабери ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Тражи и одабери",
   "valuehelp.SHOWADVSEARCH": "Покажи филтере",
-  "valuehelp.TABLETITLENONUMBER": "Ставке"
+  "valuehelp.TABLETITLE": "Ставке ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Ставке",
+  "valuehelp.TOKENIZERTITLE": "Одабране ставке и услови ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Ставке и услови нису одабрани"
 } satisfies FioriTexts
 export default texts
 export { texts }

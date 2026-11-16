@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Zvýrazněné",
   "LINK_SUBTLE": "Jemné",
+  "LIST_ITEM_GROUP_HEADER": "Hlavička skupiny",
   "LIST_ITEM_NOT_SELECTED": "Není vybráno",
+  "LIST_ITEM_POSITION": "Položka seznamu {0} z {1}",
   "LIST_ITEM_SELECTED": "Vybráno",
   "LIST_NO_DATA": "Žádná data",
   "LIST_ROLE_DESCRIPTION": "Seznam s interaktivními položkami. Pro přechod na obsah stiskněte F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Tato hodnota je již vybrána.",
   "VALUE_STATE_INFORMATION": "Informativní záznam",
   "VALUE_STATE_SUCCESS": "Záznam úspěšně ověřen",
+  "VALUE_STATE_TYPE_ERROR": "Status hodnoty - chyba",
+  "VALUE_STATE_TYPE_INFORMATION": "Status hodnoty - informace",
+  "VALUE_STATE_TYPE_WARNING": "Status hodnoty - upozornění",
   "VALUE_STATE_WARNING": "Výstup upozornění",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Akce",
   "VARIANT_MANAGEMENT_AUTHOR": "Vytvořil",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Resetovat",
   "valuehelp.CANCEL": "Zrušit",
+  "valuehelp.DEFINECONDITIONS": "Definovat podmínky: ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Definovat podmínky",
   "valuehelp.DEFINECONDITIONS_FROM": "Od",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operátor",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Hodnota",
   "valuehelp.HIDEADVSEARCH": "Skrýt filtry",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Hledat a vybrat ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Hledat a vybrat",
   "valuehelp.SHOWADVSEARCH": "Zobrazit filtr",
-  "valuehelp.TABLETITLENONUMBER": "Položky"
+  "valuehelp.TABLETITLE": "Položky ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Položky",
+  "valuehelp.TOKENIZERTITLE": "Vybrané položky a podmínky ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Nebyly vybrány žádné položky ani podmínky"
 } satisfies FioriTexts
 export default texts
 export { texts }

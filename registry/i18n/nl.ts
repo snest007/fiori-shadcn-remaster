@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Geaccentueerd",
   "LINK_SUBTLE": "Subtiel",
+  "LIST_ITEM_GROUP_HEADER": "Groepskop",
   "LIST_ITEM_NOT_SELECTED": "Niet geselecteerd",
+  "LIST_ITEM_POSITION": "Lijstpositie {0} van {1}",
   "LIST_ITEM_SELECTED": "Geselecteerd",
   "LIST_NO_DATA": "Geen gegevens",
   "LIST_ROLE_DESCRIPTION": "Lijst met interactieve elementen. Druk op F2 om naar content te verplaatsen.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Deze waarde is al geselecteerd.",
   "VALUE_STATE_INFORMATION": "Informatief gegeven",
   "VALUE_STATE_SUCCESS": "Gegeven gevalideerd",
+  "VALUE_STATE_TYPE_ERROR": "Waardestatus Fout",
+  "VALUE_STATE_TYPE_INFORMATION": "Informatie waardestatus",
+  "VALUE_STATE_TYPE_WARNING": "Waardestatus Waarschuwing",
   "VALUE_STATE_WARNING": "Waarschuwing opgetreden",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Actie",
   "VARIANT_MANAGEMENT_AUTHOR": "Gecreëerd door",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Ongedaan maken",
   "valuehelp.CANCEL": "Afbreken",
+  "valuehelp.DEFINECONDITIONS": "Condities definiëren ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Condities definiëren",
   "valuehelp.DEFINECONDITIONS_FROM": "Van",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operator",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Waarde",
   "valuehelp.HIDEADVSEARCH": "Filters verbergen",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Zoeken en selecteren ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Zoeken en selecteren",
   "valuehelp.SHOWADVSEARCH": "Filters weergeven",
-  "valuehelp.TABLETITLENONUMBER": "Posities"
+  "valuehelp.TABLETITLE": "Posities ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Posities",
+  "valuehelp.TOKENIZERTITLE": "Geselecteerde posities en condities ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Geen posities of condities geselecteerd"
 } satisfies FioriTexts
 export default texts
 export { texts }

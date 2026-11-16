@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Markerad",
   "LINK_SUBTLE": "Diskret",
+  "LIST_ITEM_GROUP_HEADER": "Grupphuvud",
   "LIST_ITEM_NOT_SELECTED": "Ej valda",
+  "LIST_ITEM_POSITION": "Listelement {0} av {1}",
   "LIST_ITEM_SELECTED": "Valda",
   "LIST_NO_DATA": "Inga data",
   "LIST_ROLE_DESCRIPTION": "Lista med interaktiva element. Tryck på F2 för att flytta innehållet.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Detta värde har redan valts.",
   "VALUE_STATE_INFORMATION": "Informativ uppgift",
   "VALUE_STATE_SUCCESS": "Uppgift har validerats",
+  "VALUE_STATE_TYPE_ERROR": "Värdestatus Fel",
+  "VALUE_STATE_TYPE_INFORMATION": "Värdestatus Information",
+  "VALUE_STATE_TYPE_WARNING": "Värdestatus Varning",
   "VALUE_STATE_WARNING": "Varning finns",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Åtgärd",
   "VARIANT_MANAGEMENT_AUTHOR": "Uppläggning av",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Återställ",
   "valuehelp.CANCEL": "Avbryt",
+  "valuehelp.DEFINECONDITIONS": "Definiera villkor ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Definiera villkor",
   "valuehelp.DEFINECONDITIONS_FROM": "Från",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operator",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Värde",
   "valuehelp.HIDEADVSEARCH": "Dölj filter",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Sök och välj ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Sök och välj",
   "valuehelp.SHOWADVSEARCH": "Visa filter",
-  "valuehelp.TABLETITLENONUMBER": "Objekt"
+  "valuehelp.TABLETITLE": "Objekt ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Objekt",
+  "valuehelp.TOKENIZERTITLE": "Valda objekt och villkor ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Inga objekt eller villkor har valts"
 } satisfies FioriTexts
 export default texts
 export { texts }

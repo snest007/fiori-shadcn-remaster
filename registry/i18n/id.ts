@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Ditekankan",
   "LINK_SUBTLE": "Halus",
+  "LIST_ITEM_GROUP_HEADER": "Header Grup",
   "LIST_ITEM_NOT_SELECTED": "Tidak Dipilih",
+  "LIST_ITEM_POSITION": "Cantumkan item {0} dari {1}",
   "LIST_ITEM_SELECTED": "Dipilih",
   "LIST_NO_DATA": "Tidak ada data",
   "LIST_ROLE_DESCRIPTION": "Daftar berisi item interaktif. Tekan F2 untuk berpindah ke konten.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Nilai ini telah dipilih.",
   "VALUE_STATE_INFORMATION": "Entri informatif",
   "VALUE_STATE_SUCCESS": "Entri berhasil divalidasi",
+  "VALUE_STATE_TYPE_ERROR": "Kesalahan Kondisi Nilai",
+  "VALUE_STATE_TYPE_INFORMATION": "Informasi Kondisi Nilai",
+  "VALUE_STATE_TYPE_WARNING": "Peringatan Kondisi Nilai",
   "VALUE_STATE_WARNING": "Peringatan diberikan",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Tindakan",
   "VARIANT_MANAGEMENT_AUTHOR": "Dibuat Oleh",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OKE",
   "p13nDialog.RESET": "Atur Ulang",
   "valuehelp.CANCEL": "Batalkan",
+  "valuehelp.DEFINECONDITIONS": "Tentukan Kondisi ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Tentukan Kondisi",
   "valuehelp.DEFINECONDITIONS_FROM": "Dari",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operator",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Nilai",
   "valuehelp.HIDEADVSEARCH": "Sembunyikan Filter",
   "valuehelp.OK": "OKE",
+  "valuehelp.SELECTFROMLIST": "Cari dan Pilih ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Cari dan Pilih",
   "valuehelp.SHOWADVSEARCH": "Tampilkan Filter",
-  "valuehelp.TABLETITLENONUMBER": "Item"
+  "valuehelp.TABLETITLE": "Item ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Item",
+  "valuehelp.TOKENIZERTITLE": "Item dan Kondisi Terpilih ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Tidak Ada Item atau Kondisi yang Dipilih"
 } satisfies FioriTexts
 export default texts
 export { texts }

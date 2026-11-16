@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "Realçado",
   "LINK_SUBTLE": "Subtil",
+  "LIST_ITEM_GROUP_HEADER": "Cabeçalho do grupo",
   "LIST_ITEM_NOT_SELECTED": "Não selecionado",
+  "LIST_ITEM_POSITION": "Item de lista {0} de {1}",
   "LIST_ITEM_SELECTED": "Selecionado",
   "LIST_NO_DATA": "Sem dados",
   "LIST_ROLE_DESCRIPTION": "Lista com itens interativos. Para deslocar o conteúdo, prima F2.",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "Este valor já está selecionado.",
   "VALUE_STATE_INFORMATION": "Entrada informativa",
   "VALUE_STATE_SUCCESS": "Entrada validada com êxito",
+  "VALUE_STATE_TYPE_ERROR": "Estado de valor Erro",
+  "VALUE_STATE_TYPE_INFORMATION": "Estado de valor Informação",
+  "VALUE_STATE_TYPE_WARNING": "Estado de valor Aviso",
   "VALUE_STATE_WARNING": "Aviso emitido",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "Ação",
   "VARIANT_MANAGEMENT_AUTHOR": "Criado por",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "OK",
   "p13nDialog.RESET": "Repor",
   "valuehelp.CANCEL": "Cancelar",
+  "valuehelp.DEFINECONDITIONS": "Definir condições ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "Definir condições",
   "valuehelp.DEFINECONDITIONS_FROM": "De",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "Operador",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "Valor",
   "valuehelp.HIDEADVSEARCH": "Ocultar filtros",
   "valuehelp.OK": "OK",
+  "valuehelp.SELECTFROMLIST": "Procurar e selecionar ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "Procurar e selecionar",
   "valuehelp.SHOWADVSEARCH": "Mostrar filtros",
-  "valuehelp.TABLETITLENONUMBER": "Itens"
+  "valuehelp.TABLETITLE": "Itens ({0})",
+  "valuehelp.TABLETITLENONUMBER": "Itens",
+  "valuehelp.TOKENIZERTITLE": "Itens e condições selecionados ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "Nenhum item ou condição selecionado"
 } satisfies FioriTexts
 export default texts
 export { texts }

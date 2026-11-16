@@ -233,7 +233,9 @@ const texts = {
   "LABEL_COLON": ":",
   "LINK_EMPHASIZED": "เน้น",
   "LINK_SUBTLE": "ละเอียด",
+  "LIST_ITEM_GROUP_HEADER": "ส่วนหัวของกลุ่ม",
   "LIST_ITEM_NOT_SELECTED": "ไม่ได้เลือก",
+  "LIST_ITEM_POSITION": "รายการในลิสต์ {0} จาก {1}",
   "LIST_ITEM_SELECTED": "ที่เลือก",
   "LIST_NO_DATA": "ไม่มีข้อมูล",
   "LIST_ROLE_DESCRIPTION": "แสดงรายการที่มีรายการแบบอินเตอร์แอคทีฟ เมื่อต้องการย้ายไปยังเนื้อหา ให้กด F2",
@@ -428,6 +430,9 @@ const texts = {
   "VALUE_STATE_ERROR_ALREADY_SELECTED": "ค่านี้ถูกเลือกแล้ว",
   "VALUE_STATE_INFORMATION": "รายการที่ให้ข้อมูล",
   "VALUE_STATE_SUCCESS": "ตรวจสอบรายการได้สำเร็จ",
+  "VALUE_STATE_TYPE_ERROR": "สถานะของค่า - ผิดพลาด",
+  "VALUE_STATE_TYPE_INFORMATION": "สถานะของค่า - ข้อมูล",
+  "VALUE_STATE_TYPE_WARNING": "สถานะของค่า - คำเตือน",
   "VALUE_STATE_WARNING": "ออกการแจ้งเตือนแล้ว",
   "VARIANT_MANAGEMENT_ACTION_COLUMN": "การดำเนินการ",
   "VARIANT_MANAGEMENT_AUTHOR": "สร้างโดย",
@@ -563,6 +568,7 @@ const texts = {
   "p13nDialog.OK": "ตกลง",
   "p13nDialog.RESET": "รีเซ็ต",
   "valuehelp.CANCEL": "ยกเลิก",
+  "valuehelp.DEFINECONDITIONS": "กำหนดเงื่อนไข ({0})",
   "valuehelp.DEFINECONDITIONSNONUMBER": "กำหนดเงื่อนไข",
   "valuehelp.DEFINECONDITIONS_FROM": "จาก",
   "valuehelp.DEFINECONDITIONS_OPERATORLABEL": "ตัวดำเนินการ",
@@ -570,9 +576,13 @@ const texts = {
   "valuehelp.DEFINECONDITIONS_VALUE": "ค่า",
   "valuehelp.HIDEADVSEARCH": "ซ่อนฟิลเตอร์",
   "valuehelp.OK": "ตกลง",
+  "valuehelp.SELECTFROMLIST": "ค้นหาและเลือก ({0})",
   "valuehelp.SELECTFROMLISTNONUMBER": "ค้นหาและเลือก",
   "valuehelp.SHOWADVSEARCH": "แสดงฟิลเตอร์",
-  "valuehelp.TABLETITLENONUMBER": "รายการ"
+  "valuehelp.TABLETITLE": "รายการ ({0})",
+  "valuehelp.TABLETITLENONUMBER": "รายการ",
+  "valuehelp.TOKENIZERTITLE": "รายการที่เลือกและเงื่อนไข ({0})",
+  "valuehelp.TOKENIZERTITLENONUMBER": "ไม่ได้เลือกรายการหรือเงื่อนไข"
 } satisfies FioriTexts
 export default texts
 export { texts }

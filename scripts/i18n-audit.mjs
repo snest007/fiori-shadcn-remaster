@@ -4,13 +4,18 @@ import { dirname, resolve, relative } from 'node:path'
 import { createHash } from 'node:crypto'
 import ts from 'typescript'
 const packages = ['webcomponents', 'webcomponents-fiori']
-const defaults = {}, sourceHashes = {}
+const defaults = {}, sourceHashes = {}, definitionSources = {}, componentSources = {}
+const referenceCache = new Map()
 for (const pkg of packages) {
   const file = `node_modules/@ui5/${pkg}/dist/generated/i18n/i18n-defaults.js`
-  for (const match of readFileSync(file, 'utf8').matchAll(/const (\w+) = \{ key: "([^"]+)", defaultText: ("(?:[^"\\]|\\.)*") \}/g)) defaults[match[2]] = JSON.parse(match[3])
+  const text = readFileSync(file, 'utf8')
+  sourceHashes[file] = createHash('sha256').update(text).digest('hex')
+  for (const match of text.matchAll(/const (\w+) = \{ key: "([^"]+)", defaultText: ("(?:[^"\\]|\\.)*") \}/g)) { defaults[match[2]] = JSON.parse(match[3]); definitionSources[match[2]] = `${file}:${text.slice(0, match.index).split('\n').length} (English definition)` }
   // A small number of pinned native getters use getText("KEY") instead of an imported constant.
-  const bundle = JSON.parse(readFileSync(`node_modules/@ui5/${pkg}/dist/generated/assets/i18n/messagebundle_en.json`, 'utf8'))
-  for (const [key, value] of Object.entries(bundle)) defaults[key] ??= value
+  const bundleFile = `node_modules/@ui5/${pkg}/dist/generated/assets/i18n/messagebundle_en.json`
+  const bundleText = readFileSync(bundleFile, 'utf8'), bundle = JSON.parse(bundleText)
+  sourceHashes[bundleFile] = createHash('sha256').update(bundleText).digest('hex')
+  for (const [key, value] of Object.entries(bundle)) { defaults[key] ??= value; definitionSources[key] ??= `${bundleFile}:${bundleText.slice(0, bundleText.indexOf(JSON.stringify(key) + ':')).split('\n').length} (English definition)` }
 }
 export function properties(text) {
   const table = {}
@@ -25,19 +30,49 @@ export function properties(text) {
 const openBundles = {}
 for (const pkg of ['sap.m', 'sap.ui.mdc', 'sap.ui.core', 'sap.ui.layout', 'sap.ui.fl']) {
   const file = `node_modules/@openui5/${pkg}/src/${pkg.replaceAll('.', '/')}/messagebundle.properties`
-  openBundles[pkg] = properties(readFileSync(file, 'utf8'))
+  const text = readFileSync(file, 'utf8')
+  sourceHashes[file] = createHash('sha256').update(text).digest('hex')
+  openBundles[pkg] = properties(text)
   Object.assign(defaults, openBundles[pkg])
+  for (const [index, line] of text.split(/\r?\n/).entries()) { const key = line.match(/^([^#!\s][^=]*)=/)?.[1]; if (key) definitionSources[key] = `${file}:${index + 1} (library definition; channel still needs review)` }
+}
+// Source references do not prove render reachability. In particular accessibilityInfo
+// types can be consumed by CustomAnnouncement.getCustomAnnouncement in ListItemCustom
+// and Table; they must not be globally erased as unused metadata.
+function keyReferences(file, text = readFileSync(file, 'utf8')) {
+  if (referenceCache.has(file)) return referenceCache.get(file)
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
+  const refs = Object.create(null)
+  function visit(node) {
+    if ((ts.isIdentifier(node) || ts.isStringLiteral(node)) && Object.hasOwn(defaults, node.text)) {
+      let imported = false, owner = 'native key expression'
+      for (let parent = node.parent; parent; parent = parent.parent) {
+        if (ts.isImportDeclaration(parent) || ts.isExportDeclaration(parent)) { imported = true; break }
+        if (ts.isMethodDeclaration(parent) || ts.isGetAccessorDeclaration(parent) || ts.isFunctionDeclaration(parent)) { owner = parent.name?.getText(source) ?? owner; break }
+        if (ts.isFunctionExpression(parent) && ts.isBinaryExpression(parent.parent)) { owner = parent.parent.left.getText(source); break }
+      }
+      if (!imported) { const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1; (refs[node.text] ??= new Set()).add(`${file}:${line} (${owner})`) }
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(source)
+  referenceCache.set(file, refs)
+  return refs
 }
 const scan = (file, seen = new Set()) => {
   if (!existsSync(file) || seen.has(resolve(file))) return []
   seen.add(resolve(file))
   const text = readFileSync(file, 'utf8')
   sourceHashes[relative(process.cwd(), file)] = createHash('sha256').update(text).digest('hex')
+  keyReferences(relative(process.cwd(), file), text)
   const keys = [...text.matchAll(/import\s*\{([^}]+)\}\s*from\s*["'].*?generated\/i18n\/i18n-defaults\.js["']/g)].flatMap(m => m[1].split(',').map(k => k.trim()).filter(Boolean))
-  keys.push(...[...text.matchAll(/i18nBundle\.getText\("([^"]+)"/g)].map(match => match[1]))
+  keys.push(...[...text.matchAll(/\.getText\("([^"]+)"/g)].map(match => match[1]).filter(key => key in defaults))
   for (const m of text.matchAll(/from\s*["'](\.\/[^"']+\.js)["']/g)) {
     const next = resolve(dirname(file), m[1])
-    if (existsSync(next) && (/Template\.js$/.test(next) || /class.*extends /.test(readFileSync(next, 'utf8')))) keys.push(...scan(next, seen))
+    // Function-only i18n helpers are behavior owners too. CustomAnnouncement.js
+    // is invoked by ListItemCustom._onfocusin and TableCustomAnnouncement; skipping
+    // it merely because it has no class would omit real announced ACC_STATE_* keys.
+    if (existsSync(next)) { const nextText = readFileSync(next, 'utf8'); if (/Template\.js$/.test(next) || /class.*extends /.test(nextText) || (nextText.includes('generated/i18n/i18n-defaults.js') && nextText.includes('.getText('))) keys.push(...scan(next, seen)) }
   }
   return [...new Set(keys)].sort()
 }
@@ -49,7 +84,14 @@ const nativeKeys = name => {
   // Public subcomponents owned by the same registry item; fixture wrapper imports are not audit roots.
   const children = { card: ['CardHeader'], calendar: ['CalendarLegend', 'CalendarLegendItem'], table: ['TableHeaderRow','TableHeaderCell','TableRow','TableCell','TableGroupRow','TableSelectionMulti','TableSelectionSingle','TableGrowing','TableRowAction','TableRowActionNavigation'], list: ['ListItemStandard','ListItemCustom','ListItemGroup'], tree: ['TreeItem'], 'notification-list': ['NotificationListItem','NotificationListGroupItem'], 'upload-collection': ['UploadCollectionItem'], tabs: ['Tab','TabSeparator'], menu: ['MenuItem','MenuItemGroup'], tokenizer: ['Token'] }
   for (const child of children[name] ?? []) for (const pkg of packages) if (existsSync(`node_modules/@ui5/${pkg}/dist/${child}.js`)) sources.push(`node_modules/@ui5/${pkg}/dist/${child}.js`)
-  const keys = sources.flatMap(file => scan(file))
+  const seen = new Set()
+  const keys = sources.flatMap(file => scan(file, seen))
+  const related = {
+    'variant-management': ['sap.m/src/sap/m/VariantManagement.js'],
+    'filter-bar': ['sap.ui.mdc/src/sap/ui/mdc/FilterBar.js', 'sap.ui.mdc/src/sap/ui/mdc/filterbar/FilterBarBase.js'],
+    'value-help-dialog': ['sap.ui.mdc/src/sap/ui/mdc/valuehelp/Dialog.js', 'sap.ui.mdc/src/sap/ui/mdc/valuehelp/content/Conditions.js', 'sap.ui.mdc/src/sap/ui/mdc/valuehelp/content/MTable.js', 'sap.ui.mdc/src/sap/ui/mdc/valuehelp/base/FilterableListContent.js'],
+  }
+  for (const entry of related[name] ?? []) { const file = `node_modules/@openui5/${entry}`; if (existsSync(file)) { const text = readFileSync(file, 'utf8'); keyReferences(file, text); sourceHashes[file] = createHash('sha256').update(text).digest('hex'); seen.add(resolve(file)) } }
   if (name === 'variant-management') keys.push(...Object.keys(openBundles['sap.m']).filter(k => k.startsWith('VARIANT_MANAGEMENT_')))
   if (name === 'filter-bar' || name === 'adapt-filters-dialog') keys.push(...Object.keys(openBundles['sap.ui.mdc']).filter(k => /^(filterbar|adaptFiltersPanel|p13nDialog)\./.test(k)))
   if (name === 'adapt-filters-dialog') keys.push(...Object.keys(openBundles['sap.m']).filter(k => /^p13n\./.test(k)))
@@ -61,6 +103,7 @@ const nativeKeys = name => {
       const file = `node_modules/@openui5/sap.m/src/sap/m/${openControls[name]}${suffix}.js`
       const source = readFileSync(file, 'utf8')
       sourceHashes[file] = createHash('sha256').update(source).digest('hex')
+      keyReferences(file, source); seen.add(resolve(file))
       keys.push(...[...source.matchAll(/getText\("([^"]+)"\)/g)].map(match => match[1]))
     }
     if (name === 'object-number') keys.push(...Object.keys(openBundles['sap.m']).filter(key => key.startsWith('OBJECTNUMBER_ARIA_VALUE_STATE_')))
@@ -69,10 +112,12 @@ const nativeKeys = name => {
         const path = `node_modules/@openui5/sap.ui.core/src/sap/ui/core/${file}.js`
         const source = readFileSync(path, 'utf8')
         sourceHashes[path] = createHash('sha256').update(source).digest('hex')
+        keyReferences(path, source); seen.add(resolve(path))
         keys.push(...[...source.matchAll(/getText\("([^"]+)"\)/g)].map(match => match[1]))
       }
     }
   }
+  componentSources[name] = [...seen].map(file => relative(process.cwd(), file))
   return [...new Set(keys)].sort()
 }
 const shipped = readdirSync('registry/ui').filter(file => file.endsWith('.tsx')).map(file => file.slice(0, -4)).sort()
@@ -144,10 +189,14 @@ function resolveKey(name, key, seen = new Set()) {
   if (owner.rows[key]) return owner.rows[key]
   for (const next of owner.imports) { const result = resolveKey(next, key, seen); if (result) return `delegated ${result}` }
 }
-const audit = shipped.map(component => ({ component, rows: [...new Set([...nativeKeys(component), ...Object.keys(resolutions[component].rows).filter(key => key in defaults)])].sort().map(key => ({ key, english: defaults[key] ?? '', property: resolveKey(component, key) ?? 'No implemented provider/override text owner', status: resolveKey(component, key) ? 'fixed in E5' : 'gap' })) }))
+const audit = shipped.map(component => ({ component, rows: [...new Set([...nativeKeys(component), ...Object.keys(resolutions[component].rows).filter(key => key in defaults)])].sort().map(key => {
+  const nativeReferences = [...new Set(componentSources[component].flatMap(file => [...(referenceCache.get(file)?.[key] ?? [])]))].sort()
+  if (!nativeReferences.length && definitionSources[key]) nativeReferences.push(definitionSources[key])
+  return { key, english: defaults[key] ?? '', property: resolveKey(component, key) ?? 'No implemented provider/override text owner', status: resolveKey(component, key) ? 'fixed in E5' : 'gap', nativeReferences }
+}) }))
 const escape = s => String(s).replaceAll('|', '\\|').replaceAll('\n', '<br>')
 const all = audit.flatMap(group => group.rows), keys = [...new Set(all.map(row => row.key))].sort()
-const markdown = '# UI5 localization audit\n\nGenerated by `node scripts/i18n-audit.mjs` from installed UI5 Web Components 2.28.1 and OpenUI5 1.154.0. Every native imported key is retained, including rendered subcomponents and the OpenUI5 library key families required by E5. `gap` means no actual translated render/announcement owner exists; it is never counted as fixed by an unused prop.\n\nPinned-source drift: StepInput delegates to NumericInput in 2.28.1 and uses `NUMBERINPUT_*`, rather than the card example’s earlier `STEPINPUT_*`.\n\n' + audit.map(group => `## ${group.component}\n\n| UI5 key | English text | React property / owner | Status |\n| --- | --- | --- | --- |\n` + group.rows.map(row => `| ${escape(row.key)} | ${escape(row.english)} | ${escape(row.property)} | ${row.status} |`).join('\n') + '\n').join('\n')
+const markdown = '# UI5 localization audit\n\nGenerated by `node scripts/i18n-audit.mjs` from installed UI5 Web Components 2.28.1 and OpenUI5 1.154.0. Every native imported key is retained, including rendered subcomponents, function-only announcement helpers and the OpenUI5 library key families required by E5. `gap` means no actual translated render/announcement owner exists; it is never counted as fixed by an unused prop.\n\nNative source references identify key expressions, not automatic proof of render reachability. Library-definition-only rows still need owning-channel review. `accessibilityInfo.type` is metadata at its direct owner but CustomAnnouncement consumes it in custom List/Table content, so there is no global metadata exclusion. Full source references and hashes are preserved in `.integration/E5-evidence/audit.json`. No-gap acceptance remains unmet.\n\nPinned-source drift: StepInput delegates to NumericInput in 2.28.1 and uses `NUMBERINPUT_*`, rather than the card example’s earlier `STEPINPUT_*`.\n\n' + audit.map(group => `## ${group.component}\n\n| UI5 key | English text | React property / owner | Status | Native source / channel |\n| --- | --- | --- | --- | --- |\n` + group.rows.map(row => `| ${escape(row.key)} | ${escape(row.english)} | ${escape(row.property)} | ${row.status} | ${escape(row.nativeReferences.slice(0, 3).join('; '))}${row.nativeReferences.length > 3 ? `; +${row.nativeReferences.length - 3} more in audit.json` : ''} |`).join('\n') + '\n').join('\n')
 writeFileSync('docs/plan/i18n-audit.md', markdown)
 mkdirSync('.integration/E5-evidence', { recursive: true })
 writeFileSync('.integration/E5-evidence/audit.json', JSON.stringify({ audit, keys, sourceHashes }, null, 2) + '\n')
