@@ -14,33 +14,43 @@
   "usage": {
     "summary": "Choose one suggested value by typing, with filtering and optional free-text entry.",
     "useWhen": [
-      "Narrow a single-value choice by typing; choose the filter strategy for the supplied ComboBoxItem entries.",
-      "Accept a custom value as well as suggestions; handle committed text with onCommit.",
-      "Use onSelectionChange to distinguish a matched item from free text, which reports null."
+      "Let users find one suggested value by typing, typically across 20–200 options.",
+      "Accept a custom value alongside suggestions when the task permits free text.",
+      "Keep selection in a field when one suggestion label is enough to identify the value.",
+      "Choose filter for the supplied ComboBoxItem entries; onCommit receives text and onSelectionChange reports a matched item or null."
     ],
     "avoidWhen": [
       {
-        "when": "Require one short predefined choice and disallow free-text entry.",
+        "when": "Choose one of 2–12 predefined options without typing or free text; sort alphabetically above 8. Use Input for text without suggestions.",
         "use": [
-          "select"
+          "select",
+          "input"
         ]
       },
       {
-        "when": "Select multiple predefined options.",
+        "when": "Collect several values: fewer than 200 predefined options need MultiComboBox; free-form, caller-validated entries or datasets above 200 need MultiInput.",
         "use": [
-          "multi-combobox"
-        ]
-      },
-      {
-        "when": "Create several free-form or caller-validated tokens.",
-        "use": [
+          "multi-combobox",
           "multi-input"
         ]
       },
       {
-        "when": "Find a business value through several searchable attributes or enter conditions.",
+        "when": "Find a value above 200 entries, search several attributes, or define conditions in a separate search task.",
         "use": [
           "value-help-dialog"
+        ]
+      },
+      {
+        "when": "Browse business items with List or expand a hierarchy with Tree rather than choose a field value.",
+        "use": [
+          "list",
+          "tree"
+        ]
+      },
+      {
+        "when": "Submit a content-search query with optional scopes rather than choose a field value.",
+        "use": [
+          "search"
         ]
       }
     ],

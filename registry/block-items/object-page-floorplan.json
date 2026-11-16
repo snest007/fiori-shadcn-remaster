@@ -49,15 +49,10 @@
         ]
       },
       {
-        "when": "Compose an object layout with your own sections and edit handling inside an existing application.",
+        "when": "Compose custom sections and edit handling with ObjectPage, or supply only shared global framing around the object page with AppShell.",
         "use": [
-          "object-page"
-        ]
-      },
-      {
-        "when": "Offer an application-entry page with favorite app tiles.",
-        "use": [
-          "launchpad"
+          "object-page",
+          "app-shell"
         ]
       }
     ],

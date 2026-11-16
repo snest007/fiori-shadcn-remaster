@@ -23,27 +23,41 @@
   "usage": {
     "summary": "Find and act on business records with saved views, applied filters and a responsive results table.",
     "useWhen": [
-      "Search and filter a record collection before reviewing relevant rows and taking item or mass actions.",
-      "Reuse saved FilterBar states through VariantManagement; replace the sample storage and data flow for the application.",
-      "Keep page filters in a collapsing header and reveal the action footer only after rows are selected."
+      "Let users search and filter a business-record collection before taking item or mass actions.",
+      "Return to saved filter views when the same search tasks recur.",
+      "Keep applied results distinct from draft filters and reveal finalizing actions after row selection."
     ],
     "avoidWhen": [
       {
-        "when": "View or edit one record with all of its details.",
+        "when": "Inspect or edit one record with categorized details, or keep a list beside its selected detail.",
         "use": [
-          "object-page-floorplan"
-        ]
-      },
-      {
-        "when": "Keep a record list and its selected detail visible in adjacent columns.",
-        "use": [
+          "object-page-floorplan",
           "master-detail"
         ]
       },
       {
-        "when": "Guide users through sequential data entry steps.",
+        "when": "Create an unfamiliar object through 3\u20138 validated steps and review.",
         "use": [
           "wizard-page"
+        ]
+      },
+      {
+        "when": "Compose a custom result-page container with DynamicPage, or categorized details for one object with ObjectPage, instead of adapting a complete results floorplan.",
+        "use": [
+          "dynamic-page",
+          "object-page"
+        ]
+      },
+      {
+        "when": "Build shared global application framing around the business results page.",
+        "use": [
+          "app-shell"
+        ]
+      },
+      {
+        "when": "Explain an empty or unavailable result and provide recovery actions rather than show available rows.",
+        "use": [
+          "empty-states"
         ]
       }
     ],

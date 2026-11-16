@@ -1,5 +1,18 @@
 # Overlays
 
+| Item | Summary |
+| --- | --- |
+| [adapt-filters-dialog](#adapt-filters-dialog) | Personalize filter fields, their order and values in a staged dialog before applying changes. |
+| [dialog](#dialog) | Pause the current task for a focused decision, confirmation or contained editing task. |
+| [menu](#menu) | Let users choose commands from an opened hierarchy of menu items. |
+| [popover](#popover) | Show information or actions tied to an opener without leaving the current page. |
+| [responsive-popover](#responsive-popover) | Keep contextual content anchored on desktop and tablet, then show it in a full-screen phone dialog. |
+| [toast](#toast) | Confirm a completed action or provide information in a non-disruptive message that disappears automatically. |
+| [use-is-phone](#use-is-phone) | Reactive UI5-style touch/phone detection with a data-fiori-device override. |
+| [user-menu](#user-menu) | Expose signed-in user information, user-specific actions and sign out from the profile entry point. |
+| [value-help-dialog](#value-help-dialog) | Find business values through a searchable result table or define filter conditions in a dialog. |
+| [view-settings-dialog](#view-settings-dialog) | Adjust a list or table view through sorting, grouping and predefined filter choices. |
+
 ## adapt-filters-dialog
 
 Personalize filter fields, their order and values in a staged dialog before applying changes.
@@ -86,7 +99,7 @@ Show information or actions tied to an opener without leaving the current page.
 - Offer commands in menu rows or submenus rather than mixed contextual content. → [menu](overlays.md#menu)
 - Keep selected-object details in a dedicated area beside the list. → [master-detail](floorplans.md#master-detail)
 
-Main exports: `Popover`, `PopoverAnchor`, `PopoverBody`, `PopoverClose`, `PopoverContent`, `PopoverFooter`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `usePopupMediaRange`.
+Main exports: `Popover`, `PopoverAnchor`, `PopoverBody`, `PopoverClose`, `PopoverContent`, `PopoverFooter`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`.
 
 ```bash
 npx shadcn add @fiori/popover
@@ -176,17 +189,18 @@ Find business values through a searchable result table or define filter conditio
 
 ### Use when
 
-- Search business keys and descriptions across columns; identify returned keys with keyField and optional descriptionField.
-- Select several values with selectionMode="multiple", or confirm one row immediately with selectionMode="single".
-- Define operators and ranges with supportConditions in multiple mode; disable it for selection-only tasks.
-- Supply filters for multiattribute search, or handle onSearch and pass updated items for server-side results.
+- Let users find business values among more than 200 entries or identify them by several searchable attributes.
+- Let users select one or several matching records, or define ranges and filter conditions.
+- Keep a distinct search-and-confirm task when a suggestion label alone cannot identify the right value.
+- Supply columns, items and keyField; use selectionMode="multiple" with supportConditions for ranges, and onSearch for caller-filtered results.
 
 ### Don't use when
 
-- Pick one value from a short predefined list without inspecting additional attributes. → [select](forms.md#select)
-- Choose one value from suggestions or accept free text without a separate search task. → [combobox](forms.md#combobox)
-- Select several values from a manageable predefined list without conditions. → [multi-combobox](forms.md#multi-combobox)
-- Enter several tokens without needing a search dialog. → [multi-input](forms.md#multi-input)
+- Pick one of 2–12 predefined values without other attributes (sort alphabetically above 8), or enter text without a selection/search task. → [select](forms.md#select), [input](forms.md#input)
+- Choose one suggestion by type-ahead across 20–200 options or accept free text without a separate search task. → [combobox](forms.md#combobox)
+- Select several predefined values from fewer than 200 options without conditions. → [multi-combobox](forms.md#multi-combobox)
+- Enter several caller-validated tokens, including values from datasets above 200, without a separate multiattribute search task. → [multi-input](forms.md#multi-input)
+- Personalize which filter fields appear, their order and conditions across fields rather than select values for one field. → [adapt-filters-dialog](overlays.md#adapt-filters-dialog)
 
 Main exports: `ValueHelpDialog`, `formatCondition`.
 

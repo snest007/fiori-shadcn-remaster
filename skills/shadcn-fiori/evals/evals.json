@@ -1,0 +1,376 @@
+{
+  "evals": [
+    {
+      "id": "case-01",
+      "prompt": "A page where buyers search and filter purchase orders and approve several at once.",
+      "expect": {
+        "block": "list-report",
+        "notComponents": [
+          "object-page-floorplan",
+          "master-detail"
+        ]
+      },
+      "output": "case-01.tsx"
+    },
+    {
+      "id": "case-02",
+      "prompt": "Show one supplier with general data, contacts and documents, editable, with Save and Cancel.",
+      "expect": {
+        "block": "object-page-floorplan",
+        "notComponents": [
+          "list-report",
+          "master-detail",
+          "object-page"
+        ]
+      },
+      "output": "case-02.tsx"
+    },
+    {
+      "id": "case-03",
+      "prompt": "Let users create an unfamiliar product through four validated steps, review the result, and submit it.",
+      "expect": {
+        "block": "wizard-page",
+        "notComponents": [
+          "list-report",
+          "object-page-floorplan",
+          "wizard"
+        ]
+      },
+      "output": "case-03.tsx"
+    },
+    {
+      "id": "case-04",
+      "prompt": "An application frame must keep global search, notifications, profile and product switching around existing business pages, with optional side navigation. Inside the page, group selected-item actions with arrow-key navigation and responsive overflow.",
+      "expect": {
+        "block": "app-shell",
+        "notComponents": [
+          "navigation-layout",
+          "launchpad",
+          "bar"
+        ],
+        "components": [
+          "toolbar"
+        ]
+      }
+    },
+    {
+      "id": "case-05",
+      "prompt": "Build an app-entry starting point where users choose a business area using selected navigation and open favorite apps; the app team will provide the tiles.",
+      "expect": {
+        "block": "launchpad",
+        "notComponents": [
+          "app-shell",
+          "empty-states"
+        ]
+      }
+    },
+    {
+      "id": "case-06",
+      "prompt": "Keep a searchable record list beside the selected record's details and optionally open a related sub-object in a third column.",
+      "expect": {
+        "block": "master-detail",
+        "notComponents": [
+          "list-report",
+          "object-page-floorplan",
+          "flexible-column-layout"
+        ]
+      }
+    },
+    {
+      "id": "case-07",
+      "prompt": "Start from examples explaining no data, no results and loading failure with create, clear and retry actions, then adapt the relevant state.",
+      "expect": {
+        "block": "empty-states",
+        "notComponents": [
+          "illustrated-message",
+          "app-shell"
+        ]
+      }
+    },
+    {
+      "id": "case-08",
+      "prompt": "Let the user pick a country from about 200 options by typing to narrow suggestions. Embed the field in a small page.",
+      "expect": {
+        "components": [
+          "combobox"
+        ],
+        "notComponents": [
+          "select",
+          "multi-combobox",
+          "value-help-dialog"
+        ]
+      },
+      "output": "case-08.tsx"
+    },
+    {
+      "id": "case-09",
+      "prompt": "Pick exactly one of three shipping speeds in a form, keeping all three answers visible for comparison.",
+      "expect": {
+        "components": [
+          "radio-group"
+        ],
+        "notComponents": [
+          "select",
+          "segmented-button"
+        ]
+      }
+    },
+    {
+      "id": "case-10",
+      "prompt": "Sort and filter 5,000 flat order rows by column in a small page; keep only visible rows rendered and perform filtering in the page.",
+      "expect": {
+        "components": [
+          "data-table"
+        ],
+        "notComponents": [
+          "table",
+          "list",
+          "tree"
+        ]
+      },
+      "output": "case-10.tsx"
+    },
+    {
+      "id": "case-11",
+      "prompt": "Tell the user that Save worked in a brief non-disruptive message that disappears. Embed it in a small page with a Save action.",
+      "expect": {
+        "components": [
+          "toast",
+          "button"
+        ],
+        "notComponents": [
+          "message-strip",
+          "dialog",
+          "illustrated-message",
+          "link"
+        ]
+      },
+      "output": "case-11.tsx"
+    },
+    {
+      "id": "case-12",
+      "prompt": "Choose several predefined office locations from 80 options while typing narrows the list; show selected locations as tokens.",
+      "expect": {
+        "components": [
+          "multi-combobox"
+        ],
+        "notComponents": [
+          "combobox",
+          "multi-input",
+          "value-help-dialog"
+        ]
+      }
+    },
+    {
+      "id": "case-13",
+      "prompt": "Collect several free-form email recipients as caller-validated tokens, with optional suggestions, without a separate search task.",
+      "expect": {
+        "components": [
+          "multi-input"
+        ],
+        "notComponents": [
+          "multi-combobox",
+          "combobox",
+          "value-help-dialog"
+        ]
+      }
+    },
+    {
+      "id": "case-14",
+      "prompt": "Find supplier values among 800 records by business key, city and description, then select several values or define range conditions.",
+      "expect": {
+        "components": [
+          "value-help-dialog"
+        ],
+        "notComponents": [
+          "combobox",
+          "multi-combobox",
+          "multi-input",
+          "select"
+        ]
+      }
+    },
+    {
+      "id": "case-15",
+      "prompt": "Browse a hierarchy of departments and teams by expanding and collapsing parent-child nodes, with node selection.",
+      "expect": {
+        "components": [
+          "tree"
+        ],
+        "notComponents": [
+          "list",
+          "table",
+          "data-table"
+        ]
+      }
+    },
+    {
+      "id": "case-16",
+      "prompt": "Show an explicit confirmation and a contained editing task that blocks the surrounding page until the user responds.",
+      "expect": {
+        "components": [
+          "dialog"
+        ],
+        "notComponents": [
+          "popover",
+          "responsive-popover",
+          "toast"
+        ]
+      }
+    },
+    {
+      "id": "case-17",
+      "prompt": "Show contextual editing near an opener on desktop, but use a full-screen phone dialog because the content exceeds one-third of the phone screen.",
+      "expect": {
+        "components": [
+          "responsive-popover"
+        ],
+        "notComponents": [
+          "popover",
+          "dialog",
+          "menu"
+        ]
+      }
+    },
+    {
+      "id": "case-18",
+      "prompt": "Show a compact category marker and the semantic state of an order beside it; neither is a removable selected value.",
+      "expect": {
+        "components": [
+          "tag",
+          "object-status"
+        ],
+        "notComponents": [
+          "token"
+        ]
+      }
+    },
+    {
+      "id": "case-19",
+      "prompt": "Switch between distinct content facets on the current object page rather than change a compact view setting or navigate application modules.",
+      "expect": {
+        "components": [
+          "tabs"
+        ],
+        "notComponents": [
+          "segmented-button",
+          "side-navigation",
+          "breadcrumbs"
+        ]
+      }
+    },
+    {
+      "id": "case-20",
+      "prompt": "Choose arbitrary colors visually or by hexadecimal, RGB and HSL channel entry rather than choose only fixed swatches.",
+      "expect": {
+        "components": [
+          "color-picker"
+        ],
+        "notComponents": [
+          "color-palette",
+          "color-palette-popover"
+        ]
+      }
+    },
+    {
+      "id": "case-21",
+      "prompt": "Choose one contiguous Gregorian start/end date interval in a compact field, allowing both direct typing and calendar selection.",
+      "expect": {
+        "components": [
+          "date-range-picker"
+        ],
+        "notComponents": [
+          "date-picker",
+          "calendar",
+          "date-time-picker",
+          "input"
+        ]
+      }
+    },
+    {
+      "id": "case-22",
+      "prompt": "Keep a warning visible beside usable page content while users continue working.",
+      "expect": {
+        "components": [
+          "message-strip"
+        ],
+        "notComponents": [
+          "toast",
+          "dialog",
+          "illustrated-message"
+        ]
+      }
+    },
+    {
+      "id": "case-23",
+      "prompt": "Group collapsible information within the current page instead of previewing an independent destination. Give the section a heading, show fully visible read-only body text, and let users reveal a separate lengthy description in place.",
+      "expect": {
+        "components": [
+          "panel",
+          "title",
+          "text",
+          "expandable-text"
+        ],
+        "notComponents": [
+          "card",
+          "textarea",
+          "label"
+        ]
+      }
+    },
+    {
+      "id": "case-24",
+      "prompt": "Apply a binary form setting immediately when it changes, without waiting for submission or activating a toolbar feature.",
+      "expect": {
+        "components": [
+          "switch"
+        ],
+        "notComponents": [
+          "checkbox",
+          "toggle-button"
+        ]
+      }
+    },
+    {
+      "id": "case-25",
+      "prompt": "Personalize filter-field visibility, order and conditions across fields in a staged dialog before applying them.",
+      "expect": {
+        "components": [
+          "adapt-filters-dialog"
+        ],
+        "notComponents": [
+          "view-settings-dialog",
+          "filter-bar",
+          "value-help-dialog"
+        ]
+      }
+    },
+    {
+      "id": "case-26",
+      "prompt": "Compose one plain application screen with a header bar, scrolling content and footer; do not add structured collapsing header content or object sections.",
+      "expect": {
+        "components": [
+          "page"
+        ],
+        "notComponents": [
+          "dynamic-page",
+          "object-page"
+        ]
+      }
+    },
+    {
+      "id": "case-27",
+      "prompt": "In a dashboard show measured completion percentages for running uploads, and show a busy state over another operation whose completion percentage is unknown.",
+      "expect": {
+        "components": [
+          "progress-indicator",
+          "busy-indicator"
+        ],
+        "notComponents": [
+          "object-number",
+          "illustrated-message"
+        ]
+      }
+    }
+  ]
+}

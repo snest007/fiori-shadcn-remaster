@@ -1,5 +1,23 @@
 # Display
 
+| Item | Summary |
+| --- | --- |
+| [avatar](#avatar) | Represent people or business entities with recognizable images, initials or placeholders. |
+| [busy-indicator](#busy-indicator) | Show that work is running when its completion percentage is unknown. |
+| [card](#card) | Preview focused business content and offer access to its underlying page or task. |
+| [carousel](#carousel) | Let users browse a sequence of images or other content pages. |
+| [expandable-text](#expandable-text) | Keep prose within a character limit while letting users reveal the full text. |
+| [hero-banner](#hero-banner) | Introduce a product home page with a greeting, context and task shortcuts. |
+| [illustrated-message](#illustrated-message) | Explain an empty, unavailable or completed state with an illustration and a useful next step. |
+| [link](#link) | Navigate through meaningful text to a page, anchor or external URL. |
+| [media-gallery](#media-gallery) | Browse images and videos by selecting thumbnails and inspecting the selected media. |
+| [message-strip](#message-strip) | Explain application messages in context within a page or section. |
+| [panel](#panel) | Group information within a page in a section that can collapse to save space. |
+| [progress-indicator](#progress-indicator) | Show a measured completion percentage for a running process. |
+| [tag](#tag) | Draw attention to a category, condition or quantity with a compact enclosed marker. |
+| [text](#text) | Display read-only body text in an application content area. |
+| [title](#title) | Name pages and sections with explicit heading semantics. |
+
 ## avatar
 
 Represent people or business entities with recognizable images, initials or placeholders.

@@ -45,7 +45,7 @@ const property = (object, name) => object.properties.find((node) => ts.isPropert
 const literal = (node) => node && ts.isStringLiteralLike(node) ? node.text : undefined
 
 /** Read defineDemo({ category, docs: [{ name, ... }] }); compound demos can document several items. */
-export function demoCategories(root) {
+export function demoCategories(root, documented = new Map()) {
   const result = new Map()
   const folder = join(root, "docs/src/demos")
   for (const file of readdirSync(folder).filter((file) => file.endsWith(".tsx")).sort(compare)) {
@@ -63,6 +63,13 @@ export function demoCategories(root) {
           if (!name) throw new Error(`${file}: docs entry needs a literal name`)
           if (result.has(name) && result.get(name) !== category) throw new Error(`${name}: inconsistent demo categories`)
           result.set(name, category)
+          const names = documented.get(name) ?? new Set()
+          const props = property(entry, "props")
+          if (props && ts.isArrayLiteralExpression(props)) for (const prop of props.elements) {
+            const text = ts.isObjectLiteralExpression(prop) && literal(property(prop, "name"))
+            for (const match of text?.matchAll(/\b([A-Za-z_$][\w$]*)(?=\.|\()/g) ?? []) names.add(match[1])
+          }
+          documented.set(name, names)
         }
       }
       ts.forEachChild(node, visit)
@@ -70,6 +77,31 @@ export function demoCategories(root) {
     visit(source)
   }
   return result
+}
+
+/** Main exports are consumer composition APIs, not every runtime symbol. Demo prop prefixes
+ * explicitly document hooks/helpers; public API JSDoc also documents helpers (e.g. typed column
+ * helpers). Contexts and undocumented hooks/lowercase helpers, source-only UI5 port comments,
+ * and exports marked shared/internal are excluded. Runtime ownership remains unfiltered. */
+export function mainExports(path, documented = new Set()) {
+  const text = readFileSync(path, "utf8")
+  const source = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true, path.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS)
+  const internal = new Set()
+  const apiDocs = new Set(documented)
+  for (const node of source.statements) {
+    const names = ts.isVariableStatement(node) ? node.declarationList.declarations.map((d) => d.name?.text) : [node.name?.text]
+    const doc = (node.jsDoc ?? []).map((d) => d.getText(source)).join(" ")
+    if (doc && !/\.js\b|internal|not (?:meant|intended) for|shared with/i.test(doc)) for (const name of names) if (name && !/^use[A-Z]/.test(name)) apiDocs.add(name)
+    if (ts.isExportDeclaration(node) && node.exportClause && ts.isNamedExports(node.exportClause)) {
+      let shared = false
+      for (const specifier of node.exportClause.elements) {
+        if (/not meant for direct use|internal exports|@internal/i.test(specifier.getFullText(source))) shared = true
+        if (shared) internal.add(specifier.name.text)
+      }
+    }
+  }
+  return runtimeExports(path).filter((name) => !/Context$/.test(name) && !internal.has(name)
+    && (documented.has(name) || (!/^use[A-Z]/.test(name) && !/StateProvider$/.test(name) && (/^[A-Z]/.test(name) || apiDocs.has(name)))))
 }
 
 /** Map exported React names to owning registry items, rather than guessing PascalCase → kebab-case. */

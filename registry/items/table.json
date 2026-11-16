@@ -17,37 +17,38 @@
   "usage": {
     "summary": "Compose responsive rows and cells when users compare and act on business items.",
     "useWhen": [
-      "Show several attributes per item and keep related values aligned under column headers.",
-      "Compose custom cell controls with TableRow and TableCell; use overflowMode=\"popin\" to move secondary columns below each row on narrow screens.",
-      "Enable selectionMode=\"single\" or \"multi\" for item actions, and use growing=\"button\" or \"scroll\" with onLoadMore for incremental loading."
+      "Let users inspect and act on independent business items with several attributes aligned in columns.",
+      "Keep roughly 200 loaded rows of average complexity; complexity changes that guideline, and rethink the design above 1,000 rows.",
+      "Compose custom cell content directly when data-driven column sorting is not needed.",
+      "Use overflowMode=\"popin\" for secondary columns on narrow screens; selectionMode=\"single\" or \"multi\" enables row actions and growing requests more rows."
     ],
     "avoidWhen": [
       {
-        "when": "Generate columns from data, offer built-in sorting, or render a large row set with virtualization.",
+        "when": "Generate columns from data, offer built-in sorting, or virtualize rows; rethink nonvirtualized loading beyond roughly 200 rows and the design above 1,000.",
         "use": [
           "data-table"
         ]
       },
       {
-        "when": "Show a few attributes per item without comparing columns.",
+        "when": "Browse a few attributes per item without aligned column comparison.",
         "use": [
           "list"
         ]
       },
       {
-        "when": "Expose expandable parent-child relationships.",
+        "when": "Expose expandable parent-child relationships rather than flat rows.",
         "use": [
           "tree"
         ]
       },
       {
-        "when": "Choose one value from a short predefined list without showing row details.",
+        "when": "Pick one of 2–12 predefined field values without inspecting row attributes; sort alphabetically above 8.",
         "use": [
           "select"
         ]
       },
       {
-        "when": "Collect fields for editing one object rather than comparing independent items.",
+        "when": "Inspect or edit fields of one object rather than compare independent rows.",
         "use": [
           "form"
         ]

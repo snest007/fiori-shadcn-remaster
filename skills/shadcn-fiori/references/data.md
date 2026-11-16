@@ -1,23 +1,37 @@
 # Data
 
+| Item | Summary |
+| --- | --- |
+| [data-table](#data-table) | Render data-driven responsive tables with TanStack columns, sorting and optional row virtualization. |
+| [list](#list) | Present a sequence of business items for browsing, navigation or selection without column comparison. |
+| [object-identifier](#object-identifier) | Identify a business object with a primary title and supporting identifier or attributes. |
+| [object-number](#object-number) | Display a business amount or quantity together with its unit and optional semantic state. |
+| [object-status](#object-status) | Show the semantic state of a business object with status text and an optional icon. |
+| [table](#table) | Compose responsive rows and cells when users compare and act on business items. |
+| [timeline](#timeline) | Present object events and changes in chronological order. |
+| [tree](#tree) | Browse or select hierarchical items through expandable parent-child nodes. |
+| [upload-collection](#upload-collection) | Manage prepared or uploaded files with per-file status and lifecycle actions. |
+
 ## data-table
 
 Render data-driven responsive tables with TanStack columns, sorting and optional row virtualization.
 
 ### Use when
 
-- Define repeated business rows with data and columns; provide getRowId when selection needs stable keys.
-- Offer column sorting with sortTrigger="menu" or "click" and control it with sorting and onSortingChange when needed.
-- Render a large flat row set with virtualize, a fixed rowHeight and virtualHeight; use overflowMode="popin" for narrower screens.
+- Let users sort and compare flat business records through data-driven columns.
+- Use virtualization when roughly 200 loaded rows of average complexity would be exceeded; rethink the design above 1,000 rows rather than mounting them all.
+- Filter data in the caller before passing results; this wrapper supplies column sorting, not built-in column-filter editors.
+- Supply data and columns, stable getRowId for selection, and virtualize with fixed rowHeight and virtualHeight when rendering only visible rows.
 
 ### Don't use when
 
-- Compose a small table directly from custom JSX rows and cells without data-driven sorting. → [table](data.md#table)
-- Show a simple sequence of items with only a few attributes. → [list](data.md#list)
+- Compose JSX rows and cells without data-driven sorting, keeping roughly 200 loaded rows of average complexity and rethinking the design above 1,000. → [table](data.md#table)
+- Browse a few attributes per item without aligned column comparison. → [list](data.md#list)
 - Expand and collapse a parent-child hierarchy; this wrapper renders flat rows. → [tree](data.md#tree)
-- Collect fields for one object rather than compare repeated records. → [form](forms.md#form)
+- Inspect or edit fields of one object rather than compare repeated records. → [form](forms.md#form)
+- Read object events in chronological order without sorting or column comparison. → [timeline](data.md#timeline)
 
-Main exports: `DataTable`, `createDataTableColumnHelper`, `defaultDataTableTexts`.
+Main exports: `DataTable`, `createDataTableColumnHelper`.
 
 ```bash
 npx shadcn add @fiori/data-table
@@ -29,18 +43,20 @@ Present a sequence of business items for browsing, navigation or selection witho
 
 ### Use when
 
-- Show a few attributes per item with ListItemStandard, or compose custom item content with ListItemCustom.
-- Group a flat collection with ListItemGroup instead of adding expandable hierarchy.
-- Enable selectionMode="single" or "multiple" for item choice; use growing="button" or "scroll" with onLoadMore to request more items.
+- Let users browse, navigate or select business items with a few attributes per item.
+- Group a flat collection without introducing expandable parent-child relationships.
+- Show standard item text and supporting attributes, or provide custom content for the same item task.
+- Use selectionMode="single" or "multiple" for choices and growing="button" or "scroll" with onLoadMore for incremental loading.
 
 ### Don't use when
 
-- Compare several attributes across aligned columns. → [table](data.md#table), [data-table](data.md#data-table)
+- Compare aligned row attributes: Table suits roughly 200 loaded rows of average complexity without built-in sorting; DataTable supplies sorting and virtualization, with a design rethink above 1,000. → [table](data.md#table), [data-table](data.md#data-table)
 - Browse nested parent-child relationships that users must expand or collapse. → [tree](data.md#tree)
-- Choose one value from a short list inside a field. → [select](forms.md#select)
-- Type to narrow a single-value choice or enter a new value. → [combobox](forms.md#combobox)
+- Choose one field value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), and ComboBox covers type-ahead across 20–200. → [select](forms.md#select), [combobox](forms.md#combobox)
+- Read events and changes to an object in chronological order. → [timeline](data.md#timeline)
+- Retain business-event updates with unread states and per-event actions rather than browse ordinary records. → [notification-list](navigation.md#notification-list)
 
-Main exports: `AdditionalText`, `List`, `ListCoreContext`, `ListItem`, `ListItemCustom`, `ListItemGroup`, `ListItemGroupHeader`, `ListItemStandard`, `SelectionElement`, `handleNavigationKey`, `isSingle`, `navItems`, `useListCoreValue`, `useListItemBehaviour`.
+Main exports: `List`, `ListItem`, `ListItemCustom`, `ListItemGroup`, `ListItemGroupHeader`, `ListItemStandard`.
 
 ```bash
 npx shadcn add @fiori/list
@@ -116,17 +132,18 @@ Compose responsive rows and cells when users compare and act on business items.
 
 ### Use when
 
-- Show several attributes per item and keep related values aligned under column headers.
-- Compose custom cell controls with TableRow and TableCell; use overflowMode="popin" to move secondary columns below each row on narrow screens.
-- Enable selectionMode="single" or "multi" for item actions, and use growing="button" or "scroll" with onLoadMore for incremental loading.
+- Let users inspect and act on independent business items with several attributes aligned in columns.
+- Keep roughly 200 loaded rows of average complexity; complexity changes that guideline, and rethink the design above 1,000 rows.
+- Compose custom cell content directly when data-driven column sorting is not needed.
+- Use overflowMode="popin" for secondary columns on narrow screens; selectionMode="single" or "multi" enables row actions and growing requests more rows.
 
 ### Don't use when
 
-- Generate columns from data, offer built-in sorting, or render a large row set with virtualization. → [data-table](data.md#data-table)
-- Show a few attributes per item without comparing columns. → [list](data.md#list)
-- Expose expandable parent-child relationships. → [tree](data.md#tree)
-- Choose one value from a short predefined list without showing row details. → [select](forms.md#select)
-- Collect fields for editing one object rather than comparing independent items. → [form](forms.md#form)
+- Generate columns from data, offer built-in sorting, or virtualize rows; rethink nonvirtualized loading beyond roughly 200 rows and the design above 1,000. → [data-table](data.md#data-table)
+- Browse a few attributes per item without aligned column comparison. → [list](data.md#list)
+- Expose expandable parent-child relationships rather than flat rows. → [tree](data.md#tree)
+- Pick one of 2–12 predefined field values without inspecting row attributes; sort alphabetically above 8. → [select](forms.md#select)
+- Inspect or edit fields of one object rather than compare independent rows. → [form](forms.md#form)
 
 Main exports: `Table`, `TableCell`, `TableGroupRow`, `TableHeaderCell`, `TableHeaderRow`, `TableRow`, `TableRowAction`, `TableRowActionNavigation`, `defaultTableTexts`.
 
@@ -161,15 +178,15 @@ Browse or select hierarchical items through expandable parent-child nodes.
 
 ### Use when
 
-- Expose a meaningful nested hierarchy that users need to expand and collapse.
-- Allow one or several node selections with selectionMode="single" or "multiple".
-- Handle expansion with onItemToggle; control a TreeItem with expanded and onExpandedChange when the application owns its state.
+- Let users browse or select items in a meaningful parent-child hierarchy.
+- Keep relationships visible through expansion and collapse instead of flattening them into group headers.
+- Use selectionMode="single" or "multiple" for selection and onItemToggle for expansion; expanded and onExpandedChange control individual nodes.
 
 ### Don't use when
 
-- Present flat items or a collection with only group headers and one item level. → [list](data.md#list)
-- Choose one value from a short nonhierarchical list. → [select](forms.md#select), [combobox](forms.md#combobox)
-- Compare attributes of flat records in columns. → [table](data.md#table), [data-table](data.md#data-table)
+- Present flat items or only group headers with one item level. → [list](data.md#list)
+- Choose one nonhierarchical field value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), and ComboBox covers type-ahead across 20–200. → [select](forms.md#select), [combobox](forms.md#combobox)
+- Compare flat record attributes in columns: Table suits roughly 200 loaded rows without built-in sorting; DataTable adds sorting and virtualization, with a design rethink above 1,000. → [table](data.md#table), [data-table](data.md#data-table)
 
 Main exports: `Tree`, `TreeItem`, `TreeItemCustom`.
 

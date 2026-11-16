@@ -1,12 +1,13 @@
 // Generated guidance has no timestamps and uses stable name order; edit item JSON or the template.
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { categories, compare, componentOwners, demoCategories, iconsItem, itemMetadata, runtimeExports, validateUsage } from "./skill/usage.mjs"
+import { categories, compare, componentOwners, demoCategories, iconsItem, itemMetadata, mainExports, validateUsage } from "./skill/usage.mjs"
 
 const root = process.cwd()
 const components = itemMetadata(join(root, "registry/items")).map((item) => ({ ...item, type: item.type ?? "registry:ui" }))
 const blocks = itemMetadata(join(root, "registry/block-items")).map((item) => ({ ...item, type: "registry:block", category: "Floorplans" }))
-const categoryByName = demoCategories(root)
+const documented = new Map()
+const categoryByName = demoCategories(root, documented)
 for (const item of components) {
   item.category = categoryByName.get(item.name)
   if (!item.category) throw new Error(`${item.name}: missing demo category/docs entry`)
@@ -25,7 +26,7 @@ const localAlternative = (name) => {
 }
 function entry(item) {
   const sourcePaths = item.type === "registry:block" ? [`registry/blocks/${item.name}.tsx`] : item.type === "registry:ui" ? [`registry/ui/${item.name}.tsx`] : (item.files ?? []).filter((file) => /\.tsx?$/.test(file.path)).map((file) => file.path)
-  const exports = [...new Set(sourcePaths.flatMap((path) => runtimeExports(join(root, path))))].sort(compare)
+  const exports = [...new Set(sourcePaths.flatMap((path) => mainExports(join(root, path), documented.get(item.name))))].sort(compare)
   const sections = [`## ${item.name}`, summary(item)]
   if (item.usage) {
     sections.push("### Use when\n\n" + item.usage.useWhen.map((text) => `- ${text}`).join("\n"))
@@ -41,27 +42,41 @@ const output = join(root, "skills/shadcn-fiori")
 const generated = new Map()
 const all = [...components, ...blocks].sort((a, b) => compare(a.name, b.name))
 for (const category of categories) {
-  generated.set(`references/${category.toLowerCase()}.md`, `# ${category}\n\n` + all.filter((item) => item.category === category).map(entry).join("\n\n") + "\n")
+  generated.set(`references/${category.toLowerCase()}.md`, `# ${category}\n\n` + table(["Item", "Summary"], all.filter((item) => item.category === category).map((item) => [`[${item.name}](#${item.name})`, summary(item)])) + "\n\n" + all.filter((item) => item.category === category).map(entry).join("\n\n") + "\n")
 }
-const floorplans = table(["Block", "Use when", "Don't use when", "Instead"], blocks.map((item) => [
-  `[${item.name}](references/floorplans.md#${item.name})`, item.usage?.useWhen.join("<br>") ?? "Guidance not yet authored; inspect the block.",
-  item.usage?.avoidWhen.map((entry) => entry.when).join("<br>") ?? "—", item.usage?.avoidWhen.map((entry) => (entry.use ?? []).join(", ") || "—").join("<br>") ?? "—",
+const floorplans = table(["Block", "Use when", "Other blocks"], blocks.map((item) => [
+  `[${item.name}](references/floorplans.md#${item.name})`, item.usage?.useWhen[0] ?? "Inspect the block.",
+  [...new Set(item.usage?.avoidWhen.flatMap((entry) => entry.use ?? []).filter((name) => blocks.some((block) => block.name === name)))].join(", ") || "—",
 ]))
-const pickers = categories.slice(0, -1).map((category) => `### ${category}\n\n` + table(["Item", "Summary"], all.filter((item) => item.category === category).map((item) => [`[${item.name}](references/${category.toLowerCase()}.md#${item.name})`, summary(item)]))).join("\n\n")
-const index = categories.map((category) => `- [${category}](references/${category.toLowerCase()}.md) — ${all.filter((item) => item.category === category).map((item) => `\`${item.name}\``).join(", ")}.`).join("\n")
+const decisions = {
+  Actions: "explicit actions; toggles; related view options",
+  Forms: "select, combobox, multi-combobox, multi-input, radio-group and segmented-button decisions; text and numeric entry; files and colors; tokens",
+  Dates: "date, range, date-time and time fields; visible calendars; custom pickers",
+  Data: "table, data-table, list and tree; object identity, amounts and status; histories and attachments",
+  Overlays: "dialog, popover and responsive-popover; commands; value help; view settings and filter personalization; transient feedback",
+  Display: "message-strip, toast and illustrated-message; tag and object-status; cards and panels; text, media and progress",
+  Navigation: "tabs and segmented-button; destinations, breadcrumbs and product switching; search, filter-bar and saved views; toolbars and guided steps",
+  Layout: "page and dynamic-page; object sections; related columns, supplementary context and application navigation",
+  Floorplans: "all seven page blocks; nesting and adaptations; launchpad is a navigation scaffold and supplies no app-tile grid",
+}
+const index = categories.map((category) => `- [${category}](references/${category.toLowerCase()}.md) — ${decisions[category]}.`).join("\n")
 let template = readFileSync(join(root, "scripts/skill/SKILL.template.md"), "utf8")
-for (const [key, content] of Object.entries({ FLOORPLAN_PICKER: floorplans, COMPONENT_PICKERS: pickers, REFERENCE_INDEX: index })) template = template.replaceAll(`{{${key}}}`, content)
+for (const [key, content] of Object.entries({ FLOORPLAN_PICKER: floorplans, REFERENCE_INDEX: index })) template = template.replaceAll(`{{${key}}}`, content)
 if (/\{\{[A-Z_]+\}\}/.test(template)) throw new Error("Unresolved skill template placeholder")
+// 8000 bytes is below either interpretation of the card's 8 KB budget. Check before writing.
+const bytes = Buffer.byteLength(template, "utf8")
+if (bytes > 8000) throw new Error(`SKILL.md is ${bytes} bytes; maximum is 8000 bytes (8 KB)`)
 generated.set("SKILL.md", template)
 generated.set("NOTICE", "shadcn-fiori usage guidance\n\nGuidance adapted in original wording from SAP/ai-skills-library (Apache-2.0).\nSource: https://github.com/SAP/ai-skills-library/tree/cd0bb455ec68db3f83db94b200546618c32f8ab2/skills/sap-fiori-guidelines\nPinned commit: cd0bb455ec68db3f83db94b200546618c32f8ab2\nCopyright SAP SE and ai-skills-library contributors.\nThe adaptation describes the APIs available in this registry.\n")
 
-// This directory is wholly generated. Remove obsolete outputs after categories/templates change,
-// so the next build converges on the same tree as a clean checkout without discarding source files.
+// Remove obsolete generated outputs. evals/ is hand-written evidence, owned by the author,
+// and must survive every generation (including outputs and their first-attempt notes).
 mkdirSync(output, { recursive: true })
 function prune(folder, prefix = "") {
   for (const file of readdirSync(folder, { withFileTypes: true })) {
     const relative = prefix + file.name
     const path = join(folder, file.name)
+    if (relative === "evals") continue
     if (file.isDirectory() && [...generated.keys()].some((key) => key.startsWith(relative + "/"))) prune(path, relative + "/")
     else if (!generated.has(relative)) rmSync(path, { recursive: true, force: true })
   }
@@ -71,4 +86,4 @@ for (const [file, content] of generated) {
   mkdirSync(join(output, file, ".."), { recursive: true })
   writeFileSync(join(output, file), content)
 }
-console.log(`skills/shadcn-fiori written (${all.length} items, ${categories.length} references)`)
+console.log(`skills/shadcn-fiori written (${all.length} items, ${categories.length} references, SKILL.md ${bytes} bytes)`)

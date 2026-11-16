@@ -19,28 +19,36 @@
   "usage": {
     "summary": "Select several predefined options from a filterable list and display selections as tokens.",
     "useWhen": [
-      "Choose multiple supplied MultiComboBoxItem values while typing narrows the list.",
-      "Control selectedValues and onSelectionChange separately from the typed value.",
-      "Offer showSelectAll when selecting the whole option set is useful; keep the default validation when entries must match supplied items."
+      "Let users select several predefined values from fewer than 200 options while typing narrows the list.",
+      "Keep selected values visible as tokens and prevent unmatched text from becoming selected options.",
+      "Offer selection of the whole set only when it helps the task.",
+      "Control selectedValues with onSelectionChange separately from typed value; noValidation allows unmatched text but does not select it."
     ],
     "avoidWhen": [
       {
-        "when": "Choose just one value.",
+        "when": "Choose one value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), ComboBox covers type-ahead across 20–200, and Input covers text without suggestions.",
         "use": [
           "select",
-          "combobox"
+          "combobox",
+          "input"
         ]
       },
       {
-        "when": "Create arbitrary or application-validated tokens; noValidation permits unmatched text but does not turn it into a selected option.",
+        "when": "Collect arbitrary or caller-validated entries, or work with a dataset above 200; provide caller-managed tokens and optional value help.",
         "use": [
           "multi-input"
         ]
       },
       {
-        "when": "Search a large business dataset by several attributes or define ranges and conditions.",
+        "when": "Search above 200 business entries by several attributes or define ranges and conditions.",
         "use": [
           "value-help-dialog"
+        ]
+      },
+      {
+        "when": "Navigate and remove existing tokens without adding values through a choice list.",
+        "use": [
+          "tokenizer"
         ]
       }
     ],

@@ -20,7 +20,7 @@
         ]
       },
       {
-        "when": "Collapse 2–12 predefined options because their labels do not fit a horizontal group.",
+        "when": "Collapse 2–12 predefined options whose labels do not fit a horizontal group; sort alphabetically above 8.",
         "use": [
           "select"
         ]

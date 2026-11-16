@@ -1,7 +1,16 @@
 {
   "title": "Master-Detail (Flexible Column Layout)",
   "description": "Fiori Flexible Column Layout app: searchable product list, product object view and sales order line item, navigated with useFlexibleColumnLayout.",
-  "registryDependencies": ["@fiori/icons", "@fiori/flexible-column-layout", "@fiori/bar", "@fiori/button", "@fiori/input", "@fiori/list", "@fiori/tag", "@fiori/f6-navigation"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/flexible-column-layout",
+    "@fiori/bar",
+    "@fiori/button",
+    "@fiori/input",
+    "@fiori/list",
+    "@fiori/tag",
+    "@fiori/f6-navigation"
+  ],
   "usage": {
     "summary": "Browse a searchable record list beside its selected detail and, when needed, a related sub-detail.",
     "useWhen": [
@@ -29,15 +38,10 @@
         ]
       },
       {
-        "when": "Compose different related pages and column contents instead of adapting the sample product flow.",
+        "when": "Compose custom related pages and columns with FlexibleColumnLayout, or supply only global application framing around those pages with AppShell.",
         "use": [
-          "flexible-column-layout"
-        ]
-      },
-      {
-        "when": "Offer an application-entry page with favorite app tiles.",
-        "use": [
-          "launchpad"
+          "flexible-column-layout",
+          "app-shell"
         ]
       }
     ],

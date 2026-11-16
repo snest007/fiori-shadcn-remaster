@@ -11,43 +11,50 @@
     "@fiori/responsive-popover",
     "@fiori/button"
   ],
-  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+\u2193 open).",
+  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open).",
   "usage": {
     "summary": "Choose one value from a short predefined list without entering free text.",
     "useWhen": [
-      "Offer a short set of mutually exclusive choices whose option labels are sufficient.",
-      "Keep choices collapsed until needed in a form, table or toolbar.",
-      "Provide a useful initial choice with defaultValue, or control the selected value with value and onValueChange."
+      "Let users choose one predefined value from 2–12 options without entering free text.",
+      "Keep options collapsed when users do not need to compare every answer at once.",
+      "Order options meaningfully; sort alphabetically when there are more than 8 options.",
+      "Offer a useful initial choice with defaultValue, or control value with onValueChange."
     ],
     "avoidWhen": [
       {
-        "when": "Type to narrow a longer list or accept a value outside the supplied options.",
+        "when": "Narrow one choice by typing, typically across 20–200 options, or accept free text with suggestions; use Input when no suggestions or choice list is needed.",
         "use": [
-          "combobox"
+          "combobox",
+          "input"
         ]
       },
       {
-        "when": "Select several predefined values.",
+        "when": "Collect several values: fewer than 200 predefined options need MultiComboBox; caller-validated entries or datasets above 200 need MultiInput.",
         "use": [
-          "multi-combobox"
-        ]
-      },
-      {
-        "when": "Enter multiple caller-validated values or create tokens from suggestions.",
-        "use": [
+          "multi-combobox",
           "multi-input"
         ]
       },
       {
-        "when": "Search across business keys and descriptions or define filter conditions.",
+        "when": "Find a value above 200 entries, search several attributes, or define conditions.",
         "use": [
           "value-help-dialog"
         ]
       },
       {
-        "when": "Keep every single-choice option visible at once.",
+        "when": "Keep every form answer visible with RadioGroup, change compact related views with SegmentedButton, or create and manage saved views with VariantManagement.",
         "use": [
-          "radio-group"
+          "radio-group",
+          "segmented-button",
+          "variant-management"
+        ]
+      },
+      {
+        "when": "Browse business items with List, expand a hierarchy with Tree, or inspect repeated row attributes with Table rather than choose a field value.",
+        "use": [
+          "list",
+          "tree",
+          "table"
         ]
       }
     ],

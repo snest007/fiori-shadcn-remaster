@@ -90,7 +90,7 @@ generated agent skill `skills/shadcn-fiori/`. G0 first (pipeline + pilot); G1–
 - [x] [G2 Data and display](tasks/G2-usage-data-display.md) — M (after G0)
 - [x] [G3 Overlays and navigation](tasks/G3-usage-overlays-navigation.md) — M (after G0)
 - [x] [G4 Layouts and floorplans](tasks/G4-usage-layout-floorplans.md) — M (after G0)
-- [ ] [G5 Coverage gate, pilot rewrite, exports filter, slim SKILL.md, agent eval + build loop](tasks/G5-usage-coverage-eval.md) — L (after G1–G4)
+- [x] [G5 Coverage gate, pilot rewrite, exports filter, slim SKILL.md, agent eval + build loop](tasks/G5-usage-coverage-eval.md) — L (after G1–G4)
 
 ## Wave S — Storybook (browse components: variants, live Controls, code, theme toolbar)
 

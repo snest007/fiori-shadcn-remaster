@@ -1,5 +1,14 @@
 # Dates
 
+| Item | Summary |
+| --- | --- |
+| [calendar](#calendar) | Select Gregorian dates in a calendar that remains visible. |
+| [date-picker](#date-picker) | Enter or select one localized Gregorian date. |
+| [date-range-picker](#date-range-picker) | Enter a localized Gregorian start and end date as one interval. |
+| [date-time-picker](#date-time-picker) | Enter one localized Gregorian date and time together. |
+| [picker-field](#picker-field) | Compose a custom text field and picker with caller-owned value rules. |
+| [time-picker](#time-picker) | Enter or select a localized time without a date. |
+
 ## calendar
 
 Select Gregorian dates in a calendar that remains visible.
@@ -39,7 +48,7 @@ Enter or select one localized Gregorian date.
 - Keep the calendar visible or select separate days. → [calendar](dates.md#calendar)
 - Enter plain text without date or time parsing, or compose a custom picker with caller-owned value rules. → [input](forms.md#input), [picker-field](dates.md#picker-field)
 
-Main exports: `DatePicker`, `usePickerState`.
+Main exports: `DatePicker`.
 
 ```bash
 npx shadcn add @fiori/date-picker

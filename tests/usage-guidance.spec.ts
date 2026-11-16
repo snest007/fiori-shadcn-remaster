@@ -66,6 +66,7 @@ test("skill generation converges, removes stale files and parses compound demos 
     for (const folder of ["registry/items", "registry/block-items", "registry/ui", "registry/blocks", "registry/lib", "docs/src/demos", "scripts/skill"]) {
       cpSync(join(root, folder), join(temp, folder), { recursive: true })
     }
+    cpSync(join(root, "skills/shadcn-fiori/evals"), join(temp, "skills/shadcn-fiori/evals"), { recursive: true })
     expect(run(skillBuilder, temp).status).toBe(0)
     // Compare the generated baseline with committed outputs, including filenames, before staging a
     // temporary Git index. This tests source/output drift as well as repeated-run determinism.
@@ -93,13 +94,16 @@ test("skill generation converges, removes stale files and parses compound demos 
     expect(data).not.toContain("`DataTableProps`")
     // Exercise the parser with a new compound demo and an aliased runtime export, without maintaining
     // a parallel category/export list in the generator.
-    write(temp, "docs/src/demos/usage-probe.tsx", 'export default defineDemo({ category: "Data", docs: [{ name: "usage-probe" }], Demo() {} })\n')
+    write(temp, "docs/src/demos/usage-probe.tsx", 'export default defineDemo({ category: "Data", docs: [{ name: "usage-probe", props: [{ name: "useDocumentedProbe(options)" }, { name: "documentedProbe()" }, { name: "ProbeContext.value" }] }], Demo() {} })\n')
     write(temp, "registry/items/usage-probe.json", JSON.stringify({ title: "Probe" }))
-    write(temp, "registry/ui/usage-probe.tsx", 'const Probe = () => null; type ProbeProps = {}; export { Probe as UsageProbe, type ProbeProps }; export function useUsageProbe() {}\n')
+    write(temp, "registry/ui/usage-probe.tsx", 'const Probe = () => null; type ProbeProps = {}; export { Probe as UsageProbe, type ProbeProps }; export function useUsageProbe() {}; export function useDocumentedProbe() {}; export function documentedProbe() {}; export const ProbeContext = {}; export const internalProbe = 0\n')
     expect(run(skillBuilder, temp).status).toBe(0)
     const updated = readFileSync(join(temp, "skills/shadcn-fiori/references/data.md"), "utf8")
     expect(updated).toContain("## usage-probe")
-    expect(updated).toContain("Main exports: `UsageProbe`, `useUsageProbe`.")
+    expect(updated).toContain("Main exports: `UsageProbe`, `documentedProbe`, `useDocumentedProbe`.")
+    expect(updated).not.toContain("`useUsageProbe`")
+    expect(updated).not.toContain("`ProbeContext`")
+    expect(updated).not.toContain("`internalProbe`")
     expect(updated).not.toContain("`ProbeProps`")
   } finally {
     rmSync(temp, { recursive: true, force: true })
@@ -189,6 +193,61 @@ test("usage layouts accept actual block exports only through a direct block depe
           expect(result.stderr).toContain('layout export "AppShell" needs a direct registryDependency')
         }
       }
+    }
+  } finally {
+    rmSync(temp, { recursive: true, force: true })
+  }
+})
+
+
+test("recorded output gate rejects erased re-exports and retains value and mixed exports", async () => {
+  const { validateOutputs } = await import(join(root, "scripts/eval-skill-build.mjs"))
+  const ts = await import("typescript")
+  const cases = readJson(join(root, "skills/shadcn-fiori/evals/evals.json")).evals
+  const temp = mkdtempSync(join(tmpdir(), "fiori-output-exports-"))
+  const source = join(root, "skills/shadcn-fiori/evals/outputs")
+  const original = readFileSync(join(source, "case-01.tsx"), "utf8")
+  const page = 'export default function Page() { return null }\n'
+  const erased = [
+    'export type { default as ListReport } from "@/components/list-report"',
+    'export { type default as ListReport } from "@/components/list-report"',
+    'export type * from "@/components/list-report"',
+    'export type * as Floorplan from "@/components/list-report"',
+  ]
+  try {
+    // Validate copies of the six real recorded pages against the actual built registry and
+    // import engine; replace only one temporary file to exercise legal TS re-export forms.
+    cpSync(source, temp, { recursive: true })
+    expect(validateOutputs(root, cases, temp)).toHaveLength(6)
+    for (const declaration of erased) {
+      const candidate = declaration + "\n" + page
+      const emitted = ts.transpileModule(candidate, { compilerOptions: { module: ts.ModuleKind.ESNext } }).outputText
+      expect(emitted).not.toContain("@/components/list-report")
+      writeFileSync(join(temp, "case-01.tsx"), candidate)
+      expect(() => validateOutputs(root, cases, temp), declaration).toThrow("case-01: missing expected import list-report")
+    }
+    for (const declaration of [
+      'export { default as ListReport } from "@/components/list-report"',
+      'export { type default as ListReportType, default as ListReport } from "@/components/list-report"',
+      'export * from "@/components/list-report"',
+      'export * as Floorplan from "@/components/list-report"',
+    ]) {
+      const candidate = declaration + "\n" + page
+      const emitted = ts.transpileModule(candidate, { compilerOptions: { module: ts.ModuleKind.ESNext } }).outputText
+      expect(emitted).toContain("@/components/list-report")
+      writeFileSync(join(temp, "case-01.tsx"), candidate)
+      expect(validateOutputs(root, cases, temp)[0].imports, declaration).toContain("list-report")
+    }
+    // Erased modules still belong to the excluded-module set, for either imports or exports.
+    for (const declaration of [
+      'import type Blocked from "@/components/object-page-floorplan"',
+      'export type { default as Blocked } from "@/components/object-page-floorplan"',
+      'export { type default as Blocked } from "@/components/object-page-floorplan"',
+      'export type * from "@/components/object-page-floorplan"',
+      'export type * as Blocked from "@/components/object-page-floorplan"',
+    ]) {
+      writeFileSync(join(temp, "case-01.tsx"), original + "\n" + declaration + "\n")
+      expect(() => validateOutputs(root, cases, temp), declaration).toThrow("case-01: blocked import object-page-floorplan")
     }
   } finally {
     rmSync(temp, { recursive: true, force: true })

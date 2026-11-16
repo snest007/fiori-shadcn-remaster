@@ -1,5 +1,22 @@
 # Navigation
 
+| Item | Summary |
+| --- | --- |
+| [bar](#bar) | Arrange page or dialog header and footer content in start, centered and end areas. |
+| [breadcrumbs](#breadcrumbs) | Show the current location and let users return to ancestors in the navigation path. |
+| [f6-navigation](#f6-navigation) | Opt-in UI5 fast navigation between page groups, with scoped roots, Popup containers, shadows and slots. |
+| [filter-bar](#filter-bar) | Let users limit a result collection by several criteria in the page header. |
+| [notification-list](#notification-list) | Collect business-event updates that users may read, act on or dismiss without interrupting their task. |
+| [product-switch](#product-switch) | Let users choose another product from a grid of labeled product entries. |
+| [search](#search) | Find content by submitting a query, optionally with scopes and suggestions. |
+| [shell-bar](#shell-bar) | Provide a consistent product header with branding and global entry points. |
+| [side-navigation](#side-navigation) | Provide the main navigation between modules or destinations within a product. |
+| [tabs](#tabs) | Switch between content facets or prominent filtered views within the current page. |
+| [toolbar](#toolbar) | Group related actions and controls in a horizontal row with keyboard navigation and responsive overflow. |
+| [variant-management](#variant-management) | Save, select and maintain named views of filter or table personalization settings. |
+| [variants](#variants) | Controlled FilterBar view state, Save/Save As and Manage operations, default views and an optional localStorage persistence adapter. |
+| [wizard](#wizard) | Guide users through a task in reachable steps inside an existing page or custom workflow. |
+
 ## bar
 
 Arrange page or dialog header and footer content in start, centered and end areas.
@@ -47,7 +64,7 @@ Opt-in UI5 fast navigation between page groups, with scoped roots, Popup contain
 
 Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
 
-Main exports: `installF6Navigation`, `isF6NavigationKey`, `useF6Navigation`.
+Main exports: `installF6Navigation`, `useF6Navigation`.
 
 ```bash
 npx shadcn add @fiori/f6-navigation
@@ -133,7 +150,7 @@ Find content by submitting a query, optionally with scopes and suggestions.
 - Narrow a result collection by several separate criteria rather than a keyword alone. → [filter-bar](navigation.md#filter-bar)
 - Choose one suggested field value rather than submit a content-search query. → [combobox](forms.md#combobox)
 
-Main exports: `Search`, `SearchItem`, `SearchItemGroup`, `ShellBarSearch`, `ShellBarSearchContext`.
+Main exports: `Search`, `SearchItem`, `SearchItemGroup`, `ShellBarSearch`.
 
 ```bash
 npx shadcn add @fiori/search
@@ -178,7 +195,7 @@ Provide the main navigation between modules or destinations within a product.
 - Arrange the shell, navigation and content regions rather than provide navigation items. → [navigation-layout](layout.md#navigation-layout)
 - Offer only a single navigation target.
 
-Main exports: `SideNavigation`, `SideNavigationGroup`, `SideNavigationItem`, `SideNavigationLayoutContext`, `SideNavigationSubItem`.
+Main exports: `SideNavigation`, `SideNavigationGroup`, `SideNavigationItem`, `SideNavigationSubItem`.
 
 ```bash
 npx shadcn add @fiori/side-navigation
@@ -240,11 +257,11 @@ Save, select and maintain named views of filter or table personalization setting
 
 ### Don't use when
 
-- Choose only fixed predefined views without creating or managing saved settings. → [select](forms.md#select)
+- Choose one of 2–12 fixed predefined views without creating or managing saved settings; sort alphabetically above 8. → [select](forms.md#select)
 - Edit current filter criteria without saving or managing reusable views. → [filter-bar](navigation.md#filter-bar)
 - Adjust sorting, grouping or predefined filter values for the current view without saving it. → [view-settings-dialog](overlays.md#view-settings-dialog)
 
-Main exports: `VariantManagement`, `variantManagementTexts`.
+Main exports: `VariantManagement`.
 
 ```bash
 npx shadcn add @fiori/variant-management
