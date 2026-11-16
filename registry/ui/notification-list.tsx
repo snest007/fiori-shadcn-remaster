@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import { alert, decline, error, highPriority, information, navigationDownArrow, navigationRightArrow, overflow, sysEnter2 } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -124,7 +125,7 @@ type NotificationListProps = Omit<React.ComponentProps<"div">, "onClick"> & {
 }
 
 function NotificationList({ onItemClick, onItemClose, onItemToggle, noDataText, texts: textsProp, className, children, "aria-label": ariaLabel, ...props }: NotificationListProps) {
-  const texts = { ...defaultTexts, ...textsProp, states: { ...defaultTexts.states, ...textsProp?.states } }
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp)
   const { core, focusArea } = useListCoreValue({
     mode: "none",
     itemRole: "listitem",
@@ -933,3 +934,30 @@ export {
   type NotificationState,
   type NotificationTexts,
 }
+
+// UI5 keys resolved at their rendered/announced owner.
+const defaultTextsKeys = {
+  "list": "NOTIFICATION_LIST_ACCESSIBLE_NAME",
+  "more": "NOTIFICATION_LIST_ITEM_SHOW_MORE",
+  "less": "NOTIFICATION_LIST_ITEM_SHOW_LESS",
+  "growingButton": "NOTIFICATION_LIST_ITEM_SHOW_MORE",
+  "moreLabel": "NOTIFICATION_LIST_ITEM_MORE_LINK_LABEL_FULL",
+  "lessLabel": "NOTIFICATION_LIST_ITEM_MORE_LINK_LABEL_TRUNCATE",
+  "actions": "NOTIFICATION_LIST_ITEM_MENU_BTN_TITLE",
+  "close": "NOTIFICATION_LIST_ITEM_CLOSE_BTN_TITLE",
+  "read": "NOTIFICATION_LIST_ITEM_READ",
+  "unread": "NOTIFICATION_LIST_ITEM_UNREAD",
+  "states": {
+    "negative": "NOTIFICATION_LIST_ITEM_NEGATIVE_STATUS_TXT",
+    "critical": "NOTIFICATION_LIST_ITEM_CRITICAL_STATUS_TXT",
+    "positive": "NOTIFICATION_LIST_ITEM_POSITIVE_STATUS_TXT",
+    "information": "NOTIFICATION_LIST_ITEM_INFORMATION_STATUS_TXT"
+  },
+  "important": "NOTIFICATION_LIST_ITEM_IMPORTANT_TXT",
+  "loading": "NOTIFICATION_LIST_ITEM_LOADING",
+  "busyTitle": "BUSY_INDICATOR_TITLE",
+  "group": "NOTIFICATION_LIST_GROUP_ITEM_TXT",
+  "expanded": "NOTIFICATION_LIST_GROUP_EXPANDED",
+  "collapsed": "NOTIFICATION_LIST_GROUP_COLLAPSED",
+  "toggle": "NOTIFICATION_LIST_GROUP_ITEM_TOGGLE_ICON_COLLAPSE_TITLE"
+} as const

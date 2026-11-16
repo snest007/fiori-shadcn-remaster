@@ -1,7 +1,16 @@
 {
   "title": "Notification List",
   "dependencies": [],
-  "registryDependencies": ["@fiori/icons", "@fiori/busy-indicator", "@fiori/button", "@fiori/link", "@fiori/list", "@fiori/menu", "@fiori/tag"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/busy-indicator",
+    "@fiori/button",
+    "@fiori/link",
+    "@fiori/list",
+    "@fiori/menu",
+    "@fiori/tag",
+    "@fiori/locale"
+  ],
   "description": "Fiori notifications with state icons, read/unread, importance, actions menu, close button, More/Less and collapsible groups with button or scroll growing (ui5-notification-list).",
   "usage": {
     "summary": "Collect business-event updates that users may read, act on or dismiss without interrupting their task.",
