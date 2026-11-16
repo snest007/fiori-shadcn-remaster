@@ -48,7 +48,7 @@ Enter or select one localized Gregorian date.
 - Keep the calendar visible or select separate days. → [calendar](dates.md#calendar)
 - Enter plain text without date or time parsing, or compose a custom picker with caller-owned value rules. → [input](forms.md#input), [picker-field](dates.md#picker-field)
 
-Main exports: `DatePicker`.
+Main exports: `DatePicker`, `formatPickerDate`, `parsePickerDate`.
 
 ```bash
 npx shadcn add @fiori/date-picker

@@ -81,6 +81,35 @@ Fiori behaviour this library reproduces (beyond appearance):
 - **F6 navigation**: install `@fiori/f6-navigation` and call `useF6Navigation()` or `installF6Navigation()` to enable page-group navigation. The five main floorplan blocks opt in; Popup scopes keep navigation inside the open surface.
 - **Chinese text**: the 72 font has no CJK glyphs, so the font stack falls back to PingFang SC / Microsoft YaHei / Noto Sans CJK.
 
+## Localization
+
+Install the locale utilities and optional SAP translations:
+
+```bash
+npx shadcn add @fiori/i18n-de
+```
+
+```tsx
+import { FioriLocaleProvider } from "@/lib/fiori-locale"
+import de from "@/lib/fiori-i18n/de"
+
+<FioriLocaleProvider locale="de-DE" texts={de}>
+  <StepInput defaultValue={1.5} valuePrecision={1} />
+</FioriLocaleProvider>
+```
+
+Component text props override the provider table. A component locale prop overrides the provider locale;
+without either, the locale hook resolves the browser language. Existing component defaults remain compatible
+without a provider. Set `dir` on your application's root for RTL; the provider exposes direction without changing
+the document. The Localization docs page demonstrates text overrides, decimal input, date/time formatting,
+collation and plural categories. The Storybook Locale toolbar loads the matching optional pack.
+
+The 48 optional packs are generated deterministically from SAP's UI5 Web Components **2.28.1** and
+OpenUI5 **1.154.0** translations (© SAP SE, Apache-2.0). They contain only keys with an implemented text owner;
+[the source audit](docs/plan/i18n-audit.md) records remaining localization gaps. E5 acceptance is still pending.
+Numeric and Gregorian date displays use Latin digits where the pinned UI5 formatters do; Arabic typed digits
+and separators are accepted as an input extension. Calendars remain Gregorian.
+
 ## Use with coding agents
 
 Copy `skills/shadcn-fiori` into your project's `.claude/skills/` or `.agents/skills/` directory. The skill helps agents

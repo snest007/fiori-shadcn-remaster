@@ -23,7 +23,18 @@ export function FioriLocaleProvider({ locale, dir, texts = EMPTY, children }: Fi
   return <Context.Provider value={value}>{children}</Context.Provider>
 }
 
-export type FioriTranslator = (key: string, fallback: string, ...args: any[]) => string
+export type FioriTranslator = (key: string, fallback: string | (() => string), ...args: any[]) => string
+
+/** UI5 webcomponents-base/util/formatMessage.js: quoted text and doubled apostrophes. */
+export function formatSapText(text: string, args: any[] = []) {
+  return text.replace(/('')|'([^']+(?:''[^']*)*)(?:'|$)|\{([0-9]+(?:\s*,[^{}]*)?)\}/g, (match, doubled, quoted, index) => {
+    if (doubled) return "'"
+    if (quoted) return quoted.replace(/''/g, "'")
+    // Existing string-valued component texts substitute their placeholders later; retain an unbound parameter.
+    const value = args[parseInt(index, 10)]
+    return value === undefined ? match : String(value)
+  })
+}
 export function useFioriLocale(localeProp?: string) {
   const context = React.useContext(Context)
   const locale = localeProp ?? context?.locale ?? (typeof navigator === "undefined" ? "en-US" : navigator.language || "en-US")
@@ -31,23 +42,27 @@ export function useFioriLocale(localeProp?: string) {
   const t: FioriTranslator = React.useCallback((key, fallback, ...args) => {
     const entry = context?.texts[key]
     if (typeof entry === "function") return entry(...args)
-    let text = typeof entry === "string" ? entry : entry?.[new Intl.PluralRules(locale).select(Number(args[0]))] ?? entry?.other ?? fallback
+    const text = typeof entry === "string" ? entry : entry?.[new Intl.PluralRules(locale).select(Number(args[0]))] ?? entry?.other
+    if (text !== undefined) return formatSapText(text, args)
+    // A component function already formatted its user-supplied label. Never reinterpret
+    // placeholders or apostrophes inside that result as a second SAP message template.
+    if (typeof fallback === "function") return fallback()
     // UI5 I18nBundle.getText substitutes {0}, {1}, ... in exactly their original order.
-    return text.replace(/\{(\d+)\}/g, (match, index: string) => args[Number(index)] === undefined ? match : String(args[Number(index)]))
+    return fallback.replace(/\{(\d+)\}/g, (match, index: string) => args[Number(index)] === undefined ? match : String(args[Number(index)]))
   }, [context, locale])
   return { locale, dir, t, localized: localeProp !== undefined || context?.locale !== undefined, hasProvider: context !== undefined }
 }
 
 export type FioriTextKeys<T> = { [P in keyof T]?: string | ((t: FioriTranslator, fallback: T[P]) => T[P]) | (T[P] extends object ? FioriTextKeys<T[P]> : never) }
 /** Preserves existing props and function signatures. Components explicitly map every native key at its owner. */
-export function useFioriTexts<T extends object>(defaults: T, keys: FioriTextKeys<T>, overrides?: Partial<T>): T {
-  const { t } = useFioriLocale()
+export function useFioriTexts<T extends object>(defaults: T, keys: FioriTextKeys<T>, overrides?: Partial<T>, localeProp?: string): T {
+  const { t } = useFioriLocale(localeProp)
   return React.useMemo(() => {
     function resolve(values: any, mapping: any, explicit: any): any {
       return Object.fromEntries(Object.entries(values).map(([property, fallback]) => {
         const key = mapping[property]
         let value = fallback
-        if (typeof key === "string") value = typeof fallback === "function" ? (...args: any[]) => t(key, fallback(...args), ...args) : t(key, String(fallback))
+        if (typeof key === "string") value = typeof fallback === "function" ? (...args: any[]) => t(key, () => fallback(...args), ...args) : t(key, String(fallback))
         else if (typeof key === "function") value = key(t, fallback)
         else if (key && fallback && typeof fallback === "object") return [property, resolve(fallback, key, explicit?.[property])]
         return [property, explicit?.[property] ?? value]
@@ -58,12 +73,14 @@ export function useFioriTexts<T extends object>(defaults: T, keys: FioriTextKeys
 }
 
 /** Locale-aware matching shared by filtering and type-ahead. Comparing substrings retains Intl's accent rules. */
-export function collatorIncludes(value: string, query: string, locale: string, startsWith = false): boolean {
+export function collatorIncludes(value: string, query: string, locale: string | undefined, startsWith = false): boolean {
   if (!query) return true
-  const compare = new Intl.Collator(locale, { usage: "search", sensitivity: "base" }).compare
-  const text = Array.from(value), needle = Array.from(query)
-  for (let start = 0; start <= text.length - needle.length; start++) {
-    if (compare(text.slice(start, start + needle.length).join(""), query) === 0) return true
+  if (locale === undefined) return startsWith ? value.toLowerCase().startsWith(query.toLowerCase()) : value.toLowerCase().includes(query.toLowerCase())
+  const compare = new Intl.Collator(locale, { sensitivity: "base" }).compare
+  const text = Array.from(value.normalize("NFC"))
+  for (let start = 0; start < text.length; start++) {
+    // Collation-equivalent strings can differ in length (ß/ss, ligatures, combining marks).
+    for (let end = start + 1; end <= text.length; end++) if (compare(text.slice(start, end).join(""), query) === 0) return true
     if (startsWith) break
   }
   return false

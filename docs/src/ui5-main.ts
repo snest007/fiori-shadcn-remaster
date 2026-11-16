@@ -2,6 +2,8 @@
 // Renders every case from docs/src/fixtures/*.tsx with its sibling *.ui5.ts renderer.
 // Registers themes (and i18n/CLDR) so setTheme can load sap_horizon_dark etc.
 import "@ui5/webcomponents/dist/Assets.js"
+import "@ui5/webcomponents-localization/dist/Assets.js"
+import { setLanguage } from "@ui5/webcomponents-base/dist/config/Language.js"
 import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js"
 import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 import type UI5Element from "@ui5/webcomponents-base/dist/UI5Element.js"
@@ -21,6 +23,7 @@ const rendererFor = (name: string) => phoneMode ? phoneRenderers[`./fixtures-pho
 const opts = readPageOptions()
 // UI5 locale/getEffectiveDir.js reads :dir(rtl) before its first render.
 document.documentElement.dir = opts.dir
+if (opts.locale) await setLanguage(opts.locale)
 await setTheme(opts.theme)
 if (opts.density === "compact") document.body.setAttribute("data-ui5-compact-size", "")
 document.body.style.cssText = `margin:0;padding:${phoneMode ? "0" : "1rem"};background:var(--sapBackgroundColor);font-family:var(--sapFontFamily)`

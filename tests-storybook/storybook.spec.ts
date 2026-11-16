@@ -174,3 +174,15 @@ test("Calendar CustomTexts names its header without altering owned grid states",
   await page.keyboard.press("Enter")
   await expect(page.locator('[data-picker="yearrange"]')).toBeVisible()
 })
+
+test("locale toolbar localizes StepInput and Calendar and Arabic direction", async ({ page }) => {
+  const de = JSON.parse(readFileSync(new URL("../registry/i18n/de.json", import.meta.url), "utf8"))
+  await render(page, storyId("Forms/StepInput"), "locale:de", "value:1.5;valuePrecision:1")
+  await expect(page.locator("#storybook-root input")).toHaveValue("1,5")
+  await expect(page.locator("#storybook-root [data-dir=inc]")).toHaveAttribute("title", de.NUMBERINPUT_INC_ICON_TITLE)
+  await render(page, storyId("Dates/Calendar"), "locale:de")
+  await expect(page.locator("#storybook-root").getByRole("button", { name: de.CALENDAR_HEADER_MONTH_NEXT_BUTTON_TITLE, exact: true })).toBeVisible()
+  await render(page, storyId("Dates/Calendar"), "locale:ar")
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl")
+  await expect(page.locator(".fiori-story-canvas")).toHaveAttribute("dir", "rtl")
+})

@@ -1,0 +1,770 @@
+[
+  {
+    "name": "i18n-ar",
+    "type": "registry:lib",
+    "title": "SAP translations (ar)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/ar.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/ar.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-bg",
+    "type": "registry:lib",
+    "title": "SAP translations (bg)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/bg.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/bg.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-ca",
+    "type": "registry:lib",
+    "title": "SAP translations (ca)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/ca.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/ca.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-sr-ME",
+    "type": "registry:lib",
+    "title": "SAP translations (sr-ME)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/sr-ME.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/sr-ME.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-cs",
+    "type": "registry:lib",
+    "title": "SAP translations (cs)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/cs.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/cs.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-cy",
+    "type": "registry:lib",
+    "title": "SAP translations (cy)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/cy.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/cy.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-da",
+    "type": "registry:lib",
+    "title": "SAP translations (da)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/da.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/da.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-de",
+    "type": "registry:lib",
+    "title": "SAP translations (de)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/de.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/de.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-el",
+    "type": "registry:lib",
+    "title": "SAP translations (el)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/el.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/el.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-en",
+    "type": "registry:lib",
+    "title": "SAP translations (en)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/en.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/en.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-en-GB",
+    "type": "registry:lib",
+    "title": "SAP translations (en-GB)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/en-GB.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/en-GB.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-es",
+    "type": "registry:lib",
+    "title": "SAP translations (es)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/es.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/es.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-es-MX",
+    "type": "registry:lib",
+    "title": "SAP translations (es-MX)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/es-MX.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/es-MX.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-et",
+    "type": "registry:lib",
+    "title": "SAP translations (et)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/et.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/et.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-fi",
+    "type": "registry:lib",
+    "title": "SAP translations (fi)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/fi.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/fi.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-fr",
+    "type": "registry:lib",
+    "title": "SAP translations (fr)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/fr.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/fr.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-fr-CA",
+    "type": "registry:lib",
+    "title": "SAP translations (fr-CA)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/fr-CA.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/fr-CA.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-hi",
+    "type": "registry:lib",
+    "title": "SAP translations (hi)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/hi.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/hi.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-hr",
+    "type": "registry:lib",
+    "title": "SAP translations (hr)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/hr.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/hr.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-hu",
+    "type": "registry:lib",
+    "title": "SAP translations (hu)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/hu.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/hu.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-id",
+    "type": "registry:lib",
+    "title": "SAP translations (id)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/id.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/id.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-it",
+    "type": "registry:lib",
+    "title": "SAP translations (it)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/it.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/it.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-he",
+    "type": "registry:lib",
+    "title": "SAP translations (he)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/he.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/he.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-ja",
+    "type": "registry:lib",
+    "title": "SAP translations (ja)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/ja.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/ja.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-kk",
+    "type": "registry:lib",
+    "title": "SAP translations (kk)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/kk.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/kk.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-ko",
+    "type": "registry:lib",
+    "title": "SAP translations (ko)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/ko.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/ko.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-lt",
+    "type": "registry:lib",
+    "title": "SAP translations (lt)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/lt.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/lt.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-lv",
+    "type": "registry:lib",
+    "title": "SAP translations (lv)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/lv.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/lv.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-mk",
+    "type": "registry:lib",
+    "title": "SAP translations (mk)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/mk.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/mk.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-ms",
+    "type": "registry:lib",
+    "title": "SAP translations (ms)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/ms.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/ms.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-nl",
+    "type": "registry:lib",
+    "title": "SAP translations (nl)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/nl.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/nl.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-nb",
+    "type": "registry:lib",
+    "title": "SAP translations (nb)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/nb.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/nb.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-pl",
+    "type": "registry:lib",
+    "title": "SAP translations (pl)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/pl.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/pl.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-pt-BR",
+    "type": "registry:lib",
+    "title": "SAP translations (pt-BR)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/pt-BR.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/pt-BR.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-pt-PT",
+    "type": "registry:lib",
+    "title": "SAP translations (pt-PT)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/pt-PT.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/pt-PT.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-ro",
+    "type": "registry:lib",
+    "title": "SAP translations (ro)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/ro.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/ro.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-ru",
+    "type": "registry:lib",
+    "title": "SAP translations (ru)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/ru.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/ru.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-sr-Latn",
+    "type": "registry:lib",
+    "title": "SAP translations (sr-Latn)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/sr-Latn.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/sr-Latn.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-sk",
+    "type": "registry:lib",
+    "title": "SAP translations (sk)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/sk.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/sk.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-sl",
+    "type": "registry:lib",
+    "title": "SAP translations (sl)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/sl.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/sl.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-sr",
+    "type": "registry:lib",
+    "title": "SAP translations (sr)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/sr.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/sr.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-sv",
+    "type": "registry:lib",
+    "title": "SAP translations (sv)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/sv.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/sv.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-th",
+    "type": "registry:lib",
+    "title": "SAP translations (th)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/th.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/th.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-tr",
+    "type": "registry:lib",
+    "title": "SAP translations (tr)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/tr.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/tr.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-uk",
+    "type": "registry:lib",
+    "title": "SAP translations (uk)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/uk.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/uk.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-vi",
+    "type": "registry:lib",
+    "title": "SAP translations (vi)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/vi.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/vi.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-zh-CN",
+    "type": "registry:lib",
+    "title": "SAP translations (zh-CN)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/zh-CN.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/zh-CN.ts"
+      }
+    ]
+  },
+  {
+    "name": "i18n-zh-TW",
+    "type": "registry:lib",
+    "title": "SAP translations (zh-TW)",
+    "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
+    "registryDependencies": [
+      "@fiori/locale"
+    ],
+    "files": [
+      {
+        "path": "registry/i18n/zh-TW.ts",
+        "type": "registry:lib",
+        "target": "lib/fiori-i18n/zh-TW.ts"
+      }
+    ]
+  }
+]

@@ -48,7 +48,7 @@ export function h(tag: string, attrs: Record<string, string | boolean | undefine
   return el
 }
 
-export type PageOptions = { theme: string; density: "cozy" | "compact"; dir: "ltr" | "rtl"; only?: string }
+export type PageOptions = { theme: string; density: "cozy" | "compact"; dir: "ltr" | "rtl"; locale?: string; only?: string }
 
 export function readPageOptions(): PageOptions {
   const q = new URLSearchParams(location.search)
@@ -56,6 +56,7 @@ export function readPageOptions(): PageOptions {
     theme: q.get("theme") ?? "sap_horizon",
     density: q.get("density") === "compact" ? "compact" : "cozy",
     dir: q.get("dir") === "rtl" ? "rtl" : "ltr",
+    locale: q.get("locale") ?? undefined,
     only: q.get("only") ?? undefined,
   }
 }
