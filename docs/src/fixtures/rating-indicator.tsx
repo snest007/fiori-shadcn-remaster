@@ -6,7 +6,7 @@ type Props = { value: number; max?: number; size?: "S" | "M" | "L"; readOnly?: b
 
 export default defineFixtures<Props>({
   name: "rating-indicator",
-  cases: [
+  cases: ([
     { id: "rating-indicator-0", props: { value: 0 } },
     { id: "rating-indicator-3", props: { value: 3 } },
     { id: "rating-indicator-half", props: { value: 2.5 } },
@@ -16,6 +16,6 @@ export default defineFixtures<Props>({
     { id: "rating-indicator-readonly", props: { value: 3, readOnly: true } },
     { id: "rating-indicator-display-only", props: { value: 3.5, displayOnly: true } },
     { id: "rating-indicator-disabled", props: { value: 2, disabled: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "rating-indicator-rtl" }] : [fixture]),
   react: ({ value, ...p }) => <RatingIndicator value={value} aria-label="Rating" {...p} />,
 })
