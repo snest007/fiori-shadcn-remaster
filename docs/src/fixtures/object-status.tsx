@@ -21,13 +21,13 @@ const states: [ObjectStatusState, string, typeof error | undefined][] = [
 // Status", "Object Number", "Object Display Components"); see tests/object-status.spec.ts.
 export default defineFixtures<Props>({
   name: "object-status",
-  cases: [
+  cases: ([
     { id: "object-status-states", props: { kind: "status" } },
     { id: "object-status-inverted", props: { kind: "inverted" } },
     { id: "object-status-large", props: { kind: "large" } },
     { id: "object-status-number", props: { kind: "number" } },
     { id: "object-status-identifier", props: { kind: "identifier" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "object-status-rtl" }] : [fixture]),
   react: ({ kind }) => {
     if (kind === "status" || kind === "inverted")
       return (
