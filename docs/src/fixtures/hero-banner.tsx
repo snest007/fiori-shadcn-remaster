@@ -12,7 +12,7 @@ type Props = Pick<HeroBannerProps, "columnsRatio" | "actionsPlacement" | "header
 
 export default defineFixtures<Props>({
   name: "hero-banner",
-  cases: [
+  cases: ([
     { id: "hero-banner-header", props: { overlineText: "Good morning" } },
     { id: "hero-banner-actions", props: { overlineText: "Good morning", actions: true } },
     { id: "hero-banner-actions-bottom", props: { actions: true, actionsPlacement: "BottomStart" } },
@@ -21,7 +21,7 @@ export default defineFixtures<Props>({
     { id: "hero-banner-equal", props: { start: true, end: true, columnsRatio: "Equal" } },
     { id: "hero-banner-end-bottom", props: { end: true, headerBlockPlacement: "Bottom", actions: true } },
     { id: "hero-banner-narrow", props: { width: "24rem", start: true, end: true, actions: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "hero-banner-rtl" }] : [fixture]),
   react: ({ width = "48rem", start, end, actions, ...props }) => (
     <HeroBanner
       {...props}
