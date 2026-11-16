@@ -93,5 +93,6 @@ export const Tooltip: Story = { args: { tooltip: "Black" } }
 export const Hidden: Story = { args: { colors: colors.slice(0, 6), selectedIndices: [0, 1], hiddenIndices: [1] } }
 export const ToggledHidden: Story = { args: { colors: colors.slice(0, 6), selectedIndices: [0, 1], toggleHidden: true } }
 export const MoreColors: Story = { args: { showMoreColors: true, showRecentColors: true } }
+export const Open: Story = { args: { showMoreColors: true, showRecentColors: true, moreColorsOpen: true }, parameters: { docs: { story: { inline: false, height: "660px" } } } }
 export const CustomTexts: Story = { args: { showDefaultColor: true, showMoreColors: true, defaultColorText: "Use the chart default", moreColorsText: "Choose another chart color", moreColorsDialogTitle: "Chart series color", moreColorsOkText: "Apply color", moreColorsCancelText: "Keep current color", containerLabel: "Chart palette", colorLabel: "Series color", colorPickerProps: { texts: { picker: "Chart color picker", toggleMode: "Switch chart color channels" } } } }
 export const RTL: Story = { globals: { dir: "rtl" } }

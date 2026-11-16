@@ -153,6 +153,6 @@ export const Edit: Story = { args: { accessibleMode: "edit", grouped: true, layo
 export const LargeSpacing: Story = { args: { labelSpan: "S12 M6 L6 XL6", itemSpacing: "large" } }
 export const WithoutHeader: Story = { args: { headerText: "", accessibleName: "Supplier contact details" } }
 export const EmptySpan: Story = { args: { emptySpan: "S0 M2 L2 XL2" } }
-export const EveryFieldType: Story = { args: { allFieldTypes: true, layout: "S1 M2 L3 XL3", labelSpan: "S12 M12 L12 XL12", accessibleMode: "edit" } }
+export const EveryFieldType: Story = { args: { allFieldTypes: true, layout: "S1 M2 L3 XL3", labelSpan: "S12 M12 L12 XL12", accessibleMode: "edit" }, parameters: { docs: { story: { inline: false, height: "1400px" } } } }
 export const CustomTexts: Story = { args: { headerText: "", accessibleName: "Approved supplier profile" } }
 export const RTL: Story = { globals: { dir: "rtl" }, args: { grouped: true, accessibleMode: "edit", layout: "S1 M2 L2 XL2" } }
