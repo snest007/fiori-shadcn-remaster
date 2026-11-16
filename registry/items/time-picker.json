@@ -9,7 +9,8 @@
     "@fiori/date-picker",
     "@fiori/picker-field",
     "@fiori/use-is-phone",
-    "@fiori/popover"
+    "@fiori/popover",
+    "@fiori/locale"
   ],
   "files": [
     {

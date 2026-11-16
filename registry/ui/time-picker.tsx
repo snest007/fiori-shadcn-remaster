@@ -1,12 +1,14 @@
 import * as React from "react"
+import { normalizeLocaleDigits } from "@/lib/fiori-numbers"
+import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 import { useIsPhone } from "@/lib/use-is-phone"
 
-import { formatDate, getDayPeriods, parseDate, patternFields, resolvePattern } from "@/lib/fiori-dates"
+import { getDayPeriods, parseDate, patternFields, resolvePattern } from "@/lib/fiori-dates"
 import { timeEntryRequest } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { usePickerState } from "@/components/ui/date-picker"
-import { Input, valueStateDefaultText, type ValueState } from "@/components/ui/input"
+import { formatPickerDate, parsePickerDate, usePickerState } from "@/components/ui/date-picker"
+import { Input, useValueStateTexts, type ValueState } from "@/components/ui/input"
 import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import { examplePlaceholder, PickerField, PickerPopoverBody } from "@/components/ui/picker-field"
 import { SegmentedButton, SegmentedButtonItem } from "@/components/ui/segmented-button"
@@ -225,7 +227,7 @@ function TimeSelectionClocks({
   value,
   onValueChange,
   formatPattern,
-  locale = "en-US",
+  locale: localeProp,
   onSubmit,
   autoFocus,
   skipAnimation = true,
@@ -233,11 +235,16 @@ function TimeSelectionClocks({
   className,
   ...props
 }: TimeSelectionClocksProps) {
+  const { locale: resolvedLocale, localized } = useFioriLocale(localeProp)
+  const locale = localized ? resolvedLocale : "en-US"
+  // UI5 DateFormat formats Gregorian fields with Latin digits; translations retain the original locale.
+  const dateLocale = new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()
+
   const phone = useIsPhone()
-  const labels = { ...defaultTimeLabels, ...labelsProp }
+  const labels = useFioriTexts(defaultTimeLabels, defaultTimeLabelsKeys, labelsProp, localeProp)
   const f = patternFields(formatPattern)
   const twelve = f.twelveHour
-  const periods = getDayPeriods(locale).map((p) => p.toUpperCase())
+  const periods = getDayPeriods(new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()).map((p) => p.toUpperCase())
   const h = value.getHours()
   const hours12 = h % 12 || 12
   const period = twelve ? (h >= 12 ? 1 : 0) : -1
@@ -495,6 +502,8 @@ type TimePickerProps = Omit<React.ComponentProps<"input">, "value" | "defaultVal
   phoneHeaderText?: string
   numericLabels?: Partial<{ hours: string; minutes: string; seconds: string; period: string }>
   clockLabels?: Partial<TimeSelectionLabels>
+  /** SAP-keyed accessible and native form-validation messages; component overrides win over the provider. */
+  texts?: Partial<TimePickerTexts>
 }
 
 function TimePicker({
@@ -503,16 +512,17 @@ function TimePicker({
   onValueChange,
   onInput,
   formatPattern,
-  locale = "en-US",
+  locale: localeProp,
   valueState: valueStateProp,
   onValueStateChange,
   valueStateMessage,
+  texts,
   open: openProp,
   defaultOpen,
   onOpenChange,
   placeholder,
-  submitLabel = "OK",
-  cancelLabel = "Cancel",
+  submitLabel: submitLabelProp,
+  cancelLabel: cancelLabelProp,
   openIconLabel,
   closeIconLabel,
   pickerLabel,
@@ -521,17 +531,27 @@ function TimePicker({
   clockLabels,
   ...props
 }: TimePickerProps) {
+  const valueStateTexts = useValueStateTexts()
+
+  const { t, locale: resolvedLocale, localized, hasProvider } = useFioriLocale(localeProp)
+  const locale = localized ? resolvedLocale : "en-US"
+  // UI5 DateFormat formats Gregorian fields with Latin digits; translations retain the original locale.
+  const dateLocale = new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()
+  const fieldTexts = useFioriTexts(defaultTimePickerTexts, defaultTimePickerTextsKeys, texts, localeProp)
+  const submitLabel = submitLabelProp ?? t("TIMEPICKER_SUBMIT_BUTTON", "OK") // UI5 TIMEPICKER_SUBMIT_BUTTON
+  const cancelLabel = cancelLabelProp ?? t("TIMEPICKER_CANCEL_BUTTON", "Cancel") // UI5 TIMEPICKER_CANCEL_BUTTON
+
   const phone = useIsPhone()
   const [inputsOpen, setInputsOpen] = React.useState(false)
-  const pattern = resolvePattern(formatPattern, locale, "time")
-  const validate = (text: string) => (!text.trim() ? undefined : parseDate(text, pattern, locale, "time"))
+  const pattern = resolvePattern(formatPattern, dateLocale, "time")
+  const validate = (text: string) => (!text.trim() ? undefined : parsePickerDate(normalizeLocaleDigits(text, locale), pattern, dateLocale, "time"))
   const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate, controlledValueWins: phone })
   // The popover edits a copy (UI5's tempValue); OK writes it back.
   const [temp, setTemp] = React.useState<Date>(() => new Date())
 
   const commit = (text: string) => {
     const d = validate(text)
-    const next = d ? formatDate(d, pattern, locale) : text
+    const next = d ? formatPickerDate(d, pattern, dateLocale) : text
     s.updateState(d !== null)
     s.setEditing(false)
     s.setValue(next)
@@ -542,8 +562,12 @@ function TimePicker({
     s.setOpen(o)
   }
   const fieldRef = React.useRef<HTMLInputElement>(null)
+  const parsedForValidity = parsePickerDate(normalizeLocaleDigits(s.text, locale), pattern, dateLocale, "time")
+  const formValidityMessage = !s.text ? (props.required ? fieldTexts.valueMissing(pattern) : "") : !parsedForValidity ? fieldTexts.invalidFormat(pattern) : ""
+  // UI5 TimePicker.js/formValidityMessage localizes constraint validation, independently of valueStateMessage.
+  React.useLayoutEffect(() => { fieldRef.current?.setCustomValidity(localized || hasProvider || texts ? formValidityMessage : "") }, [formValidityMessage, localized, hasProvider, texts])
   const submit = () => {
-    commit(formatDate(temp, pattern, locale))
+    commit(formatPickerDate(temp, pattern, dateLocale))
     setOpen(false)
     if (!phone) fieldRef.current?.focus()
   }
@@ -551,7 +575,7 @@ function TimePicker({
   const inputsRef = React.useRef<HTMLDivElement>(null)
   const restoringInputsFocus = React.useRef(false)
   const openInputs = () => { if (!inputsOpen && !restoringInputsFocus.current) { setTemp(validate(s.text) ?? new Date()); setInputsOpen(true) } }
-  const submitInputs = () => { commit(formatDate(temp, pattern, locale)); setInputsOpen(false) }
+  const submitInputs = () => { commit(formatPickerDate(temp, pattern, dateLocale)); setInputsOpen(false) }
   const lastTime = new Date()
   lastTime.setHours(23, 59, 59, 999)
 
@@ -572,12 +596,12 @@ function TimePicker({
       valueState={s.valueState}
       valueStateMessage={valueStateMessage}
       icon={timeEntryRequest}
-      openIconLabel={openIconLabel}
-      closeIconLabel={closeIconLabel}
-      roleDescription="Time Input"
-      pickerLabel={pickerLabel ?? "Choose Time"}
-      phoneHeaderText={phoneHeaderText} phonePreventInitialFocus phoneInputFocus={openInputs}
-      placeholder={placeholder ?? examplePlaceholder(formatDate(lastTime, pattern, locale))}
+      openIconLabel={openIconLabel ?? t("TIMEPICKER_OPEN_ICON_TITLE", "Open Picker")}
+      closeIconLabel={closeIconLabel ?? t("TIMEPICKER_OPEN_ICON_TITLE_OPENED", "Close Picker")}
+      roleDescription={fieldTexts.roleDescription}
+      pickerLabel={pickerLabel ?? fieldTexts.pickerLabel(props["aria-label"] ?? "")}
+      phoneHeaderText={phoneHeaderText ?? (localized || hasProvider || texts ? props["aria-label"] ?? fieldTexts.phoneHeaderText : undefined)} phonePreventInitialFocus phoneInputFocus={openInputs}
+      placeholder={placeholder ?? examplePlaceholder(formatPickerDate(lastTime, pattern, dateLocale), fieldTexts.placeholderPrefix)}
       popoverClassName="fiori-time-picker-popover"
       onPickerKeyDown={(e, inPopover) => {
         if (inPopover || s.open || (e.key !== "PageUp" && e.key !== "PageDown") || e.altKey) return
@@ -590,7 +614,7 @@ function TimePicker({
         else if (e.shiftKey && !ctrl) d.setMinutes(d.getMinutes() + dir)
         else if (!ctrl) d.setHours(d.getHours() + dir)
         else return
-        commit(formatDate(d, pattern, locale))
+        commit(formatPickerDate(d, pattern, dateLocale))
       }}
       footer={<TimePickerFooter submitLabel={submitLabel} cancelLabel={cancelLabel} onSubmit={submit} onCancel={() => setOpen(false)} />}
       {...props}
@@ -612,7 +636,7 @@ function TimePicker({
           fieldRef.current?.focus(); restoringInputsFocus.current = false
         }}
         onInteractOutside={(event) => { if (fieldRef.current?.parentElement?.contains(event.target as Node)) event.preventDefault() }}>
-        <PickerPopoverBody valueState={s.valueState === "positive" ? "none" : s.valueState} message={valueStateMessage === undefined ? (s.valueState !== "none" ? valueStateDefaultText[s.valueState] : undefined) : valueStateMessage}
+        <PickerPopoverBody valueState={s.valueState === "positive" ? "none" : s.valueState} message={valueStateMessage === undefined ? (s.valueState !== "none" ? valueStateTexts[s.valueState] : undefined) : valueStateMessage}
           footer={<TimePickerFooter submitLabel={submitLabel} cancelLabel={cancelLabel} onSubmit={submitInputs} onCancel={() => setInputsOpen(false)} />}>
           <div className="fiori-time-selection-inputs-padding"><TimeSelectionInputs value={temp} onValueChange={setTemp} pattern={pattern} locale={locale} labels={numericLabels} onSubmit={submitInputs} /></div>
         </PickerPopoverBody>
@@ -626,7 +650,7 @@ function TimePicker({
  * Enter submits. Buffer expiration follows TimePickerInternals/_resetCooldown. */
 function TimeSelectionInputs({ value, onValueChange, pattern, locale, onSubmit, labels: labelsProp }: { value: Date; onValueChange: (value: Date) => void; pattern: string; locale: string; onSubmit: () => void; labels?: Partial<{ hours: string; minutes: string; seconds: string; period: string }> }) {
   // generated/i18n/i18n-defaults.js: TIMEPICKER_INPUTS_ENTER_* defaults.
-  const labels = { hours: "Please enter hours", minutes: "Please enter minutes", seconds: "Please enter seconds", period: "AM/PM", ...labelsProp }
+  const labels = useFioriTexts(defaultInputLabels, defaultInputLabelsKeys, labelsProp, locale)
   const fields = patternFields(pattern)
   const twelve = fields.twelveHour
   const root = React.useRef<HTMLDivElement>(null)
@@ -676,13 +700,17 @@ function TimeSelectionInputs({ value, onValueChange, pattern, locale, onSubmit, 
       }
       else { buffer.current = combined; setEntity(item.entity, number); if (combined.length === 2 || Number(`${combined}0`) > item.max) { buffer.current = ''; nextInput(index) } }
       timer.current = setTimeout(() => { buffer.current = '' }, 1000)
-    }} /></React.Fragment>)}{twelve && <><span className="fiori-time-selection-separator" /><SegmentedButton value={value.getHours() >= 12 ? "1" : "0"} aria-label={labels.period} onValueChange={(period) => { const next = new Date(value); next.setHours(value.getHours() % 12 + Number(period) * 12); onValueChange(next) }}>{getDayPeriods(locale).map((period, index) => <SegmentedButtonItem key={period} value={String(index)}>{period.toUpperCase()}</SegmentedButtonItem>)}</SegmentedButton></>}</div>
+    }} /></React.Fragment>)}{twelve && <><span className="fiori-time-selection-separator" /><SegmentedButton value={value.getHours() >= 12 ? "1" : "0"} aria-label={labels.period} onValueChange={(period) => { const next = new Date(value); next.setHours(value.getHours() % 12 + Number(period) * 12); onValueChange(next) }}>{getDayPeriods(new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()).map((period, index) => <SegmentedButtonItem key={period} value={String(index)}>{period.toUpperCase()}</SegmentedButtonItem>)}</SegmentedButton></>}</div>
 }
 
 type TimePickerFooterProps = { submitLabel?: string; cancelLabel?: string; onSubmit?: () => void; onCancel?: () => void }
 
 /** The popover footer: OK (emphasized) and Cancel, each at least 20% wide (ui5-time-picker-footer). */
-function TimePickerFooter({ submitLabel = "OK", cancelLabel = "Cancel", onSubmit, onCancel }: TimePickerFooterProps) {
+function TimePickerFooter({ submitLabel: submitLabelProp, cancelLabel: cancelLabelProp, onSubmit, onCancel }: TimePickerFooterProps) {
+  const { t } = useFioriLocale()
+  const submitLabel = submitLabelProp ?? t("TIMEPICKER_SUBMIT_BUTTON", "OK") // UI5 TIMEPICKER_SUBMIT_BUTTON
+  const cancelLabel = cancelLabelProp ?? t("TIMEPICKER_CANCEL_BUTTON", "Cancel") // UI5 TIMEPICKER_CANCEL_BUTTON
+
   return (
     <div className="fiori-time-picker-footer">
       <Button variant="emphasized" className="m-[1%] min-w-[20%]" onClick={onSubmit}>
@@ -696,3 +724,18 @@ function TimePickerFooter({ submitLabel = "OK", cancelLabel = "Cancel", onSubmit
 }
 
 export { TimePicker, TimePickerFooter, TimePickerClock, TimeSelectionClocks, type TimePickerProps, type TimeSelectionClocksProps, type TimeSelectionLabels }
+
+const defaultTimeLabelsKeys = { hours: "TIMEPICKER_HOURS_LABEL", minutes: "TIMEPICKER_MINUTES_LABEL", seconds: "TIMEPICKER_SECONDS_LABEL", clockDial: "TIMEPICKER_CLOCK_DIAL_LABEL" } as const
+const defaultInputLabels = { hours: "Please enter hours", minutes: "Please enter minutes", seconds: "Please enter seconds", period: "AM/PM" }
+const defaultInputLabelsKeys = { hours: "TIMEPICKER_INPUTS_ENTER_HOURS", minutes: "TIMEPICKER_INPUTS_ENTER_MINUTES", seconds: "TIMEPICKER_INPUTS_ENTER_SECONDS" } as const
+
+type TimePickerTexts = { roleDescription: string; pickerLabel: (name: string) => string; phoneHeaderText: string; placeholderPrefix: string; invalidFormat: (pattern: string) => string; valueMissing: (pattern: string) => string }
+const defaultTimePickerTexts: TimePickerTexts = {
+  roleDescription: "Time Input", // UI5 TIMEPICKER_INPUT_DESCRIPTION
+  pickerLabel: (_name) => "Choose Time", // UI5 TIMEPICKER_POPOVER_ACCESSIBLE_NAME; retain pre-E5 English default without a provider.
+  phoneHeaderText: "All Items", // UI5 INPUT_SUGGESTIONS_TITLE; TimePicker.js/_headerTitleText
+  placeholderPrefix: "e.g.", // UI5 DATETIME_COMPONENTS_PLACEHOLDER_PREFIX
+  invalidFormat: (pattern) => "This format is not supported. Enter the time in the following format: {0}.".replaceAll("{0}", pattern), // UI5 TIMEPICKER_PATTERN_MISSMATCH
+  valueMissing: (pattern) => "Enter the time in the following format: {0}.".replaceAll("{0}", pattern), // UI5 TIMEPICKER_VALUE_MISSING
+}
+const defaultTimePickerTextsKeys = { roleDescription: "TIMEPICKER_INPUT_DESCRIPTION", pickerLabel: "TIMEPICKER_POPOVER_ACCESSIBLE_NAME", phoneHeaderText: "INPUT_SUGGESTIONS_TITLE", placeholderPrefix: "DATETIME_COMPONENTS_PLACEHOLDER_PREFIX", invalidFormat: "TIMEPICKER_PATTERN_MISSMATCH", valueMissing: "TIMEPICKER_VALUE_MISSING" } as const
