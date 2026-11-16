@@ -49,7 +49,11 @@ test("adapt-filters-dialog: opens with live editors, protects mandatory fields a
 
 test("adapt-filters-dialog: hide, show, add and remove announce changes and OK applies", async ({ page }) => {
   const dialog = await openDialog(page)
-  const announcement = dialog.locator("[aria-live]").last()
+  // AdaptFiltersDialog's own status channel; SegmentedButton has an independent
+  // assertive alert in the same modal (INTEGRATION cause 1: selector scope).
+  const announcement = dialog.locator('[role="status"][aria-live="assertive"]')
+  await expect(announcement).toHaveCount(1)
+  await expect(announcement).toHaveAttribute("aria-atomic", "true")
   await row(dialog, "category").getByRole("button", { name: /Hide on Filter Bar/ }).click()
   await expect(announcement).toHaveText("Filter Category is now hidden")
   // A hidden field with an active value remains editable in the List view.
@@ -84,7 +88,7 @@ test("adapt-filters-dialog: search filters rows and announces no results", async
   await expect(row(dialog, "category")).toBeVisible()
   await search.fill("no such filter")
   await expect(dialog.locator(rowSelector)).toHaveCount(0)
-  await expect(dialog.locator("[aria-live]").last()).toContainText("No items available")
+  await expect(dialog.locator('[role="status"][aria-live="assertive"]')).toContainText("No items available")
   await search.fill("")
   await expect(dialog.locator(rowSelector)).toHaveCount(3)
 })
@@ -129,7 +133,7 @@ test("adapt-filters-dialog: Reset asks for confirmation and restores the initial
   await expect(row(dialog, "name").getByRole("textbox", { name: "Name", exact: true })).toHaveValue("Notebook")
   await expect(row(dialog, "category")).toBeVisible()
   await expect(dialog.getByRole("button", { name: "Reset", exact: true })).toBeDisabled()
-  await expect(dialog.locator("[aria-live]").last()).toHaveText("Filters have been reset to the initially selected view.")
+  await expect(dialog.locator('[role="status"][aria-live="assertive"]')).toHaveText("Filters have been reset to the initially selected view.")
   await dialog.getByRole("button", { name: "OK", exact: true }).click()
   expect((await result(page)).visibleKeys).toEqual(["name", "category", "supplier"])
 })
@@ -248,7 +252,7 @@ test("adapt-filters-dialog: Sort buttons and Ctrl keyboard shortcuts preserve fo
   await row(dialog, "supplier").press("Control+Home")
   await expect.poll(() => rowKeys(dialog)).toEqual(["supplier", "name", "category"])
   await expect(row(dialog, "supplier")).toBeFocused()
-  await expect(dialog.locator("[aria-live]").last()).toHaveText("List Item with label Supplier has been moved to top")
+  await expect(dialog.locator('[role="status"][aria-live="assertive"]')).toHaveText("List Item with label Supplier has been moved to top")
   await row(dialog, "supplier").press("Control+End")
   await expect.poll(() => rowKeys(dialog)).toEqual(["name", "category", "supplier"])
   await expect(row(dialog, "supplier")).toBeFocused()
@@ -285,7 +289,7 @@ test("adapt-filters-dialog: Group view quick filters, group select-all and Show 
   const search = dialog.getByRole("searchbox", { name: /Search for filters/i })
   await search.fill("Country")
   await expect(dialog.locator(rowSelector)).toHaveCount(1)
-  await expect(dialog.locator("[aria-live]").last()).toHaveText("Table Filter Values and Visibility has been updated. 1 item available.")
+  await expect(dialog.locator('[role="status"][aria-live="assertive"]')).toHaveText("Table Filter Values and Visibility has been updated. 1 item available.")
   await search.fill("")
   await expect(dialog.locator(rowSelector)).toHaveCount(5)
   const groupAll = dialog.getByRole("checkbox", { name: "Select All: Purchasing", exact: true })
@@ -306,7 +310,7 @@ test("adapt-filters-dialog: Group view quick filters, group select-all and Show 
   await expect(row(dialog, "name")).toBeVisible()
   await search.fill("Category")
   await expect(dialog.locator(rowSelector)).toHaveCount(0)
-  await expect(dialog.locator("[aria-live]").last()).toHaveText("Table Filter Values and Visibility has been updated. No items available.")
+  await expect(dialog.locator('[role="status"][aria-live="assertive"]')).toHaveText("Table Filter Values and Visibility has been updated. No items available.")
   await search.fill("")
   await expect(row(dialog, "name")).toBeVisible()
   await chooseQuickFilter("Active")
