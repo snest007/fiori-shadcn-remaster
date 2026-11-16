@@ -9,7 +9,7 @@
 //   node scripts/integrate.mjs scope [branch…]        files each branch changes vs. what its card allows
 //   node scripts/integrate.mjs merge [branch…]        scope check, then merge --no-ff in the given order
 //   node scripts/integrate.mjs verify [--runs=3] [--workers=<positive integer>]
-//                                                     install, generate, typecheck, registry, N full runs, smoke install
+//                                                     install, generate, typecheck, registry, N full runs, smoke install, recorded usage output build
 //   node scripts/integrate.mjs cleanup [branch…]      remove merged branches and their (clean) worktrees
 //
 // Branches default to every local codex/* branch not yet merged into main (cleanup: merged ones).
@@ -214,12 +214,17 @@ if (cmd === "prepare") {
   cells.sort((a, b) => b.r - a.r)
   const testsOk = results.length === runs && results.every((r) => r.ok)
   let smoke = { ok: false, out: "skipped (earlier step failed)" }
+  let usageBuild = { ok: false, out: "skipped (earlier step failed)" }
   if (testsOk) {
     killPorts()
     smoke = sh("node scripts/smoke-install.mjs", { allowFail: true, log: "smoke.log" })
   }
+  if (testsOk && smoke.ok) {
+    usageBuild = sh("node scripts/eval-skill-build.mjs", { allowFail: true, log: "eval-build.log" })
+  }
   killPorts()
-  const ok = steps.every((s) => s.ok) && testsOk && smoke.ok
+  // PASS includes routing/import/compile/build/browser evidence for all six recorded pages.
+  const ok = steps.every((s) => s.ok) && testsOk && smoke.ok && usageBuild.ok
   const report = [
     `# Integration report — ${new Date().toISOString().slice(0, 16).replace("T", " ")}`,
     "",
@@ -245,6 +250,11 @@ if (cmd === "prepare") {
     "## Smoke install",
     "```",
     smoke.out.split("\n").slice(-25).join("\n"),
+    "```",
+    "",
+    "## Recorded usage outputs",
+    "```",
+    usageBuild.out.split("\n").slice(-25).join("\n"),
     "```",
     "",
     "## Notes from the integrating agent",

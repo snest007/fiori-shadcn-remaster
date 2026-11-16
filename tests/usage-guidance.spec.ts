@@ -66,6 +66,7 @@ test("skill generation converges, removes stale files and parses compound demos 
     for (const folder of ["registry/items", "registry/block-items", "registry/ui", "registry/blocks", "registry/lib", "docs/src/demos", "scripts/skill"]) {
       cpSync(join(root, folder), join(temp, folder), { recursive: true })
     }
+    cpSync(join(root, "skills/shadcn-fiori/evals"), join(temp, "skills/shadcn-fiori/evals"), { recursive: true })
     expect(run(skillBuilder, temp).status).toBe(0)
     // Compare the generated baseline with committed outputs, including filenames, before staging a
     // temporary Git index. This tests source/output drift as well as repeated-run determinism.
@@ -93,13 +94,16 @@ test("skill generation converges, removes stale files and parses compound demos 
     expect(data).not.toContain("`DataTableProps`")
     // Exercise the parser with a new compound demo and an aliased runtime export, without maintaining
     // a parallel category/export list in the generator.
-    write(temp, "docs/src/demos/usage-probe.tsx", 'export default defineDemo({ category: "Data", docs: [{ name: "usage-probe" }], Demo() {} })\n')
+    write(temp, "docs/src/demos/usage-probe.tsx", 'export default defineDemo({ category: "Data", docs: [{ name: "usage-probe", props: [{ name: "useDocumentedProbe(options)" }, { name: "documentedProbe()" }, { name: "ProbeContext.value" }] }], Demo() {} })\n')
     write(temp, "registry/items/usage-probe.json", JSON.stringify({ title: "Probe" }))
-    write(temp, "registry/ui/usage-probe.tsx", 'const Probe = () => null; type ProbeProps = {}; export { Probe as UsageProbe, type ProbeProps }; export function useUsageProbe() {}\n')
+    write(temp, "registry/ui/usage-probe.tsx", 'const Probe = () => null; type ProbeProps = {}; export { Probe as UsageProbe, type ProbeProps }; export function useUsageProbe() {}; export function useDocumentedProbe() {}; export function documentedProbe() {}; export const ProbeContext = {}; export const internalProbe = 0\n')
     expect(run(skillBuilder, temp).status).toBe(0)
     const updated = readFileSync(join(temp, "skills/shadcn-fiori/references/data.md"), "utf8")
     expect(updated).toContain("## usage-probe")
-    expect(updated).toContain("Main exports: `UsageProbe`, `useUsageProbe`.")
+    expect(updated).toContain("Main exports: `UsageProbe`, `documentedProbe`, `useDocumentedProbe`.")
+    expect(updated).not.toContain("`useUsageProbe`")
+    expect(updated).not.toContain("`ProbeContext`")
+    expect(updated).not.toContain("`internalProbe`")
     expect(updated).not.toContain("`ProbeProps`")
   } finally {
     rmSync(temp, { recursive: true, force: true })
