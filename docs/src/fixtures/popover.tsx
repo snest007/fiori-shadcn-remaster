@@ -12,11 +12,11 @@ type Props = { title?: boolean; footer?: boolean; arrow?: boolean }
 // static so the surface sits inside the cell. UI5's side does the same (popover.ui5.ts).
 export default defineFixtures<Props>({
   name: "popover",
-  cases: [
+  cases: ([
     { id: "popover", props: {} },
     { id: "popover-header-footer", props: { title: true, footer: true } },
     { id: "popover-arrow", props: { title: true, arrow: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "popover-rtl" }] : [fixture]),
   // The arrow's position depends on the live placement against the opener (UI5 computes it while
   // open, in the top layer), so the arrow case is visually checked only (see tests/popover.spec.ts).
   skipCompare: ["popover-arrow"],
