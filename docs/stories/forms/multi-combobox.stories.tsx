@@ -123,7 +123,8 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Playground: Story = {}
+// Storybook Controls update the inline docs store; its isolated IFrame does not forward args.
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const None: Story = { args: { valueState: "none" } }
 export const Negative: Story = { args: { valueState: "negative" } }
 export const Critical: Story = { args: { valueState: "critical" } }
