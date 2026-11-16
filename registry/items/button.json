@@ -4,5 +4,50 @@
     "class-variance-authority",
     "radix-ui"
   ],
-  "description": "Fiori button designs: default, emphasized, transparent, positive, negative, attention."
+  "description": "Fiori button designs: default, emphasized, transparent, positive, negative, attention.",
+  "usage": {
+    "summary": "Trigger an explicit action with priority and semantic intent.",
+    "useWhen": [
+      "Let users create, edit, save, approve or cancel an explicit action.",
+      "Reserve variant=\"emphasized\" for one primary action per page or dialog; use positive and negative only for positive and negative semantic actions.",
+      "Use imperative verb labels such as Save or Reject; allow up to 300% text expansion in translations.",
+      "Keep primary, secondary, semantic and negative-path actions as text buttons.",
+      "Give recognizable icon-only actions both a tooltip and an accessible label."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Navigate to a page, object or external URL.",
+        "use": [
+          "link"
+        ]
+      },
+      {
+        "when": "Keep an action visibly active until the user turns it off.",
+        "use": [
+          "toggle-button"
+        ]
+      },
+      {
+        "when": "Choose related view options, one form option or independent form options.",
+        "use": [
+          "segmented-button",
+          "radio-group",
+          "checkbox"
+        ]
+      },
+      {
+        "when": "Select local files for upload.",
+        "use": [
+          "file-uploader"
+        ]
+      },
+      {
+        "when": "Navigate through a guided sequence of task steps.",
+        "use": [
+          "wizard"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

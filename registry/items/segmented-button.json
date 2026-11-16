@@ -3,5 +3,47 @@
   "dependencies": [
     "radix-ui"
   ],
-  "description": "Fiori segmented button (single or multiple selection) with arrow-key navigation and one tab stop."
+  "description": "Fiori segmented button (single or multiple selection) with arrow-key navigation and one tab stop.",
+  "usage": {
+    "summary": "Switch related view or setting options in a connected group.",
+    "useWhen": [
+      "Let users switch related options such as Year, Month and Day within the same view.",
+      "Keep every segment visible and use labels that fit the available horizontal space.",
+      "Use selectionMode=\"multiple\" when users may activate any combination of segments; use single for one selection.",
+      "Give each icon-only segment a tooltip and an accessible label."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Present mutually exclusive form answers rather than change a view or setting.",
+        "use": [
+          "radio-group"
+        ]
+      },
+      {
+        "when": "Collapse 2–12 predefined options because their labels do not fit a horizontal group.",
+        "use": [
+          "select"
+        ]
+      },
+      {
+        "when": "Navigate distinct content sections rather than change the current view or setting.",
+        "use": [
+          "tabs"
+        ]
+      },
+      {
+        "when": "Activate or deactivate one independent toolbar action.",
+        "use": [
+          "toggle-button"
+        ]
+      },
+      {
+        "when": "Run an explicit action such as Save rather than select an option.",
+        "use": [
+          "button"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

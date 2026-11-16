@@ -6,5 +6,46 @@
   "registryDependencies": [
     "@fiori/input"
   ],
-  "description": "Fiori radio buttons in a group with roving tabindex; arrow keys move selection, value and read-only states."
+  "description": "Fiori radio buttons in a group with roving tabindex; arrow keys move selection, value and read-only states.",
+  "usage": {
+    "summary": "Choose one mutually exclusive answer while keeping every option visible.",
+    "useWhen": [
+      "Let users compare visible answers and select exactly one.",
+      "Keep option labels clear enough to distinguish the mutually exclusive choices.",
+      "Provide an accessible group name and a label for every RadioGroupItem."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Select independent options or multiple answers.",
+        "use": [
+          "checkbox"
+        ]
+      },
+      {
+        "when": "Collapse a predefined list of 2–12 options instead of showing every answer.",
+        "use": [
+          "select"
+        ]
+      },
+      {
+        "when": "Switch compact related view or setting options rather than answer a form question.",
+        "use": [
+          "segmented-button"
+        ]
+      },
+      {
+        "when": "Run an explicit action rather than select an answer.",
+        "use": [
+          "button"
+        ]
+      },
+      {
+        "when": "Adjust a numeric value along a visual scale rather than choose categorical options.",
+        "use": [
+          "slider"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

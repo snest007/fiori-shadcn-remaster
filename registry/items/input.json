@@ -3,5 +3,54 @@
   "registryDependencies": [
     "@fiori/icons"
   ],
-  "description": "Fiori input with value states and value state message."
+  "description": "Fiori input with value states and value state message.",
+  "usage": {
+    "summary": "Enter one line of text, a number or a formatted string.",
+    "useWhen": [
+      "Let users enter a name, number, password, URL, phone number or email address in one line.",
+      "Keep a visible field label; use a placeholder only for a hint or example.",
+      "Use valueState and valueStateMessage to explain validation issues and how to resolve them."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Enter prose across multiple lines.",
+        "use": [
+          "textarea"
+        ]
+      },
+      {
+        "when": "Enter a date, range or time, or provide a custom picker with caller-owned parsing.",
+        "use": [
+          "date-picker",
+          "date-range-picker",
+          "date-time-picker",
+          "time-picker",
+          "picker-field"
+        ]
+      },
+      {
+        "when": "Choose one predefined value: use Select for 2–12 options, ComboBox for type-ahead across 20–200 options, or ValueHelpDialog above 200 entries or for several searchable attributes.",
+        "use": [
+          "select",
+          "combobox",
+          "value-help-dialog"
+        ]
+      },
+      {
+        "when": "Adjust a numeric value with increment and decrement buttons or a visual scale.",
+        "use": [
+          "step-input",
+          "slider"
+        ]
+      },
+      {
+        "when": "Collect several values: use MultiComboBox for fewer than 200 predefined options, or MultiInput for caller-validated entries and datasets above 200.",
+        "use": [
+          "multi-combobox",
+          "multi-input"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }
