@@ -1,6 +1,10 @@
 {
   "title": "Slider",
-  "registryDependencies": ["@fiori/icons"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/locale",
+    "@fiori/input"
+  ],
   "description": "Fiori Slider and RangeSlider: tickmarks with labels, tooltips, UI5 keyboard model (ui5-slider, ui5-range-slider).",
   "usage": {
     "summary": "Adjust one value or a numeric interval along a visual scale.",
