@@ -10,10 +10,10 @@ type Props = { text: string; width: string }
 // are tested in tests/toast.spec.ts.
 export default defineFixtures<Props>({
   name: "toast",
-  cases: [
+  cases: ([
     { id: "toast", props: { text: "Item saved", width: "8rem" } },
     { id: "toast-wrapping", props: { text: "The changes were saved and the approvers have been notified.", width: "15rem" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "toast-rtl" }] : [fixture]),
   react: ({ text, width }) => (
     <div className="p-3">
       <Toast open portal={false} duration={Infinity} style={{ width }}>{text}</Toast>
