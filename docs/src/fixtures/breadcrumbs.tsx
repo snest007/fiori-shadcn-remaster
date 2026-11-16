@@ -16,7 +16,7 @@ const separators: BreadcrumbsSeparator[] = ["double-slash", "back-slash", "doubl
 
 export default defineFixtures<Props>({
   name: "breadcrumbs",
-  cases: [
+  cases: ([
     { id: "breadcrumbs", props: {} },
     ...separators.map((s) => ({ id: `breadcrumbs-${s}`, props: { separators: s } })),
     { id: "breadcrumbs-no-current-page", props: { design: "no-current-page" } },
@@ -28,7 +28,7 @@ export default defineFixtures<Props>({
     { id: "breadcrumbs-overflow-open", props: { overflow: true, open: true } },
     { id: "breadcrumbs-overflow-hidden-middle", props: { overflow: true, hiddenMiddle: true } },
     { id: "breadcrumbs-overflow-hidden-middle-open", props: { overflow: true, hiddenMiddle: true, open: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "breadcrumbs-rtl" }] : [fixture]),
   react: ({ separators, design, lastLink, overflow, open, hiddenMiddle }) => {
     const width = hiddenMiddle ? BREADCRUMBS_HIDDEN_MIDDLE_WIDTH : overflow ? BREADCRUMBS_OVERFLOW_WIDTH : BREADCRUMBS_WIDTH
     const breadcrumbs = (
