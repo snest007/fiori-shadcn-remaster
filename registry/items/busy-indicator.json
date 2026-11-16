@@ -10,7 +10,7 @@
     ],
     "avoidWhen": [
       {
-        "when": "A running process has a measured completion value on a 0–100% scale.",
+        "when": "A running process has a measured completion value on a 0\u2013100% scale.",
         "use": [
           "progress-indicator"
         ]
@@ -23,5 +23,8 @@
       }
     ],
     "source": "ui5-apidoc"
-  }
+  },
+  "registryDependencies": [
+    "@fiori/locale"
+  ]
 }
