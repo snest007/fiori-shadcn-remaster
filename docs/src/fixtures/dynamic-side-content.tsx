@@ -16,7 +16,7 @@ const css = (s: string) => Object.fromEntries(s.split(";").map((d) => d.split(":
 
 export default defineFixtures<Props>({
   name: "dynamic-side-content",
-  cases: [
+  cases: ([
     // 1100px container → L: 2/3 + 1/3.
     { id: "dynamic-side-content-l", props: { width: "1100px" } },
     { id: "dynamic-side-content-l-start", props: { width: "1100px", position: "start" } },
@@ -25,7 +25,7 @@ export default defineFixtures<Props>({
     { id: "dynamic-side-content-m", props: { width: "1000px" } },
     // 600px → S: side content hidden.
     { id: "dynamic-side-content-s", props: { width: "600px" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "dynamic-side-content-rtl" }] : [fixture]),
   react: ({ width, position, equalSplit }) => (
     <div style={{ width, height: DSC_HEIGHT }}>
       <DynamicSideContent

@@ -1,6 +1,8 @@
 {
   "title": "DynamicSideContent",
-  "registryDependencies": [],
+  "registryDependencies": [
+    "@fiori/locale"
+  ],
   "description": "Fiori dynamic side content: main and side content laid out by the control's width (S/M/L/XL), side position, fall-down, equal split and toggle (ui5-dynamic-side-content).",
   "usage": {
     "summary": "Keep supplementary context beside or below the main task without covering its content.",
