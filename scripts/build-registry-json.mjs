@@ -1,6 +1,6 @@
 // Writes registry.json (the shadcn registry manifest). Kept as a script so item lists stay in one place.
 import { readFileSync, writeFileSync } from "node:fs"
-import { componentOwners, itemMetadata, usageMarkdown, validateUsage } from "./skill/usage.mjs"
+import { componentOwners, iconsItem, itemMetadata, usageMarkdown, validateUsage } from "./skill/usage.mjs"
 
 // Where public/r is served. Consumers' components.json gets "@fiori" -> this URL on `shadcn init`.
 const REGISTRY_URL = (process.env.REGISTRY_URL ?? "http://localhost:4173/r").replace(/\/$/, "")
@@ -27,8 +27,8 @@ const blockMetadata = itemMetadata("registry/block-items").map((item) => ({ ...i
 const illustrations = JSON.parse(readFileSync("registry/lib/fiori-illustrations/registry-items.json", "utf8"))
 validateUsage([
   ...componentMetadata.map((item) => ({ ...item, type: item.type ?? "registry:ui" })), ...blockMetadata, ...illustrations,
-  { name: "fiori" }, { name: "fiori-theme" }, { name: "icons" },
-], componentOwners(process.cwd(), componentMetadata), { requireUsage: process.argv.includes("--require-usage") })
+  { name: "fiori" }, { name: "fiori-theme" }, iconsItem,
+], componentOwners(process.cwd(), [...componentMetadata, iconsItem]), { requireUsage: process.argv.includes("--require-usage") })
 const components = componentMetadata.map((extra) => ui(extra.name, extra))
 
 // Blocks (floorplans / page templates): registry/blocks/<name>.tsx + registry/block-items/<name>.json
@@ -92,17 +92,7 @@ const registry = {
         '@import "./styles/fiori/fiori-components.css"': {},
       },
     },
-    {
-      name: "icons",
-      type: "registry:lib",
-      title: "SAP Horizon icons",
-      description: "705 SAP Horizon icons (tree-shakeable) and the <Icon> component.",
-      registryDependencies: ["@fiori/fiori-theme"],
-      files: [
-        { path: "registry/lib/fiori-icons.ts", type: "registry:lib" },
-        { path: "registry/ui/icon.tsx", type: "registry:ui" },
-      ],
-    },
+    iconsItem,
     ...components,
     ...illustrations,
     ...blocks,

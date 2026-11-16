@@ -1,7 +1,7 @@
 // Generated guidance has no timestamps and uses stable name order; edit item JSON or the template.
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { categories, compare, componentOwners, demoCategories, itemMetadata, runtimeExports, validateUsage } from "./skill/usage.mjs"
+import { categories, compare, componentOwners, demoCategories, iconsItem, itemMetadata, runtimeExports, validateUsage } from "./skill/usage.mjs"
 
 const root = process.cwd()
 const components = itemMetadata(join(root, "registry/items")).map((item) => ({ ...item, type: item.type ?? "registry:ui" }))
@@ -13,7 +13,7 @@ for (const item of components) {
 }
 for (const name of categoryByName.keys()) if (!components.some((item) => item.name === name)) throw new Error(`${name}: unknown demo registry item`)
 const illustrations = JSON.parse(readFileSync(join(root, "registry/lib/fiori-illustrations/registry-items.json"), "utf8"))
-validateUsage([...components, ...blocks, ...illustrations, { name: "fiori" }, { name: "fiori-theme" }, { name: "icons" }], componentOwners(root, components))
+validateUsage([...components, ...blocks, ...illustrations, { name: "fiori" }, { name: "fiori-theme" }, iconsItem], componentOwners(root, [...components, iconsItem]))
 
 const install = (name) => `npx shadcn add @fiori/${name}`
 const cell = (value) => value.replace(/\|/g, "\\|").replace(/\n/g, " ")

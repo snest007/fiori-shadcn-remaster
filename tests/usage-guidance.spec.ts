@@ -117,6 +117,7 @@ test("usage validation rejects invalid alternatives, counts, layouts and require
     write(temp, "registry/items/helper.json", JSON.stringify({ title: "Helper", type: "registry:lib" }))
     write(temp, "registry/ui/table.tsx", "function Table() {} export { Table }")
     write(temp, "registry/ui/select.tsx", "function Select() {} export { Select }")
+    write(temp, "registry/ui/icon.tsx", "function Glyph() {} type IconProps = {}; export { Glyph as Icon, Glyph as CustomIcon, type IconProps }")
     mkdirSync(join(temp, "registry/block-items"), { recursive: true })
     expect(run(builder, temp).status).toBe(0)
     for (const [invalid, message] of [
@@ -136,12 +137,16 @@ test("usage validation rejects invalid alternatives, counts, layouts and require
     for (const [layout, dependencies, message] of [
       [["UnknownControl"], ["@fiori/table"], 'unknown layout export "UnknownControl"'],
       [["Select"], ["@fiori/table"], 'layout export "Select" needs a direct registryDependency'],
+      [["Icon"], ["@fiori/table"], 'layout export "Icon" needs a direct registryDependency'],
+      [["IconProps"], ["@fiori/icons"], 'unknown layout export "IconProps"'],
     ] as const) {
       write(temp, "registry/block-items/report.json", JSON.stringify({ title: "Report", registryDependencies: dependencies, usage: { ...usage, layout } }))
       const result = run(builder, temp)
       expect(result.status).not.toBe(0)
       expect(result.stderr).toContain(message)
     }
+    write(temp, "registry/block-items/report.json", JSON.stringify({ title: "Report", registryDependencies: ["@fiori/icons"], usage: { ...usage, layout: ["Icon", "CustomIcon"] } }))
+    expect(run(builder, temp).status).toBe(0) // parsed aliases belong to the direct icons library
     write(temp, "registry/block-items/report.json", JSON.stringify({ title: "Report", registryDependencies: ["@fiori/table"], usage: { ...usage, layout: ["Table"] } }))
     expect(run(builder, temp).status).toBe(0)
     const required = run(builder, temp, ["--require-usage"])

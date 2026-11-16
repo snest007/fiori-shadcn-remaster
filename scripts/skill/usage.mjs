@@ -7,7 +7,21 @@ export const categories = ["Actions", "Forms", "Dates", "Data", "Overlays", "Dis
 export const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0
 export const json = (path) => JSON.parse(readFileSync(path, "utf8"))
 export const itemMetadata = (folder) => readdirSync(folder).filter((name) => name.endsWith(".json")).sort(compare)
-  .map((file) => ({ name: file.slice(0, -5), ...json(join(folder, file)) }))
+  .map((file) => ({ ...json(join(folder, file)), name: file.slice(0, -5) }))
+
+// The existing icons library also ships a React component. Share its actual file ownership with
+// both generators so layouts can name any parsed export, including Icon, via @fiori/icons.
+export const iconsItem = {
+  name: "icons",
+  type: "registry:lib",
+  title: "SAP Horizon icons",
+  description: "705 SAP Horizon icons (tree-shakeable) and the <Icon> component.",
+  registryDependencies: ["@fiori/fiori-theme"],
+  files: [
+    { path: "registry/lib/fiori-icons.ts", type: "registry:lib" },
+    { path: "registry/ui/icon.tsx", type: "registry:ui" },
+  ],
+}
 
 /** Parse public runtime exports, including aliases and direct export declarations; omit TS-only types. */
 export function runtimeExports(path) {
@@ -61,8 +75,12 @@ export function demoCategories(root) {
 /** Map exported React names to owning registry items, rather than guessing PascalCase → kebab-case. */
 export function componentOwners(root, items) {
   const owners = new Map()
-  for (const item of items.filter((item) => (item.type ?? "registry:ui") === "registry:ui")) {
-    for (const name of runtimeExports(join(root, `registry/ui/${item.name}.tsx`)).filter((name) => /^[A-Z]/.test(name))) {
+  for (const item of items) {
+    const files = new Set([
+      ...((item.type ?? "registry:ui") === "registry:ui" ? [`registry/ui/${item.name}.tsx`] : []),
+      ...(item.files ?? []).filter((file) => file.type === "registry:ui").map((file) => file.path),
+    ])
+    for (const name of [...files].flatMap((file) => runtimeExports(join(root, file))).filter((name) => /^[A-Z]/.test(name))) {
       if (!owners.has(name)) owners.set(name, new Set())
       owners.get(name).add(item.name)
     }
@@ -111,9 +129,9 @@ export function validateUsage(items, owners, { requireUsage = false } = {}) {
 
 export const alternativeLinks = (entry) => (entry.use ?? []).map((name) => `[${name}](#/${name})`).join(", ")
 export function usageMarkdown(usage) {
-  const sections = [usage.summary, "### Use when\n" + usage.useWhen.map((text) => `- ${text}`).join("\n"),
-    "### Don't use when\n" + usage.avoidWhen.map((entry) => `- ${entry.when}${entry.use?.length ? ` → ${alternativeLinks(entry)}` : ""}`).join("\n")]
-  if (usage.layout) sections.push("### Layout\n```text\n" + usage.layout.join("\n") + "\n```")
-  if (usage.variations) sections.push("### Variations\n" + usage.variations.map((text) => `- ${text}`).join("\n"))
+  const sections = [usage.summary, "### Use when\n\n" + usage.useWhen.map((text) => `- ${text}`).join("\n"),
+    "### Don't use when\n\n" + usage.avoidWhen.map((entry) => `- ${entry.when}${entry.use?.length ? ` → ${alternativeLinks(entry)}` : ""}`).join("\n")]
+  if (usage.layout) sections.push("### Layout\n\n```text\n" + usage.layout.join("\n") + "\n```")
+  if (usage.variations) sections.push("### Variations\n\n" + usage.variations.map((text) => `- ${text}`).join("\n"))
   return sections.join("\n\n")
 }
