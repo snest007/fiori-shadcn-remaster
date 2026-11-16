@@ -6,6 +6,22 @@ import { alert, error, information, sysEnter2 } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 
+// Record input origin before a pointer-opened popup mounts its Input. UI5 Input.css.js
+// paints pointer focus too; document modality enforces AGENTS rule 5, including autofocus.
+const inputFocusModality = new WeakMap<Document, { keyboard: boolean }>()
+function getInputFocusModality(owner: Document) {
+  let state = inputFocusModality.get(owner)
+  if (!state) {
+    state = { keyboard: true }
+    const current = state
+    owner.addEventListener("keydown", () => { current.keyboard = true }, true)
+    owner.addEventListener("pointerdown", () => { current.keyboard = false }, true)
+    inputFocusModality.set(owner, current)
+  }
+  return state
+}
+if (typeof document !== "undefined") getInputFocusModality(document)
+
 type ValueState = "none" | "negative" | "critical" | "positive" | "information"
 
 const valueStateIcons = { negative: error, critical: alert, positive: sysEnter2, information: information }
@@ -18,6 +34,7 @@ const valueStateDefaultText: Record<Exclude<ValueState, "none">, string> = {
 
 /**
  * @accessibility Tab reaches the inner native input. Connect Label.htmlFor to Input.id, or pass aria-label / aria-labelledby; these native ARIA props land on the input, not its visual wrapper.
+ * @accessibility aria-description passes to the inner native input (UI5 accessibleDescription); aria-labelledby / aria-describedby pass reference channels to that same input.
  * @accessibility aria-describedby on the input is merged with the focused value-state message id. Negative sets aria-invalid; valueStateMessage is the overridable role=status message. Read-only and disabled fields hide that message.
  */
 type InputProps = Omit<React.ComponentProps<"input">, "size"> & {
@@ -54,6 +71,13 @@ function Input({
 
   return (
     <div
+      onPointerDownCapture={(event) => event.currentTarget.setAttribute("data-pointer-focus", "")}
+      onFocusCapture={(event) => {
+        if (getInputFocusModality(event.currentTarget.ownerDocument).keyboard) event.currentTarget.removeAttribute("data-pointer-focus")
+        else event.currentTarget.setAttribute("data-pointer-focus", "")
+      }}
+      onKeyDownCapture={(event) => event.currentTarget.removeAttribute("data-pointer-focus")}
+      onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute("data-pointer-focus") }}
       data-slot="input"
       data-value-state={hasState ? valueState : undefined}
       data-disabled={disabled ? "" : undefined}

@@ -102,15 +102,7 @@ for (const name of pilots) {
     if (["button", "input", "dialog"].includes(name)) await expect(target).toBeFocused()
     const pointer = await target.evaluate(appearance)
     const knownFocus: unknown[] = []
-    if (name === "input" && pointer.painted) {
-      // component defect, fixed by E4 — see docs/plan/handoff/S0-a11y-candidates
-      await expect(target).toBeFocused()
-      await expect(target).toHaveAccessibleName("Company")
-      expect(await target.evaluate((node) => node instanceof HTMLInputElement
-        && node.closest('[data-fiori-story="forms-input--playground"]') !== null
-        && node.closest('[data-slot="input"]') === document.querySelector('#storybook-root [data-slot="input"].fiori-field'))).toBe(true)
-      knownFocus.push({ story: "forms-input--playground", phase: "pointer", target: "Company native input", appearance: pointer })
-    } else expect.soft(pointer.painted, "Pointer focus must not paint the keyboard indicator").toBe(false)
+    expect.soft(pointer.painted, "Pointer focus must not paint the keyboard indicator").toBe(false)
     await page.mouse.up()
     if (name === "dialog" || name === "select") {
       await expect(page.locator(name === "dialog" ? '[data-slot="dialog-content"]' : '[data-slot="select-content"]')).toBeVisible()
