@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
@@ -99,14 +100,19 @@ const SegmentedButtonContext = React.createContext<string[]>([])
 type SegmentedButtonItemProps = React.ComponentProps<typeof ToggleGroupPrimitive.Item> & {
   /** Leading icon (an <Icon />). With no text children the item becomes icon-only; give it an aria-label. */
   icon?: React.ReactNode
+  selectionHint?: string
 }
 
-function SegmentedButtonItem({ className, icon, children, value, ...props }: SegmentedButtonItemProps) {
+function SegmentedButtonItem({ className, icon, children, value, selectionHint, "aria-description": description, ...props }: SegmentedButtonItemProps) {
+  const { t, hasProvider } = useFioriLocale()
+  // UI5 SegmentedButtonItem.js/ariaDescriptionText appends the selection shortcut hint.
+  const hint = selectionHint ?? (hasProvider ? t("SEGMENTEDBUTTON_ARIA_DESCRIBEDBY", "Press SPACE or ENTER to select an item") : undefined)
   const selected = React.useContext(SegmentedButtonContext).includes(value)
   const iconOnly = !!icon && (children == null || children === "")
   return (
     <ToggleGroupPrimitive.Item
       data-slot="segmented-button-item"
+      aria-description={[description, hint].filter(Boolean).join(" ") || undefined}
       data-icon-only={iconOnly ? "" : undefined}
       // ui5 semantics are listbox/option, not Radix's radio / pressed-button ones.
       role="option"

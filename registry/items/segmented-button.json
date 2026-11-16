@@ -20,7 +20,7 @@
         ]
       },
       {
-        "when": "Collapse 2–12 predefined options whose labels do not fit a horizontal group; sort alphabetically above 8.",
+        "when": "Collapse 2\u201312 predefined options whose labels do not fit a horizontal group; sort alphabetically above 8.",
         "use": [
           "select"
         ]
@@ -45,5 +45,8 @@
       }
     ],
     "source": "sap-fiori-guidelines"
-  }
+  },
+  "registryDependencies": [
+    "@fiori/locale"
+  ]
 }
