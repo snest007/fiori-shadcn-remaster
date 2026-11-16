@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 import { readFileSync } from "node:fs"
 import { axeViolations, expectNamedControls, waitForStoryFinished } from "./accessibility"
+import { attachAudit, classifyViolations } from "./known-issues"
 
 interface StoryEntry { id: string; type: "story" | "docs"; title: string; name: string }
 const entries = Object.values(JSON.parse(readFileSync(new URL("../storybook-static/index.json", import.meta.url), "utf8")).entries) as StoryEntry[]
@@ -44,13 +45,14 @@ for (const story of stories) {
     expect(errors).toEqual([])
   })
   for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
-    test(`${story.title}/${story.name} has no axe violations (${theme})`, async ({ page }, testInfo) => {
+    test(`${story.title}/${story.name} has no unexpected axe violations (${theme})`, async ({ page }, testInfo) => {
       await render(page, story.id, `theme:${theme}`)
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme)
       if (story.name === "Loading") await expect(page.getByRole("progressbar")).toBeVisible()
       const violations = await axeViolations(page, theme)
-      if (violations.length) await testInfo.attach("axe-violations.json", { body: JSON.stringify(violations, null, 2), contentType: "application/json" })
-      expect(violations).toEqual([])
+      const audit = await classifyViolations(page, violations, { story: story.id, theme })
+      await attachAudit(testInfo, "axe-violations", audit)
+      expect(audit.unexpected).toEqual([])
     })
   }
 }
@@ -147,19 +149,26 @@ test("Dialog trigger opens and closes a labelled dialog", async ({ page }) => {
 })
 
 
-test("Calendar CustomTexts names its header without altering owned grid states", async ({ page }) => {
+test("Calendar CustomTexts names its header without altering owned grid states", async ({ page }, testInfo) => {
   await render(page, storyId("Dates/Calendar", "Custom Texts"))
   await expect(page.getByRole("button", { name: "Next delivery month" })).toBeVisible()
   await expect(page.getByRole("gridcell", { selected: true })).toHaveAttribute("aria-selected", "true")
   await render(page, storyId("Dates/Calendar", "Custom Texts"), undefined, "initialPicker:year")
   const range = page.locator('[data-slot="calendar-year-range-button"]')
   await expect(range).toHaveAttribute("aria-label", "Delivery years from 2015 to 2034")
-  await expect(range).toHaveAccessibleName("2015 - 2034 Delivery years from 2015 to 2034")
-  expect(await axeViolations(page, "sap_horizon")).toEqual([])
+  await expect(range).toHaveAccessibleName("Delivery years from 2015 to 2034")
+  const checkRange = async (phase: string) => {
+    const audit = await classifyViolations(page, await axeViolations(page, "sap_horizon"), {
+      story: "dates-calendar--custom-texts", theme: "sap_horizon", yearMode: true,
+    })
+    await attachAudit(testInfo, `calendar-custom-${phase}`, audit)
+    expect(audit.unexpected).toEqual([])
+  }
+  await checkRange("initial")
   await page.getByRole("button", { name: "Next Year Range", exact: true }).click()
   await expect(range).toHaveAttribute("aria-label", "Delivery years from 2035 to 2054")
-  await expect(range).toHaveAccessibleName("2035 - 2054 Delivery years from 2035 to 2054")
-  expect(await axeViolations(page, "sap_horizon")).toEqual([])
+  await expect(range).toHaveAccessibleName("Delivery years from 2035 to 2054")
+  await checkRange("paged")
   await range.focus()
   await expect(range).toBeFocused()
   await page.keyboard.press("Enter")

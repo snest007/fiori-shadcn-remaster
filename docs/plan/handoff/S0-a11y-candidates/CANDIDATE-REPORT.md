@@ -4,7 +4,7 @@ The owner explicitly kept S0's original scope on 2026-11-16: **do not merge comp
 
 > component defect, fixed by E4 — see docs/plan/handoff/S0-a11y-candidates
 
-The wording identifies the owning follow-up card; it does not mean E4 is already implemented. E4's tree audit and E5's locale provider were absent during this work. No global axe rule is disabled, no component role/state is overridden by a story, and a new rule, node, story or focus failure remains a failure. All current controls keep their accessible-name checks. S0 source changes are JSDoc only.
+The wording identifies the owning follow-up card; it does not mean E4 is already implemented. E4's tree audit and E5's locale provider were absent during this work. Known-defect handling adds no axe rule disabling: the existing non-contrast audit and separate Morning Horizon contrast audit (excluding only disabled controls) remain in place. No component role/state is overridden by a story, and a new rule, node, story or focus failure remains a failure. All current controls keep their accessible-name checks. S0 source changes are JSDoc only.
 
 ## Reproduce from a checkout
 

@@ -22,13 +22,21 @@ export async function axeViolations(page: Page, theme: string, include?: string)
     if (include) contrast = contrast.include(include)
     result.violations.push(...(await contrast.analyze()).violations)
   }
-  return result.violations.map((violation) => ({ id: violation.id, help: violation.help, nodes: violation.nodes.map((node) => ({ target: node.target, html: node.html, summary: node.failureSummary })) }))
+  return result.violations
 }
 
 export async function expectNamedControls(page: Page) {
   await waitForStoryFinished(page)
-  for (const role of ["button", "link", "textbox", "searchbox", "combobox", "checkbox", "radio", "spinbutton", "slider", "switch", "tab", "option", "menuitem", "menuitemcheckbox", "menuitemradio", "treeitem", "gridcell", "columnheader"] as const) {
+  for (const role of ["button", "link", "textbox", "searchbox", "combobox", "checkbox", "radio", "spinbutton", "slider", "switch", "tab", "option", "menuitem", "menuitemcheckbox", "menuitemradio", "treeitem", "gridcell", "columnheader", "rowheader", "progressbar", "listbox", "dialog", "alertdialog"] as const) {
     for (const control of await page.getByRole(role).all()) await expect(control).toHaveAccessibleName(/\S/)
+  }
+  for (const row of await page.getByRole("row").all()) {
+    if (await row.evaluate((node) => node.hasAttribute("tabindex") || node.hasAttribute("data-table-nav-row"))) await expect(row).toHaveAccessibleName(/\S/)
+  }
+  for (const grid of await page.getByRole("grid").all()) {
+    // Calendar's non-focusable structural grids describe their purpose with
+    // aria-roledescription; its individually focusable gridcells are checked above.
+    if (await grid.evaluate((node) => node.hasAttribute("tabindex") || (node as HTMLElement).isContentEditable)) await expect(grid).toHaveAccessibleName(/\S/)
   }
   // Password fields have no implicit textbox role; keyboard movement handles are images.
   for (const control of await page.locator('input[type="password"], [role="img"][tabindex="0"]').all()) await expect(control).toHaveAccessibleName(/\S/)
