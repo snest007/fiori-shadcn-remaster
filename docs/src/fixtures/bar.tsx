@@ -13,12 +13,12 @@ type Props = { design: BarDesign; start?: boolean; title?: string; end?: string[
 
 export default defineFixtures<Props>({
   name: "bar",
-  cases: [
+  cases: ([
     { id: "bar-header", props: { design: "header", start: true, title: "Page title", end: ["settings"] } },
     { id: "bar-subheader", props: { design: "subheader", title: "Subheader", end: ["Edit"] } },
     { id: "bar-footer", props: { design: "footer", end: ["Submit", "Cancel"] } },
     { id: "bar-floating-footer", props: { design: "floating-footer", end: ["Submit", "Cancel"] } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "bar-rtl" }] : [fixture]),
   react: ({ design, start, title, end }) => (
     <Bar
       design={design}
