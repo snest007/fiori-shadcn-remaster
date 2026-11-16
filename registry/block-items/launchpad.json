@@ -1,5 +1,60 @@
 {
   "title": "Launchpad",
   "description": "The App Shell block with a SideNavigation wired to its menu button and a page per navigation item.",
-  "registryDependencies": ["@fiori/app-shell", "@fiori/side-navigation", "@fiori/text", "@fiori/title", "@fiori/icons", "@fiori/f6-navigation"]
+  "registryDependencies": ["@fiori/app-shell", "@fiori/side-navigation", "@fiori/text", "@fiori/title", "@fiori/icons", "@fiori/f6-navigation"],
+  "usage": {
+    "summary": "Start an application-entry page from a shared shell, selected side navigation and replaceable page content.",
+    "useWhen": [
+      "Give users an app-entry starting point for choosing business areas and opening favorite apps.",
+      "Keep the selected side-navigation entry synchronized with the page beneath shared shell actions.",
+      "Replace the Home Title/Text placeholder with app tiles and route targets; the current block supplies no tile grid."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Need only the application frame or a custom header/navigation/content container.",
+        "use": [
+          "app-shell",
+          "navigation-layout"
+        ]
+      },
+      {
+        "when": "Find and filter available business records, or explain an empty or unavailable result.",
+        "use": [
+          "list-report",
+          "empty-states"
+        ]
+      },
+      {
+        "when": "Inspect or edit the details of one business object.",
+        "use": [
+          "object-page-floorplan"
+        ]
+      },
+      {
+        "when": "Browse a record list and its selected detail in adjacent columns.",
+        "use": [
+          "master-detail"
+        ]
+      },
+      {
+        "when": "Guide creation through 3–8 validated steps and review.",
+        "use": [
+          "wizard-page"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines",
+    "layout": [
+      "AppShell (shared shell actions and scrolling content)",
+      "  side navigation: SideNavigation with SideNavigationItem and SideNavigationGroup",
+      "    nested entries: SideNavigationSubItem",
+      "    fixed entries: SideNavigationItem for settings and help",
+      "  content: Title and Text for the selected placeholder page"
+    ],
+    "variations": [
+      "Replace the Home placeholder with favorite-app tiles linked to application destinations; retain the shared shell and navigation.",
+      "Replace the inline page-title map and selected-value state with application routes; retain navigation selection and the shell menu’s collapsed-state connection.",
+      "Adapt navigation groups, nested entries and fixed settings/help items to the business roles using the application."
+    ]
+  }
 }

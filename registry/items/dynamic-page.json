@@ -1,5 +1,40 @@
 {
   "title": "DynamicPage",
   "description": "Fiori dynamic page: sticky title (heading, breadcrumbs, KPIs, actions), header that snaps on scroll, expand/collapse and pin buttons, floating footer.",
-  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/toggle-button"]
+  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/toggle-button"],
+  "usage": {
+    "summary": "Compose a page with a structured title, collapsing header, scrolling content and optional finalizing footer.",
+    "useWhen": [
+      "Work with business content while keeping essential context and page actions available as the header collapses.",
+      "Build a freestyle full-screen page or a page inside one FlexibleColumnLayout column.",
+      "Keep filters or supporting header information accessible through expansion and pinning; leave page actions available when the header is snapped."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Need only a header bar, scrolling content and footer without structured collapsing header content.",
+        "use": [
+          "page"
+        ]
+      },
+      {
+        "when": "Organize one object into sections with anchor or tab navigation.",
+        "use": [
+          "object-page"
+        ]
+      },
+      {
+        "when": "Start from a complete record-search page with saved filters, results and mass actions.",
+        "use": [
+          "list-report"
+        ]
+      },
+      {
+        "when": "Show a product-home greeting or hero that scrolls away (5.75rem/92px minimum height; 24rem/384px recommended maximum).",
+        "use": [
+          "hero-banner"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

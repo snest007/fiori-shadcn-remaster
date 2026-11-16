@@ -13,7 +13,7 @@ for (const item of components) {
 }
 for (const name of categoryByName.keys()) if (!components.some((item) => item.name === name)) throw new Error(`${name}: unknown demo registry item`)
 const illustrations = JSON.parse(readFileSync(join(root, "registry/lib/fiori-illustrations/registry-items.json"), "utf8"))
-validateUsage([...components, ...blocks, ...illustrations, { name: "fiori" }, { name: "fiori-theme" }, iconsItem], componentOwners(root, [...components, iconsItem]))
+validateUsage([...components, ...blocks, ...illustrations, { name: "fiori" }, { name: "fiori-theme" }, iconsItem], componentOwners(root, [...components, ...blocks, iconsItem]))
 
 const install = (name) => `npx shadcn add @fiori/${name}`
 const cell = (value) => value.replace(/\|/g, "\\|").replace(/\n/g, " ")

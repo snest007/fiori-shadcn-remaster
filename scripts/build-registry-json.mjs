@@ -28,7 +28,7 @@ const illustrations = JSON.parse(readFileSync("registry/lib/fiori-illustrations/
 validateUsage([
   ...componentMetadata.map((item) => ({ ...item, type: item.type ?? "registry:ui" })), ...blockMetadata, ...illustrations,
   { name: "fiori" }, { name: "fiori-theme" }, iconsItem,
-], componentOwners(process.cwd(), [...componentMetadata, iconsItem]), { requireUsage: process.argv.includes("--require-usage") })
+], componentOwners(process.cwd(), [...componentMetadata, ...blockMetadata, iconsItem]), { requireUsage: process.argv.includes("--require-usage") })
 const components = componentMetadata.map((extra) => ui(extra.name, extra))
 
 // Blocks (floorplans / page templates): registry/blocks/<name>.tsx + registry/block-items/<name>.json

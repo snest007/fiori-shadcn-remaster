@@ -1,5 +1,34 @@
 {
   "title": "Page",
   "registryDependencies": [],
-  "description": "Fiori page container: header bar, scrolling content and a floating or fixed footer bar, with responsive padding and background designs (ui5-page)."
+  "description": "Fiori page container: header bar, scrolling content and a floating or fixed footer bar, with responsive padding and background designs (ui5-page).",
+  "usage": {
+    "summary": "Hold one application screen with a header bar, scrolling content and optional floating or fixed footer.",
+    "useWhen": [
+      "Complete a task on one screen while keeping its header and footer separate from the scrolling content.",
+      "Provide a page container without an expandable, structured header.",
+      "Give the parent a fixed height; use noScrolling when a child owns scrolling and fixedFooter when the footer must dock below content."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Keep filters or structured context in a header that collapses while the page content scrolls.",
+        "use": [
+          "dynamic-page"
+        ]
+      },
+      {
+        "when": "Organize one object’s details with section navigation and an object header.",
+        "use": [
+          "object-page"
+        ]
+      },
+      {
+        "when": "Start from a complete guided creation page with 3–8 steps, validation and review.",
+        "use": [
+          "wizard-page"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

@@ -1,5 +1,60 @@
 {
   "title": "Master-Detail (Flexible Column Layout)",
   "description": "Fiori Flexible Column Layout app: searchable product list, product object view and sales order line item, navigated with useFlexibleColumnLayout.",
-  "registryDependencies": ["@fiori/icons", "@fiori/flexible-column-layout", "@fiori/bar", "@fiori/button", "@fiori/input", "@fiori/list", "@fiori/tag", "@fiori/f6-navigation"]
+  "registryDependencies": ["@fiori/icons", "@fiori/flexible-column-layout", "@fiori/bar", "@fiori/button", "@fiori/input", "@fiori/list", "@fiori/tag", "@fiori/f6-navigation"],
+  "usage": {
+    "summary": "Browse a searchable record list beside its selected detail and, when needed, a related sub-detail.",
+    "useWhen": [
+      "Select records from a list while keeping their detail visible in an adjacent column when space permits.",
+      "Open a related sub-object in a third column, with full-screen and close actions for the selected detail.",
+      "Start from a working list/detail navigation example and replace the inline products and sales-order items."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Search and filter records with saved views, a results table and mass actions.",
+        "use": [
+          "list-report"
+        ]
+      },
+      {
+        "when": "Inspect or edit one object without keeping a record list beside it.",
+        "use": [
+          "object-page-floorplan"
+        ]
+      },
+      {
+        "when": "Show lightweight temporary details tied to an opener.",
+        "use": [
+          "popover"
+        ]
+      },
+      {
+        "when": "Compose different related pages and column contents instead of adapting the sample product flow.",
+        "use": [
+          "flexible-column-layout"
+        ]
+      },
+      {
+        "when": "Offer an application-entry page with favorite app tiles.",
+        "use": [
+          "launchpad"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc",
+    "layout": [
+      "viewport frame",
+      "  header: native application heading",
+      "  content: FlexibleColumnLayout",
+      "    start column: Bar, Input with InputIcon and Icon, then List with ListItemStandard",
+      "    mid column: Bar with Button and Icon column actions, scrolling attributes, Tag and related List",
+      "      related records: ListItemStandard opens the end column",
+      "    end column: Bar with Button and Icon column actions, then scrolling line-item attributes and Tag"
+    ],
+    "variations": [
+      "Replace inline records and search filtering with application data; keep selected record keys and navigation levels synchronized.",
+      "Use only list and detail columns when the object has no related sub-detail; retain close and full-screen behavior.",
+      "Adapt the detail fields and related list to the business object; clear obsolete selections when their column or parent is closed."
+    ]
+  }
 }
