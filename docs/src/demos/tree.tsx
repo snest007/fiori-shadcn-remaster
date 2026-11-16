@@ -34,6 +34,9 @@ function TreeDemo() {
           <TreeItem value="cn" text="China" />
         </TreeItem>
       </Tree>
+      <Tree id="tree-demo-texts" aria-label="Custom file tree" selectionMode="multiple" texts={{ treeItem: "File node", active: "Opens a file", selected: "File selected", notSelected: "File deselected", expandText: "Open folder", collapseText: "Close folder" }}>
+        <TreeItem value="docs" text="Documents"><TreeItem value="report" text="Report.pdf" /></TreeItem>
+      </Tree>
     </div>
   )
 }

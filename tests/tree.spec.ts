@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 const tree = (page: Page) => page.locator("#tree-demo")
-const node = (page: Page, name: string) => tree(page).getByRole("treeitem", { name, exact: true })
+const node = (page: Page, name: string) => tree(page).getByRole("treeitem", { name: `${name} Tree Item Is Active`, exact: true })
 
 test("tree: tree/treeitem roles with level, set size, position, expanded and selected", async ({ page }) => {
   await expect(tree(page).getByRole("tree")).toHaveAttribute("aria-multiselectable", "true")
@@ -21,7 +21,7 @@ test("tree: tree/treeitem roles with level, set size, position, expanded and sel
   await expect(invoices).toHaveAttribute("aria-posinset", "2")
   await expect(invoices).toHaveAttribute("aria-setsize", "2")
   await expect(invoices).toHaveAttribute("aria-expanded", "false")
-  await expect(tree(page).getByRole("treeitem", { name: "Notes.txt 2 KB" })).not.toHaveAttribute("aria-expanded", /.*/)
+  await expect(tree(page).getByRole("treeitem", { name: "Notes.txt 2 KB Tree Item Is Active" })).not.toHaveAttribute("aria-expanded", /.*/)
   await expect(node(page, "Pictures")).toHaveAttribute("aria-expanded", "false") // hasChildren (lazy)
   // The subtree is a role=group owned by the item (aria-owns), as in UI5.
   const owns = await docs.getAttribute("aria-owns")
@@ -48,15 +48,15 @@ test("tree: → expands then moves to the first child, ← moves to the parent t
   await page.keyboard.press("ArrowDown") // collapsed children are skipped
   await expect(node(page, "Invoices")).toBeFocused()
   await page.keyboard.press("End")
-  await expect(tree(page).getByRole("treeitem", { name: "Notes.txt 2 KB" })).toBeFocused()
+  await expect(tree(page).getByRole("treeitem", { name: "Notes.txt 2 KB Tree Item Is Active" })).toBeFocused()
   await page.keyboard.press("Home")
   await expect(node(page, "Documents")).toBeFocused()
 })
 
 test("tree: Space / Enter select in multiple mode; the toggle icon expands without selecting", async ({ page }) => {
-  await tree(page).getByRole("treeitem", { name: "Notes.txt 2 KB" }).focus()
+  await tree(page).getByRole("treeitem", { name: "Notes.txt 2 KB Tree Item Is Active" }).focus()
   await page.keyboard.press("Space")
-  await expect(tree(page).getByRole("treeitem", { name: "Notes.txt 2 KB" })).toHaveAttribute("aria-selected", "true")
+  await expect(tree(page).getByRole("treeitem", { name: "Notes.txt 2 KB Tree Item Is Active" })).toHaveAttribute("aria-selected", "true")
   await page.keyboard.press("ArrowUp")
   await page.keyboard.press("Enter")
   await expect(node(page, "Pictures")).toHaveAttribute("aria-selected", "true")
@@ -75,7 +75,7 @@ test("tree: lazy node loads its children when expanded", async ({ page }) => {
 
 test("tree: single start mode selects one node with Enter", async ({ page }) => {
   const t = page.locator("#tree-demo-single")
-  const n = (name: string) => t.getByRole("treeitem", { name, exact: true })
+  const n = (name: string) => t.getByRole("treeitem", { name: `${name} Tree Item Is Active`, exact: true })
   await expect(n("EMEA")).toHaveAttribute("aria-selected", "true")
   await page.locator("#tree-demo-single").getByRole("treeitem").first().focus()
   await page.keyboard.press("ArrowDown")
@@ -91,8 +91,8 @@ test("tree: RTL retains UI5's physical expand, step-in, collapse and step-out ke
     await page.goto(native ? "/ui5.html?dir=rtl&only=tree-collapsed" : "/index.html?fixtures&dir=rtl&only=tree-collapsed")
     await page.waitForSelector("html[data-ready=true]")
     const root = page.locator('[data-fixture="tree-collapsed"]')
-    const parent = root.getByRole("treeitem", { name: native ? /^Root A\b/ : "Root A", exact: !native })
-    const child = root.getByRole("treeitem", { name: native ? /^A1\b/ : "A1", exact: !native })
+    const parent = root.getByRole("treeitem", { name: "Root A Tree Item Is Active", exact: true })
+    const child = root.getByRole("treeitem", { name: "A1 Tree Item Is Active", exact: true })
     await parent.focus()
     await expect(parent).toBeFocused()
     await page.keyboard.press("ArrowLeft")
@@ -155,14 +155,107 @@ test("Tree row label references retain only owned content through expansion", as
     const target = document.getElementById(id)
     return target?.isConnected ? target.textContent?.trim() : null
   }))
-  await expect.poll(referenceText).toEqual(["Documents"])
+  await expect.poll(referenceText).toEqual(["Documents", "Tree Item Is Active"])
   await row.focus()
   await expect(row).toBeFocused()
   await page.keyboard.press("ArrowLeft")
   await expect(row).toHaveAttribute("aria-expanded", "false")
-  await expect(row).toHaveAccessibleName("Documents")
+  await expect(row).toHaveAccessibleName("Documents Tree Item Is Active")
   await page.keyboard.press("ArrowRight")
   await expect(row).toHaveAttribute("aria-expanded", "true")
-  await expect.poll(referenceText).toEqual(["Documents"])
-  await expect(row).toHaveAccessibleName("Documents")
+  await expect.poll(referenceText).toEqual(["Documents", "Tree Item Is Active"])
+  await expect(row).toHaveAccessibleName("Documents Tree Item Is Active")
+})
+
+for (const rtl of [false, true]) for (const channel of ["name", "name-ref", "description", "description-ref"]) test(`Tree ${rtl ? "RTL " : ""}${channel} reaches UI5's owning tree`, async ({ page, browser }) => {
+  const id = `tree-a11y-${channel}${rtl ? "-rtl" : ""}`
+  const reference = await browser.newPage()
+  try {
+    for (const [index, current] of [page, reference].entries()) {
+      await current.goto(`/${index ? "ui5" : "index"}.html?fixtures&only=${id}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const root = current.locator(`[data-fixture="${id}"]`).getByRole("tree")
+      if (channel.startsWith("name")) await expect(root).toHaveAccessibleName("File hierarchy")
+      else await expect(root).toHaveAccessibleDescription("Browse company documents")
+      if (rtl) await expect(root).toHaveCSS("direction", "rtl")
+      // UI5 TreeList's ul owns slotted rows across shadow roots; a DOM-descendant
+      // locator from that ul cannot reach them, while the fixture locator can.
+      await expect(current.locator(`[data-fixture="${id}"]`).getByRole("treeitem")).toHaveAccessibleName("Documents Tree Item Is Active")
+      if (channel === "description-ref") {
+        await current.locator(`[id="tree-a11y-${channel}${rtl ? "-rtl" : ""}-target${index ? "-ui5" : ""}"]`).evaluate((target) => { target.textContent = "Updated company documents" })
+        await expect(root).toHaveAccessibleDescription("Updated company documents")
+      }
+    }
+  } finally { await reference.close() }
+})
+
+for (const rtl of [false, true]) test(`Tree ${rtl ? "RTL " : ""}item name and popup channel retain the native active hint`, async ({ page, browser }) => {
+  const id = `tree-a11y-item-name${rtl ? "-rtl" : ""}`
+  const reference = await browser.newPage()
+  try {
+    for (const [index, current] of [page, reference].entries()) {
+      await current.goto(`/${index ? "ui5" : "index"}.html?fixtures&only=${id}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const row = current.locator(`[data-fixture="${id}"]`).getByRole("treeitem")
+      await expect(row).toHaveAccessibleName("Document collection Is Active")
+      await expect(row).toHaveAttribute("aria-haspopup", "dialog")
+      expect(await row.getAttribute("aria-describedby")).toBeTruthy()
+      await expect(row).toHaveAccessibleDescription("")
+    }
+  } finally { await reference.close() }
+})
+
+for (const rtl of [false, true]) test(`Tree ${rtl ? "RTL " : ""}custom content cannot replace owned role, states, ids or tab stops`, async ({ page, browser }) => {
+  const id = `tree-a11y-custom${rtl ? "-rtl" : ""}`
+  const reference = await browser.newPage()
+  try {
+    for (const [index, current] of [page, reference].entries()) {
+      await current.goto(`/${index ? "ui5" : "index"}.html?fixtures&only=${id}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const root = current.locator(`[data-fixture="${id}"]`)
+      const row = root.getByRole("treeitem", { name: "Custom documents Tree Item Is Active", exact: true })
+      await expect(row).toHaveAttribute("aria-selected", "false")
+      await expect(row).toHaveAccessibleDescription("Not Selected")
+      await expect(row).toHaveAttribute("aria-expanded", "true")
+      await expect(row).toHaveAttribute("aria-level", "1")
+      await expect(row).toHaveAttribute("aria-posinset", "1")
+      await expect(row).toHaveAttribute("aria-setsize", "1")
+      await expect(row).toHaveAttribute("tabindex", "0")
+      const owns = await row.getAttribute("aria-owns")
+      expect(owns).toBeTruthy()
+      await expect(root.locator(`[id="${owns}"]`)).toHaveAttribute("role", "group")
+      await row.focus()
+      await expect(row).toBeFocused()
+      await current.keyboard.press("Enter")
+      await expect(row).toHaveAttribute("aria-selected", "true")
+      await expect(row).toHaveAccessibleDescription("Selected")
+      const live = current.locator(index ? ".ui5-invisiblemessage-polite" : '[data-slot="tree-announcement"]')
+      await expect(live).toHaveAttribute("aria-live", "polite")
+      await expect(live).toHaveText("Selected")
+      await current.keyboard.press("ArrowRight")
+      await expect(root.getByRole("treeitem", { name: "Owned child Tree Item Is Active", exact: true })).toBeFocused()
+      await current.keyboard.press("ArrowLeft")
+      await expect(row).toBeFocused()
+    }
+  } finally { await reference.close() }
+})
+
+test("Tree text overrides keep selection descriptions and polite announcements connected", async ({ page }) => {
+  const root = page.locator("#tree-demo-texts")
+  const row = root.getByRole("treeitem", { name: "Documents File node Opens a file", exact: true })
+  await expect(row).toHaveAccessibleDescription("File deselected")
+  await expect(row.locator("[title='Open folder']")).toHaveCount(1)
+  await row.focus()
+  await expect(row).toBeFocused()
+  await page.keyboard.press("Space")
+  await expect(row).toHaveAccessibleDescription("File selected")
+  const live = page.locator('[data-slot="tree-announcement"][data-owner="tree-demo-texts"]')
+  await expect(live).toHaveAttribute("aria-live", "polite")
+  await expect(live).toHaveText("File selected")
+  await page.keyboard.press("Space")
+  await expect(row).toHaveAccessibleDescription("File deselected")
+  await expect(live).toHaveText("File deselected")
+  await page.keyboard.press("ArrowRight")
+  await expect(row).toHaveAttribute("aria-expanded", "true")
+  await expect(row.locator("[title='Close folder']")).toHaveCount(1)
 })

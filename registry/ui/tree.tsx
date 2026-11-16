@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 
 import { navigationDownArrow, navigationRightArrow, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -24,10 +25,24 @@ import {
 
 type TreeItemType = "active" | "inactive" | "inactiveSelectable"
 
-type TreeTexts = { expandText: string; collapseText: string }
+type TreeTexts = {
+  expandText: string; collapseText: string; treeItem: string; active: string
+  selected: string; notSelected: string; selectable: string; multiSelectable: string; deletable: string; delete: string
+}
+const defaultTreeTexts: TreeTexts = {
+  expandText: "Expand Node", // UI5 TREE_ITEM_EXPAND_NODE
+  collapseText: "Collapse Node", // UI5 TREE_ITEM_COLLAPSE_NODE
+  treeItem: "Tree Item", // UI5 TREE_ITEM_ARIA_LABEL
+  active: "Is Active", // UI5 LIST_ITEM_ACTIVE
+  selected: "Selected", // UI5 LIST_ITEM_SELECTED
+  notSelected: "Not Selected", // UI5 LIST_ITEM_NOT_SELECTED
+  selectable: "Contains Selectable Items", // UI5 ARIA_LABEL_LIST_SELECTABLE
+  multiSelectable: "Contains Multi-Selectable Items", // UI5 ARIA_LABEL_LIST_MULTISELECTABLE
+  deletable: "Contains Deletable Items", // UI5 ARIA_LABEL_LIST_DELETABLE
+  delete: "Delete", // UI5 DELETE
+}
 const TreeTextsContext = React.createContext<TreeTexts & { onItemToggle?: (value: string, expanded: boolean) => void }>({
-  expandText: "Expand Node",
-  collapseText: "Collapse Node",
+  ...defaultTreeTexts,
 })
 
 type Position = { level: number; posinset: number; setsize: number }
@@ -43,7 +58,12 @@ function withPositions(children: React.ReactNode, level: number) {
   ))
 }
 
+/** aria-label / aria-labelledby name the inner role=tree ul. aria-description /
+ * aria-describedby describe that same ul; reference target text takes precedence.
+ */
 type TreeProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
+  /** Screen-reader and toggle texts; legacy individual text props take precedence. */
+  texts?: Partial<TreeTexts>
   selectionMode?: ListSelectionMode
   /** Values of the selected items (controlled). */
   value?: string[]
@@ -77,16 +97,24 @@ function Tree({
   footerText,
   noDataText,
   separators = "all",
-  expandText = "Expand Node",
-  collapseText = "Collapse Node",
-  deleteText = "Delete",
+  expandText,
+  collapseText,
+  deleteText,
+  texts: textOverrides,
   className,
   children,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
+  "aria-description": ariaDescription,
+  "aria-describedby": ariaDescriptionRef,
   ...props
 }: TreeProps) {
   const id = React.useId()
+  const texts = React.useMemo(() => ({ ...defaultTreeTexts, ...textOverrides,
+    ...(expandText === undefined ? {} : { expandText }), ...(collapseText === undefined ? {} : { collapseText }),
+    ...(deleteText === undefined ? {} : { delete: deleteText }), onItemToggle }), [textOverrides, expandText, collapseText, deleteText, onItemToggle])
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
   const { core, focusArea } = useListCoreValue({
     mode: selectionMode,
     itemRole: "treeitem",
@@ -96,23 +124,45 @@ function Tree({
     onValueChange,
     onItemClick,
     onItemDelete,
-    deleteText,
-    selectedText: "Selected",
-    notSelectedText: "Not Selected",
+    deleteText: texts.delete,
+    selectedText: texts.selected,
+    notSelectedText: texts.notSelected,
+    // TreeTemplate.js delegates to TreeList, which inherits List.js:onSelectionRequested.
+    announceSelection: (selected) => setAnnouncement((old) => ({ text: selected ? texts.selected : texts.notSelected, sequence: old.sequence + 1 })),
   })
-  const texts = React.useMemo(() => ({ expandText, collapseText, onItemToggle }), [expandText, collapseText, onItemToggle])
+  React.useEffect(() => setAnnouncementTarget(core.rootRef.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? document.body), [])
+  React.useEffect(() => {
+    if (!announcement.text) return
+    // InvisibleMessage.js:announce clears the last announcement after 3000 ms.
+    const timer = setTimeout(() => setAnnouncement((old) => old.sequence === announcement.sequence ? { ...old, text: "" } : old), 3000)
+    return () => clearTimeout(timer)
+  }, [announcement])
+  const [referencedDescription, setReferencedDescription] = React.useState("")
+  React.useLayoutEffect(() => {
+    if (!ariaDescriptionRef) { setReferencedDescription(""); return }
+    const root = core.rootRef.current?.getRootNode() as Document | ShadowRoot | undefined
+    if (!root) return
+    // TreeTemplate.js forwards description channels to List.js:ariaDescriptionText.
+    const update = () => setReferencedDescription(ariaDescriptionRef.trim().split(/\s+/).map((target) => root.getElementById(target)?.textContent?.trim()).filter(Boolean).join(" "))
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["id"] })
+    return () => observer.disconnect()
+  }, [ariaDescriptionRef, core.rootRef])
   const hasData = React.Children.toArray(children).length > 0
   const headerId = `${id}-header`
+  const modeId = `${id}-mode`
+  const modeText = hasData ? (isSingle(selectionMode) ? texts.selectable : selectionMode === "multiple" ? texts.multiSelectable : selectionMode === "delete" ? texts.deletable : undefined) : undefined
   return (
     <ListCoreContext.Provider value={core}>
       <TreeTextsContext.Provider value={texts}>
         <div
+          {...props}
           ref={core.rootRef}
           data-slot="tree"
           data-selection-mode={selectionMode}
           data-separators={separators}
           className={cn("fiori-list fiori-tree", className)}
-          {...props}
         >
           {/* UI5 TreeTemplate renders TreeList, inheriting List fastNavigation metadata. */}
           <div className="fiori-list__container" data-sap-ui-fastnavgroup="true">
@@ -124,10 +174,13 @@ function Tree({
             )}
             <div className="fiori-list__scroll">
               {hasData && focusArea("before")}
+              {modeText && <span id={modeId} className="sr-only">{modeText}</span>}
               <ul
                 role="tree"
                 aria-label={ariaLabel}
-                aria-labelledby={ariaLabelledBy ?? (!ariaLabel && !header && headerText ? headerId : undefined)}
+                // List.js:ariaLabelledBy combines the mode and generated header when no explicit name exists.
+                aria-labelledby={ariaLabelledBy ?? (!ariaLabel ? cn(modeText && modeId, !header && headerText && headerId) || undefined : undefined)}
+                aria-description={referencedDescription || ariaDescription}
                 aria-multiselectable={selectionMode === "multiple" || undefined}
                 className="fiori-list__ul"
                 onKeyDown={(e) => {
@@ -146,11 +199,16 @@ function Tree({
             </div>
           </div>
         </div>
+        {announcementTarget && createPortal(<span data-slot="tree-announcement" data-owner={props.id} className="sr-only" role="alert" aria-live="polite" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>, announcementTarget)}
       </TreeTextsContext.Provider>
     </ListCoreContext.Provider>
   )
 }
 
+/** aria-label names the owning treeitem, with UI5's active hint appended.
+ * aria-haspopup reaches that same row. The component owns its role, nesting,
+ * selection, label/description target ids and roving tabindex.
+ */
 type TreeItemBaseProps = Omit<React.ComponentProps<"div">, "value" | "type" | "content"> & {
   value?: string
   type?: TreeItemType
@@ -185,6 +243,13 @@ function TreeItemRoot({
   className,
   children,
   onKeyDown,
+  onKeyUp,
+  onClick,
+  onFocus,
+  onPointerDown,
+  "aria-label": accessibleName,
+  "aria-labelledby": externalNameRef,
+  "aria-describedby": externalDescriptionRef,
   ...props
 }: TreeItemRootProps) {
   const pos = React.useContext(PositionContext)
@@ -205,6 +270,10 @@ function TreeItemRoot({
     value: valueProp,
     type,
     disabled,
+    onKeyUp,
+    onClick,
+    onFocus,
+    onPointerDown,
     onKeyDown: (e) => {
       onKeyDown?.(e as React.KeyboardEvent<HTMLDivElement>)
       if (e.defaultPrevented || e.target !== e.currentTarget || e.altKey || e.ctrlKey || e.metaKey) return
@@ -235,10 +304,16 @@ function TreeItemRoot({
   // item's name and visible text stay its own row.
   const groupId = React.useId()
   const contentId = React.useId()
+  const nameId = React.useId()
+  const descriptionId = React.useId()
+  // TreeItemBase.js:_accInfo adds TREE_ITEM_ARIA_LABEL unless accessibleName exists;
+  // ListItem.js:ariaLabelledByText appends LIST_ITEM_ACTIVE independently of that name.
+  const nameText = [accessibleName || (!externalNameRef && texts.treeItem), type === "active" && texts.active].filter(Boolean).join(" ")
   const showGroup = expanded && childCount > 0
   return (
     <li role="none" className="fiori-tree-item__wrapper">
       <div
+        {...props}
         data-slot="tree-item"
         data-nav-key={value}
         data-level={pos.level}
@@ -253,13 +328,14 @@ function TreeItemRoot({
         aria-expanded={showToggle ? expanded : undefined}
         aria-selected={ariaSelected}
         aria-disabled={disabled || undefined}
-        // ListItemTemplate.js uses ListItem.js:_accessibleNameRef for row content,
-        // excluding the separately named selection checkbox/radio before it.
-        aria-labelledby={props["aria-label"] ? undefined : contentId}
+        // ListItem.js:_accessibleNameRef excludes content for accessibleName and
+        // otherwise references only this row's content plus its owned hidden hint.
+        aria-labelledby={cn(externalNameRef, !accessibleName && !externalNameRef && contentId, nameId)}
+        // ListItemTemplate.js always renders the selection description target, even empty.
+        aria-describedby={cn(externalDescriptionRef, descriptionId)}
         aria-owns={showGroup ? groupId : undefined}
         className={cn("fiori-tree-item", className)}
         {...handlers}
-        {...props}
       >
         <div
           data-li-row=""
@@ -298,6 +374,8 @@ function TreeItemRoot({
           </div>
           {after && sel}
         </div>
+        <span id={nameId} className="sr-only">{nameText}</span>
+        <span id={descriptionId} className="sr-only">{ariaSelected === undefined ? "" : selected ? texts.selected : texts.notSelected}</span>
       </div>
       {showGroup && (
         <ul id={groupId} role="group" className="fiori-tree-item__subtree">
@@ -341,4 +419,4 @@ function TreeItemCustom({ content, ...props }: TreeItemCustomProps) {
   return <TreeItemRoot {...props} content={<div className="fiori-tree-item__custom">{content}</div>} />
 }
 
-export { Tree, TreeItem, TreeItemCustom, type TreeProps, type TreeItemProps, type TreeItemCustomProps, type TreeItemType }
+export { Tree, TreeItem, TreeItemCustom, type TreeProps, type TreeItemProps, type TreeItemCustomProps, type TreeItemType, type TreeTexts }
