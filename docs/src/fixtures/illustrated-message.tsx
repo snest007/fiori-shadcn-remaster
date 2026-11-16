@@ -24,7 +24,7 @@ type Props = {
 
 export default defineFixtures<Props>({
   name: "illustrated-message",
-  cases: [
+  cases: ([
     { id: "illustrated-message-scene", props: { name: "NoData", design: "Scene", width: "44rem", action: "Create" } },
     { id: "illustrated-message-dialog", props: { name: "UnableToLoad", design: "Dialog", width: "30rem", action: "Retry" } },
     { id: "illustrated-message-spot", props: { name: "NoSearchResults", design: "Spot", width: "22rem" } },
@@ -34,7 +34,7 @@ export default defineFixtures<Props>({
     { id: "illustrated-message-auto-dot", props: { name: "NoData", design: "Auto", width: "15rem" } },
     { id: "illustrated-message-patterns", props: { name: "SuccessBalloon", design: "Spot", width: "22rem" } },
     { id: "illustrated-message-tnt", props: { name: "TntSuccess", design: "Dialog", width: "30rem", title: "All set", subtitle: "Your account is ready." } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "illustrated-message-rtl" }] : [fixture]),
   react: ({ name, design, width, title, subtitle, action }) => (
     <IllustratedMessage illustration={illustrations[name]} design={design} titleText={title} subtitleText={subtitle} style={{ width }}>
       {action && <Button variant="emphasized">{action}</Button>}

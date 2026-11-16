@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import type { IllustrationData, IllustrationSize } from "@/lib/fiori-illustrations/types"
 import { cn } from "@/lib/utils"
@@ -91,6 +92,7 @@ function IllustratedMessage({
   children,
   ...props
 }: IllustratedMessageProps) {
+  const { t } = useFioriLocale()
   const ref = React.useRef<HTMLDivElement>(null)
   const uid = "im" + React.useId().replace(/[^a-zA-Z0-9]/g, "") + "-"
   const [autoMedia, setAutoMedia] = React.useState<Media | undefined>(undefined)
@@ -152,8 +154,8 @@ function IllustratedMessage({
   // A design was just applied: it may still overflow a height-constrained container, then step down again.
   React.useLayoutEffect(apply, [apply, autoMedia])
 
-  const title = titleText === undefined ? illustration.title : titleText
-  const subtitle = subtitleText === undefined ? illustration.subtitle : subtitleText
+  const title = titleText === undefined && illustration.title ? t(illustrationTitleKeys[illustration.name] ?? "", illustration.title) : titleText === undefined ? illustration.title : titleText
+  const subtitle = subtitleText === undefined && illustration.subtitle ? t(illustrationSubtitleKeys[illustration.name] ?? "", illustration.subtitle) : subtitleText === undefined ? illustration.subtitle : subtitleText
   const size = media && sizeOf(media)
   const svg = size ? illustration[size] : undefined
   const hcSvg = size ? illustration.hc?.[size] : undefined
@@ -210,3 +212,155 @@ function IllustratedMessage({
 }
 
 export { IllustratedMessage, type IllustratedMessageProps, type IllustratedMessageDesign }
+
+// UI5 illustrations/<Name>.js registers the SAP title/subtitle key for the rendered illustration.
+const illustrationTitleKeys: Record<string,string> = {
+  "Achievement": "IM_TITLE_ACHIEVEMENT",
+  "AddColumn": "IM_TITLE_ADDCOLUMN",
+  "AddDimensions": "IM_TITLE_ADDDIMENSIONS",
+  "AddPeople": "IM_TITLE_ADDPEOPLE",
+  "AddPeopleToCalendar": "IM_TITLE_ADDPEOPLE",
+  "AddingColumns": "IM_TITLE_ADDCOLUMN",
+  "BalloonSky": "IM_TITLE_BALLOONSKY",
+  "BeforeSearch": "IM_TITLE_BEFORESEARCH",
+  "Connection": "IM_TITLE_UNABLETOLOAD",
+  "DragFilesToUpload": "IM_TITLE_UPLOADCOLLECTION",
+  "EmptyCalendar": "IM_TITLE_NOACTIVITIES",
+  "EmptyList": "IM_TITLE_NOENTRIES",
+  "EmptyPlanningCalendar": "IM_TITLE_EMPTYPLANNINGCALENDAR",
+  "ErrorScreen": "IM_TITLE_UNABLETOUPLOAD",
+  "FilterTable": "IM_TITLE_FILTERTABLE",
+  "FilteringColumns": "IM_TITLE_FILTERTABLE",
+  "GroupTable": "IM_TITLE_GROUPTABLE",
+  "GroupingColumns": "IM_TITLE_GROUPTABLE",
+  "KeyTask": "IM_TITLE_SUCCESSSCREEN",
+  "NewMail": "IM_TITLE_NEWMAIL",
+  "NoActivities": "IM_TITLE_NOACTIVITIES",
+  "NoChartData": "IM_TITLE_NODIMENSIONSSET",
+  "NoColumnsSet": "IM_TITLE_NOCOLUMNSSET",
+  "NoData": "IM_TITLE_NODATA",
+  "NoDimensionsSet": "IM_TITLE_NODIMENSIONSSET",
+  "NoEntries": "IM_TITLE_NOENTRIES",
+  "NoFilterResults": "IM_TITLE_NOFILTERRESULTS",
+  "NoMail": "IM_TITLE_NOMAIL",
+  "NoMail_v1": "IM_TITLE_NOMAIL",
+  "NoNotifications": "IM_TITLE_NONOTIFICATIONS",
+  "NoSavedItems": "IM_TITLE_NOSAVEDITEMS",
+  "NoSavedItems_v1": "IM_TITLE_NOSAVEDITEMS",
+  "NoSearchResults": "IM_TITLE_NOSEARCHRESULTS",
+  "NoTasks": "IM_TITLE_NOTASKS",
+  "NoTasks_v1": "IM_TITLE_NOTASKS",
+  "PageNotFound": "IM_TITLE_PAGENOTFOUND",
+  "ReceiveAppreciation": "IM_TITLE_BALLOONSKY",
+  "ReloadScreen": "IM_TITLE_UNABLETOLOAD",
+  "ResizeColumn": "IM_TITLE_RESIZECOLUMN",
+  "ResizingColumns": "IM_TITLE_RESIZECOLUMN",
+  "SearchEarth": "IM_TITLE_BEFORESEARCH",
+  "SearchFolder": "IM_TITLE_NOSEARCHRESULTS",
+  "SignOut": "IM_TITLE_SIGNOUT",
+  "SimpleBalloon": "IM_TITLE_BALLOONSKY",
+  "SimpleBell": "IM_TITLE_NONOTIFICATIONS",
+  "SimpleCalendar": "IM_TITLE_NOACTIVITIES",
+  "SimpleCheckMark": "IM_TITLE_SUCCESSSCREEN",
+  "SimpleConnection": "IM_TITLE_UNABLETOLOAD",
+  "SimpleEmptyDoc": "IM_TITLE_NODATA",
+  "SimpleEmptyList": "IM_TITLE_NOENTRIES",
+  "SimpleError": "IM_TITLE_UNABLETOUPLOAD",
+  "SimpleMagnifier": "IM_TITLE_BEFORESEARCH",
+  "SimpleMail": "IM_TITLE_NOMAIL",
+  "SimpleNoSavedItems": "IM_TITLE_NOSAVEDITEMS",
+  "SimpleNotFoundMagnifier": "IM_TITLE_NOSEARCHRESULTS",
+  "SimpleReload": "IM_TITLE_UNABLETOLOAD",
+  "SimpleTask": "IM_TITLE_NOTASKS",
+  "SleepingBell": "IM_TITLE_NONOTIFICATIONS",
+  "SortColumn": "IM_TITLE_SORTCOLUMN",
+  "SortingColumns": "IM_TITLE_SORTCOLUMN",
+  "SuccessBalloon": "IM_TITLE_BALLOONSKY",
+  "SuccessCheckMark": "IM_TITLE_SUCCESSSCREEN",
+  "SuccessHighFive": "IM_TITLE_BALLOONSKY",
+  "SuccessScreen": "IM_TITLE_SUCCESSSCREEN",
+  "Survey": "IM_TITLE_SURVEY",
+  "Tent": "IM_TITLE_NODATA",
+  "UnableToLoad": "IM_TITLE_UNABLETOLOAD",
+  "UnableToLoadImage": "IM_TITLE_UNABLETOLOADIMAGE",
+  "UnableToUpload": "IM_TITLE_UNABLETOUPLOAD",
+  "UploadCollection": "IM_TITLE_UPLOADCOLLECTION",
+  "UploadToCloud": "IM_TITLE_UPLOADTOCLOUD",
+  "UserHasSignedUp": "IM_TITLE_USERHASSIGNEDUP"
+}
+
+// UI5 illustrations/<Name>.js registers the SAP title/subtitle key for the rendered illustration.
+const illustrationSubtitleKeys: Record<string,string> = {
+  "Achievement": "IM_SUBTITLE_ACHIEVEMENT",
+  "AddColumn": "IM_SUBTITLE_ADDCOLUMN",
+  "AddDimensions": "IM_SUBTITLE_ADDDIMENSIONS",
+  "AddPeople": "IM_SUBTITLE_ADDPEOPLE",
+  "AddPeopleToCalendar": "IM_SUBTITLE_ADDPEOPLE",
+  "AddingColumns": "IM_SUBTITLE_ADDCOLUMN",
+  "BalloonSky": "IM_SUBTITLE_BALLOONSKY",
+  "BeforeSearch": "IM_SUBTITLE_BEFORESEARCH",
+  "Connection": "IM_SUBTITLE_UNABLETOLOAD",
+  "DragFilesToUpload": "IM_SUBTITLE_UPLOADCOLLECTION",
+  "EmptyCalendar": "IM_SUBTITLE_NOACTIVITIES",
+  "EmptyList": "IM_SUBTITLE_NOENTRIES",
+  "EmptyPlanningCalendar": "IM_SUBTITLE_EMPTYPLANNINGCALENDAR",
+  "ErrorScreen": "IM_SUBTITLE_UNABLETOUPLOAD",
+  "FilterTable": "IM_SUBTITLE_FILTERTABLE",
+  "FilteringColumns": "IM_SUBTITLE_FILTERTABLE",
+  "GroupTable": "IM_SUBTITLE_GROUPTABLE",
+  "GroupingColumns": "IM_SUBTITLE_GROUPTABLE",
+  "KeyTask": "IM_SUBTITLE_SUCCESSSCREEN",
+  "NewMail": "IM_SUBTITLE_NEWMAIL",
+  "NoActivities": "IM_SUBTITLE_NOACTIVITIES",
+  "NoChartData": "IM_SUBTITLE_NODIMENSIONSSET",
+  "NoColumnsSet": "IM_SUBTITLE_NOCOLUMNSSET",
+  "NoData": "IM_SUBTITLE_NODATA",
+  "NoDimensionsSet": "IM_SUBTITLE_NODIMENSIONSSET",
+  "NoEntries": "IM_SUBTITLE_NOENTRIES",
+  "NoFilterResults": "IM_SUBTITLE_NOFILTERRESULTS",
+  "NoMail": "IM_SUBTITLE_NOMAIL",
+  "NoMail_v1": "IM_SUBTITLE_NOMAIL",
+  "NoNotifications": "IM_SUBTITLE_NONOTIFICATIONS",
+  "NoSavedItems": "IM_SUBTITLE_NOSAVEDITEMS",
+  "NoSavedItems_v1": "IM_SUBTITLE_NOSAVEDITEMS",
+  "NoSearchResults": "IM_SUBTITLE_NOSEARCHRESULTS",
+  "NoTasks": "IM_SUBTITLE_NOTASKS",
+  "NoTasks_v1": "IM_SUBTITLE_NOTASKS",
+  "PageNotFound": "IM_SUBTITLE_PAGENOTFOUND",
+  "ReceiveAppreciation": "IM_SUBTITLE_BALLOONSKY",
+  "ReloadScreen": "IM_SUBTITLE_UNABLETOLOAD",
+  "ResizeColumn": "IM_SUBTITLE_RESIZECOLUMN",
+  "ResizingColumns": "IM_SUBTITLE_RESIZECOLUMN",
+  "SearchEarth": "IM_SUBTITLE_BEFORESEARCH",
+  "SearchFolder": "IM_SUBTITLE_NOSEARCHRESULTS",
+  "SignOut": "IM_SUBTITLE_SIGNOUT",
+  "SimpleBalloon": "IM_SUBTITLE_BALLOONSKY",
+  "SimpleBell": "IM_SUBTITLE_NONOTIFICATIONS",
+  "SimpleCalendar": "IM_SUBTITLE_NOACTIVITIES",
+  "SimpleCheckMark": "IM_SUBTITLE_SUCCESSSCREEN",
+  "SimpleConnection": "IM_SUBTITLE_UNABLETOLOAD",
+  "SimpleEmptyDoc": "IM_SUBTITLE_NODATA",
+  "SimpleEmptyList": "IM_SUBTITLE_NOENTRIES",
+  "SimpleError": "IM_SUBTITLE_UNABLETOUPLOAD",
+  "SimpleMagnifier": "IM_SUBTITLE_BEFORESEARCH",
+  "SimpleMail": "IM_SUBTITLE_NOMAIL",
+  "SimpleNoSavedItems": "IM_SUBTITLE_NOSAVEDITEMS",
+  "SimpleNotFoundMagnifier": "IM_SUBTITLE_NOSEARCHRESULTS",
+  "SimpleReload": "IM_SUBTITLE_UNABLETOLOAD",
+  "SimpleTask": "IM_SUBTITLE_NOTASKS",
+  "SleepingBell": "IM_SUBTITLE_NONOTIFICATIONS",
+  "SortColumn": "IM_SUBTITLE_SORTCOLUMN",
+  "SortingColumns": "IM_SUBTITLE_SORTCOLUMN",
+  "SuccessBalloon": "IM_SUBTITLE_BALLOONSKY",
+  "SuccessCheckMark": "IM_SUBTITLE_SUCCESSSCREEN",
+  "SuccessHighFive": "IM_SUBTITLE_BALLOONSKY",
+  "SuccessScreen": "IM_SUBTITLE_SUCCESSSCREEN",
+  "Survey": "IM_SUBTITLE_SURVEY",
+  "Tent": "IM_SUBTITLE_NODATA",
+  "UnableToLoad": "IM_SUBTITLE_UNABLETOLOAD",
+  "UnableToLoadImage": "IM_SUBTITLE_UNABLETOLOADIMAGE",
+  "UnableToUpload": "IM_SUBTITLE_UNABLETOUPLOAD",
+  "UploadCollection": "IM_SUBTITLE_UPLOADCOLLECTION",
+  "UploadToCloud": "IM_SUBTITLE_UPLOADTOCLOUD",
+  "UserHasSignedUp": "IM_SUBTITLE_USERHASSIGNEDUP"
+}
