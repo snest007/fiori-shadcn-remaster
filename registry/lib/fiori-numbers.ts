@@ -41,6 +41,19 @@ export function parseNumber(text: string, locale: string): number {
   // NumberFormat.parse removes whitespace before _checkGrouping; spacing group separators
   // (fr-FR included) therefore are not subject to dot/comma ambiguity validation.
   normalized = normalized.replace(/\s/gu, "")
+  // OpenUI5 NumberFormat.parse builds its syntax regexp from CLDR symbols before
+  // replacing the decimal separator. Otherwise a foreign dot becomes a legal decimal.
+  const quote = (symbol: string) => symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const percentParts = new Intl.NumberFormat(locale, { style: "percent" }).formatToParts(0.5)
+  const percentSign = percentParts.find(part => part.type === "percentSign")?.value ?? "%"
+  const percentFirst = percentParts.findIndex(part => part.type === "percentSign") < percentParts.findIndex(part => part.type === "integer")
+  const syntax = new RegExp(`^${percentFirst ? "%?" : ""}[+-]?(?:[0-9${quote(group)}]+|[0-9${quote(group)}]*${quote(decimal)}[0-9]*)(?:[eE][+-]?[0-9]+)?${percentFirst ? "" : "%?"}$`)
+  if (!syntax.test(normalized)) return NaN
+  // NumberFormat.parse admits ASCII % through the percent pattern even for floats,
+  // but only shifts when the locale's CLDR percentSign itself was present. In ar-EG
+  // that sign is Arabic, so native parsing of ASCII "50%" is 50 rather than 0.5.
+  const percentage = normalized.includes("%") && percentSign === "%"
+  normalized = normalized.replace("%", "")
   const pieces = normalized.split(decimal)
   if (pieces.length > 2 || pieces[1]?.includes(group)) return NaN
   if (pieces[0].includes(group)) {
@@ -55,5 +68,7 @@ export function parseNumber(text: string, locale: string): number {
   normalized = normalized.replaceAll(group, "").replace(decimal, ".")
   if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(normalized)) return NaN
   const result = Number(normalized)
-  return Number.isFinite(result) ? result : NaN
+  // Native float parsing retains Infinity for overflow; component validity still
+  // independently rejects non-finite values before committing them.
+  return percentage ? result / 100 : result
 }
