@@ -24,6 +24,10 @@ Browse the [component docs and floorplans](https://snest007.github.io/fiori-shad
 | Illustrations | 118 SAP illustrations (72 Fiori + 46 TNT) in Scene/Dialog/Spot/Dot sizes; `illustrations-core` (14 common states) ships with IllustratedMessage, the rest as `@fiori/illustration-<name>` |
 | Verified | 600 fixtures pixel-diffed vs UI5 2.28 in 4 themes × 2 densities (4800 cells, worst 1.6%); components without a UI5 Web Component (FilterBar, ValueHelpDialog, ObjectPage, Object*) checked against SAP's guideline images; axe; 391 Playwright tests incl. Fiori keyboard models |
 
+## Browse in Storybook
+
+Browse [Storybook](https://snest007.github.io/fiori-shadcn-remaster/storybook/) for individual component states, live Controls, source code and usage guidance. Run `pnpm storybook` locally at `http://localhost:6006`.
+
 ## Install into an app
 
 Requires Tailwind CSS v4 and React 19.

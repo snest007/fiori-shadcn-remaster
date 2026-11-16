@@ -16,6 +16,10 @@ const valueStateDefaultText: Record<Exclude<ValueState, "none">, string> = {
   information: "Informative entry",
 }
 
+/**
+ * @accessibility Tab reaches the inner native input. Connect Label.htmlFor to Input.id, or pass aria-label / aria-labelledby; these native ARIA props land on the input, not its visual wrapper.
+ * @accessibility aria-describedby on the input is merged with the focused value-state message id. Negative sets aria-invalid; valueStateMessage is the overridable role=status message. Read-only and disabled fields hide that message.
+ */
 type InputProps = Omit<React.ComponentProps<"input">, "size"> & {
   valueState?: ValueState
   /**

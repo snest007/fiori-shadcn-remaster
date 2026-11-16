@@ -14,3 +14,4 @@ sapui5/.ui5/
 .integration/
 .worktrees/
 .ref/
+storybook-static/

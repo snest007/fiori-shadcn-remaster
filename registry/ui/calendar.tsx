@@ -85,6 +85,10 @@ const defaultLabels: CalendarLabels = {
   yearRangePicker: "Year Range Picker",
 }
 
+/**
+ * @accessibility Native aria-label / aria-labelledby / aria-describedby reach the calendar root. labels names header buttons, picker grids, week numbers and range/day descriptions; generated gridcells retain aria-selected and aria-disabled.
+ * @accessibility Tab visits the header and one roving gridcell. Arrows move by day/week; Home/End move within the row; PageUp/Down changes month; Shift+PageUp/Down changes year. Enter/Space selects; F4 opens months and Shift+F4 opens years/year ranges. The current day-picker horizontal keys still use LTR order in RTL.
+ */
 type CalendarProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
   selectionMode?: CalendarSelectionMode
   /** Selected days. In "range" mode: [start] while choosing, then [start, end]. */
@@ -117,6 +121,7 @@ type CalendarProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChang
   selectionLevel?: "day" | "month" | "year"
   /** Move focus into the calendar when it mounts (used by the date pickers' popovers). */
   autoFocus?: boolean
+  /** Override header-button, picker, week-number and selected-range names on their owning buttons/grids/cells. */
   labels?: Partial<CalendarLabels>
 }
 

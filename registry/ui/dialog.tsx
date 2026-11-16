@@ -43,6 +43,10 @@ function DialogOverlay({ className, ...props }: React.ComponentProps<typeof Dial
   return <DialogPrimitive.Overlay data-slot="dialog-overlay" className={cn("fiori-dialog-overlay z-50", className)} {...props} />
 }
 
+/**
+ * @accessibility DialogTitle names the dialog via aria-labelledby; DialogDescription supplies aria-describedby. Native aria-label / aria-labelledby / aria-describedby props land on DialogContent. Negative/critical states own role=alertdialog; other states own role=dialog.
+ * @accessibility Opening focuses the first focusable element; modal Tab stays inside, Escape closes and focus returns to DialogTrigger. movementTexts names/describes the keyboard drag/resize handle: arrows move and Shift+arrows resize.
+ */
 type DialogContentProps = React.ComponentProps<typeof DialogPrimitive.Content> & {
   /**
    * Value state of the dialog (ui5-dialog `state`): colors the header line and shows the state icon.

@@ -64,6 +64,11 @@ const createDataTableColumnHelper = <TData extends RowData>() => createColumnHel
 type DataTableTexts = { sortAscending: string; sortDescending: string }
 const defaultDataTableTexts: DataTableTexts = { sortAscending: "Sort Ascending", sortDescending: "Sort Descending" }
 
+/**
+ * @accessibility aria-label / aria-labelledby name the inner Table grid. Table owns row/gridcell/columnheader roles, selection states and row/column indices; custom cell JSX stays inside that owned gridcell. Virtualization keeps the full aria-rowcount and absolute aria-rowindex.
+ * @accessibility The table is one Tab stop. Arrows navigate rows/cells (horizontal arrows mirror in RTL); Home/End and PageUp/Down navigate; F2/Enter enters cell content and F2/Escape returns. Space selects rows; Ctrl+A / Ctrl+Shift+A selects/clears multi-selection. Sort headers preserve aria-sort.
+ * @accessibility texts overrides inherited Table names and announcements; dataTableTexts names the application sorting-menu actions. Native aria-describedby is forwarded to the Table wrapper; the grid has the component's selection aria-description.
+ */
 type DataTableProps<TData extends RowData> = Omit<TableProps, "children" | "virtualRows" | "selectedRows" | "defaultSelectedRows"> & {
   data: TData[]
   columns: DataTableColumnDef<TData, any>[] // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -92,6 +97,7 @@ type DataTableProps<TData extends RowData> = Omit<TableProps, "children" | "virt
   rowHeight?: number
   virtualHeight?: string
   overscan?: number
+  /** Override the Sort Ascending / Sort Descending names on the sorting menu items. */
   dataTableTexts?: Partial<DataTableTexts>
 }
 
