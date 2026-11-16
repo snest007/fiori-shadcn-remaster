@@ -1,7 +1,8 @@
 {
   "title": "Input",
   "registryDependencies": [
-    "@fiori/icons"
+    "@fiori/icons",
+    "@fiori/locale"
   ],
   "description": "Fiori input with value states and value state message.",
   "usage": {
@@ -29,7 +30,7 @@
         ]
       },
       {
-        "when": "Choose one predefined value: use Select for 2–12 options, ComboBox for type-ahead across 20–200 options, or ValueHelpDialog above 200 entries or for several searchable attributes.",
+        "when": "Choose one predefined value: use Select for 2\u201312 options, ComboBox for type-ahead across 20\u2013200 options, or ValueHelpDialog above 200 entries or for several searchable attributes.",
         "use": [
           "select",
           "combobox",

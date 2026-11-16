@@ -7,13 +7,13 @@ const states = ["negative", "critical", "positive", "information"] as const
 
 export default defineFixtures<Props>({
   name: "input",
-  cases: [
+  cases: ([
     { id: "input-empty", props: { placeholder: "Enter a name" } },
     { id: "input-value", props: { value: "SAP SE" } },
     ...states.map((valueState) => ({ id: `input-${valueState}`, props: { value: "SAP SE", valueState } })),
     { id: "input-disabled", props: { value: "SAP SE", disabled: true } },
     { id: "input-readonly", props: { value: "SAP SE", readOnly: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "input-rtl" }] : [fixture]),
   react: ({ value, ...p }) => (
     <Input wrapperClassName="w-(--w)" defaultValue={value} valueStateMessage={null} aria-label="Input" {...p} />
   ),
