@@ -1,5 +1,31 @@
 {
   "title": "ExpandableText",
   "description": "Fiori expandable text: text cut at a character limit with Show More / Show Less, in place or in a popover (ui5-expandable-text).",
-  "registryDependencies": ["@fiori/button", "@fiori/link", "@fiori/popover"]
+  "registryDependencies": [
+    "@fiori/button",
+    "@fiori/link",
+    "@fiori/popover"
+  ],
+  "usage": {
+    "summary": "Keep prose within a character limit while letting users reveal the full text.",
+    "useWhen": [
+      "Let users read a description in constrained space and reveal the rest when needed.",
+      "Use maxCharacters (100 by default) with overflowMode=\"InPlace\" or \"Popover\" to choose where the full text appears."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Show body text that already fits, or truncate it without offering a reveal action.",
+        "use": [
+          "text"
+        ]
+      },
+      {
+        "when": "Let users edit the prose rather than read it.",
+        "use": [
+          "textarea"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

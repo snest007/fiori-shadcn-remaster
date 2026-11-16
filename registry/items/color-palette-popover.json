@@ -1,5 +1,28 @@
 {
   "title": "ColorPalettePopover",
   "description": "Fiori color palette popover with external opener, selection dismissal and persistent local palette history.",
-  "registryDependencies": ["@fiori/color-palette", "@fiori/popover"]
+  "registryDependencies": ["@fiori/color-palette", "@fiori/popover"],
+  "usage": {
+    "summary": "Choose a predefined color in an on-demand anchored surface.",
+    "useWhen": [
+      "Let users open a contextual chooser to select a predefined color.",
+      "Keep the swatches near the opener while preserving space in the page.",
+      "Enable showMoreColors when users may choose a color outside the supplied palette."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Keep predefined color swatches visible without opening a surface.",
+        "use": [
+          "color-palette"
+        ]
+      },
+      {
+        "when": "Work directly with arbitrary colors or channel values rather than start from swatches.",
+        "use": [
+          "color-picker"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

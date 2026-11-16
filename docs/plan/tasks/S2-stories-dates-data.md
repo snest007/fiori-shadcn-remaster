@@ -22,7 +22,9 @@ Pickers: closed + `Open` story each, min/max, value states, formats. `table`: se
    states) and `docs/src/demos/<name>.tsx` (a realistic starting example), then write
    `docs/stories/<category>/<name>.stories.tsx`.
 3. Open each docs page in `pnpm storybook` in Morning Horizon and High Contrast Black and check that it reads well
-   (Controls change the component; "Show code" is copy-pasteable; no story overlaps another).
+   (Controls change the component; "Show code" is copy-pasteable; no story overlaps another), and use it with the keyboard
+   only: every control is reachable, named, and behaves as in the component's spec (S0 "Accessibility is part of
+   every example").
 
 ## Files
 

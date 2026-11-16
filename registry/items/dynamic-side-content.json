@@ -1,5 +1,34 @@
 {
   "title": "DynamicSideContent",
   "registryDependencies": [],
-  "description": "Fiori dynamic side content: main and side content laid out by the control's width (S/M/L/XL), side position, fall-down, equal split and toggle (ui5-dynamic-side-content)."
+  "description": "Fiori dynamic side content: main and side content laid out by the control's width (S/M/L/XL), side position, fall-down, equal split and toggle (ui5-dynamic-side-content).",
+  "usage": {
+    "summary": "Keep supplementary context beside or below the main task without covering its content.",
+    "useWhen": [
+      "Consult relevant supporting information while completing a task that remains possible without the side content.",
+      "Let supporting content move below the main area as the container narrows instead of overlaying it.",
+      "At widths of 720px or less, provide a toggleContents() trigger for hidden side content, or set sideContentVisibility=\"alwaysShow\" to keep it below the main area."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Navigate between a record list, selected object and related sub-object as separate pages.",
+        "use": [
+          "flexible-column-layout"
+        ]
+      },
+      {
+        "when": "Place application navigation beside page content under a shared header.",
+        "use": [
+          "navigation-layout"
+        ]
+      },
+      {
+        "when": "Show essential object attributes or finalizing actions that users must access to complete the task.",
+        "use": [
+          "object-page"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

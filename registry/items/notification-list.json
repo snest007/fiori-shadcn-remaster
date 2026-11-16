@@ -2,5 +2,28 @@
   "title": "Notification List",
   "dependencies": [],
   "registryDependencies": ["@fiori/icons", "@fiori/busy-indicator", "@fiori/button", "@fiori/link", "@fiori/list", "@fiori/menu", "@fiori/tag"],
-  "description": "Fiori notifications with state icons, read/unread, importance, actions menu, close button, More/Less and collapsible groups with button or scroll growing (ui5-notification-list)."
+  "description": "Fiori notifications with state icons, read/unread, importance, actions menu, close button, More/Less and collapsible groups with button or scroll growing (ui5-notification-list).",
+  "usage": {
+    "summary": "Collect business-event updates that users may read, act on or dismiss without interrupting their task.",
+    "useWhen": [
+      "Keep users informed about relevant reminders, alerts or workflow updates they can revisit.",
+      "Group related events and distinguish unread state and importance so users can decide what needs attention.",
+      "Provide item actions or dismissal only when they are useful for the event."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Confirm a completed action transiently without keeping an event collection.",
+        "use": [
+          "toast"
+        ]
+      },
+      {
+        "when": "Browse ordinary business items rather than event-triggered updates.",
+        "use": [
+          "list"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

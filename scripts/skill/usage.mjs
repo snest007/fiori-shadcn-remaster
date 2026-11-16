@@ -78,6 +78,7 @@ export function componentOwners(root, items) {
   for (const item of items) {
     const files = new Set([
       ...((item.type ?? "registry:ui") === "registry:ui" ? [`registry/ui/${item.name}.tsx`] : []),
+      ...(item.type === "registry:block" ? [`registry/blocks/${item.name}.tsx`] : []),
       ...(item.files ?? []).filter((file) => file.type === "registry:ui").map((file) => file.path),
     ])
     for (const name of [...files].flatMap((file) => runtimeExports(join(root, file))).filter((name) => /^[A-Z]/.test(name))) {

@@ -1,6 +1,28 @@
 {
   "title": "Panel",
-  "dependencies": ["radix-ui"],
-  "registryDependencies": ["@fiori/icons", "@fiori/button"],
-  "description": "Fiori panel: expandable (animated) or fixed, header text or custom header."
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button"
+  ],
+  "description": "Fiori panel: expandable (animated) or fixed, header text or custom header.",
+  "usage": {
+    "summary": "Group information within a page in a section that can collapse to save space.",
+    "useWhen": [
+      "Let users reveal or hide related information within the current page.",
+      "Keep a section title and its content together without implying navigation to another destination.",
+      "Use fixed for always-visible content; use collapsed and onToggle when the application controls disclosure."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Provide a focused content preview with navigation or a task action.",
+        "use": [
+          "card"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

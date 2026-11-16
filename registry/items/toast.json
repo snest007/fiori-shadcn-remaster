@@ -1,5 +1,40 @@
 {
   "title": "Toast",
   "registryDependencies": [],
-  "description": "Fiori toast: auto-dismisses after its duration, pauses on hover/focus, nine placements (ui5-toast)."
+  "description": "Fiori toast: auto-dismisses after its duration, pauses on hover/focus, nine placements (ui5-toast).",
+  "usage": {
+    "summary": "Confirm a completed action or provide information in a non-disruptive message that disappears automatically.",
+    "useWhen": [
+      "Reassure users that an action completed without asking them to respond.",
+      "Show information users can understand without leaving their current task.",
+      "Adjust duration when needed; the default is 3000 milliseconds and the minimum is 500."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Keep a contextual message visible alongside otherwise usable page content.",
+        "use": [
+          "message-strip"
+        ]
+      },
+      {
+        "when": "Explain an empty or unavailable content area with an illustration and recovery action.",
+        "use": [
+          "illustrated-message"
+        ]
+      },
+      {
+        "when": "Require an explicit response or confirmation before users continue.",
+        "use": [
+          "dialog"
+        ]
+      },
+      {
+        "when": "Retain business-event updates so users can read, act on or dismiss them later.",
+        "use": [
+          "notification-list"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

@@ -1,5 +1,61 @@
 {
   "title": "App Shell",
   "description": "SAP Fiori launchpad-style shell: a ShellBar wired to notifications, user menu and product switch popovers, with a side navigation slot and a content area.",
-  "registryDependencies": ["@fiori/icons", "@fiori/avatar", "@fiori/button", "@fiori/card", "@fiori/notification-list", "@fiori/popover", "@fiori/product-switch", "@fiori/search", "@fiori/shell-bar", "@fiori/text", "@fiori/title", "@fiori/user-menu", "@fiori/f6-navigation"]
+  "registryDependencies": ["@fiori/icons", "@fiori/avatar", "@fiori/button", "@fiori/card", "@fiori/notification-list", "@fiori/popover", "@fiori/product-switch", "@fiori/search", "@fiori/shell-bar", "@fiori/text", "@fiori/title", "@fiori/user-menu", "@fiori/f6-navigation"],
+  "usage": {
+    "summary": "Frame application pages with shared shell actions, optional side navigation and a scrolling content area.",
+    "useWhen": [
+      "Work across application pages while retaining global search, notifications, profile and product access.",
+      "Start from shell actions already wired to their notification, product-switch and user-menu surfaces.",
+      "Supply page content as children and an optional sideNavigation slot; replace the sample account, search and notification data."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Compose your own header, vertical navigation and content without the sample shell integrations.",
+        "use": [
+          "navigation-layout"
+        ]
+      },
+      {
+        "when": "Build an entry point with selected business-area navigation and app-tile content.",
+        "use": [
+          "launchpad"
+        ]
+      },
+      {
+        "when": "Build the business page itself: filter records, inspect one object, or browse an adjacent list and detail.",
+        "use": [
+          "list-report",
+          "object-page-floorplan",
+          "master-detail"
+        ]
+      },
+      {
+        "when": "Show an empty or recovery view within a frame that already exists.",
+        "use": [
+          "empty-states"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines",
+    "layout": [
+      "viewport frame",
+      "  header: ShellBar with ShellBarBranding, ShellBarSearch, SearchItem, Avatar and ShellBarItem",
+      "    menu trigger: Button with Icon when side navigation is a render function",
+      "  notification surface: Popover with PopoverAnchor and PopoverContent",
+      "    header: PopoverHeader with PopoverTitle",
+      "    body: PopoverBody with NotificationList",
+      "      groups: NotificationListGroupItem with NotificationListItem",
+      "  product surface: Popover with PopoverAnchor and PopoverContent",
+      "    body: PopoverBody with ProductSwitch and ProductSwitchItem",
+      "  profile surface: UserMenu with UserMenuItem",
+      "  body: optional caller-supplied side navigation beside scrolling main content",
+      "    default content: Card with Title and Text; replaced by children"
+    ],
+    "variations": [
+      "Replace the placeholder content with the application’s page and supply sideNavigation as a render function to connect its collapsed state to the menu button.",
+      "Replace sample search results, account, product targets and notification handlers with application services; preserve each shell action’s opener and focus return.",
+      "Omit sideNavigation for a page that needs no navigation rail; the menu trigger is then absent."
+    ]
+  }
 }

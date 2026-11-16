@@ -2,5 +2,40 @@
   "title": "Popover",
   "dependencies": ["radix-ui"],
   "registryDependencies": [],
-  "description": "Fiori popover with arrow, optional header/footer bars and padded content (ui5-popover)."
+  "description": "Fiori popover with arrow, optional header/footer bars and padded content (ui5-popover).",
+  "usage": {
+    "summary": "Show information or actions tied to an opener without leaving the current page.",
+    "useWhen": [
+      "Let users inspect details for a list item or edit related information while staying in context.",
+      "Place lightweight content beside the element it describes and keep the background available.",
+      "Add a header or footer only when the content needs a title or an action."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Require explicit input or confirmation and block interaction with the surrounding page.",
+        "use": [
+          "dialog"
+        ]
+      },
+      {
+        "when": "Present contextual content that takes more than one-third of the phone screen.",
+        "use": [
+          "responsive-popover"
+        ]
+      },
+      {
+        "when": "Offer commands in menu rows or submenus rather than mixed contextual content.",
+        "use": [
+          "menu"
+        ]
+      },
+      {
+        "when": "Keep selected-object details in a dedicated area beside the list.",
+        "use": [
+          "master-detail"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

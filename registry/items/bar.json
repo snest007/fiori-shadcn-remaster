@@ -1,4 +1,27 @@
 {
   "title": "Bar",
-  "description": "Fiori bar (header, subheader, footer, floating footer) with start, middle and end content."
+  "description": "Fiori bar (header, subheader, footer, floating footer) with start, middle and end content.",
+  "usage": {
+    "summary": "Arrange page or dialog header and footer content in start, centered and end areas.",
+    "useWhen": [
+      "Keep a title centered while navigation or actions occupy the start and end of a header or footer.",
+      "Place page-level footer actions in a footer or floating footer.",
+      "Use design=\"header\", \"subheader\", \"footer\" or \"floating-footer\" to match the surrounding region."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Group related actions with arrow-key navigation and responsive overflow.",
+        "use": [
+          "toolbar"
+        ]
+      },
+      {
+        "when": "Provide a universal product header with branding, global search, notifications and profile access.",
+        "use": [
+          "shell-bar"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

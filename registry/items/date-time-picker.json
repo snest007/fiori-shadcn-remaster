@@ -18,5 +18,47 @@
       "path": "registry/lib/fiori-dates.ts",
       "type": "registry:lib"
     }
-  ]
+  ],
+  "usage": {
+    "summary": "Enter one localized Gregorian date and time together.",
+    "useWhen": [
+      "Let users specify both a date and a time for one event in a single field.",
+      "Allow manual entry as well as calendar and clock selection; provide timezone context separately when needed.",
+      "Set formatPattern for precision and minDate/maxDate for allowed dates; validate time restrictions in the caller."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Enter a date without a time.",
+        "use": [
+          "date-picker"
+        ]
+      },
+      {
+        "when": "Enter a time without a date.",
+        "use": [
+          "time-picker"
+        ]
+      },
+      {
+        "when": "Enter a start and end date as one interval.",
+        "use": [
+          "date-range-picker"
+        ]
+      },
+      {
+        "when": "Select dates in a permanently visible calendar without entering a time.",
+        "use": [
+          "calendar"
+        ]
+      },
+      {
+        "when": "Enter plain text without date or time parsing, or compose a custom picker with caller-owned value rules.",
+        "use": [
+          "input",
+          "picker-field"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

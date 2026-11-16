@@ -15,5 +15,34 @@
     "@fiori/segmented-button",
     "@fiori/select",
     "@fiori/toggle-button"
-  ]
+  ],
+  "usage": {
+    "summary": "Personalize filter fields, their order and values in a staged dialog before applying changes.",
+    "useWhen": [
+      "Let users choose which filters appear in the filter bar and change their order.",
+      "Let users find filters by name or group and edit conditions even for fields hidden from the bar.",
+      "Use filters with render functions for condition editors, and handle onApply to commit values and visibleKeys."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Adjust sorting, grouping or predefined filter values for a list or table without personalizing filter fields.",
+        "use": [
+          "view-settings-dialog"
+        ]
+      },
+      {
+        "when": "Edit currently visible criteria inline without changing filter visibility or order.",
+        "use": [
+          "filter-bar"
+        ]
+      },
+      {
+        "when": "Choose business values from a searchable result table or define conditions for one field.",
+        "use": [
+          "value-help-dialog"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

@@ -4,5 +4,28 @@
     "@fiori/icons",
     "@fiori/input"
   ],
-  "description": "Fiori numeric field with decrement/increment buttons, min/max clamping, precision and the SAP keyboard model."
+  "description": "Fiori numeric field with decrement/increment buttons, min/max clamping, precision and the SAP keyboard model.",
+  "usage": {
+    "summary": "Enter an exact number or adjust it by a predefined step.",
+    "useWhen": [
+      "Let users enter a quantity precisely or increase and decrease it in predictable increments.",
+      "Support direct number entry as well as the step buttons and keyboard.",
+      "Set min, max, step and valuePrecision to match valid business quantities."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Adjust a value approximately along a visual range, such as volume or brightness.",
+        "use": [
+          "slider"
+        ]
+      },
+      {
+        "when": "Enter a number without increment and decrement controls.",
+        "use": [
+          "input"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

@@ -48,9 +48,18 @@ npx shadcn add @fiori/list
 
 ## object-identifier
 
-Fiori object identifier and object attribute (sap.m look): bold title (optionally a link) with secondary text; "Title: value" attributes.
+Identify a business object with a primary title and supporting identifier or attributes.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Help users distinguish a specific business object by its name and supporting identifier.
+- Keep the primary identifier visible in the first table column; use ObjectAttribute for supporting title-and-value details.
+- Use titleActive with titleHref or onTitlePress when the primary identity navigates to object details.
+
+### Don't use when
+
+- Provide a single navigation label without a supporting object identifier. → [link](display.md#link)
+- Name a page or section with heading semantics rather than identify a business object. → [title](display.md#title)
 
 Main exports: `ObjectAttribute`, `ObjectIdentifier`.
 
@@ -60,9 +69,18 @@ npx shadcn add @fiori/object-identifier
 
 ## object-number
 
-Fiori object number (sap.m.ObjectNumber look): emphasized number with unit, semantic states, inverted badge, large and active variants.
+Display a business amount or quantity together with its unit and optional semantic state.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Help users read and compare business amounts or quantities without separating their units.
+- Keep the unit beside the amount unless every row shares it, each cell contains one amount, and the column header stays visible.
+- Use emphasized for the most important number; set emphasized={false} when all numbers are equally important.
+
+### Don't use when
+
+- Describe an object state in words or with an icon rather than an amount. → [object-status](data.md#object-status)
+- Show how much of a running process is complete on a 0–100% scale. → [progress-indicator](display.md#progress-indicator)
 
 Main exports: `ObjectNumber`.
 
@@ -72,9 +90,19 @@ npx shadcn add @fiori/object-number
 
 ## object-status
 
-Fiori object status (sap.m.ObjectStatus look): label, icon and text in a semantic or indication color; inverted badge, large and active variants.
+Show the semantic state of a business object with status text and an optional icon.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Help users assess the state of an item, process or workflow at a glance.
+- Keep status text next to the business object it describes, including in table cells and list items.
+- Use state for semantic meaning, and active when pressing the status opens related details.
+
+### Don't use when
+
+- Highlight a category or condition as a compact enclosed marker rather than a labeled object state. → [tag](display.md#tag)
+- Show a business amount or quantity with its unit rather than a textual state. → [object-number](data.md#object-number)
+- Explain a warning or status change that applies to a page or section. → [message-strip](display.md#message-strip)
 
 Main exports: `ObjectStatus`.
 
@@ -108,9 +136,18 @@ npx shadcn add @fiori/table
 
 ## timeline
 
-Fiori timeline: TimelineItem and collapsible TimelineGroupItem, vertical and horizontal layouts, value-state icons, Load More / scroll growing, the SAP keyboard model (ui5-timeline).
+Present object events and changes in chronological order.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Help users review when an object changed or an event occurred.
+- Show read-only system events or recorded posts with names, timestamps and optional collapsible groups.
+- Use growing="Button" or "Scroll" with onLoadMore when users need to retrieve further entries.
+
+### Don't use when
+
+- Browse independent items whose order is not a chronology. → [list](data.md#list)
+- Compare event attributes in columns or sort a data-driven history. → [data-table](data.md#data-table)
 
 Main exports: `Timeline`, `TimelineGroupItem`, `TimelineItem`.
 
@@ -142,9 +179,18 @@ npx shadcn add @fiori/tree
 
 ## upload-collection
 
-Fiori upload collection: file list with thumbnails, progress and Complete/Error/Ready/Uploading states, retry/terminate/delete, drag & drop overlay (ui5-upload-collection). Upload transport is up to the caller.
+Manage prepared or uploaded files with per-file status and lifecycle actions.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Let users review a collection of attachments and remove, retry or terminate individual uploads.
+- Use UploadCollectionItem uploadState and progress for per-file feedback; handle onDropFiles and upload transport in the application.
+- Keep filenames, thumbnails and descriptive metadata together for files before or after upload.
+
+### Don't use when
+
+- Select local files for a form without showing or managing an attachment collection. → [file-uploader](forms.md#file-uploader)
+- Inspect images or videos through thumbnails without upload lifecycle actions. → [media-gallery](display.md#media-gallery)
 
 Main exports: `UploadCollection`, `UploadCollectionItem`.
 

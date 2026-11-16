@@ -1,5 +1,30 @@
 {
   "title": "ProgressIndicator",
-  "registryDependencies": ["@fiori/icons", "@fiori/input"],
-  "description": "Fiori progress indicator: value bar with value text, value states with icons (ui5-progress-indicator)."
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/input"
+  ],
+  "description": "Fiori progress indicator: value bar with value text, value states with icons (ui5-progress-indicator).",
+  "usage": {
+    "summary": "Show a measured completion percentage for a running process.",
+    "useWhen": [
+      "Help users track how much of a running process has completed when the amount is measurable.",
+      "Use value on a 0–100 scale and displayValue when a task-specific completion label is clearer than a percentage."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Work is running but its completion percentage is unknown.",
+        "use": [
+          "busy-indicator"
+        ]
+      },
+      {
+        "when": "Show a business amount or quantity with a unit rather than process completion.",
+        "use": [
+          "object-number"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

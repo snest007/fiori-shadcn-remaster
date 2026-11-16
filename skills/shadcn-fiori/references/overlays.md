@@ -2,9 +2,19 @@
 
 ## adapt-filters-dialog
 
-OpenUI5 Adapt Filters personalization: transactional filter values, visibility and order, List/Group views, search, Reset and keyboard reordering.
+Personalize filter fields, their order and values in a staged dialog before applying changes.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Let users choose which filters appear in the filter bar and change their order.
+- Let users find filters by name or group and edit conditions even for fields hidden from the bar.
+- Use filters with render functions for condition editors, and handle onApply to commit values and visibleKeys.
+
+### Don't use when
+
+- Adjust sorting, grouping or predefined filter values for a list or table without personalizing filter fields. → [view-settings-dialog](overlays.md#view-settings-dialog)
+- Edit currently visible criteria inline without changing filter visibility or order. → [filter-bar](navigation.md#filter-bar)
+- Choose business values from a searchable result table or define conditions for one field. → [value-help-dialog](overlays.md#value-help-dialog)
 
 Main exports: `AdaptFiltersDialog`.
 
@@ -14,9 +24,21 @@ npx shadcn add @fiori/adapt-filters-dialog
 
 ## dialog
 
-Fiori modal dialog with header/footer bars and Negative/Critical/Positive/Information states (ui5-dialog).
+Pause the current task for a focused decision, confirmation or contained editing task.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Ask users to confirm an action or supply input before returning to the main screen.
+- Keep a contained editing task in a modal window when the surrounding page must remain blocked.
+- Use state="negative" or "critical" for an alert dialog that needs immediate attention.
+
+### Don't use when
+
+- Show contextual information beside an opener while users can keep working on the page. → [popover](overlays.md#popover)
+- Show contextual content as a popover on desktop and a full-screen dialog on phones. → [responsive-popover](overlays.md#responsive-popover)
+- Offer a hierarchy of commands without a form or confirmation task. → [menu](overlays.md#menu)
+- Confirm a completed action transiently without requiring a response. → [toast](overlays.md#toast)
+- Keep a contextual message visible alongside otherwise usable page content. → [message-strip](display.md#message-strip)
 
 Main exports: `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogTitle`, `DialogTrigger`.
 
@@ -26,9 +48,20 @@ npx shadcn add @fiori/dialog
 
 ## menu
 
-Fiori menu with single/multiple checkable groups, icons, additional text, submenus, separators and disabled items (ui5-menu).
+Let users choose commands from an opened hierarchy of menu items.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Offer related commands from a button or contextual opener instead of navigating to another page.
+- Group commands and expose submenus when actions have a hierarchy.
+- Use MenuGroup checkMode="single" or "multiple" when menu commands represent checked choices.
+
+### Don't use when
+
+- Show mixed contextual information or editable content beside an opener on every device. → [popover](overlays.md#popover)
+- Show mixed contextual content anchored on desktop and in a full-screen phone dialog. → [responsive-popover](overlays.md#responsive-popover)
+- Require a form or explicit confirmation before users resume the page. → [dialog](overlays.md#dialog)
+- Show the signed-in user, account information, user settings and sign-out actions. → [user-menu](overlays.md#user-menu)
 
 Main exports: `Menu`, `MenuContent`, `MenuGroup`, `MenuItem`, `MenuSeparator`, `MenuSub`, `MenuSubContent`, `MenuSubTrigger`, `MenuTrigger`.
 
@@ -38,9 +71,20 @@ npx shadcn add @fiori/menu
 
 ## popover
 
-Fiori popover with arrow, optional header/footer bars and padded content (ui5-popover).
+Show information or actions tied to an opener without leaving the current page.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Let users inspect details for a list item or edit related information while staying in context.
+- Place lightweight content beside the element it describes and keep the background available.
+- Add a header or footer only when the content needs a title or an action.
+
+### Don't use when
+
+- Require explicit input or confirmation and block interaction with the surrounding page. → [dialog](overlays.md#dialog)
+- Present contextual content that takes more than one-third of the phone screen. → [responsive-popover](overlays.md#responsive-popover)
+- Offer commands in menu rows or submenus rather than mixed contextual content. → [menu](overlays.md#menu)
+- Keep selected-object details in a dedicated area beside the list. → [master-detail](floorplans.md#master-detail)
 
 Main exports: `Popover`, `PopoverAnchor`, `PopoverBody`, `PopoverClose`, `PopoverContent`, `PopoverFooter`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`, `usePopupMediaRange`.
 
@@ -50,9 +94,19 @@ npx shadcn add @fiori/popover
 
 ## responsive-popover
 
-UI5 responsive popover: desktop popover, full-screen phone dialog with header and footer slots.
+Keep contextual content anchored on desktop and tablet, then show it in a full-screen phone dialog.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Let users inspect or edit information related to an opener across desktop, tablet and phone.
+- Use it when contextual content would take more than one-third of the phone screen.
+- Provide a phone title and closing action through headerText and closeLabel, or replace the phone bars with phoneHeader and phoneFooter.
+
+### Don't use when
+
+- Keep lightweight contextual content anchored on every device and within one-third of the phone screen. → [popover](overlays.md#popover)
+- Require a focused modal task and explicit confirmation on desktop as well as phone. → [dialog](overlays.md#dialog)
+- Show commands in menu rows or submenus without mixed contextual content. → [menu](overlays.md#menu)
 
 Main exports: `ResponsivePopover`, `ResponsivePopoverAnchor`, `ResponsivePopoverContent`, `ResponsivePopoverTrigger`.
 
@@ -62,9 +116,20 @@ npx shadcn add @fiori/responsive-popover
 
 ## toast
 
-Fiori toast: auto-dismisses after its duration, pauses on hover/focus, nine placements (ui5-toast).
+Confirm a completed action or provide information in a non-disruptive message that disappears automatically.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Reassure users that an action completed without asking them to respond.
+- Show information users can understand without leaving their current task.
+- Adjust duration when needed; the default is 3000 milliseconds and the minimum is 500.
+
+### Don't use when
+
+- Keep a contextual message visible alongside otherwise usable page content. → [message-strip](display.md#message-strip)
+- Explain an empty or unavailable content area with an illustration and recovery action. → [illustrated-message](display.md#illustrated-message)
+- Require an explicit response or confirmation before users continue. → [dialog](overlays.md#dialog)
+- Retain business-event updates so users can read, act on or dismiss them later. → [notification-list](navigation.md#notification-list)
 
 Main exports: `Toast`.
 
@@ -86,9 +151,18 @@ npx shadcn add @fiori/use-is-phone
 
 ## user-menu
 
-Fiori user menu popover with account header, manage account, menu items and sign out (ui5-user-menu).
+Expose signed-in user information, user-specific actions and sign out from the profile entry point.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Let users inspect the current account and access settings, legal information or other user-specific actions.
+- Open the account menu from the shell bar profile entry point without leaving the current page.
+- Set showManageAccount only when a central profile-management destination exists.
+
+### Don't use when
+
+- Offer general object or page commands without signed-in user information. → [menu](overlays.md#menu)
+- Let users switch between products rather than access their current user settings. → [product-switch](navigation.md#product-switch)
 
 Main exports: `UserMenu`, `UserMenuItem`.
 
@@ -122,9 +196,19 @@ npx shadcn add @fiori/value-help-dialog
 
 ## view-settings-dialog
 
-Fiori view settings dialog: sort/filter/group pages, two-level filter navigation with counters, Reset, OK/Cancel (ui5-view-settings-dialog).
+Adjust a list or table view through sorting, grouping and predefined filter choices.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Let users choose how a list or table is sorted without leaving its current page.
+- Let users select grouping criteria and predefined filter values, then confirm the combined settings.
+- Provide sortItems, groupItems and filterItems only for the settings the view supports.
+
+### Don't use when
+
+- Personalize filter-field visibility or order and edit conditions beyond predefined filter values. → [adapt-filters-dialog](overlays.md#adapt-filters-dialog)
+- Set several criteria in a result-page header, as in a list report. → [filter-bar](navigation.md#filter-bar)
+- Save and switch reusable table or filter settings rather than adjust only the current view. → [variant-management](navigation.md#variant-management)
 
 Main exports: `ViewSettingsDialog`.
 

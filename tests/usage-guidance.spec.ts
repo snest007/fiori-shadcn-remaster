@@ -34,8 +34,8 @@ test("usage docs show pilot guidance above props and navigate to an alternative"
 })
 
 test("items without usage do not render an empty guidance section", async ({ page }) => {
-  await page.goto("/#/button")
-  const main = page.locator('main[data-docs-route="button"]')
+  await page.goto("/#/f6-navigation")
+  const main = page.locator('main[data-docs-route="f6-navigation"]')
   await expect(main.getByText("Main props", { exact: true })).toBeVisible()
   await expect(main.getByRole("heading", { name: "When to use", exact: true })).toHaveCount(0)
   await expect(main.locator("[data-usage-guidance]")).toHaveCount(0)
@@ -118,6 +118,7 @@ test("usage validation rejects invalid alternatives, counts, layouts and require
     write(temp, "registry/ui/table.tsx", "function Table() {} export { Table }")
     write(temp, "registry/ui/select.tsx", "function Select() {} export { Select }")
     write(temp, "registry/ui/icon.tsx", "function Glyph() {} type IconProps = {}; export { Glyph as Icon, Glyph as CustomIcon, type IconProps }")
+    write(temp, "registry/blocks/report.tsx", 'import { Table } from "@/components/ui/table"; export default function Report() { return <Table /> }')
     mkdirSync(join(temp, "registry/block-items"), { recursive: true })
     expect(run(builder, temp).status).toBe(0)
     for (const [invalid, message] of [
@@ -158,6 +159,37 @@ test("usage validation rejects invalid alternatives, counts, layouts and require
     const missingBlock = run(builder, temp, ["--require-usage"])
     expect(missingBlock.status).not.toBe(0)
     expect(missingBlock.stderr).toContain("report: missing usage (--require-usage)")
+  } finally {
+    rmSync(temp, { recursive: true, force: true })
+  }
+})
+
+test("usage layouts accept actual block exports only through a direct block dependency", async () => {
+  const temp = mkdtempSync(join(tmpdir(), "fiori-block-usage-"))
+  const usage = { summary: "Enter application pages.", useWhen: ["Choose a business area.", "Keep shared shell actions available."], avoidWhen: [{ when: "Supply only the application frame.", use: ["app-shell"] }], source: "sap-fiori-guidelines", layout: ["AppShell"] }
+  try {
+    write(temp, "registry/styles/shadcn-vars.json", "{}")
+    write(temp, "registry/lib/fiori-illustrations/registry-items.json", "[]")
+    mkdirSync(join(temp, "registry/items"), { recursive: true })
+    mkdirSync(join(temp, "docs/src/demos"), { recursive: true })
+    cpSync(join(root, "scripts/skill"), join(temp, "scripts/skill"), { recursive: true })
+    // Parse the real nested block exports and source, rather than inventing a component-shaped stub.
+    for (const name of ["app-shell", "launchpad"]) {
+      write(temp, `registry/blocks/${name}.tsx`, readFileSync(join(root, `registry/blocks/${name}.tsx`), "utf8"))
+    }
+    write(temp, "registry/ui/icon.tsx", readFileSync(join(root, "registry/ui/icon.tsx"), "utf8"))
+    write(temp, "registry/block-items/app-shell.json", JSON.stringify({ title: "App Shell" }))
+    for (const dependencies of [["@fiori/app-shell"], []]) {
+      write(temp, "registry/block-items/launchpad.json", JSON.stringify({ title: "Launchpad", registryDependencies: dependencies, usage }))
+      for (const script of [builder, skillBuilder]) {
+        const result = run(script, temp)
+        if (dependencies.length) expect(result.status, result.stderr).toBe(0)
+        else {
+          expect(result.status).not.toBe(0)
+          expect(result.stderr).toContain('layout export "AppShell" needs a direct registryDependency')
+        }
+      }
+    }
   } finally {
     rmSync(temp, { recursive: true, force: true })
   }

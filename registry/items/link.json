@@ -1,5 +1,34 @@
 {
   "title": "Link",
   "registryDependencies": ["@fiori/icons"],
-  "description": "Fiori link: Default, Subtle and Emphasized designs, wrapping, Enter/Space activation."
+  "description": "Fiori link: Default, Subtle and Emphasized designs, wrapping, Enter/Space activation.",
+  "usage": {
+    "summary": "Navigate through meaningful text to a page, anchor or external URL.",
+    "useWhen": [
+      "Let users open another page, jump to an anchor or follow an external URL.",
+      "Describe the destination or outcome in the link text instead of using Click here.",
+      "Use at most one supporting icon so the navigation label remains clear."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Submit data or trigger an explicit action.",
+        "use": [
+          "button"
+        ]
+      },
+      {
+        "when": "Show non-interactive prose without a navigation target.",
+        "use": [
+          "text"
+        ]
+      },
+      {
+        "when": "Present an object title together with a supporting identifier.",
+        "use": [
+          "object-identifier"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

@@ -16,5 +16,29 @@
       "path": "registry/lib/fiori-dates.ts",
       "type": "registry:lib"
     }
-  ]
+  ],
+  "usage": {
+    "summary": "Enter or select a localized time without a date.",
+    "useWhen": [
+      "Let users choose a time of day when the date is irrelevant or supplied separately.",
+      "Allow direct typing as well as choosing hours, minutes and seconds in the picker.",
+      "Set formatPattern to the required precision and 12-hour or 24-hour convention."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Enter both a date and a time together.",
+        "use": [
+          "date-time-picker"
+        ]
+      },
+      {
+        "when": "Enter plain text without date or time parsing, or compose a custom picker with caller-owned value rules.",
+        "use": [
+          "input",
+          "picker-field"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

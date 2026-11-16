@@ -1,5 +1,43 @@
 {
   "title": "IllustratedMessage",
   "description": "Fiori illustrated message: illustration + title + subtitle + actions in the Scene / Dialog / Spot / Dot / Base designs, auto-sized by the container (ui5-illustrated-message). Ships with @fiori/illustrations-core (NoData, NoSearchResults, UnableToLoad, Tent, …); add more with @fiori/illustration-<name> or @fiori/illustration-tnt-<name>.",
-  "registryDependencies": ["@fiori/title", "@fiori/illustrations-core"]
+  "registryDependencies": [
+    "@fiori/title",
+    "@fiori/illustrations-core"
+  ],
+  "usage": {
+    "summary": "Explain an empty, unavailable or completed state with an illustration and a useful next step.",
+    "useWhen": [
+      "Help users understand why content is empty or unavailable, or what a completed task means.",
+      "Pair a solution-oriented title and description with a relevant illustration and recovery or next-step actions.",
+      "Pass illustration and choose design=\"Auto\" for container sizing; supply action children except when design=\"Base\" hides them."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Explain in-page context while the surrounding content remains usable.",
+        "use": [
+          "message-strip"
+        ]
+      },
+      {
+        "when": "Confirm a completed action briefly without requiring a response.",
+        "use": [
+          "toast"
+        ]
+      },
+      {
+        "when": "Start from a ready-made page demonstrating no-data, no-results and loading-failure patterns.",
+        "use": [
+          "empty-states"
+        ]
+      },
+      {
+        "when": "An operation is still running and its completion percentage is unknown.",
+        "use": [
+          "busy-indicator"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

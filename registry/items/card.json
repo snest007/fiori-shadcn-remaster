@@ -1,1 +1,27 @@
-{ "title": "Card", "description": "Fiori card with CardHeader (title, subtitle, status text, avatar, action, interactive) and CardContent." }
+{
+  "title": "Card",
+  "description": "Fiori card with CardHeader (title, subtitle, status text, avatar, action, interactive) and CardContent.",
+  "usage": {
+    "summary": "Preview focused business content and offer access to its underlying page or task.",
+    "useWhen": [
+      "Give users a focused preview of the content or KPI most relevant to a business task.",
+      "Let users perform a simple action or navigate to the underlying content from the preview.",
+      "Compose CardHeader and CardContent; make the header interactive when it opens a meaningful related destination."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Group information inside a page and let users collapse it rather than preview an independent destination.",
+        "use": [
+          "panel"
+        ]
+      },
+      {
+        "when": "Introduce a product home page with a greeting, context and task shortcuts.",
+        "use": [
+          "hero-banner"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
+}

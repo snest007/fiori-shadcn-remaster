@@ -1,1 +1,32 @@
-{ "title": "Title", "description": "Fiori heading with semantic level (H1–H6) independent of visual size." }
+{
+  "title": "Title",
+  "description": "Fiori heading with semantic level (H1–H6) independent of visual size.",
+  "usage": {
+    "summary": "Name pages and sections with explicit heading semantics.",
+    "useWhen": [
+      "Help users understand the structure of a page by naming its sections.",
+      "Use level for the semantic H1–H6 hierarchy and size for visual emphasis independently."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Show body prose without heading semantics.",
+        "use": [
+          "text"
+        ]
+      },
+      {
+        "when": "Identify a business object using a primary name and supporting identifier.",
+        "use": [
+          "object-identifier"
+        ]
+      },
+      {
+        "when": "Label an input or form field rather than name a section.",
+        "use": [
+          "label"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
+}

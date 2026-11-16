@@ -2,5 +2,28 @@
   "title": "ColorPalette",
   "description": "Fiori predefined color palette with the UI5 five-column keyboard model, default color and local recent colors.",
   "registryDependencies": ["@fiori/button", "@fiori/color-picker", "@fiori/dialog"],
-  "files": [{ "path": "registry/lib/fiori-color.ts", "type": "registry:lib" }]
+  "files": [{ "path": "registry/lib/fiori-color.ts", "type": "registry:lib" }],
+  "usage": {
+    "summary": "Choose a predefined color from swatches kept visible in the page.",
+    "useWhen": [
+      "Let users choose from predefined colors while keeping the swatches visible.",
+      "Keep each swatch tied to its fixed color rather than changing it with the theme.",
+      "Enable showDefaultColor, showRecentColors or showMoreColors only when those choices are allowed."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Show predefined colors only after opening a contextual chooser.",
+        "use": [
+          "color-palette-popover"
+        ]
+      },
+      {
+        "when": "Choose an arbitrary color or enter its channel values directly.",
+        "use": [
+          "color-picker"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

@@ -16,5 +16,41 @@
       "path": "registry/lib/fiori-dates.ts",
       "type": "registry:lib"
     }
-  ]
+  ],
+  "usage": {
+    "summary": "Enter a localized Gregorian start and end date as one interval.",
+    "useWhen": [
+      "Let users choose a contiguous date interval such as a booking or reporting period.",
+      "Allow direct typing or selection of the start and end in the calendar.",
+      "Set formatPattern, delimiter, minDate and maxDate to match the valid interval format and bounds."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Choose only one date.",
+        "use": [
+          "date-picker"
+        ]
+      },
+      {
+        "when": "Enter a date together with a time rather than a date interval.",
+        "use": [
+          "date-time-picker"
+        ]
+      },
+      {
+        "when": "Keep a calendar visible or select separate, non-contiguous days.",
+        "use": [
+          "calendar"
+        ]
+      },
+      {
+        "when": "Enter plain text without date or time parsing, or compose a custom picker with caller-owned value rules.",
+        "use": [
+          "input",
+          "picker-field"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

@@ -1,5 +1,34 @@
 {
   "title": "Timeline",
   "description": "Fiori timeline: TimelineItem and collapsible TimelineGroupItem, vertical and horizontal layouts, value-state icons, Load More / scroll growing, the SAP keyboard model (ui5-timeline).",
-  "registryDependencies": ["@fiori/icons", "@fiori/busy-indicator", "@fiori/button", "@fiori/link", "@fiori/toggle-button"]
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/busy-indicator",
+    "@fiori/button",
+    "@fiori/link",
+    "@fiori/toggle-button"
+  ],
+  "usage": {
+    "summary": "Present object events and changes in chronological order.",
+    "useWhen": [
+      "Help users review when an object changed or an event occurred.",
+      "Show read-only system events or recorded posts with names, timestamps and optional collapsible groups.",
+      "Use growing=\"Button\" or \"Scroll\" with onLoadMore when users need to retrieve further entries."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Browse independent items whose order is not a chronology.",
+        "use": [
+          "list"
+        ]
+      },
+      {
+        "when": "Compare event attributes in columns or sort a data-driven history.",
+        "use": [
+          "data-table"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }
