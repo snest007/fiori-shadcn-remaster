@@ -8,9 +8,7 @@ const day = (date: number) => new Date(2024, 2, date)
 const base = fioriMeta({ name: "calendar", component: Calendar })
 const meta = {
   ...base,
-  args: { selectedDates: [day(12)], selectionMode: "single", locale: "en-US", hideWeekNumbers: false, initialPicker: "day", "aria-label": "Delivery date",
-    // Public text override keeps the accessible range name aligned with the rendered range after navigation.
-    labels: { yearRangeButton: (from: string, to: string) => `Year range ${from} - ${to}` }, onSelectedDatesChange: fn(), onFocusedDateChange: fn() },
+  args: { selectedDates: [day(12)], selectionMode: "single", hideWeekNumbers: false, initialPicker: "day", "aria-label": "Delivery date", onSelectedDatesChange: fn(), onFocusedDateChange: fn() },
   argTypes: {
     ...base.argTypes,
     selectionMode: { ...base.argTypes?.selectionMode, control: "inline-radio", options: ["single", "multiple", "range"] },
@@ -26,7 +24,7 @@ const meta = {
   },
   render: function DeliveryCalendar(args: CalendarProps) {
     const [, updateArgs] = useArgs<CalendarProps>()
-    return <Calendar {...args} onSelectedDatesChange={(selectedDates) => { args.onSelectedDatesChange?.(selectedDates); updateArgs({ selectedDates }) }} />
+    return <Calendar key={`${args.initialPicker}-${args.selectionLevel}`} {...args} onSelectedDatesChange={(selectedDates) => { args.onSelectedDatesChange?.(selectedDates); updateArgs({ selectedDates }) }} />
   },
 } satisfies Meta<typeof Calendar>
 export default meta
@@ -45,3 +43,5 @@ export const YearPicker: Story = { args: { initialPicker: "year" } }
 export const YearRangePicker: Story = { args: { initialPicker: "yearrange" } }
 export const DisabledDates: Story = { args: { isDateDisabled: (date) => date.getDay() === 0 || date.getDay() === 6 } }
 export const Localized: Story = { args: { locale: "en-GB" } }
+export const CustomTexts: Story = { args: { labels: { nextMonth: "Next delivery month", previousMonth: "Previous delivery month", monthButton: (month) => `Delivery month ${month}`, yearRangeButton: (from, to) => `Delivery years from ${from} to ${to}` } } }
+export const RTL: Story = { globals: { dir: "rtl" } }

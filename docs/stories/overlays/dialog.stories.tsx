@@ -54,6 +54,8 @@ export const Draggable: Story = { args: { open: true, draggable: true }, paramet
 export const Resizable: Story = { args: { open: true, resizable: true }, parameters: openDocs }
 export const DraggableResizable: Story = { args: { open: true, draggable: true, resizable: true }, parameters: openDocs }
 export const ResizableRTL: Story = { args: { open: true, resizable: true }, globals: { dir: "rtl" }, parameters: openDocs }
+export const CustomTexts: Story = { args: { open: true, draggable: true, resizable: true, movementTexts: { dragResizeHandleLabel: "Move or resize product editor", dragResizeDescription: "Arrow keys move the editor; Shift and arrow keys change its size.", dragResizeReachDescription: "Tab to the editor's movement handle." } }, parameters: openDocs }
+export const RTL: Story = { args: { open: true }, globals: { dir: "rtl" }, parameters: openDocs }
 export const WithFooterBar: Story = { parameters: openDocs, render: function ConfirmOrder() {
   const [open, setOpen] = React.useState(true)
   return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button>Review order</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Confirm order</DialogTitle></DialogHeader><DialogBody><DialogDescription>Submit purchase order 45000123 to Northwind Traders?</DialogDescription></DialogBody><Bar design="footer" endContent={<><DialogClose asChild><Button variant="emphasized">Submit</Button></DialogClose><DialogClose asChild><Button>Cancel</Button></DialogClose></>} /></DialogContent></Dialog>

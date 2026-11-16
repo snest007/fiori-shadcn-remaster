@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import ts from "typescript"
 import type { Plugin } from "vite"
+import { readComponentDocumentation } from "./component-metadata"
 
 const demos = fileURLToPath(new URL("../docs/src/demos/", import.meta.url))
 const items = fileURLToPath(new URL("../registry/items/", import.meta.url))
@@ -54,7 +55,7 @@ export function readDemoMetadata() {
   if (!categoryType || !ts.isUnionTypeNode(categoryType.type)) throw new Error("DemoCategory must be a literal union")
   const categories = categoryType.type.types.map((type) => ts.isLiteralTypeNode(type) ? string(type.literal) : undefined)
   if (categories.some((category) => !category)) throw new Error("DemoCategory must contain string literals")
-  return { metadata, categories: categories as string[] }
+  return { metadata, categories: categories as string[], documentation: Object.fromEntries(Object.entries(metadata).map(([name, item]) => [name, readComponentDocumentation(name, item.title)])) }
 }
 
 export function storyItemOptions(file: string) {
@@ -78,7 +79,7 @@ export function demoMetadataPlugin(): Plugin {
     resolveId: (source) => source === id ? `\0${id}` : undefined,
     load: (source) => source === `\0${id}` ? `export default ${JSON.stringify(readDemoMetadata())}` : undefined,
     handleHotUpdate(context) {
-      if (context.file.startsWith(demos) || context.file.startsWith(items)) {
+      if (context.file.startsWith(demos) || context.file.startsWith(items) || context.file.includes("/registry/ui/") || context.file.endsWith("/docs/plan/a11y-audit.md")) {
         const module = context.server.moduleGraph.getModuleById(`\0${id}`)
         if (module) context.server.moduleGraph.invalidateModule(module)
         context.server.ws.send({ type: "full-reload" })

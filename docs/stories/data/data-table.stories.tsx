@@ -20,7 +20,7 @@ const col = createDataTableColumnHelper<Product>()
 const columns = col.columns([
   col.accessor("name", { header: "Product", meta: { importance: 3, minWidth: "8rem" } }),
   col.accessor("supplier", { header: "Supplier", meta: { importance: 1, minWidth: "9rem" } }),
-  col.accessor("price", { header: "Price", cell: (cell) => `${cell.getValue().toFixed(2)} EUR`, meta: { importance: 2, horizontalAlign: "End", minWidth: "7rem" } }),
+  col.accessor("price", { header: "Price", cell: (cell) => new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(cell.getValue()), meta: { importance: 2, horizontalAlign: "End", minWidth: "7rem" } }),
 ])
 const base = fioriMeta({ name: "data-table", component: DataTable<Product> })
 const meta = {
@@ -40,6 +40,7 @@ const meta = {
     growing: { control: "select", options: [undefined, "button", "scroll"] },
     rowHighlight: { control: false }, rowNavigated: { control: false }, rowActions: { control: false }, rowMovable: { control: false },
     onSelectionChange: { control: false }, onSortingChange: { ...base.argTypes?.onSortingChange, control: false }, onRowClick: { control: false }, onLoadMore: { control: false },
+    texts: { control: false }, dataTableTexts: { control: false },
   },
   render: function ProductsTable(args: DataTableProps<Product>) {
     const [, updateArgs] = useArgs<DataTableProps<Product>>()
@@ -57,7 +58,7 @@ export const AllSelected: Story = { args: { selectionMode: "multi", selectedRows
 export const ClickSorting: Story = { args: { sortTrigger: "click" } }
 export const Sorted: Story = { args: { sortTrigger: "click", sorting: [{ id: "price", desc: false }] } }
 export const NoSorting: Story = { args: { sortTrigger: "none" } }
-export const Empty: Story = { args: { data: [], noDataText: "No products found" } }
+export const Empty: Story = { args: { data: [] } }
 export const Loading: Story = { args: { loading: true, loadingDelay: 0 } }
 export const AlternateRows: Story = { args: { alternateRowColors: true } }
 export const HighlightedRows: Story = { args: { rowHighlight: (row) => ({ p1: "negative", p2: "critical", p3: "positive", p4: "information" } as Record<string, TableRowHighlight>)[row.id] } }
@@ -66,6 +67,8 @@ export const RowActions: Story = { args: { rowActionCount: 2, rowNavigated: (row
 export const NarrowPopin: Story = { args: { overflowMode: "popin" }, decorators: [(Story) => <div className="max-w-xs"><Story /></div>] }
 export const Virtualized: Story = { args: { data: Array.from({ length: 1000 }, (_, index) => ({ id: `product-${index}`, name: `Product ${index + 1}`, supplier: "Northwind Traders", price: 100 + index })), virtualize: true, virtualHeight: "20rem", selectionMode: "single" } }
 export const LongText: Story = { args: { data: [{ id: "long", name: "Professional widescreen monitor with adjustable height and integrated docking station", supplier: "Northwind International Procurement Services", price: 1250 }] } }
+export const CustomTexts: Story = { args: { selectionMode: "multi", growing: "button", texts: { more: "Load more products", selectAll: "Select all products", deselectAll: "Clear product selection", rowSelector: "Select product" }, dataTableTexts: { sortAscending: "Lowest values first", sortDescending: "Highest values first" } } }
+export const RTL: Story = { globals: { dir: "rtl" } }
 export const Growing: Story = { render: function GrowingProducts() {
   const [rows, setRows] = React.useState(products)
   return <DataTable data={rows} columns={columns} getRowId={(row) => row.id} aria-label="Growing product list" growing="button" onLoadMore={() => setRows((current) => [...current, { id: `p${current.length + 1}`, name: `Product ${current.length + 1}`, supplier: "Northwind Traders", price: 250 }])} />

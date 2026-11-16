@@ -33,7 +33,7 @@ type Story = StoryObj<typeof meta>
 export const Playground: Story = {}
 export const Empty: Story = { args: { value: "" } }
 export const None: Story = { args: { valueState: "none" } }
-export const Negative: Story = { args: { valueState: "negative", valueStateMessage: "Enter a registered company name." } }
+export const Negative: Story = { args: { valueState: "negative" } }
 export const Critical: Story = { args: { valueState: "critical" } }
 export const Positive: Story = { args: { valueState: "positive" } }
 export const Information: Story = { args: { valueState: "information" } }
@@ -42,6 +42,8 @@ export const ReadOnly: Story = { args: { readOnly: true } }
 export const Required: Story = { args: { required: true } }
 export const WithIcon: Story = { args: { type: "search", placeholder: "Search products", value: "", icon: <InputIcon><Icon icon={search} /></InputIcon> } }
 export const LongText: Story = { args: { value: "Northwind Trading Company — International Procurement Division" } }
+export const CustomTexts: Story = { args: { valueState: "negative", valueStateMessage: "Enter a registered company name." } }
+export const RTL: Story = { globals: { dir: "rtl" } }
 export const LabelledField: Story = { render: function CompanyField() {
   const [value, setValue] = React.useState("")
   return <div className="grid max-w-md gap-2"><Label htmlFor="input-company" required showColon>Company</Label><Input id="input-company" required value={value} onChange={(event) => setValue(event.target.value)} placeholder="Company name" /></div>

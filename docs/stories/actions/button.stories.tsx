@@ -38,4 +38,5 @@ export const AttentionDisabled: Story = { args: { variant: "attention", disabled
 export const WithIcon: Story = { render: (args) => <Button {...args}><Icon icon={accept} />Approve</Button> }
 export const IconOnly: Story = { args: { children: undefined, size: "icon", variant: "transparent", "aria-label": "Add product" }, render: (args) => <Button {...args}><Icon icon={add} /></Button> }
 export const LongText: Story = { args: { children: "Save changes and return to the product list" } }
+export const RTL: Story = { globals: { dir: "rtl" } }
 export const Actions: Story = { render: () => <div className="flex flex-wrap gap-2"><Button variant="emphasized">Save</Button><Button>Cancel</Button><Button variant="transparent"><Icon icon={edit} />Edit</Button></div> }

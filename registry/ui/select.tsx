@@ -148,6 +148,10 @@ function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) 
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
+/**
+ * @accessibility Label.htmlFor / aria-label / aria-labelledby name SelectTrigger's combobox button. The component owns aria-expanded, aria-controls and aria-haspopup=listbox. Native aria-describedby reaches this trigger; a caller-supplied value currently replaces the built-in value-state message id rather than merging with it.
+ * @accessibility Closed Up/Down/Home/End change selection; Enter, Space, F4 and Alt+Up/Down open. Popup arrows move option focus; Enter selects, Escape closes and restores trigger focus. SelectItem owns role=option, aria-selected and roving tabindex.
+ */
 type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   valueState?: ValueState
   /** Shown below the field while focused; defaults to SAP's standard text. `null` hides it. */
@@ -288,6 +292,9 @@ function SelectTrigger({
   )
 }
 
+/**
+ * @accessibility aria-label / aria-labelledby name the desktop listbox content. On phones, dialogTitle labels the listbox; dialogLabel or dialogNamePrefix plus the trigger's aria-label name the modal dialog. The fallback does not resolve Label.htmlFor / aria-labelledby; provide dialogLabel for those naming paths. cancelText names its closing action.
+ */
 type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content> & {
   onOpenAutoFocus?: (event: Event) => void
   dialogTitle?: string

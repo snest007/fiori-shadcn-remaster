@@ -1,5 +1,6 @@
 import * as React from "react"
-import { ArgTypes, Controls, Primary, Stories, Title, useOf } from "@storybook/addon-docs/blocks"
+import { ArgTypes, Controls, Markdown, Primary, Stories, Title, useOf } from "@storybook/addon-docs/blocks"
+import documentation from "virtual:fiori-demo-metadata"
 import { Button } from "@/components/ui/button"
 import { docsLink } from "./meta"
 
@@ -18,7 +19,8 @@ export function DocsPage() {
   const [copied, setCopied] = React.useState(false)
   if (!item || !name) return null
   const command = `npx shadcn add @fiori/${name}`
-  return <>
+  const guide = documentation.documentation[name]
+  return <main>
     <Title />
     <p>{item.description}</p>
     <section aria-label="Install component" className="mb-6">
@@ -34,8 +36,17 @@ export function DocsPage() {
         {entry.use.map((alternative, index) => <React.Fragment key={alternative}>{index > 0 && ", "}<a href={docsLink(alternative)} target="_top">{alternative}</a></React.Fragment>)}
       </li>)}</ul>
     </section>}
-    <h2>Playground</h2><Primary /><Controls />
+    <section aria-label="Accessibility"><h2>Accessibility</h2>
+      <ul>{guide?.accessibility.map((note) => <li key={note}>{note}</li>)}</ul>
+      {guide?.audit && <Markdown>{guide.audit}</Markdown>}
+    </section>
+    <section aria-label="Localization"><h2>Localization</h2>
+      {guide?.textKeys.length ? <table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>
+        {guide.textKeys.map((text) => <tr key={`${text.prop}.${text.key}`}><td><code>{text.prop}.{text.key}</code></td><td>{text.ui5Keys.length ? text.ui5Keys.join(", ") : "Application text; no matching UI5 2.28 key"}</td><td>{text.defaultText}</td></tr>)}
+      </tbody></table> : <p>Provide the action content and accessible name through the component's native props.</p>}
+    </section>
+    <h2>Playground</h2><div data-fiori-primary><Primary /></div><div data-fiori-controls><Controls /></div>
     <h2>Props</h2><ArgTypes />
     <Stories includePrimary={false} title="Variants and examples" />
-  </>
+  </main>
 }

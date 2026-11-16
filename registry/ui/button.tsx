@@ -70,6 +70,10 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * @accessibility Tab reaches the native button; Enter and Space activate it. The inner focus ring uses :focus-visible.
+ * @accessibility Native aria-label, aria-labelledby and aria-describedby props land on the button (or the asChild host). Label icon-only actions with aria-label; keep the native button keyboard semantics when composing asChild.
+ */
 type ButtonProps = React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean

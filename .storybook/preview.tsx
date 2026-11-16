@@ -22,7 +22,8 @@ const preview: Preview = {
     document.documentElement.dataset.density = context.globals.density
     document.documentElement.dir = context.globals.dir
     const Canvas = context.viewMode === "story" ? "main" : "div"
-    return <Canvas className="fiori-story-canvas" data-theme={context.globals.theme} data-density={context.globals.density} dir={context.globals.dir}>{context.viewMode === "story" && <h1 className="sr-only">{context.title}: {context.name}</h1>}<Story /></Canvas>
+    const controlArgs = Object.fromEntries(Object.entries(context.args).filter(([, value]) => ["string", "number", "boolean"].includes(typeof value)))
+    return <Canvas className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={context.globals.theme} data-density={context.globals.density} dir={context.globals.dir}>{context.viewMode === "story" && <h1 className="sr-only">{context.title}: {context.name}</h1>}<Story /></Canvas>
   }],
   parameters: {
     docs: { page: DocsPage, source: { type: "code" } },

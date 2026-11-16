@@ -1,6 +1,6 @@
-import AxeBuilder from "@axe-core/playwright"
 import { expect, test, type Page } from "@playwright/test"
 import { readFileSync } from "node:fs"
+import { axeViolations, expectNamedControls, waitForStoryFinished } from "./accessibility"
 
 interface StoryEntry { id: string; type: "story" | "docs"; title: string; name: string }
 const entries = Object.values(JSON.parse(readFileSync(new URL("../storybook-static/index.json", import.meta.url), "utf8")).entries) as StoryEntry[]
@@ -20,6 +20,7 @@ async function render(page: Page, id: string, globals?: string, args?: string) {
   await page.goto(iframe(id, globals, args))
   await expect(page.locator("#storybook-root [data-slot]").first()).toBeAttached()
   await page.evaluate(() => document.fonts.ready)
+  await waitForStoryFinished(page)
 }
 async function tokenColor(page: Page, token: string) {
   return page.evaluate((token) => {
@@ -33,42 +34,23 @@ async function tokenColor(page: Page, token: string) {
 }
 
 for (const story of stories) {
-  test(`${story.title}/${story.name} renders without errors`, async ({ page }) => {
+  test(`${story.title}/${story.name} renders named controls without errors`, async ({ page }) => {
     const errors: string[] = []
     page.on("pageerror", (error) => errors.push(error.message))
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()) })
     await render(page, story.id)
     await expect(page.locator("#storybook-root [data-slot]").first()).toBeAttached()
+    await expectNamedControls(page)
     expect(errors).toEqual([])
   })
   for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
-    test(`${story.title}/${story.name} ${story.title === "Data/DataTable" && story.name === "Loading" ? "matches known UI5 loading accessibility baseline" : "has no axe violations"} (${theme})`, async ({ page }) => {
+    test(`${story.title}/${story.name} has no axe violations (${theme})`, async ({ page }, testInfo) => {
       await render(page, story.id, `theme:${theme}`)
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme)
       if (story.name === "Loading") await expect(page.getByRole("progressbar")).toBeVisible()
-      const result = await new AxeBuilder({ page })
-        // Match tests/a11y.spec.ts: SAP's disabled opacity is exempt from contrast.
-        .disableRules(["color-contrast"])
-        .analyze()
-      if (story.title === "Data/DataTable" && story.name === "Loading") {
-        // UI5 2.28.1 TableTemplate.js/#table also contains BusyIndicatorTemplate.js's
-        // progressbar directly inside its grid. The rendered native oracle reproduces this
-        // single aria-required-children violation in both themes (S0 loading-oracle.json).
-        // Keep the complete ruleset: accept exactly the inherited grid node, never another violation.
-        expect(result.violations.map((violation) => ({ id: violation.id, targets: violation.nodes.map((node) => node.target) }))).toEqual([
-          { id: "aria-required-children", targets: [[".fiori-table__grid"]] },
-        ])
-        const grid = page.getByRole("grid", { name: "Products", exact: true })
-        await expect(grid).toHaveAttribute("data-table-grid", "")
-        await expect(grid).toHaveAttribute("aria-busy", "true")
-        await expect(grid).toHaveAttribute("aria-rowcount", "5")
-        await expect(grid).toHaveAttribute("aria-colcount", "3")
-        await expect(grid.locator(':scope > [data-slot="busy-indicator"]')).toHaveCount(1)
-        await expect(grid.locator(':scope > [data-slot="busy-indicator"] [role="progressbar"]')).toHaveCount(1)
-        await expect(grid.locator(':scope > .fiori-table__rows')).toHaveAttribute("inert", "")
-      } else {
-        expect(result.violations.map((violation) => `${violation.id}: ${violation.nodes.length} node(s) — ${violation.help}`)).toEqual([])
-      }
+      const violations = await axeViolations(page, theme)
+      if (violations.length) await testInfo.attach("axe-violations.json", { body: JSON.stringify(violations, null, 2), contentType: "application/json" })
+      expect(violations).toEqual([])
     })
   }
 }
@@ -88,9 +70,11 @@ for (const title of ["Actions/Button", "Data/DataTable"]) {
     expect(docs).toBeDefined()
     await page.goto(iframe(docs!.id, undefined, undefined, "docs"))
     const name = title === "Actions/Button" ? "button" : "data-table"
+    const item = JSON.parse(readFileSync(new URL(`../registry/items/${name}.json`, import.meta.url), "utf8"))
     await expect(page.getByText(`npx shadcn add @fiori/${name}`, { exact: true })).toBeVisible()
     await expect(page.getByRole("button", { name: "Copy install command" })).toBeVisible()
-    await expect(page.getByRole("heading", { name: "When to use", exact: true })).toHaveCount(name === "data-table" ? 1 : 0)
+    // G1 now supplies Button usage; the card's old conditional example is stale.
+    await expect(page.getByRole("heading", { name: "When to use", exact: true })).toHaveCount(item.usage ? 1 : 0)
     await expect(page.getByRole("heading", { name: "Props", exact: true })).toBeVisible()
     await expect(page.getByText(name === "button" ? "Semantic appearance of the action." : "Rows to render.").first()).toBeVisible()
     if (name === "data-table") {
@@ -141,14 +125,14 @@ test("Select playground commits a new option", async ({ page }) => {
   await expect(select).toBeFocused()
 })
 
-test("Select Open dialog composition retains keyboard selection and focus restoration", async ({ page }) => {
+test("Select Open retains component-owned listbox selection and focus restoration", async ({ page }) => {
   await render(page, storyId("Forms/Select", "Open"))
-  await expect(page.getByRole("dialog", { name: "Country choices" })).toBeVisible()
+  await expect(page.getByRole("listbox", { name: "Country choices" })).toBeVisible()
   await expect(page.getByRole("option", { name: "Germany", exact: true })).toBeFocused()
   await page.keyboard.press("ArrowDown")
   await expect(page.getByRole("option", { name: "France", exact: true })).toBeFocused()
   await page.keyboard.press("Enter")
-  await expect(page.getByRole("dialog")).toHaveCount(0)
+  await expect(page.getByRole("listbox")).toHaveCount(0)
   const select = page.getByRole("combobox", { name: "Country" })
   await expect(select).toHaveText("France")
   await expect(select).toBeFocused()
@@ -163,13 +147,21 @@ test("Dialog trigger opens and closes a labelled dialog", async ({ page }) => {
 })
 
 
-test("Calendar year range label includes its visible text after navigation", async ({ page }) => {
-  await render(page, storyId("Dates/Calendar", "Year Picker"))
+test("Calendar CustomTexts names its header without altering owned grid states", async ({ page }) => {
+  await render(page, storyId("Dates/Calendar", "Custom Texts"))
+  await expect(page.getByRole("button", { name: "Next delivery month" })).toBeVisible()
+  await expect(page.getByRole("gridcell", { selected: true })).toHaveAttribute("aria-selected", "true")
+  await render(page, storyId("Dates/Calendar", "Custom Texts"), undefined, "initialPicker:year")
   const range = page.locator('[data-slot="calendar-year-range-button"]')
-  await expect(range).toBeVisible()
-  const before = await range.innerText()
-  await expect(range).toHaveAttribute("aria-label", `Year range ${before}`)
+  await expect(range).toHaveAttribute("aria-label", "Delivery years from 2015 to 2034")
+  await expect(range).toHaveAccessibleName("2015 - 2034 Delivery years from 2015 to 2034")
+  expect(await axeViolations(page, "sap_horizon")).toEqual([])
   await page.getByRole("button", { name: "Next Year Range", exact: true }).click()
-  await expect(range).not.toHaveText(before)
-  await expect(range).toHaveAttribute("aria-label", `Year range ${await range.innerText()}`)
+  await expect(range).toHaveAttribute("aria-label", "Delivery years from 2035 to 2054")
+  await expect(range).toHaveAccessibleName("2035 - 2054 Delivery years from 2035 to 2054")
+  expect(await axeViolations(page, "sap_horizon")).toEqual([])
+  await range.focus()
+  await expect(range).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(page.locator('[data-picker="yearrange"]')).toBeVisible()
 })
