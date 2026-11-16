@@ -11,7 +11,8 @@
     "@fiori/picker-field",
     "@fiori/segmented-button",
     "@fiori/responsive-popover",
-    "@fiori/use-is-phone"
+    "@fiori/use-is-phone",
+    "@fiori/locale"
   ],
   "files": [
     {
