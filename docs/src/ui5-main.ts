@@ -4,6 +4,7 @@
 import "@ui5/webcomponents/dist/Assets.js"
 import { setTheme } from "@ui5/webcomponents-base/dist/config/Theme.js"
 import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
+import type UI5Element from "@ui5/webcomponents-base/dist/UI5Element.js"
 
 import { readPageOptions, snapSlots, type Ui5Renderer } from "./fixture-types"
 import { internals } from "@ui5/webcomponents-base/dist/Device.js"
@@ -57,8 +58,14 @@ await Promise.all(fixtureReadiness)
 
 // Wait for every custom element to be defined and rendered, fonts loaded, and icons drawn
 // (ui5-icon fills its <path> asynchronously).
-const tags = new Set([...root.querySelectorAll("*")].map((e) => e.localName).filter((t) => t.includes("-")))
+const mountedCustomElements = [...root.querySelectorAll("*")].filter((e) => e.localName.includes("-"))
+const tags = new Set(mountedCustomElements.map((e) => e.localName))
 await Promise.all([...tags].map((t) => customElements.whenDefined(t)))
+// INTEGRATION cause 4: UI5Element.js define() registers the tag before its definePromise
+// finishes Boot.js boot() (including applyTheme), i18n/CLDR and onDefine(). Its
+// connectedCallback() waits that promise before the first render; Render.js renderFinished()
+// only drains registered tags/render queues. Finish initialization before fonts/slot measurement.
+await Promise.all(mountedCustomElements.map((e) => (e as UI5Element).definePromise))
 await renderFinished()
 await document.fonts.ready
 const shadowIcons = (node: ParentNode): Element[] =>
