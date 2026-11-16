@@ -11,7 +11,8 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { TimePicker } from "@/components/ui/time-picker"
-import { ComboBox, ComboBoxItem } from "@/components/ui/combobox"
+import { ComboBox, ComboBoxItem, ComboBoxItemGroup } from "@/components/ui/combobox"
+import { ValueHelpDialog, type ValueHelpTexts } from "@/components/ui/value-help-dialog"
 import { Slider, RangeSlider } from "@/components/ui/slider"
 import { ProgressIndicator } from "@/components/ui/progress-indicator"
 import { ObjectNumber } from "@/components/ui/object-number"
@@ -336,6 +337,13 @@ function Docs() {
 
 const i18nColumn = createDataTableColumnHelper<{ name: string }>()
 const i18nColumns = [i18nColumn.accessor("name", { header: "Name" })]
+const i18nValueHelpItems = [{ id: "a", name: "Äther" }, { id: "z", name: "Zulu" }]
+const i18nValueHelpColumns = [{ key: "name", label: "Name" }]
+function I18nValueHelpExample({ id, title, empty = false, texts }: { id: string; title: string; empty?: boolean; texts?: Partial<ValueHelpTexts> }) {
+  const [open, setOpen] = React.useState(false)
+  return <section id={id}><ValueHelpDialog title={title} open={open} onOpenChange={setOpen} keyField="id" columns={i18nValueHelpColumns} items={i18nValueHelpItems} defaultValue={empty ? undefined : { keys: ["a"], conditions: [{ operator: "EQ", values: ["A"] }] }} texts={texts}><Button onClick={() => setOpen(true)}>Open {title}</Button></ValueHelpDialog></section>
+}
+
 function I18nPage() {
   const [locale, setLocale] = React.useState(query.get("locale") ?? "de-DE")
   const [value, setValue] = React.useState(1.5)
@@ -370,7 +378,16 @@ function I18nPage() {
         <div id="i18n-progress"><ProgressIndicator value={50} /></div>
         <div id="i18n-number"><ObjectNumber number={1234.5} /></div>
         <div id="i18n-combobox"><ComboBox aria-label="Empty combobox" /></div>
+        <div id="i18n-combobox-announcements"><ComboBox aria-label="Grouped announcements" noTypeahead><ComboBoxItemGroup headerText="{0}x"><ComboBoxItem text="Alpha" additionalText="A" /><ComboBoxItem text="Beta" additionalText="B" /></ComboBoxItemGroup><ComboBoxItem text="Zulu" /></ComboBox></div>
+        <div id="i18n-combobox-announcements-override"><ComboBox aria-label="Custom grouped announcements" texts={{ groupHeader: "Category", itemPosition: (position, count) => `Count ${count}; position ${position}` }}><ComboBoxItemGroup headerText="{0}x"><ComboBoxItem text="Alpha" additionalText="A" /><ComboBoxItem text="Beta" /></ComboBoxItemGroup></ComboBox></div>
         <div id="i18n-select"><Select><SelectTrigger aria-label="Empty select"><SelectValue /></SelectTrigger><SelectContent /></Select></div>
+        {(["negative", "critical", "positive", "information"] as const).map(state => <div id={`i18n-select-state-${state}`} key={state}><Select defaultValue="a"><SelectTrigger aria-label={`Localized ${state} select`} valueState={state}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">Alpha</SelectItem></SelectContent></Select></div>)}
+        <div id="i18n-select-state-override"><Select defaultValue="a"><SelectTrigger aria-label="Custom negative select" valueState="negative" texts={{ negativeType: "Component error" }} valueStateTypeText={{ negative: "Legacy error" }}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">Alpha</SelectItem></SelectContent></Select></div>
+        <FioriLocaleProvider texts={{ "valuehelp.TABLETITLE": "Rows {0}!", "valuehelp.TABLETITLENONUMBER": "Zero rows", "valuehelp.SELECTFROMLIST": "Selected {0}!", "valuehelp.SELECTFROMLISTNONUMBER": "Zero selected", "valuehelp.DEFINECONDITIONS": "Conditions {0}!", "valuehelp.DEFINECONDITIONSNONUMBER": "Zero conditions", "valuehelp.TOKENIZERTITLE": "Total {0}!", "valuehelp.TOKENIZERTITLENONUMBER": "Zero tokens" }}>
+          <I18nValueHelpExample id="i18n-vhd-counted" title="Counted value help" />
+          <I18nValueHelpExample id="i18n-vhd-zero" title="Empty counted value help" empty />
+          <I18nValueHelpExample id="i18n-vhd-title-override" title="Custom counted value help" texts={{ items: "Legacy rows", searchAndSelectWithCount: count => `Custom selected ${count}`, defineConditionsWithCount: count => `Custom conditions ${count}`, selectedItemsAndConditionsWithCount: count => `Custom total ${count}` }} />
+        </FioriLocaleProvider>
         <div id="i18n-collation"><ComboBox aria-label="Collation combobox" noTypeahead filter="startsWith">{["Äland", "Aland", "Zulu"].map(text => <ComboBoxItem key={text} text={text} />)}</ComboBox><Select defaultValue="Zulu"><SelectTrigger aria-label="Collation select"><SelectValue /></SelectTrigger><SelectContent>{["Äland", "Aland", "Zulu"].map(text => <SelectItem key={text} value={text}>{text}</SelectItem>)}</SelectContent></Select></div>
         <div id="i18n-table"><Table /></div>
         <div id="i18n-sort"><DataTable data={[{name:"Zulu"},{name:"Äland"},{name:"Aland"}]} columns={i18nColumns} defaultSorting={[{ id: "name", desc: false }]} /></div>
@@ -389,15 +406,19 @@ function I18nPage() {
         <div id="i18n-dialog"><Dialog><DialogTrigger asChild><Button>Open localized dialog</Button></DialogTrigger><DialogContent aria-describedby={undefined}><DialogHeader><DialogTitle>Example</DialogTitle></DialogHeader><DialogClose /></DialogContent></Dialog></div>
       </div>
     </FioriLocaleProvider>
-    <FioriLocaleProvider texts={{ DATEPICKER_VALUE_MISSING: "Text-only date {0}", DATERANGE_VALUE_MISSING: "Text-only range {0}", DATETIME_VALUE_MISSING: "Text-only date-time {0}", TIMEPICKER_VALUE_MISSING: "Text-only time {0}", NUMBERINPUT_PATTERN_MISSMATCH: "Text-only precision {0}" }}>
+    <FioriLocaleProvider texts={{ DATEPICKER_VALUE_MISSING: "Text-only date {0}", DATERANGE_VALUE_MISSING: "Text-only range {0}", DATETIME_VALUE_MISSING: "Text-only date-time {0}", TIMEPICKER_VALUE_MISSING: "Text-only time {0}", NUMBERINPUT_PATTERN_MISSMATCH: "Text-only precision {0}", LIST_NO_DATA: "Text-only empty" }}>
       <section id="i18n-text-only" aria-label="Text provider without a locale">
         <DatePicker id="i18n-text-only-date" required formatPattern="yyyy-MM-dd" aria-label="Text-only date" />
         <DateRangePicker id="i18n-text-only-range" required formatPattern="yyyy-MM-dd" aria-label="Text-only range" />
         <DateTimePicker id="i18n-text-only-datetime" required formatPattern="yyyy-MM-dd HH:mm:ss" aria-label="Text-only date-time" />
         <TimePicker id="i18n-text-only-time" required formatPattern="HH:mm:ss" aria-label="Text-only time" />
         <StepInput id="i18n-text-only-step" valuePrecision={1} aria-label="Text-only number" />
+        <div id="i18n-text-only-combobox"><ComboBox aria-label="Text-only empty combobox" /></div>
+        <div id="i18n-text-only-select"><Select><SelectTrigger aria-label="Text-only empty select"><SelectValue /></SelectTrigger><SelectContent /></Select></div>
       </section>
     </FioriLocaleProvider>
+    <section id="i18n-no-provider-match"><Select defaultValue="z"><SelectTrigger aria-label="Unlocalized matching"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">Äther</SelectItem><SelectItem value="z">Zulu</SelectItem></SelectContent></Select></section>
+    <I18nValueHelpExample id="i18n-vhd-no-provider" title="Unlocalized value help" empty />
     <Section title="Optional SAP language packs"><p>Translations are derived from UI5 Web Components 2.28.1 and OpenUI5 1.154.0, © SAP SE, Apache-2.0. Install only the packs your application needs.</p><div className="grid gap-2">{Object.keys(languagePacks).filter(path => !path.endsWith("registry-items.json")).sort().map(path => { const tag = path.split("/").at(-1)!.slice(0,-5); return <div key={tag}><code>{`npx shadcn add @fiori/i18n-${tag}`}</code></div> })}</div></Section>
   </div>
 }

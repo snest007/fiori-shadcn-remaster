@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { execFileSync } from "node:child_process"
-import { expect, test, type Page } from "@playwright/test"
+import { devices, expect, test, type Page } from "@playwright/test"
 import pixelmatch from "pixelmatch"
 import { PNG } from "pngjs"
 import { formatNumber, formatPercent, parseNumber } from "../registry/lib/fiori-numbers"
@@ -53,6 +53,10 @@ test("number parser preserves SAP grouping ambiguity and locale spacing rules", 
   expect(parseNumber("1.23", "de-DE")).toBeNaN()
   expect(parseNumber("0.123", "de-DE")).toBeNaN()
   expect(parseNumber("1\u202f234,5", "fr-FR")).toBe(1234.5)
+  for (const value of ["1.23", "0.123", "1.234e2"]) expect(parseNumber(value, "fr-FR")).toBeNaN()
+  for (const locale of ["de-DE", "fr-FR", "en-US", "zh-CN"]) for (const value of ["50%", "50 %"]) expect(parseNumber(value, locale)).toBe(0.5)
+  expect(parseNumber("50%", "ar-EG")).toBe(50)
+  expect(parseNumber("2e309", "en-US")).toBe(Infinity)
   expect(parseNumber("0 123", "fr-FR")).toBe(123)
   expect(formatNumber(1234.5, "fr-FR")).toBe(new Intl.NumberFormat("fr-FR").format(1234.5))
   expect(parseNumber("١٬٢٣٤٫٥", "ar-EG")).toBe(1234.5)
@@ -87,6 +91,149 @@ test("a text-only provider reaches picker and numeric native validity channels",
   await number.fill("1.23")
   await number.press("Enter")
   await expect.poll(() => number.evaluate((element: HTMLInputElement) => element.validationMessage)).toBe("Text-only precision 1")
+})
+
+test("text-only providers translate empty Select and ComboBox lists", async ({ page }) => {
+  await page.goto("/#/i18n")
+  const combo = page.locator("#i18n-text-only-combobox input")
+  await combo.press("F4")
+  await expect(page.locator("[data-slot=combobox-no-data]")).toHaveText("Text-only empty")
+  await combo.press("Escape")
+  await page.locator("#i18n-text-only-select").getByRole("combobox").click()
+  await expect(page.locator("[data-slot=select-no-data]")).toHaveText("Text-only empty")
+})
+
+test("ComboBox navigation announces translated groups and item positions with overridable texts", async ({ page }) => {
+  await page.goto("/?locale=de-DE#/i18n")
+  const owner = page.locator("#i18n-combobox-announcements")
+  const input = owner.getByRole("combobox")
+  const status = owner.locator('[data-slot="combobox-announcement"]')
+  await input.press("F4")
+  await expect(status).toHaveText(`A ${formatSapText(de.LIST_ITEM_POSITION, [1, 3])}`)
+  await input.press("ArrowUp")
+  await expect(status).toHaveText(`${de.LIST_ITEM_GROUP_HEADER} {0}x`)
+  await input.press("ArrowDown")
+  await expect(status).toHaveText(`A ${formatSapText(de.LIST_ITEM_POSITION, [1, 3])}`)
+  await input.press("ArrowDown")
+  await expect(status).toHaveText(`B ${formatSapText(de.LIST_ITEM_POSITION, [2, 3])}`)
+  await input.press("Escape")
+  const custom = page.locator("#i18n-combobox-announcements-override")
+  await custom.getByRole("combobox").press("F4")
+  await expect(custom.locator('[data-slot="combobox-announcement"]')).toHaveText("A Count 2; position 1")
+  await custom.getByRole("combobox").press("ArrowUp")
+  await expect(custom.locator('[data-slot="combobox-announcement"]')).toHaveText("Category {0}x")
+})
+
+test.describe("phone locale selection paths", () => {
+test.use({ userAgent: devices["iPhone 13"].userAgent, isMobile: true, hasTouch: true, viewport: { width: 375, height: 812 } })
+
+test("phone Select translates all value-state types and preserves its legacy text override", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto("/?locale=de-DE#/i18n")
+  for (const [state, key] of [["negative", "ERROR"], ["critical", "WARNING"], ["positive", "SUCCESS"], ["information", "INFORMATION"]]) {
+    await page.locator(`#i18n-select-state-${state}`).getByRole("combobox").press("F4")
+    const dialog = page.getByRole("dialog")
+    await expect(dialog).toBeVisible()
+    // Select.js/hasValueStateText and SelectPopoverTemplate omit Positive from
+    // the phone header; the other three states render their translated type/body.
+    if (state === "positive") await expect(dialog.locator('[data-value-state="positive"].fiori-value-state-message')).toHaveCount(0)
+    else await expect(dialog).toContainText(`${de[`VALUE_STATE_TYPE_${key}`]} ${de[`VALUE_STATE_${key}`]}`)
+    await page.keyboard.press("Escape")
+    await expect(dialog).toHaveCount(0)
+  }
+  await page.locator("#i18n-select-state-override").getByRole("combobox").press("F4")
+  await expect(page.getByRole("dialog")).toContainText(`Legacy error ${de.VALUE_STATE_ERROR}`)
+})
+
+test("phone Select preserves no-provider matching and opts into locale collation", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.goto("/?locale=de-DE#/i18n")
+  await page.locator("#i18n-no-provider-match").getByRole("combobox").press("F4")
+  let dialog = page.getByRole("dialog")
+  let selected = dialog.getByRole("option", { name: "Zulu", exact: true })
+  await selected.focus()
+  await expect(selected).toBeFocused()
+  await selected.press("a")
+  await expect(selected).toHaveAttribute("aria-selected", "true")
+  await page.keyboard.press("Escape")
+  await expect(dialog).toHaveCount(0)
+  await page.locator("#i18n-collation").getByRole("combobox", { name: "Collation select", exact: true }).press("F4")
+  dialog = page.getByRole("dialog")
+  selected = dialog.getByRole("option", { name: "Zulu", exact: true })
+  await selected.focus()
+  await expect(selected).toBeFocused()
+  await selected.press("a")
+  await expect(dialog.getByRole("option", { name: "Äland", exact: true })).toHaveAttribute("aria-selected", "true")
+})
+})
+
+test("ValueHelpDialog counted titles use numbered keys and retain scalar/function overrides", async ({ page }) => {
+  await page.goto("/?locale=de-DE#/i18n")
+  await page.locator("#i18n-vhd-counted").getByRole("button").click()
+  let dialog = page.getByRole("dialog", { name: "Counted value help", exact: true })
+  await expect(dialog.getByRole("grid")).toHaveAccessibleName("Rows 2!")
+  await expect(dialog.getByRole("tab", { name: "Selected 1!", exact: true })).toBeVisible()
+  await expect(dialog.getByRole("tab", { name: "Conditions 1!", exact: true })).toBeVisible()
+  await expect(dialog.getByRole("list", { name: "Total 2!", exact: true })).toBeVisible()
+  await dialog.getByRole("searchbox").fill("not found")
+  await dialog.getByRole("searchbox").press("Enter")
+  await expect(dialog.getByRole("grid")).toHaveAccessibleName("Zero rows")
+  await page.keyboard.press("Escape")
+  await expect(dialog).toHaveCount(0)
+  await page.locator("#i18n-vhd-zero").getByRole("button").click()
+  dialog = page.getByRole("dialog", { name: "Empty counted value help", exact: true })
+  await expect(dialog.getByRole("tab", { name: "Zero selected", exact: true })).toBeVisible()
+  await expect(dialog.getByRole("tab", { name: "Zero conditions", exact: true })).toBeVisible()
+  await expect(dialog.getByRole("heading", { name: "Zero tokens", exact: true })).toBeVisible()
+  await page.keyboard.press("Escape")
+  await expect(dialog).toHaveCount(0)
+  await page.locator("#i18n-vhd-title-override").getByRole("button").click()
+  dialog = page.getByRole("dialog", { name: "Custom counted value help", exact: true })
+  await expect(dialog.getByRole("grid")).toHaveAccessibleName("Legacy rows (2)")
+  await expect(dialog.getByRole("tab", { name: "Custom selected 1", exact: true })).toBeVisible()
+  await expect(dialog.getByRole("tab", { name: "Custom conditions 1", exact: true })).toBeVisible()
+  await expect(dialog.getByRole("list", { name: "Custom total 2", exact: true })).toBeVisible()
+})
+
+test("ValueHelpDialog retains no-provider search matching and localizes opted-in matching", async ({ page }) => {
+  await page.goto("/?locale=de-DE#/i18n")
+  await page.locator("#i18n-vhd-no-provider").getByRole("button").click()
+  let dialog = page.getByRole("dialog", { name: "Unlocalized value help", exact: true })
+  await expect(dialog.getByRole("grid")).toHaveAccessibleName("Items (2)")
+  await expect(dialog.getByRole("tab", { name: "Search and Select (0)", exact: true })).toBeVisible()
+  await dialog.getByRole("searchbox").fill("a")
+  await dialog.getByRole("searchbox").press("Enter")
+  await expect(dialog.locator("tbody tr[data-row]")).toHaveCount(0)
+  await page.keyboard.press("Escape")
+  await expect(dialog).toHaveCount(0)
+  await page.locator("#i18n-vhd-counted").getByRole("button").click()
+  dialog = page.getByRole("dialog", { name: "Counted value help", exact: true })
+  await dialog.getByRole("searchbox").fill("a")
+  await dialog.getByRole("searchbox").press("Enter")
+  await expect(dialog.locator("tbody tr[data-row]")).toHaveCount(1)
+  await expect(dialog.locator("tbody tr[data-row]")).toContainText("Äther")
+})
+
+test("French numeric parser rejects foreign decimal syntax like the pinned formatter", async ({ page }) => {
+  await page.goto("/ui5.html?locale=fr-FR&only=step-input")
+  await page.waitForSelector("html[data-ready=true]")
+  const texts = ["1.23", "0.123", "1.234e2", "50%", "50 %", "1\u202f234,5"]
+  const native = await page.locator("ui5-step-input").evaluate((host: any, values) => values.map(text => ({ text, value: String(host._innerNumberInput.formatter.parse(text)) })), texts)
+  for (const item of native) expect(String(parseNumber(item.text, "fr-FR")), item.text).toBe(item.value)
+})
+
+test("Calendar weekday labels use native CLDR format context in all E5 locales", async ({ browser }) => {
+  for (const locale of locales) {
+    const values: string[][] = []
+    for (const native of [false, true]) {
+      const page = await browser.newPage()
+      await page.goto(native ? `/ui5.html?locale=${locale}&only=calendar-l10n-${locale}` : `/?fixtures&locale=${locale}&only=calendar-l10n-${locale}`)
+      await page.waitForSelector("html[data-ready=true]")
+      values.push((await page.locator(`[data-fixture="calendar-l10n-${locale}"]`).getByRole("columnheader").allTextContents()).slice(-7).map(text => text.trim()))
+      await page.close()
+    }
+    expect(values[0], locale).toEqual(values[1])
+  }
 })
 
 test("existing Wizard, Breadcrumbs, List and TextArea channels use SAP texts and preserve overrides", async ({ page }) => {
@@ -325,6 +472,9 @@ for (const locale of locales) {
     writeFileSync(`.integration/E5-evidence/oracles/${locale}-number.json`, JSON.stringify(oracle, null, 2))
     expect(oracle.parsed).toBe(1234.5)
     expect(oracle.display).toBe(formatNumber(1.5, locale, { minFractionDigits: 1, maxFractionDigits: 1 }))
+    const parserCases = ["50%", "50 %", "1.23", "0.123", "1.234e2", "2e309"]
+    const parsed = await page.locator("ui5-step-input").evaluate((host: any, texts) => texts.map(text => ({ text, parsed: String(host._innerNumberInput.formatter.parse(text)) })), parserCases)
+    for (const entry of parsed) expect(String(parseNumber(entry.text, locale)), `${locale}: ${entry.text}`).toBe(entry.parsed)
     await page.goto(`/ui5.html?locale=${locale}&only=date-picker-empty`)
     await page.waitForSelector("html[data-ready=true]")
     const date = await page.locator("ui5-date-picker").evaluate((element: any) => element.formatValue(new Date(2024, 2, 12)))
