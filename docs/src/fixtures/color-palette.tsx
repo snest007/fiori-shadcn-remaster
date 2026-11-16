@@ -27,7 +27,7 @@ function PaletteFixture({ count = 15, selected = [], defaultButton, recent, popu
 
 export default defineFixtures<PaletteFixtureProps>({
   name: "color-palette",
-  cases: [
+  cases: ([
     { id: "color-palette", props: {} },
     { id: "color-palette-default-recent", props: { defaultButton: true, recent: true } },
     { id: "color-palette-populated-recent", props: { defaultButton: true, recent: true, populate: true } },
@@ -39,6 +39,6 @@ export default defineFixtures<PaletteFixtureProps>({
     { id: "color-palette-tooltip", props: { tooltip: true } },
     { id: "color-palette-hidden", props: { count: 6, hidden: [1], selected: [0, 1] } },
     { id: "color-palette-toggled-hidden", props: { count: 6, toggledHidden: [1], selected: [0, 1] } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<PaletteFixtureProps>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "color-palette-rtl" }] : [fixture]),
   react: (props) => props.populate ? <ColorPaletteStateProvider><PaletteFixture {...props} /></ColorPaletteStateProvider> : <PaletteFixture {...props} />,
 })
