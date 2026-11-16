@@ -595,3 +595,16 @@ test("List texts overrides keep owned selection, group and focus descriptions", 
   await expect(list.getByRole("checkbox").first()).toHaveAccessibleName("Select produce")
   await expect(page.locator('[data-slot="list-announcement"][data-owner="list-text-overrides"]')).toHaveText("Produce selected")
 })
+
+for (const suffix of ["", "-rtl"]) test(`list: an explicit Option item keeps its selected state under an ordinary list${suffix}`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?${native ? "" : "fixtures&"}only=list-a11y-item-option-selected${suffix}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const cell = current.locator(`[data-fixture="list-a11y-item-option-selected${suffix}"]`)
+      await expect(cell.getByRole("list")).toHaveCount(1)
+      await expect(cell.getByRole("option", { name: "Apples Is Active", exact: true })).toHaveAttribute("aria-selected", "true")
+    }
+  } finally { await reference.close() }
+})

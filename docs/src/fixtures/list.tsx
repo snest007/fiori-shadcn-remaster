@@ -76,6 +76,8 @@ const states = ["none", "negative", "critical", "positive", "information"] as co
 const richMovable: ItemSpec = { text: "Laptop", description: "Dell XPS 15", icon: "product", additionalText: "In stock", selected: true, movable: true }
 
 const cases: FixtureCase<Props>[] = [
+  { id: "list-a11y-item-option-selected", props: { items: [{ text: "Apples", custom: true, noControl: true, accessibleName: "Apples", itemRole: "option", selected: true }], mode: "single" } },
+  { id: "list-a11y-item-option-selected-rtl", props: { items: [{ text: "Apples", custom: true, noControl: true, accessibleName: "Apples", itemRole: "option", selected: true }], mode: "single", rtl: true } },
   ...(["list", "listbox", "menu", "tree"] as const).map((role) => ({ id: `list-a11y-root-${role}`, props: { items: [{ text: "Apples", type: "inactive" as const }], role } })),
   { id: "list-a11y-standard-name", props: { items: [{ text: "Apples", accessibleName: "Produce row" }] } },
   { id: "list-a11y-custom-name", props: { items: [{ text: "Apples", custom: true, noControl: true, accessibleName: "Produce row", selected: true, position: 2, setSize: 7, itemRole: "option" }], role: "listbox", mode: "single" } },
@@ -1200,6 +1202,38 @@ export default defineFixtures<Props>({
         "/ui5/ax/0/children/0/children/0/children/0/children/1/children/4/children/2"
       ],
       "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-item-option-selected-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these literal capture-proven paths unwrap only unnamed, description-free, value-free generic nodes with no properties, preserving every descendant role/name/state/order."
+    },
+    "list-a11y-item-option-selected": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these literal capture-proven paths unwrap only unnamed, description-free, value-free generic nodes with no properties, preserving every descendant role/name/state/order."
     }
   },
   cases,

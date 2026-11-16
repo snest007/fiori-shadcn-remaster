@@ -17,3 +17,5 @@ export const HeaderAccessibility: Story = { render: () => <List aria-label="Prod
 export const ItemAccessibility: Story = { render: () => <List aria-label="Produce" accessibleRole="listbox" selectionMode="single" defaultValue={["apple"]}><ListItemCustom value="apple" aria-label="Apples produce row" aria-posinset={2} aria-setsize={7}><span>Apples</span></ListItemCustom></List> }
 export const RoleMenu: Story = { render: () => <List aria-label="Produce actions" accessibleRole="menu"><ListItemStandard value="buy" type="navigation">Buy produce</ListItemStandard></List> }
 export const RoleTree: Story = { render: () => <List aria-label="Produce tree" accessibleRole="tree"><ListItemStandard value="fruit" type="inactive">Fruit</ListItemStandard></List> }
+export const SelectedCustomOption: Story = { render: () => <List aria-label="Produce" selectionMode="single" defaultValue={["apple"]}><ListItemCustom value="apple" role="option" aria-label="Apples"><span>Apples</span></ListItemCustom></List> }
+export const RTLSelectedCustomOption: Story = { ...SelectedCustomOption, globals: { dir: "rtl" } }

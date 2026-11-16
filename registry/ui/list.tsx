@@ -949,6 +949,7 @@ function ListItemRoot({
   const mode = core.mode
   // UI5: only Multiple / Single / SingleStart / SingleEnd announce selection (not SingleAuto).
   const ariaSelected = mode === "multiple" || (isSingle(mode) && mode !== "singleAuto") ? selected : undefined
+  const effectiveRole = props.role ?? core.itemRole
   const before = mode === "multiple" || mode === "singleStart"
   const after = mode === "singleEnd" || mode === "delete"
   const sel = <SelectionElement core={core} value={value} selected={selected} inactive={inactive} disabled={disabled} />
@@ -973,9 +974,11 @@ function ListItemRoot({
       data-mode={mode}
       data-pad-selection={padSelection ? "" : undefined}
       {...flags}
-      role={props.role ?? core.itemRole}
+      role={effectiveRole}
       tabIndex={props.tabIndex ?? (disabled ? -1 : core.currentKey === value ? 0 : -1)}
-      aria-selected={core.itemRole === "option" || core.itemRole === "treeitem" ? ariaSelected : undefined}
+      // ListItem.js:_ariaSelected derives state from mode, and _accInfo uses
+      // the effective item role. A caller's valid Option/TreeItem role keeps it.
+      aria-selected={effectiveRole === "option" || effectiveRole === "treeitem" ? ariaSelected : undefined}
       aria-disabled={disabled || undefined}
       aria-labelledby={cn(customText && customId, externalNameRef, !custom && !accessibleName && !externalNameRef && contentId, nameId)}
       aria-describedby={cn(externalDescriptionRef, descId)}
