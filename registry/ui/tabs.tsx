@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 TabContainer fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -68,12 +69,16 @@ function Tabs({
   overflowMode = "end",
   overflowButton,
   startOverflowButton,
-  moreText = "More",
-  overflowMenuTitle = "Overflow Menu",
+  moreText: moreTextProp,
+  overflowMenuTitle: overflowMenuTitleProp,
   overflowListAriaLabel = "Hidden tabs",
   className,
   ...props
 }: TabsProps) {
+  const { t } = useFioriLocale()
+  const moreText = moreTextProp ?? t("TABCONTAINER_END_OVERFLOW", "More") // UI5 TABCONTAINER_END_OVERFLOW
+  const overflowMenuTitle = overflowMenuTitleProp ?? t("TABCONTAINER_OVERFLOW_MENU_TITLE", "Overflow Menu") // UI5 TABCONTAINER_OVERFLOW_MENU_TITLE
+
   const baseId = React.useId()
   const [uncontrolled, setUncontrolled] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolled
@@ -433,6 +438,7 @@ type TabsTriggerProps = Omit<React.ComponentProps<"div">, "children"> & {
   disabled?: boolean
   /** Spoken after the text for semantic designs. Defaults to the design name ("Positive", ...). */
   designLabel?: string
+  texts?: Partial<Record<Exclude<TabDesign, "default">, string>>
   children?: React.ReactNode
 }
 
@@ -445,19 +451,25 @@ const defaultDesignLabel: Record<TabDesign, string | undefined> = {
   neutral: "Neutral",
 }
 
+// Tab.js/semanticColorText reads these four keys at the tab's spoken design label.
+const defaultDesignLabelKeys = { positive: "TAB_ARIA_DESIGN_POSITIVE", negative: "TAB_ARIA_DESIGN_NEGATIVE", critical: "TAB_ARIA_DESIGN_CRITICAL", neutral: "TAB_ARIA_DESIGN_NEUTRAL" } as const
+
 function TabsTrigger({
   value,
   icon,
   additionalText,
   design = "default",
   disabled,
-  designLabel = defaultDesignLabel[design],
+  designLabel: designLabelProp,
+  texts: textsProp,
   className,
   children,
   onClick,
   onFocus,
   ...props
 }: TabsTriggerProps) {
+  const labels = useFioriTexts(defaultDesignLabel, defaultDesignLabelKeys, textsProp)
+  const designLabel = designLabelProp ?? labels[design]
   const ctx = useTabs("TabsTrigger")
   const registerTab = React.useContext(TabsStripContext)
   const accessibleLabel = props["aria-label"] ?? (children == null && (additionalText == null || additionalText === "") ? icon?.name : undefined)

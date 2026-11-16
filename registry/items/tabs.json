@@ -4,7 +4,8 @@
     "@fiori/icons",
     "@fiori/button",
     "@fiori/list",
-    "@fiori/popover"
+    "@fiori/popover",
+    "@fiori/locale"
   ],
   "description": "Fiori IconTabBar / TabContainer: text and icon tabs, counts, semantic designs, responsive overflow, UI5 keyboard model.",
   "usage": {
