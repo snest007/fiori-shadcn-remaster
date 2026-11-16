@@ -9,6 +9,136 @@ const states = ["negative", "critical", "positive", "information"] as const
 
 export default defineFixtures<Props>({
   name: "select",
+  a11yDiff: {
+    "select": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-description": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-description-ref": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-description-ref-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-description-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-groups": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-groups-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-name": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-name-ref": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-name-ref-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-a11y-name-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-critical": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-disabled": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-information": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-negative": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "select-positive": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in select: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    }
+  },
   cases: [
     ...(["name", "name-ref", "description", "description-ref"] as const).flatMap((channel) => [false, true].map((rtl) => ({ id: `select-a11y-${channel}${rtl ? "-rtl" : ""}`, props: { options: ["Germany", "France"], selected: "Germany", channel, rtl } }))),
     { id: "select-a11y-groups", props: { options: ["Germany", "France", "China"], selected: "Germany", groups: [["Germany", "France"], ["China"]] } },
