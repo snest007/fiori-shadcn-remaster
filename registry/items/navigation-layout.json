@@ -1,5 +1,46 @@
 {
   "title": "NavigationLayout",
   "registryDependencies": ["@fiori/side-navigation"],
-  "description": "Fiori navigation layout: header, collapsible side navigation and content; collapses the side navigation on small screens (ui5-navigation-layout)."
+  "description": "Fiori navigation layout: header, collapsible side navigation and content; collapses the side navigation on small screens (ui5-navigation-layout).",
+  "usage": {
+    "summary": "Compose a full-screen header, vertical navigation and page content with responsive navigation visibility.",
+    "useWhen": [
+      "Move between application sections through vertical navigation while keeping the current page beside it.",
+      "Compose the header, navigation and content regions of an application screen yourself.",
+      "Use mode=\"auto\" to collapse navigation below 600px; wire onModeChange to close expanded navigation after selection on these screens."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Need navigation items only inside an application frame that already exists.",
+        "use": [
+          "side-navigation"
+        ]
+      },
+      {
+        "when": "Start from a wired frame with search, notifications, user menu and product switching.",
+        "use": [
+          "app-shell"
+        ]
+      },
+      {
+        "when": "Start from an application-entry scaffold with selected navigation and page placeholders.",
+        "use": [
+          "launchpad"
+        ]
+      },
+      {
+        "when": "Keep a record list and its selected detail visible as related pages.",
+        "use": [
+          "flexible-column-layout"
+        ]
+      },
+      {
+        "when": "Show supplementary context rather than application navigation beside a task.",
+        "use": [
+          "dynamic-side-content"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

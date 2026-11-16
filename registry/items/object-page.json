@@ -1,5 +1,48 @@
 {
   "title": "ObjectPage",
   "description": "Fiori object page floorplan layout: DynamicPage with object header (avatar, facets), sticky navigation bar with anchor (scroll spy) or tabs mode, sections and subsections on cards.",
-  "registryDependencies": ["@fiori/dynamic-page", "@fiori/tabs", "@fiori/title"]
+  "registryDependencies": ["@fiori/dynamic-page", "@fiori/tabs", "@fiori/title"],
+  "usage": {
+    "summary": "Compose one object’s categorized details with a dynamic header and anchor or tab navigation.",
+    "useWhen": [
+      "Read or edit one object’s details while moving between its categorized sections.",
+      "Keep object identity, essential attributes and actions above related forms, item lists and notes.",
+      "Use mode=\"anchor\" for a continuous page or mode=\"tabs\" to show one section at a time."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Show only one section without editable header content or section navigation.",
+        "use": [
+          "dynamic-page",
+          "page"
+        ]
+      },
+      {
+        "when": "Start from a complete display/edit page with sample fields, items, notes and Save/Cancel handling.",
+        "use": [
+          "object-page-floorplan"
+        ]
+      },
+      {
+        "when": "Find records with filters or keep a list beside its selected detail.",
+        "use": [
+          "list-report",
+          "flexible-column-layout"
+        ]
+      },
+      {
+        "when": "Guide unfamiliar object creation through 3–8 validated steps and a review screen.",
+        "use": [
+          "wizard-page"
+        ]
+      },
+      {
+        "when": "Add noncritical contextual information beside existing object content instead of making it an object section.",
+        "use": [
+          "dynamic-side-content"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

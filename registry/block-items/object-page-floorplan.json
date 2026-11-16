@@ -21,5 +21,65 @@
     "@fiori/object-identifier",
     "@fiori/icons",
     "@fiori/f6-navigation"
-  ]
+  ],
+  "usage": {
+    "summary": "Inspect and edit one object through a complete header, sectioned details and Save/Cancel flow.",
+    "useWhen": [
+      "Inspect or edit one business object with its identity, status, totals and categorized details.",
+      "Keep related forms, line items and notes on one page with anchor navigation.",
+      "Start from the display/edit example, then replace sample data and Save/Cancel handlers with application persistence."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Find and filter a record collection or act on selected records together.",
+        "use": [
+          "list-report"
+        ]
+      },
+      {
+        "when": "Keep a record list and its selected detail visible in adjacent columns.",
+        "use": [
+          "master-detail"
+        ]
+      },
+      {
+        "when": "Guide unfamiliar object creation through 3–8 validated steps and review.",
+        "use": [
+          "wizard-page"
+        ]
+      },
+      {
+        "when": "Compose an object layout with your own sections and edit handling inside an existing application.",
+        "use": [
+          "object-page"
+        ]
+      },
+      {
+        "when": "Offer an application-entry page with favorite app tiles.",
+        "use": [
+          "launchpad"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines",
+    "layout": [
+      "viewport frame",
+      "  ObjectPage",
+      "    title: DynamicPageTitle with Breadcrumbs and BreadcrumbsItem, Title, Label and Toolbar actions",
+      "    header: ObjectPageHeader with Avatar and ObjectPageHeaderFacet",
+      "      facets: ObjectAttribute, ObjectStatus and ObjectNumber",
+      "    navigation: anchor bar supplied by ObjectPage",
+      "    general section: ObjectPageSection and ObjectPageSubSection with Form, FormGroup and FormItem",
+      "      fields: Label with Text in display mode or Input in edit mode",
+      "    items section: ObjectPageSection and ObjectPageSubSection with Toolbar, Title, ToolbarSpacer and ToolbarButton, then Table",
+      "      rows: TableHeaderRow, TableHeaderCell, TableRow and TableCell with ObjectIdentifier, ObjectStatus and ObjectNumber",
+      "    notes section: ObjectPageSection and ObjectPageSubSection with Text or TextArea",
+      "    footer: Bar with save/cancel Button actions (shown in edit mode)"
+    ],
+    "variations": [
+      "Replace the inline order, header facets, form groups, item columns and notes with the business object’s details.",
+      "Connect Save and Cancel to application persistence and draft handling; preserve the distinction between saved display data and editable drafts.",
+      "Choose ObjectPage mode=\"tabs\" when users should work with one categorized section at a time instead of the continuous anchor view."
+    ]
+  }
 }

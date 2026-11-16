@@ -2,5 +2,64 @@
   "title": "Wizard page (floorplan)",
   "description": "Fiori Wizard floorplan: a Page with a Wizard of form steps (Select, Input, DatePicker, Checkbox), step-by-step validation, a review page with Edit links and a footer with Review / Submit / Cancel.",
   "registryDependencies": ["@fiori/page", "@fiori/wizard", "@fiori/bar", "@fiori/button", "@fiori/checkbox", "@fiori/date-picker", "@fiori/input", "@fiori/label", "@fiori/link", "@fiori/message-strip", "@fiori/select", "@fiori/text", "@fiori/title", "@fiori/icons"],
-  "categories": ["floorplan", "wizard"]
+  "categories": ["floorplan", "wizard"],
+  "usage": {
+    "summary": "Guide linear creation through validated steps, a review screen and final submission actions.",
+    "useWhen": [
+      "Create an unfamiliar object through 3–8 ordered steps before reviewing and submitting the result.",
+      "Prevent progress until required entries are valid, then let users revisit completed sections from review.",
+      "Start from a complete Page and Wizard flow with validation, review, footer actions and completion feedback."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Complete fewer than 3 steps or enter fields together on one existing page.",
+        "use": [
+          "form",
+          "page"
+        ]
+      },
+      {
+        "when": "Inspect or edit one object directly through sectioned details instead of a guided sequence.",
+        "use": [
+          "object-page",
+          "object-page-floorplan"
+        ]
+      },
+      {
+        "when": "Need the step control inside an existing or custom page with your own validation and final actions.",
+        "use": [
+          "wizard"
+        ]
+      },
+      {
+        "when": "Find and filter a business-record collection.",
+        "use": [
+          "list-report"
+        ]
+      },
+      {
+        "when": "Offer an entry point with favorite app tiles.",
+        "use": [
+          "launchpad"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines",
+    "layout": [
+      "viewport frame",
+      "  Page",
+      "    header: Bar with Title",
+      "    edit content: Wizard with WizardStep sections",
+      "      fields: Label, Select with SelectTrigger, SelectValue, SelectContent and SelectItem, Input, DatePicker and Checkbox",
+      "      step content: Title, Text and next-step Button actions",
+      "    review content: native sections with Title, edit Link, Label and Text values",
+      "    completion content: MessageStrip with a Link to create another object, followed by the reviewed sections",
+      "    footer: Bar with review/cancel or submit/cancel Button actions; absent after completion"
+    ],
+    "variations": [
+      "Replace the four sample product steps and fields with 3–8 steps for the creation task; keep later steps unreachable while preceding required data is invalid.",
+      "Replace the local Submit completion state with application submission and error handling; retain review, section editing and cancellation.",
+      "Adapt review labels and values to match the entry steps so users can verify and correct the same data before submission."
+    ]
+  }
 }

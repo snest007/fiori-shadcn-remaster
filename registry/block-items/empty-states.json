@@ -2,5 +2,54 @@
   "title": "Empty states",
   "description": "Gallery of the standard Fiori empty and error states (no data, no search results, no filter results, unable to load, page not found, success) as IllustratedMessage with actions, at different sizes.",
   "registryDependencies": ["@fiori/button", "@fiori/card", "@fiori/illustrated-message", "@fiori/label", "@fiori/segmented-button", "@fiori/title"],
-  "categories": ["empty-states"]
+  "categories": ["empty-states"],
+  "usage": {
+    "summary": "Start from a gallery of empty, no-results, failure and success messages with recovery-action examples.",
+    "useWhen": [
+      "Explain why no content is available and offer the action that can help users continue.",
+      "Choose a starting pattern for no data, no search or filter results, loading failure, a missing page or completed work.",
+      "Compare full-page and embedded message sizes before adapting one state to the application."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Embed a single empty or unavailable state in content that already has its own container.",
+        "use": [
+          "illustrated-message"
+        ]
+      },
+      {
+        "when": "Show available records with search, filters and row actions.",
+        "use": [
+          "list-report"
+        ]
+      },
+      {
+        "when": "Build the shared application frame rather than an empty or recovery view.",
+        "use": [
+          "app-shell"
+        ]
+      },
+      {
+        "when": "Offer an application-entry page with favorite app tiles.",
+        "use": [
+          "launchpad"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc",
+    "layout": [
+      "main gallery",
+      "  header: Title, then Label and SegmentedButton with SegmentedButtonItem size choices",
+      "  full-page section: Title, Card and IllustratedMessage with a create Button",
+      "  search/filter section: Title and two Card surfaces with IllustratedMessage and clear Button actions",
+      "  errors section: Title and two Card surfaces with IllustratedMessage and retry/home Button actions",
+      "  small-container section: Title and two Card surfaces with IllustratedMessage; success has a Button",
+      "  action feedback: native status text after filter clearing and retry attempts"
+    ],
+    "variations": [
+      "Keep only the state relevant to the page and replace the gallery heading and size selector with the application’s own context.",
+      "Wire create, clear-search, clear-filter, retry and home actions to real recovery behavior; the sample handlers do not fetch or navigate.",
+      "Choose Scene, Dialog, Spot or Dot to fit the host region and provide task-specific titleText and subtitleText."
+    ]
+  }
 }
