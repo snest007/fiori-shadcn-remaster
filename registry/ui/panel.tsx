@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 import { Collapsible as CollapsiblePrimitive } from "radix-ui"
 
 // UI5 2.28 Panel fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
@@ -46,12 +47,15 @@ function Panel({
   stickyHeader,
   accessibleRole = "form",
   accessibleName,
-  toggleButtonText = "Expand/Collapse",
+  toggleButtonText: toggleButtonTextProp,
   className,
   contentClassName,
   children,
   ...props
 }: PanelProps) {
+  const { t } = useFioriLocale()
+  const toggleButtonText = toggleButtonTextProp ?? t("PANEL_ICON", "Expand/Collapse") // UI5 PANEL_ICON
+
   const id = React.useId()
   const titleId = `${id}-title`
   const hasCustomHeader = header != null

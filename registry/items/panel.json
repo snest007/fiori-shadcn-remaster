@@ -5,7 +5,8 @@
   ],
   "registryDependencies": [
     "@fiori/icons",
-    "@fiori/button"
+    "@fiori/button",
+    "@fiori/locale"
   ],
   "description": "Fiori panel: expandable (animated) or fixed, header text or custom header.",
   "usage": {
