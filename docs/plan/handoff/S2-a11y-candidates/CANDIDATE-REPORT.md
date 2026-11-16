@@ -48,3 +48,11 @@ first row through the original sentinel. This browser-only DOM proof does not va
 
 All six patches pass `git apply --check` against this S2 branch. None have been applied. The contrast candidate
 has only a browser-only stylesheet proof; the three structural candidates have not been runtime-tested.
+
+## S2 final validation
+
+Canonical component runtime sources remain unchanged; none of these six candidates were applied.
+S2's main suite passed twice (`1418 passed (7.5m)` each) and its final complete Storybook suite passed twice
+(`1197 passed (3.7m)`, `1197 passed (3.5m)`). All four run JSONs have 0 skipped, 0 unexpected and 0 flaky; full
+Storybook runs used the default 75% workers with retries 0. Raw known findings remain attached to individual checks.
+The complete evidence, candidate reproductions and 286-story runtime inventory are in `.integration/S2-evidence/`.
