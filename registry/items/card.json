@@ -23,5 +23,8 @@
       }
     ],
     "source": "sap-fiori-guidelines"
-  }
+  },
+  "registryDependencies": [
+    "@fiori/locale"
+  ]
 }
