@@ -1,5 +1,29 @@
 {
   "title": "Tag",
-  "registryDependencies": ["@fiori/icons"],
-  "description": "Fiori tag: semantic designs with state icons, Set1/Set2 colour schemes 1–10, sizes S/L, interactive."
+  "registryDependencies": [
+    "@fiori/icons"
+  ],
+  "description": "Fiori tag: semantic designs with state icons, Set1/Set2 colour schemes 1–10, sizes S/L, interactive.",
+  "usage": {
+    "summary": "Draw attention to a category, condition or quantity with a compact enclosed marker.",
+    "useWhen": [
+      "Help users spot a category, condition or quantity alongside surrounding content.",
+      "Use design for semantic meaning or a consistent indication color; enable interactive when pressing the marker opens related information."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Describe a business object state with a label and status text rather than a category marker.",
+        "use": [
+          "object-status"
+        ]
+      },
+      {
+        "when": "Represent an already selected value that users can remove from a field.",
+        "use": [
+          "token"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

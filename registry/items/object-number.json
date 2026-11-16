@@ -1,4 +1,27 @@
 {
   "title": "ObjectNumber",
-  "description": "Fiori object number (sap.m.ObjectNumber look): emphasized number with unit, semantic states, inverted badge, large and active variants."
+  "description": "Fiori object number (sap.m.ObjectNumber look): emphasized number with unit, semantic states, inverted badge, large and active variants.",
+  "usage": {
+    "summary": "Display a business amount or quantity together with its unit and optional semantic state.",
+    "useWhen": [
+      "Help users read and compare business amounts or quantities without separating their units.",
+      "Keep the unit beside the amount unless every row shares it, each cell contains one amount, and the column header stays visible.",
+      "Use emphasized for the most important number; set emphasized={false} when all numbers are equally important."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Describe an object state in words or with an icon rather than an amount.",
+        "use": [
+          "object-status"
+        ]
+      },
+      {
+        "when": "Show how much of a running process is complete on a 0–100% scale.",
+        "use": [
+          "progress-indicator"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

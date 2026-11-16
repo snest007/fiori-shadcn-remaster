@@ -1,5 +1,36 @@
 {
   "title": "ObjectStatus",
   "description": "Fiori object status (sap.m.ObjectStatus look): label, icon and text in a semantic or indication color; inverted badge, large and active variants.",
-  "registryDependencies": ["@fiori/icons"]
+  "registryDependencies": [
+    "@fiori/icons"
+  ],
+  "usage": {
+    "summary": "Show the semantic state of a business object with status text and an optional icon.",
+    "useWhen": [
+      "Help users assess the state of an item, process or workflow at a glance.",
+      "Keep status text next to the business object it describes, including in table cells and list items.",
+      "Use state for semantic meaning, and active when pressing the status opens related details."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Highlight a category or condition as a compact enclosed marker rather than a labeled object state.",
+        "use": [
+          "tag"
+        ]
+      },
+      {
+        "when": "Show a business amount or quantity with its unit rather than a textual state.",
+        "use": [
+          "object-number"
+        ]
+      },
+      {
+        "when": "Explain a warning or status change that applies to a page or section.",
+        "use": [
+          "message-strip"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

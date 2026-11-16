@@ -1,1 +1,27 @@
-{ "title": "BusyIndicator", "description": "Fiori busy indicator (three pulsing dots) with delay, text and content overlay." }
+{
+  "title": "BusyIndicator",
+  "description": "Fiori busy indicator (three pulsing dots) with delay, text and content overlay.",
+  "usage": {
+    "summary": "Show that work is running when its completion percentage is unknown.",
+    "useWhen": [
+      "Tell users to wait while an operation runs without a measurable completion percentage.",
+      "Limit the busy state to the affected area so users can work elsewhere; wrapped content becomes inert while the indicator is shown.",
+      "Use active to signal pending work and delay (1000ms by default) to avoid flashing during brief operations."
+    ],
+    "avoidWhen": [
+      {
+        "when": "A running process has a measured completion value on a 0–100% scale.",
+        "use": [
+          "progress-indicator"
+        ]
+      },
+      {
+        "when": "No operation is pending and an empty or unavailable area needs an explanation and next step.",
+        "use": [
+          "illustrated-message"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
+}

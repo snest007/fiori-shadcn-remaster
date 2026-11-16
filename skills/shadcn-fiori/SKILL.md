@@ -96,13 +96,13 @@ Read [Floorplans](references/floorplans.md) for region nesting, alternatives and
 | --- | --- |
 | [data-table](references/data.md#data-table) | Render data-driven responsive tables with TanStack columns, sorting and optional row virtualization. |
 | [list](references/data.md#list) | Present a sequence of business items for browsing, navigation or selection without column comparison. |
-| [object-identifier](references/data.md#object-identifier) | Fiori object identifier and object attribute (sap.m look): bold title (optionally a link) with secondary text; "Title: value" attributes. |
-| [object-number](references/data.md#object-number) | Fiori object number (sap.m.ObjectNumber look): emphasized number with unit, semantic states, inverted badge, large and active variants. |
-| [object-status](references/data.md#object-status) | Fiori object status (sap.m.ObjectStatus look): label, icon and text in a semantic or indication color; inverted badge, large and active variants. |
+| [object-identifier](references/data.md#object-identifier) | Identify a business object with a primary title and supporting identifier or attributes. |
+| [object-number](references/data.md#object-number) | Display a business amount or quantity together with its unit and optional semantic state. |
+| [object-status](references/data.md#object-status) | Show the semantic state of a business object with status text and an optional icon. |
 | [table](references/data.md#table) | Compose responsive rows and cells when users compare and act on business items. |
-| [timeline](references/data.md#timeline) | Fiori timeline: TimelineItem and collapsible TimelineGroupItem, vertical and horizontal layouts, value-state icons, Load More / scroll growing, the SAP keyboard model (ui5-timeline). |
+| [timeline](references/data.md#timeline) | Present object events and changes in chronological order. |
 | [tree](references/data.md#tree) | Browse or select hierarchical items through expandable parent-child nodes. |
-| [upload-collection](references/data.md#upload-collection) | Fiori upload collection: file list with thumbnails, progress and Complete/Error/Ready/Uploading states, retry/terminate/delete, drag & drop overlay (ui5-upload-collection). Upload transport is up to the caller. |
+| [upload-collection](references/data.md#upload-collection) | Manage prepared or uploaded files with per-file status and lifecycle actions. |
 
 ### Overlays
 
@@ -123,21 +123,21 @@ Read [Floorplans](references/floorplans.md) for region nesting, alternatives and
 
 | Item | Summary |
 | --- | --- |
-| [avatar](references/display.md#avatar) | Fiori avatar (XS–XL, circle/square, initials/icon/image, accent colours, interactive) and AvatarGroup. |
-| [busy-indicator](references/display.md#busy-indicator) | Fiori busy indicator (three pulsing dots) with delay, text and content overlay. |
-| [card](references/display.md#card) | Fiori card with CardHeader (title, subtitle, status text, avatar, action, interactive) and CardContent. |
-| [carousel](references/display.md#carousel) | Fiori carousel: items per page by container width, arrows over the content or beside the page indicator, dots or numeric indicator, cyclic navigation, swipe, the SAP keyboard model (ui5-carousel). |
-| [expandable-text](references/display.md#expandable-text) | Fiori expandable text: text cut at a character limit with Show More / Show Less, in place or in a popover (ui5-expandable-text). |
-| [hero-banner](references/display.md#hero-banner) | Fiori hero banner: overline, heading, actions and one or two content columns on the Horizon hero background (ui5-hero-banner). |
-| [illustrated-message](references/display.md#illustrated-message) | Fiori illustrated message: illustration + title + subtitle + actions in the Scene / Dialog / Spot / Dot / Base designs, auto-sized by the container (ui5-illustrated-message). Ships with @fiori/illustrations-core (NoData, NoSearchResults, UnableToLoad, Tent, …); add more with @fiori/illustration-<name> or @fiori/illustration-tnt-<name>. |
+| [avatar](references/display.md#avatar) | Represent people or business entities with recognizable images, initials or placeholders. |
+| [busy-indicator](references/display.md#busy-indicator) | Show that work is running when its completion percentage is unknown. |
+| [card](references/display.md#card) | Preview focused business content and offer access to its underlying page or task. |
+| [carousel](references/display.md#carousel) | Let users browse a sequence of images or other content pages. |
+| [expandable-text](references/display.md#expandable-text) | Keep prose within a character limit while letting users reveal the full text. |
+| [hero-banner](references/display.md#hero-banner) | Introduce a product home page with a greeting, context and task shortcuts. |
+| [illustrated-message](references/display.md#illustrated-message) | Explain an empty, unavailable or completed state with an illustration and a useful next step. |
 | [link](references/display.md#link) | Fiori link: Default, Subtle and Emphasized designs, wrapping, Enter/Space activation. |
-| [media-gallery](references/display.md#media-gallery) | Fiori image and video gallery with measured thumbnail overflow, selectable items, keyboard navigation, responsive layouts, and a phone carousel (ui5-media-gallery). |
-| [message-strip](references/display.md#message-strip) | Fiori message strip: information/positive/negative/critical and color-set designs, closable. |
-| [panel](references/display.md#panel) | Fiori panel: expandable (animated) or fixed, header text or custom header. |
-| [progress-indicator](references/display.md#progress-indicator) | Fiori progress indicator: value bar with value text, value states with icons (ui5-progress-indicator). |
-| [tag](references/display.md#tag) | Fiori tag: semantic designs with state icons, Set1/Set2 colour schemes 1–10, sizes S/L, interactive. |
-| [text](references/display.md#text) | Fiori body text with maxLines truncation. |
-| [title](references/display.md#title) | Fiori heading with semantic level (H1–H6) independent of visual size. |
+| [media-gallery](references/display.md#media-gallery) | Browse images and videos by selecting thumbnails and inspecting the selected media. |
+| [message-strip](references/display.md#message-strip) | Explain application messages in context within a page or section. |
+| [panel](references/display.md#panel) | Group information within a page in a section that can collapse to save space. |
+| [progress-indicator](references/display.md#progress-indicator) | Show a measured completion percentage for a running process. |
+| [tag](references/display.md#tag) | Draw attention to a category, condition or quantity with a compact enclosed marker. |
+| [text](references/display.md#text) | Display read-only body text in an application content area. |
+| [title](references/display.md#title) | Name pages and sections with explicit heading semantics. |
 
 ### Navigation
 
