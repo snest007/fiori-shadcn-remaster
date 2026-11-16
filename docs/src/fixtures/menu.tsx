@@ -38,7 +38,7 @@ function MenuFrame({ interaction, children }: { interaction?: boolean; children:
 // internal popover in place (menu.ui5.ts). Submenus open on demand and are covered by tests/menu.spec.ts.
 export default defineFixtures<Props>({
   name: "menu",
-  cases: [
+  cases: ([
     { id: "menu", props: {} },
     { id: "menu-interaction", props: { interaction: true }, interact: { selector: '[role="menuitem"]', ui5Selector: "ui5-menu-item" } },
     { id: "menu-icons", props: { icons: true } },
@@ -53,7 +53,7 @@ export default defineFixtures<Props>({
     { id: "menu-direction-owner-ltr-opener-ancestor-rtl", props: { ownerDir: "ltr", openerAncestorDir: "rtl" } },
     { id: "menu-direction-explicit-ltr", props: { ownerDir: "rtl", openerDir: "rtl", menuDir: "ltr" } },
     { id: "menu-direction-explicit-rtl", props: { ownerDir: "ltr", openerDir: "ltr", menuDir: "rtl" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "menu-rtl" }] : [fixture]),
   react: (props) => props.ownerDir ? <DirectionMenu {...props} /> : staticMenu(props),
 })
 
