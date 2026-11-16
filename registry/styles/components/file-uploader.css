@@ -90,3 +90,8 @@
 .fiori-field.fiori-file-uploader:not(#\#) {
   border: var(--fiori-x-input-border);
 }
+
+/* UI5 file-uploader paints pointer focus; AGENTS rule 5 keeps the ring keyboard-only. */
+.fiori-field[data-slot="file-uploader"][data-pointer-focus]::after {
+  content: none;
+}
