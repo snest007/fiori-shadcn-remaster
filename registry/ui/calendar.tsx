@@ -570,7 +570,11 @@ function DayPicker({
   const weekInfo = getWeekInfo(locale)
   const firstDay = firstDayOfWeek ?? weekInfo.firstDay
   const longNames = getDayNames(locale, "long")
-  let shortNames = getDayNames(locale, "short")
+  // DayPicker._buildDayNames uses LocaleData.getDays("abbreviated", "Gregorian")
+  // from CLDR days/format. Include a day in Intl to request that format context;
+  // weekday-only formatting returns German stand-alone names without the dots.
+  const weekdayFormat = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric" })
+  let shortNames = Array.from({ length: 7 }, (_, index) => weekdayFormat.formatToParts(new Date(2024, 0, 7 + index)).find(part => part.type === "weekday")?.value ?? "")
   if (shortNames.some((n) => n.length > 4)) shortNames = getDayNames(locale, "narrow")
 
   // Special days, filtered by the focused legend item's type (Working / NonWorking always stay).
