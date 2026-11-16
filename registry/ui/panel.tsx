@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 
+/** @accessibility accessibleRole selects the named landmark; accessibleName or headerText names it. The header trigger owns aria-expanded and aria-controls; Enter/Space toggles it. For a custom header, accessibleName and toggleButtonText name the separate arrow control. headerLevel sets the heading level. */
 type PanelProps = Omit<React.ComponentProps<"div">, "onToggle"> & {
   /** Header title text (the whole header is the toggle). */
   headerText?: React.ReactNode

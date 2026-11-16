@@ -7,6 +7,7 @@ import { valueStateDefaultText, type ValueState } from "@/components/ui/input"
 
 const stateIcons = { negative: statusNegative, critical: statusCritical, positive: statusPositive, information }
 
+/** @accessibility aria-label lands on the inner progressbar. It owns value bounds, aria-valuenow and aria-valuetext; valueStateText overrides the state announcement. hideValue hides the visible text while retaining the progress description. */
 type ProgressIndicatorProps = Omit<React.ComponentProps<"div">, "children"> & {
   /** Progress in percent, clamped to 0–100. */
   value?: number

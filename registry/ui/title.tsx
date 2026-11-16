@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 
 type TitleLevel = "H1" | "H2" | "H3" | "H4" | "H5" | "H6"
 
+/** @accessibility level sets the semantic heading independent of visual size. Heading text comes from children; choose a level matching the surrounding document hierarchy. */
 type TitleProps = Omit<React.ComponentProps<"h2">, "size"> & {
   /** Semantic heading level (h1–h6). Default H2, as in UI5. */
   level?: TitleLevel
