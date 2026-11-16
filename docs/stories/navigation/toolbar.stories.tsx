@@ -12,7 +12,7 @@ const base = fioriMeta({ name: "toolbar", component: Toolbar })
 const meta = {
   ...base,
   parameters: { ...base.parameters, docs: { page: ItemDocs } },
-  args: { design: "solid", alignContent: "end", "aria-label": "Purchase order actions", overflowButtonLabel: "More", overflowPopoverLabel: "Available Values", onClick: fn() },
+  args: { design: "solid", alignContent: "end", "aria-label": "Purchase order actions", overflowButtonLabel: "Additional Options", overflowPopoverLabel: "Available Values", onClick: fn() },
   argTypes: { ...base.argTypes, design: { control: "inline-radio", options: ["solid", "transparent"] }, alignContent: { control: "inline-radio", options: ["start", "end"] }, overflowButtonLabel: { control: "text" }, overflowPopoverLabel: { control: "text" }, defaultOverflowOpen: { control: "boolean" }, overflowContentProps: { control: false }, onClick: { control: false } },
   render: (args) => <Toolbar {...args}><ToolbarButton>Edit</ToolbarButton><ToolbarButton>Share</ToolbarButton><ToolbarButton>Delete</ToolbarButton></Toolbar>,
 } satisfies Meta<typeof Toolbar>
@@ -39,7 +39,7 @@ const textKeys = [
   [
     "overflowButtonLabel",
     "TOOLBAR_OVERFLOW_BUTTON_ARIA_LABEL",
-    "More"
+    "Additional Options"
   ],
   [
     "overflowPopoverLabel",

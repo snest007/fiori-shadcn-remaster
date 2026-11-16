@@ -15,7 +15,40 @@ const meta = {
   argTypes: { ...base.argTypes, items: { control: "object" }, selectedKey: { control: "text" }, defaultKey: { control: "text" }, modified: { control: "boolean" }, supportDefault: { control: "boolean" }, supportFavorites: { control: "boolean" }, supportApplyAutomatically: { control: "boolean" }, supportPublic: { control: "boolean" }, supportContexts: { control: "boolean" }, showSaveAs: { control: "boolean" }, creationAllowed: { control: "boolean" }, showFooter: { control: "boolean" }, inErrorState: { control: "boolean" }, popoverTitle: { control: "text" }, level: { control: "select", options: ["Auto", "H1", "H2", "H3", "H4", "H5", "H6"] }, titleStyle: { control: "select", options: ["Auto", "H1", "H2", "H3", "H4", "H5", "H6"] }, maxWidth: { control: "text" }, defaultOpen: { control: "select", options: [undefined, "list", "save", "manage"] }, portal: { control: false }, texts: { control: false }, roles: { control: "object" }, onSelect: { control: false }, onSave: { control: false }, onManage: { control: false }, onManageCancel: { control: false }, onCancel: { control: false } },
   render: function SavedViews(args: VariantManagementProps) {
     const [, updateArgs] = useArgs<VariantManagementProps>()
-    return <VariantManagement key={args.defaultOpen} {...args} onSelect={(event) => { args.onSelect?.(event); updateArgs({ selectedKey: event.key, modified: false }) }} onSave={(event) => { args.onSave?.(event); if (event.overwrite) { updateArgs({ modified: false }); return } const key = `saved-${args.items.length}`; updateArgs({ items: [...args.items, { key, title: event.name, changeable: true, remove: true, author: "You", executeOnSelect: event.execute, sharing: event.public ? "Public" : "Private", contexts: event.contexts }], selectedKey: key, defaultKey: event.def ? key : args.defaultKey, modified: false }) }} onManage={(event) => { args.onManage?.(event); const items = args.items.filter((item) => !event.deleted?.includes(item.key)).map((item) => ({ ...item, title: event.renamed?.find((change) => change.key === item.key)?.name ?? item.title, favorite: event.fav?.find((change) => change.key === item.key)?.visible ?? item.favorite, executeOnSelect: event.exe?.find((change) => change.key === item.key)?.exe ?? item.executeOnSelect, contexts: event.contexts?.find((change) => change.key === item.key)?.contexts ?? item.contexts })); updateArgs({ items, defaultKey: event.def ?? args.defaultKey, selectedKey: event.deleted?.includes(args.selectedKey ?? "") ? "standard" : args.selectedKey }) }} />
+    const current = React.useRef(args)
+    // Controls are authoritative when replacing/resetting data. Commit the next snapshot
+    // synchronously too, so multiple callbacks before a Storybook rerender keep every view.
+    current.current = args
+    const allocatedKeys = React.useRef(new Set<string>())
+    for (const item of args.items) allocatedKeys.current.add(item.key)
+    const commit = (patch: Partial<VariantManagementProps>) => {
+      current.current = { ...current.current, ...patch }
+      updateArgs(patch)
+    }
+    return <VariantManagement key={args.defaultOpen} {...args}
+      onSelect={(event) => { current.current.onSelect?.(event); commit({ selectedKey: event.key, modified: false }) }}
+      onSave={(event) => {
+        const state = current.current
+        state.onSave?.(event)
+        if (event.overwrite) { commit({ modified: false }); return }
+        // registry/lib/fiori-variants.ts#saveVariant uses crypto.randomUUID. Keep
+        // allocated identities reserved even after deletion or a Controls data reset.
+        let key: string
+        do { key = globalThis.crypto.randomUUID() } while (allocatedKeys.current.has(key) || state.items.some((item) => item.key === key))
+        allocatedKeys.current.add(key)
+        commit({ items: [...state.items, { key, title: event.name, changeable: true, remove: true, author: "You", executeOnSelect: event.execute, sharing: event.public ? "Public" : "Private", contexts: event.contexts }], selectedKey: key, defaultKey: event.def ? key : state.defaultKey, modified: false })
+      }}
+      onManage={(event) => {
+        const state = current.current
+        state.onManage?.(event)
+        const items = state.items.filter((item) => !event.deleted?.includes(item.key)).map((item) => ({ ...item, title: event.renamed?.find((change) => change.key === item.key)?.name ?? item.title, favorite: event.fav?.find((change) => change.key === item.key)?.visible ?? item.favorite, executeOnSelect: event.exe?.find((change) => change.key === item.key)?.exe ?? item.executeOnSelect, contexts: event.contexts?.find((change) => change.key === item.key)?.contexts ?? item.contexts }))
+        // OpenUI5 VariantManager.js#switchToDefaultIfCurrentVariantIsDeleted:
+        // the same Manage event's new default wins, else use the current default.
+        const requestedDefault = event.def ?? state.defaultKey
+        const defaultKey = items.find((item) => item.key === requestedDefault && item.visible !== false)?.key
+          ?? items.find((item) => item.key === "standard")?.key ?? items.find((item) => item.visible !== false)?.key ?? ""
+        commit({ items, defaultKey, selectedKey: event.deleted?.includes(state.selectedKey ?? "") ? defaultKey : state.selectedKey })
+      }} />
   },
 } satisfies Meta<typeof VariantManagement>
 export default meta
