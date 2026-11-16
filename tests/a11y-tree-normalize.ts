@@ -226,7 +226,47 @@ export function relocateTableLoadingOverlay(capture: any, declaration: TableLoad
   return adjusted
 }
 
-type Allowed = { ignore: string[]; reason: string; tableLoadingOverlay?: TableLoadingOverlayRelocation }
+export type CalendarHeaderBug = { shortcutAX: string; yearRange?: { ax: string; snapshot: string; from: number; to: number } }
+/** Only the two source-pinned CalendarHeaderTemplate.js defects. Correct the
+ * reference's invalid shortcut and S0's missing visible range name, while
+ * retaining all other properties, descriptions, states and descendants. */
+export function correctCalendarHeaderBugs(ours: any, reference: any, declaration: CalendarHeaderBug) {
+  const native = structuredClone(reference)
+  const at = (capture: any, path: string, channel: "ax" | "snapshot") => {
+    if (!new RegExp(`^/${channel}/(?:\\d+/children/)*\\d+$`).test(path)) throw new Error(`Calendar bug requires an exact ${channel} node path: ${path}`)
+    return path.slice(1).split("/").reduce((node: any, key) => node?.[key], capture)
+  }
+  const a = at(ours, declaration.shortcutAX, "ax"), b = at(native, declaration.shortcutAX, "ax")
+  if (a?.role !== "button" || b?.role !== "button" || a.properties?.keyshortcuts !== "Shift+F4" || b.properties?.keyshortcuts !== "Shift + F4"
+    || !(/^Year \d{4}$/.test(b.name) || declaration.yearRange && declaration.yearRange.ax === declaration.shortcutAX)) {
+    throw new Error("Calendar shortcut allowance requires the exact native year/year-range Shift + F4 bug")
+  }
+  b.properties.keyshortcuts = "Shift+F4"
+  if (declaration.yearRange) {
+    const range = declaration.yearRange
+    if (!Number.isInteger(range.from) || range.to !== range.from + 19) throw new Error("Calendar range allowance requires its exact 20-year range")
+    const visible = `${range.from} - ${range.to}`, purpose = `Year range from ${range.from} to ${range.to}`, name = `${visible} ${purpose}`
+    const actual = at(ours, range.ax, "ax"), expected = at(native, range.ax, "ax")
+    const staticText = (text: string) => ({ role: "StaticText", name: text, properties: {}, children: [] })
+    const labelledby = [{ text: visible, valid: true }, { text: purpose, valid: true }]
+    if (actual?.role !== "button" || expected?.role !== "button" || actual.name !== name || expected.name !== purpose
+      || actual.description !== purpose || expected.description !== purpose
+      || JSON.stringify(actual.properties?.labelledby) !== JSON.stringify(labelledby) || expected.properties?.labelledby !== undefined
+      || JSON.stringify(actual.children) !== JSON.stringify([staticText(visible), staticText(purpose)])
+      || JSON.stringify(expected.children) !== JSON.stringify([staticText(visible)])) throw new Error("Calendar range allowance requires unchanged visible text, purpose, description and valid owned name references")
+    expected.name = name
+    expected.properties.labelledby = labelledby
+    expected.children.push(staticText(purpose))
+    const actualSnapshot = at(ours, range.snapshot, "snapshot"), expectedSnapshot = at(native, range.snapshot, "snapshot")
+    if (actualSnapshot?.role !== "button" || expectedSnapshot?.role !== "button" || actualSnapshot.name !== name || expectedSnapshot.name !== purpose
+      || actualSnapshot.text !== undefined || expectedSnapshot.text !== visible || actualSnapshot.children.length || expectedSnapshot.children.length) throw new Error("Calendar range snapshot allowance requires the exact visible range and purpose")
+    expectedSnapshot.name = name
+    delete expectedSnapshot.text
+  }
+  return native
+}
+
+type Allowed = { ignore: string[]; reason: string; tableLoadingOverlay?: TableLoadingOverlayRelocation; calendarHeaderBug?: CalendarHeaderBug }
 /** Read only the literal a11yDiff object, without running fixture React modules or broadening main.tsx ownership. */
 export function allowedDifferences(directory: string): Record<string, Allowed> {
   const result: Record<string, Allowed> = {}
@@ -316,7 +356,8 @@ export async function compareCase(ours: Page, reference: Page, id: string, key: 
   let differences: string[], allowanceError: string | undefined
   try {
     const adjusted = applyAllowedWrappers(a, b, allowed?.ignore ?? [])
-    const native = allowed?.tableLoadingOverlay ? relocateTableLoadingOverlay(adjusted.ui5, allowed.tableLoadingOverlay) : adjusted.ui5
+    let native = allowed?.tableLoadingOverlay ? relocateTableLoadingOverlay(adjusted.ui5, allowed.tableLoadingOverlay) : adjusted.ui5
+    if (allowed?.calendarHeaderBug) native = correctCalendarHeaderBugs(adjusted.ours, native, allowed.calendarHeaderBug)
     differences = diffTree(adjusted.ours, native, adjusted.leaves)
   } catch (error) {
     // A stale or invalid allowance is a case failure, never a reason to lose the

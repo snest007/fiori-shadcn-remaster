@@ -186,3 +186,23 @@ test("Calendar header arrows preserve UI5 descriptions and localized shortcuts i
     }
   }
 })
+
+for (const id of ["calendar-multiple", "calendar-range", "calendar-special"]) test(`calendar: ${id} preserves native grid selection channels and legend day names`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?${native ? "" : "fixtures&"}only=${id}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const cell = current.locator(`[data-fixture="${id}"]`)
+      const grid = cell.getByRole("grid")
+      await expect(grid).not.toHaveAttribute("aria-multiselectable")
+      if (id === "calendar-special") {
+        for (const [name, description] of [["March 4, 2024 Holiday", "Holiday"], ["March 13, 2024 Training", "Training"]]) {
+          const day = grid.getByRole("gridcell", { name, exact: true })
+          await expect(day).toHaveAccessibleDescription(description)
+          await expect(day).toHaveAttribute("title", description)
+        }
+      } else await expect(grid.getByRole("gridcell", { selected: true })).toHaveCount(id === "calendar-range" ? 10 : 3)
+    }
+  } finally { await reference.close() }
+})

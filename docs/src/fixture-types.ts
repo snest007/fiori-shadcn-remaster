@@ -31,6 +31,10 @@ export type FixtureSet<P = any> = {
      * Paths are exact after strictly inert wrappers are removed.
      */
     tableLoadingOverlay?: { gridName: string; progressbarName: string; ax: string; snapshot: string }
+    /** Exact CalendarHeaderTemplate.js native bugs only: invalid Shift + F4
+     * syntax and S0's missing visible year-range name. Runtime guards validate
+     * the complete expected channels before making either correction. */
+    calendarHeaderBug?: { shortcutAX: string; yearRange?: { ax: string; snapshot: string; from: number; to: number } }
   }>
 }
 

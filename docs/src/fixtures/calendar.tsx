@@ -39,14 +39,20 @@ export default defineFixtures<CalendarFixture>({
         "/ui5/ax/0",
         "/ui5/ax/0/children/4"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/2"
+      }
     },
     "calendar-month-picker": {
       "ignore": [
         "/ours/ax/0",
         "/ui5/ax/0"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/1"
+      }
     },
     "calendar-multiple": {
       "ignore": [
@@ -55,7 +61,10 @@ export default defineFixtures<CalendarFixture>({
         "/ui5/ax/0",
         "/ui5/ax/0/children/4"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/2"
+      }
     },
     "calendar-no-week-numbers": {
       "ignore": [
@@ -64,7 +73,10 @@ export default defineFixtures<CalendarFixture>({
         "/ui5/ax/0",
         "/ui5/ax/0/children/4"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/2"
+      }
     },
     "calendar-range": {
       "ignore": [
@@ -73,7 +85,10 @@ export default defineFixtures<CalendarFixture>({
         "/ui5/ax/0",
         "/ui5/ax/0/children/4"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/2"
+      }
     },
     "calendar-single": {
       "ignore": [
@@ -82,7 +97,10 @@ export default defineFixtures<CalendarFixture>({
         "/ui5/ax/0",
         "/ui5/ax/0/children/4"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/2"
+      }
     },
     "calendar-special": {
       "ignore": [
@@ -100,7 +118,10 @@ export default defineFixtures<CalendarFixture>({
         "/ui5/ax/0/children/4/children/0/children/4/children/7/children/1",
         "/ui5/ax/1"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/2"
+      }
     },
     "calendar-today": {
       "ignore": [
@@ -109,7 +130,10 @@ export default defineFixtures<CalendarFixture>({
         "/ui5/ax/0",
         "/ui5/ax/0/children/4"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/2"
+      }
     },
     "calendar-year-picker": {
       "ignore": [
@@ -118,7 +142,16 @@ export default defineFixtures<CalendarFixture>({
         "/ours/ax/0/children/1/children/1",
         "/ui5/ax/0"
       ],
-      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order. Documented UI5 bug: CalendarHeaderTemplate.js:32–33 emits the i18n-defaults.js:257–258 shortcut \"Shift + F4\", invalid ARIA shortcut grammar; this exact year/year-range node alone is corrected to \"Shift+F4\" under strict runtime checks. S0 mandated name correction: CalendarTemplate.js delegates to CalendarHeaderTemplate.js:33, whose purpose-only aria-label omits visible \"2015 - 2034\". Keep visible range plus the unchanged purpose via valid aria-labelledby, exact hidden purpose text and unchanged description; strict guards reject every other name/channel/descendant change.",
+      "calendarHeaderBug": {
+        "shortcutAX": "/ax/1",
+        "yearRange": {
+          "ax": "/ax/1",
+          "snapshot": "/snapshot/1",
+          "from": 2015,
+          "to": 2034
+        }
+      }
     }
   },
   cases: [

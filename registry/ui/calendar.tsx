@@ -192,6 +192,25 @@ function Calendar({
   const [secondDate, setSecondDate] = React.useState<Date | null>(null)
   const [legendType, setLegendType] = React.useState<string | null>(null)
   const rootRef = React.useRef<HTMLDivElement>(null)
+  const [legendTexts, setLegendTexts] = React.useState<Record<string, string>>({})
+  React.useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const update = () => {
+      // Calendar.js:_specialCalendarDates finds each real legend item's type
+      // and propagates its text to DayPicker's tooltip and accessible name.
+      const next: Record<string, string> = {}
+      for (const item of root.querySelectorAll<HTMLElement>('[data-slot="calendar-legend-item"]')) {
+        const type = item.dataset.type
+        if (type && next[type] === undefined) next[type] = item.querySelector('.fiori-calendar-legend-item-text')?.textContent ?? ""
+      }
+      setLegendTexts((previous) => JSON.stringify(previous) === JSON.stringify(next) ? previous : next)
+    }
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["data-type"] })
+    return () => observer.disconnect()
+  }, [legend])
   const yearRangeLabelId = React.useId()
   const focusPending = React.useRef(!!autoFocus)
 
@@ -433,7 +452,7 @@ function Calendar({
                 locale={locale}
                 firstDayOfWeek={firstDayOfWeek}
                 hideWeekNumbers={hideWeekNumbers}
-                specialDates={specialDates}
+                specialDates={specialDates?.map((special) => ({ ...special, tooltip: special.tooltip ?? legendTexts[special.type] }))}
                 legendType={legendType}
                 isDisabled={isDisabled}
                 labels={labels}
@@ -678,7 +697,9 @@ function DayPicker({
         if (d && !isSameDay(d, secondDate)) setSecondDate(d)
       }}
     >
-      <div role="grid" aria-roledescription="Gregorian calendar" aria-multiselectable={selectionMode !== "single" || undefined} className="fiori-dp-content">
+      {/* DayPickerTemplate.js exposes selection on each cell, with no
+          aria-multiselectable on the grid even for Multiple/Range. */}
+      <div role="grid" aria-roledescription="Gregorian calendar" className="fiori-dp-content">
         <div role="row" className="fiori-dp-days-names-container">
           {!hideWeekNumbers && (
             <div role="columnheader" className="fiori-dp-dayname">

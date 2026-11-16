@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test"
-import { applyAllowedWrappers, captureAX, diffTree, normalizeAX, normalizeSnapshot, relocateTableLoadingOverlay, type AXNode } from "./a11y-tree-normalize"
+import { applyAllowedWrappers, captureAX, correctCalendarHeaderBugs, diffTree, normalizeAX, normalizeSnapshot, relocateTableLoadingOverlay, type AXNode } from "./a11y-tree-normalize"
 
 test("normalize only whitespace in quoted accessible names", () => {
   expect(normalizeSnapshot('- button "  Save  \\n changes  " [disabled]\n  - text: Keep  spacing')).toEqual([
@@ -179,4 +179,50 @@ test("case-declared Table loading relocation preserves complete overlay nodes an
     expect(() => relocateTableLoadingOverlay(changed, declaration)).toThrow(/Table loading relocation requires/)
   }
   expect(() => relocateTableLoadingOverlay(native, { ...declaration, ax: "/ax/9/children/1" })).toThrow("exact named grid")
+})
+
+test("Calendar native bug declarations correct only the exact source-backed shortcut and visible range", () => {
+  const text = (name: string) => ({ role: "StaticText", name, properties: {}, children: [] })
+  const purpose = "Year range from 2015 to 2034", visible = "2015 - 2034", name = `${visible} ${purpose}`
+  const ours = { ax: [{ role: "button", name, description: purpose, properties: { focusable: true, keyshortcuts: "Shift+F4", labelledby: [{ text: visible, valid: true }, { text: purpose, valid: true }] }, children: [text(visible), text(purpose)] }], snapshot: [{ role: "button", name, states: [], children: [] }] }
+  const ui5 = { ax: [{ role: "button", name: purpose, description: purpose, properties: { focusable: true, keyshortcuts: "Shift + F4" }, children: [text(visible)] }], snapshot: [{ role: "button", name: purpose, text: visible, states: [], children: [] }] }
+  const declaration = { shortcutAX: "/ax/0", yearRange: { ax: "/ax/0", snapshot: "/snapshot/0", from: 2015, to: 2034 } }
+  expect(diffTree(ours, correctCalendarHeaderBugs(ours, ui5, declaration))).toEqual([])
+  expect(ui5.ax[0].properties.keyshortcuts).toBe("Shift + F4")
+  for (const mutate of [
+    (node: any) => { node.ax[0].properties.keyshortcuts = "Alt+F4" },
+    (node: any) => { node.ax[0].name = purpose },
+    (node: any) => { node.ax[0].description = "Other purpose" },
+    (node: any) => { node.ax[0].properties.labelledby[1].valid = false },
+    (node: any) => { node.ax[0].children[1].properties.selected = true },
+    (node: any) => { node.ax[0].children.push(text("Unrelated child")) },
+  ]) {
+    const changed = structuredClone(ours); mutate(changed)
+    expect(() => correctCalendarHeaderBugs(changed, ui5, declaration)).toThrow(/Calendar/)
+  }
+  const changed = structuredClone(ours) as any
+  changed.ax[0].properties.disabled = true
+  changed.snapshot[0].states.push("[disabled]")
+  expect(diffTree(changed, correctCalendarHeaderBugs(changed, ui5, declaration))).toEqual([
+    '/ax/0/properties/disabled: ours true; UI5 undefined', '/snapshot/0/states/0: ours "[disabled]"; UI5 undefined',
+  ])
+  const unrelated = { ax: [{ role: "button", name: "Next Month", properties: { keyshortcuts: "Shift + F4" }, children: [] }], snapshot: [] }
+  expect(() => correctCalendarHeaderBugs({ ...unrelated, ax: [{ ...unrelated.ax[0], properties: { keyshortcuts: "Shift+F4" } }] }, unrelated, { shortcutAX: "/ax/0" })).toThrow(/exact native year/)
+})
+
+test("Calendar year shortcut guard recognizes the native Year purpose and preserves every name", () => {
+  const ours = { ax: [{ role: "button", name: "Year 2024", description: "Year 2024", properties: { keyshortcuts: "Shift+F4" }, children: [] }], snapshot: [] }
+  const native = structuredClone(ours); native.ax[0].properties.keyshortcuts = "Shift + F4"
+  expect(diffTree(ours, correctCalendarHeaderBugs(ours, native, { shortcutAX: "/ax/0" }))).toEqual([])
+  const changed = structuredClone(ours); changed.ax[0].name = "Year 2025"
+  expect(diffTree(changed, correctCalendarHeaderBugs(changed, native, { shortcutAX: "/ax/0" }))).toEqual(['/ax/0/name: ours "Year 2025"; UI5 "Year 2024"'])
+})
+
+test("an explicit option valid-default allowance retains invalid ancestry and selection states", () => {
+  const path = "/ax/0/children/0/properties/invalid"
+  const ours = { ax: [{ role: "listbox", name: "Layers", properties: { invalid: "true" }, children: [{ role: "option", name: "Map", properties: { invalid: "false", selected: true }, children: [] }] }] }
+  const native = { ax: [{ role: "listbox", name: "Layers", properties: {}, children: [{ role: "option", name: "Map", properties: { selected: false }, children: [] }] }] }
+  expect(diffTree(ours, native, [path])).toEqual(['/ax/0/properties/invalid: ours "true"; UI5 undefined', '/ax/0/children/0/properties/selected: ours true; UI5 false'])
+  const invalidChild = structuredClone(ours); invalidChild.ax[0].children[0].properties.invalid = "true"
+  expect(() => diffTree(invalidChild, native, [path])).toThrow("requires invalid=false versus absence")
 })
