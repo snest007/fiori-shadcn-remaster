@@ -868,3 +868,31 @@ test.describe("D1a reviewed phone keyboard and consumer contracts", () => {
     await expect(holder.getByRole("combobox").first()).not.toBeFocused()
   })
 })
+
+test.describe("responsive-popover: phone custom header accessibility", () => {
+  test.use({ viewport: { width: 375, height: 667 }, hasTouch: true })
+  test("custom Select and DatePicker headers replace the redundant title; unnamed custom headers retain fallback naming", async ({ page, browser }) => {
+    const reference = await browser.newPage({ viewport: { width: 375, height: 667 }, hasTouch: true })
+    try {
+      for (const [current, native] of [[page, false], [reference, true]] as const) {
+        await current.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&only=select-a11y-phone-name`)
+        await current.waitForSelector("html[data-ready=true]")
+        await expect(current.getByRole("dialog", { name: "Select: Shipping country", exact: true })).toBeVisible()
+        await expect(current.getByRole("heading", { name: "All Items", exact: true })).toHaveCount(1)
+        await current.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&only=date-picker-phone`)
+        await current.waitForSelector("html[data-ready=true]")
+        await expect(current.getByRole("dialog")).toBeVisible()
+        await expect(current.getByRole("heading")).toHaveCount(0)
+      }
+      // Our pre-existing headerText fallback must remain when the custom header
+      // supplies no explicit dialog naming channel. This control intentionally
+      // checks that API guarantee independently of native's unnamed custom slot.
+      await page.goto("/index.html?fixtures-phone&only=select-a11y-phone-name&header-fallback")
+      await page.waitForSelector("html[data-ready=true]")
+      const fallback = page.getByRole("dialog", { name: "Fallback dialog", exact: true })
+      await expect(fallback).toBeVisible()
+      await expect(fallback.getByRole("heading", { name: "Fallback dialog", exact: true })).toHaveCount(1)
+      await expect(fallback.getByRole("heading", { name: "Custom header", exact: true })).toHaveCount(1)
+    } finally { await reference.close() }
+  })
+})

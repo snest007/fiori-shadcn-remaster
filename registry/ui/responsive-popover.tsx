@@ -59,7 +59,21 @@ function ResponsivePopoverContent({ headerText = "", closeLabel = "Decline", pho
   onCloseAutoFocus, onOpenAutoFocus, onEscapeKeyDown, onInteractOutside, onPointerDownOutside,
   onFocusOutside, ref, style, ...props }: ResponsivePopoverContentProps) {
   const { phone, close, dir, owner } = React.useContext(ResponsiveContext)
+  const titleId = React.useId()
   const [ownerDirection, setOwnerDirection] = React.useState<"ltr" | "rtl">("ltr")
+  const [hasExplicitName, setHasExplicitName] = React.useState(false)
+  React.useLayoutEffect(() => {
+    if (!phone) return
+    const update = () => {
+      const referenced = props["aria-labelledby"]?.split(/\s+/).some((id) => document.getElementById(id)?.textContent?.trim())
+      setHasExplicitName(!!(referenced || props["aria-label"]?.trim()))
+    }
+    update()
+    if (!props["aria-labelledby"]) return
+    const observer = new MutationObserver(update)
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["id"] })
+    return () => observer.disconnect()
+  }, [phone, props["aria-label"], props["aria-labelledby"]])
   React.useLayoutEffect(() => {
     if (!phone) return
     const node = phoneOwnerRef?.current ?? owner.current
@@ -78,7 +92,9 @@ function ResponsivePopoverContent({ headerText = "", closeLabel = "Decline", pho
     avoidCollisions: _avoid, collisionPadding: _padding, collisionBoundary: _boundary,
     sticky: _sticky, hideWhenDetached: _hide, hideArrow: _arrow, draggable: _draggable, ...dialogProps } = props
   return <DialogContent {...dialogProps} dir={props.dir ?? dir ?? ownerDirection} ref={ref} portal={portal} aria-describedby={props["aria-describedby"]}
-    {...(props["aria-label"] && props["aria-labelledby"] === undefined ? { "aria-labelledby": undefined } : {})}
+    // Dialog.js:_ariaLabelledBy binds the header title when no explicit name
+    // is supplied. Own the binding even across the responsive Root switch.
+    aria-labelledby={props["aria-labelledby"] ?? (props["aria-label"]?.trim() ? undefined : titleId)}
     style={style} className={cn("fiori-responsive-popover h-full w-full max-h-full max-w-full min-h-0 min-w-0 rounded-none", phoneField && "fiori-responsive-popover--field", className, phoneClassName)}
     onOpenAutoFocus={onOpenAutoFocus} onCloseAutoFocus={(event) => {
       onCloseAutoFocus?.(event)
@@ -86,8 +102,13 @@ function ResponsivePopoverContent({ headerText = "", closeLabel = "Decline", pho
       else if (!event.defaultPrevented && owner.current) { event.preventDefault(); owner.current.focus() }
     }} onEscapeKeyDown={onEscapeKeyDown} onInteractOutside={(event) => { event.preventDefault(); onInteractOutside?.(event) }}
     onPointerDownOutside={(event) => { event.preventDefault(); onPointerDownOutside?.(event) }} onFocusOutside={onFocusOutside}>
-    {phoneHeader !== undefined ? <><DialogTitle className="sr-only">{headerText}</DialogTitle><DialogHeader className="fiori-responsive-popover__field-header">{phoneHeader}</DialogHeader></> :
-      <DialogHeader className="fiori-responsive-popover__default-header"><DialogTitle>{headerText}</DialogTitle><Button variant="transparent" aria-label={closeLabel} onClick={close}><Icon icon={decline} /></Button></DialogHeader>}
+    {/* ResponsivePopoverTemplate.js replaces its fallback Title with a custom
+        header slot. DatePickerPopoverTemplate.js:defaultHeader supplies a span;
+        SelectPopoverTemplate.js supplies one Title. An explicitly named dialog
+        must not expose an additional internal heading. Keep the title when it
+        is still the only fallback naming channel. */}
+    {phoneHeader !== undefined ? <><DialogTitle id={titleId} className="sr-only" aria-hidden={hasExplicitName || undefined}>{headerText}</DialogTitle><DialogHeader className="fiori-responsive-popover__field-header">{phoneHeader}</DialogHeader></> :
+      <DialogHeader className="fiori-responsive-popover__default-header"><DialogTitle id={titleId}>{headerText}</DialogTitle><Button variant="transparent" aria-label={closeLabel} onClick={close}><Icon icon={decline} /></Button></DialogHeader>}
     <div data-slot="responsive-popover-body" className="fiori-popup__content">{children}</div>
     {phoneFooter != null && <div data-slot="responsive-popover-footer" className="fiori-popup__footer fiori-responsive-popover__footer">{phoneFooter}</div>}
   </DialogContent>
