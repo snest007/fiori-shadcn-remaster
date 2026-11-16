@@ -31,6 +31,96 @@ export const SPECIAL: { value: string; type: SpecialDate["type"] }[] = [
 // clock) with today marked, so the marker itself is compared too.
 export default defineFixtures<CalendarFixture>({
   name: "calendar",
+  a11yDiff: {
+    "calendar-min-max": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/4",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/4"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "calendar-month-picker": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "calendar-multiple": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/4",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/4"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "calendar-no-week-numbers": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/4",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/4"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "calendar-range": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/4",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/4"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "calendar-single": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/4",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/4"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "calendar-special": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/4",
+        "/ours/ax/0/children/4/children/0/children/2/children/2/children/1",
+        "/ours/ax/0/children/4/children/0/children/3/children/4/children/1",
+        "/ours/ax/0/children/4/children/0/children/4/children/4/children/1",
+        "/ours/ax/0/children/4/children/0/children/4/children/7/children/1",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/4",
+        "/ui5/ax/0/children/4/children/0/children/2/children/2/children/1",
+        "/ui5/ax/0/children/4/children/0/children/3/children/4/children/1",
+        "/ui5/ax/0/children/4/children/0/children/4/children/4/children/1",
+        "/ui5/ax/0/children/4/children/0/children/4/children/7/children/1",
+        "/ui5/ax/1"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "calendar-today": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/4",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/4"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "calendar-year-picker": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/1/children/0",
+        "/ours/ax/0/children/1/children/1",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in calendar: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    }
+  },
   cases: [
     { id: "calendar-single", props: { dates: ["2024-03-12"] } },
     { id: "calendar-today", props: {} },
@@ -44,7 +134,6 @@ export default defineFixtures<CalendarFixture>({
   ],
   react: ({ dates = [], mode = "single", min, max, hideWeekNumbers, picker, special }) => (
     <Calendar
-      aria-label="Calendar"
       selectionMode={mode}
       defaultSelectedDates={dates.map(d)}
       minDate={min ? d(min) : undefined}

@@ -147,3 +147,42 @@ test("calendar: RTL retains UI5's chronological horizontal keys", async ({ page 
     await expect(month).toHaveText(original!)
   }
 })
+
+
+test("Calendar year header keeps visible range and purpose through paging", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=calendar-year-picker")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="calendar-year-picker"]')
+  const range = cell.locator('[data-slot="calendar-year-range-button"]')
+  for (let step = 0; step < 2; step++) {
+    const visible = await range.locator('span').first().innerText()
+    const purpose = await range.getAttribute("aria-label")
+    await expect(range).toHaveAccessibleName(`${visible} ${purpose}`)
+    await expect(range).toHaveAccessibleDescription(purpose!)
+    const ids = (await range.getAttribute("aria-labelledby"))!.split(" ")
+    expect(ids).toHaveLength(2)
+    for (const id of ids) expect(await page.locator(`[id="${id}"]`).count()).toBe(1)
+    if (!step) await cell.getByRole("button", { name: "Next Year Range", exact: true }).click()
+  }
+  await range.focus()
+  await expect(range).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(cell.locator('[data-picker="yearrange"]')).toBeVisible()
+})
+
+test("Calendar header arrows preserve UI5 descriptions and localized shortcuts in every picker and direction", async ({ page }) => {
+  for (const dir of ["ltr", "rtl"]) for (const picker of ["single", "month-picker", "year-picker", "yearrange-picker"]) for (const native of [false, true]) {
+    const id = `calendar-${picker === "yearrange-picker" ? "year-picker" : picker}`
+    await page.goto(native ? `/ui5.html?dir=${dir}&only=${id}` : `/index.html?fixtures&dir=${dir}&only=${id}`)
+    await page.waitForSelector("html[data-ready=true]")
+    const cell = page.locator(`[data-fixture="${id}"]`)
+    if (picker === "yearrange-picker") await cell.locator(native ? '[data-ui5-cal-header-btn-year-range]' : '[data-slot="calendar-year-range-button"]').click()
+    for (const [direction, shortcut] of [["previous", "Pagedown"], ["next", "Pageup"]]) {
+      const button = cell.locator(native ? `[data-ui5-cal-header-btn-${direction === "previous" ? "prev" : "next"}]` : `[data-slot="calendar-${direction}"]`)
+      const label = await button.getAttribute("aria-label")
+      await expect(button).toHaveAccessibleDescription(label!)
+      await expect(button).toHaveAttribute("aria-keyshortcuts", shortcut)
+      await expect(button).toHaveAttribute("title", `${label} (${shortcut})`)
+    }
+  }
+})

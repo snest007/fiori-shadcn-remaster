@@ -85,6 +85,16 @@ const defaultLabels: CalendarLabels = {
   yearRangePicker: "Year Range Picker",
 }
 
+type CalendarTexts = {
+  previousButtonShortcut: string
+  nextButtonShortcut: string
+}
+
+const defaultTexts: CalendarTexts = {
+  previousButtonShortcut: "Pagedown", // UI5 CALENDAR_HEADER_MONTH_PREVIOUS_BUTTON_SHORTCUT (pinned English bundle)
+  nextButtonShortcut: "Pageup", // UI5 CALENDAR_HEADER_MONTH_NEXT_BUTTON_SHORTCUT (pinned English bundle)
+}
+
 /**
  * @accessibility Native aria-label / aria-labelledby / aria-describedby reach the calendar root. labels names header buttons, picker grids, week numbers and range/day descriptions; generated gridcells retain aria-selected and aria-disabled.
  * @accessibility Tab visits the header and one roving gridcell. Arrows move by day/week; Home/End move within the row; PageUp/Down changes month; Shift+PageUp/Down changes year. Enter/Space selects; F4 opens months and Shift+F4 opens years/year ranges. The current day-picker horizontal keys still use LTR order in RTL.
@@ -123,6 +133,8 @@ type CalendarProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChang
   autoFocus?: boolean
   /** Override header-button, picker, week-number and selected-range names on their owning buttons/grids/cells. */
   labels?: Partial<CalendarLabels>
+  /** Override the localized shortcuts on the owning previous/next buttons and their tooltips. */
+  texts?: Partial<CalendarTexts>
 }
 
 const MIN_DATE = (() => {
@@ -163,11 +175,13 @@ function Calendar({
   initialPicker = selectionLevel === "day" ? "day" : selectionLevel,
   autoFocus,
   labels: labelsProp,
+  texts: textsProp,
   className,
   onKeyDown,
   ...props
 }: CalendarProps) {
   const labels = { ...defaultLabels, ...labelsProp }
+  const texts = { ...defaultTexts, ...textsProp }
   const [selectedInner, setSelectedInner] = React.useState<Date[]>(defaultSelectedDates ?? [])
   const selected = selectedProp ?? selectedInner
   const today = startOfDay(new Date())
@@ -178,6 +192,7 @@ function Calendar({
   const [secondDate, setSecondDate] = React.useState<Date | null>(null)
   const [legendType, setLegendType] = React.useState<string | null>(null)
   const rootRef = React.useRef<HTMLDivElement>(null)
+  const yearRangeLabelId = React.useId()
   const focusPending = React.useRef(!!autoFocus)
 
   // Year picker page start: the focused year is 10th on first show; paging keeps 20-year steps (UI5 _currentYearRange).
@@ -311,14 +326,19 @@ function Calendar({
   const arrow = (dir: 1 | -1) => {
     const disabled = dir < 0 ? !hasPrev : !hasNext
     const label = dir < 0 ? prevLabel : nextLabel
+    const shortcut = dir < 0 ? texts.previousButtonShortcut : texts.nextButtonShortcut
     return (
       <div
         data-slot={dir < 0 ? "calendar-previous" : "calendar-next"}
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-label={label}
+        // CalendarHeaderTemplate.js:previousButton/nextButton and Calendar.js:accInfo
+        // expose the same label as description and the i18n shortcut for every picker.
+        aria-description={label}
+        aria-keyshortcuts={shortcut}
         aria-disabled={disabled || undefined}
-        title={label}
+        title={`${label} (${shortcut})`}
         className={cn("fiori-calheader-arrowbtn", disabled && "fiori-calheader-arrowbtn-disabled")}
         onMouseDown={(e) => {
           e.preventDefault()
@@ -355,6 +375,8 @@ function Calendar({
                   tabIndex={0}
                   hidden={picker !== "day" || selectionLevel !== "day"}
                   aria-label={labels.monthButton(monthText)}
+                  // UI5 CalendarHeaderTemplate.js gives the purpose as both name and description.
+                  aria-description={labels.monthButton(monthText)}
                   title={`${labels.monthButton(monthText)} (F4)`}
                   aria-keyshortcuts="F4"
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
@@ -369,6 +391,7 @@ function Calendar({
                   tabIndex={0}
                   hidden={(picker !== "day" && picker !== "month") || selectionLevel === "year"}
                   aria-label={labels.yearButton(yearText)}
+                  aria-description={labels.yearButton(yearText)}
                   title={`${labels.yearButton(yearText)} (Shift + F4)`}
                   aria-keyshortcuts="Shift+F4"
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
@@ -383,13 +406,17 @@ function Calendar({
                   tabIndex={0}
                   hidden={picker !== "year"}
                   aria-label={labels.yearRangeButton(...rangeText)}
+                  aria-description={labels.yearRangeButton(...rangeText)}
+                  // UI5 CalendarHeaderTemplate.js / CALENDAR_HEADER_YEAR_RANGE_BUTTON: retain the purpose text while including the visible range in the name.
+                  aria-labelledby={`${yearRangeLabelId}-value ${yearRangeLabelId}-purpose`}
                   title={`${labels.yearRangeButton(...rangeText)} (Shift + F4)`}
                   aria-keyshortcuts="Shift+F4"
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
                   onClick={() => showPicker("yearrange")}
                   {...headerButton(() => showPicker("yearrange"))}
                 >
-                  <span>{`${rangeText[0]} - ${rangeText[1]}`}</span>
+                  <span id={`${yearRangeLabelId}-value`}>{`${rangeText[0]} - ${rangeText[1]}`}</span>
+                  <span id={`${yearRangeLabelId}-purpose`} className="sr-only">{labels.yearRangeButton(...rangeText)}</span>
                 </div>
               </div>
               {arrow(1)}
@@ -923,5 +950,6 @@ export {
   type CalendarPicker,
   type CalendarProps,
   type CalendarSelectionMode,
+  type CalendarTexts,
   type SpecialDate,
 }

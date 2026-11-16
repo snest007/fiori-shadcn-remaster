@@ -38,25 +38,6 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return nodes.length === 1 ? nodes[0] : null
         }
 
-        if (rule === "label-content-name-mismatch") {
-          const yearStory = context.story === "dates-calendar--year-picker" && !context.primary
-          const customStory = context.story === "dates-calendar--custom-texts" && context.yearMode && !context.primary
-          const controlStory = context.story === "dates-calendar--playground" && context.primary
-            && context.control?.prop === "initialPicker" && context.control.choice === "year"
-            && JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}").initialPicker === "year"
-          if (!yearStory && !customStory && !controlStory) return false
-          const range = unique('[data-slot="calendar-year-range-button"]')
-          const grid = unique('[data-picker="year"][role="grid"]')
-          if (!range || actual !== range || !visible(range) || !grid || !visible(grid)
-            || range.getAttribute("role") !== "button" || range.getAttribute("aria-keyshortcuts") !== "Shift+F4") return false
-          const years = [...grid.querySelectorAll('[role="gridcell"]')].filter(visible).map((cell) => cell.textContent?.trim())
-          if (years.length !== 20 || years.some((year) => !/^\d{4}$/.test(year ?? ""))) return false
-          const from = years[0], to = years.at(-1)
-          const purpose = customStory ? `Delivery years from ${from} to ${to}` : `Year range from ${from} to ${to}`
-          return range.textContent?.trim() === `${from} - ${to}` && range.getAttribute("aria-label") === purpose
-            && range.getAttribute("title") === `${purpose} (Shift + F4)` && !range.hasAttribute("aria-labelledby")
-        }
-
         // S1
         // component defect, fixed by E4 — see docs/plan/handoff/S1-a11y-candidates
         // TextArea.css.js colors counter text with field-border state tokens.
