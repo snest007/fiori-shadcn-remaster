@@ -440,3 +440,35 @@ test("table: RTL mirrors horizontal keyboard navigation", async ({ page }) => {
   await page.keyboard.press("ArrowRight")
   await expect(row).toBeFocused()
 })
+
+
+test("table: loading progressbar remains outside the grid and busy rows stay inert", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=table-loading")
+  await page.waitForSelector("html[data-ready=true]")
+  const host = page.locator('[data-fixture="table-loading"] [data-slot="table"]')
+  const progress = host.getByRole("progressbar", { name: "Please wait" })
+  await expect(progress).toBeVisible()
+  await expect(host.getByRole("grid")).toHaveAttribute("aria-busy", "true")
+  await expect(host.locator('.fiori-table__rows')).toHaveAttribute("inert", "")
+  await expect(host.getByRole("grid").getByRole("progressbar")).toHaveCount(0)
+  expect(await progress.evaluate((node) => node.closest('[role="grid"]'))).toBe(null)
+})
+
+test("table: keyboard reentry clears a row's earlier pointer marker", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=table-interactive")
+  await page.waitForSelector("html[data-ready=true]")
+  const host = page.locator('[data-fixture="table-interactive"] [data-slot="table"]')
+  const row = host.locator('[data-slot="table-row"]').first()
+  await row.click()
+  await expect(row).toBeFocused()
+  await expect(row).toHaveAttribute("data-pointer-focus", "")
+  await host.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "table-e4-before"; before.textContent = "Before table"
+    node.before(before); before.focus()
+  })
+  await expect(page.locator("#table-e4-before")).toBeFocused()
+  await page.keyboard.press("Tab")
+  await expect(row).toBeFocused()
+  await expect(row).not.toHaveAttribute("data-pointer-focus")
+  expect(await row.evaluate((node) => node.matches(":focus-visible"))).toBe(true)
+})

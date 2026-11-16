@@ -57,25 +57,6 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             && range.getAttribute("title") === `${purpose} (Shift + F4)` && !range.hasAttribute("aria-labelledby")
         }
 
-        if (context.story === "data-data-table--loading" && !context.primary && rule === "aria-required-children") {
-          const grid = unique('.fiori-table__grid[role="grid"][aria-label="Products"][aria-busy="true"]')
-          if (!grid || actual !== grid) return false
-          const children = [...grid.children]
-          const header = unique(':scope > [data-slot="table-header-row"][role="row"]', grid)
-          const rows = unique(":scope > .fiori-table__rows[inert]", grid)
-          const end = children.find((child) => child.getAttribute("aria-hidden") === "true")
-          const loader = unique(':scope > .fiori-table__loading[data-slot="busy-indicator"][aria-busy="true"]', grid)
-          const progress = unique('.fiori-table__loading [role="progressbar"][aria-label="Please wait"]', grid)
-          if (!header || !rows || !end || !loader || !progress || children.length !== 4
-            || children.some((child) => ![header, rows, end, loader].includes(child)) || end.children.length) return false
-          const spacer = unique(":scope > .fiori-table__spacer", rows)
-          if (!spacer || rows.children.length !== 1 || spacer.children.length !== 4
-            || [...spacer.children].some((row) => row.getAttribute("role") !== "row" || row.getAttribute("data-slot") !== "table-row")) return false
-          // The only role outside the valid row subtrees is the existing loader's
-          // progressbar. A new invalid child inside this same grid fails too.
-          return [...grid.querySelectorAll("[role]")].filter((element) =>
-            !element.closest('[role="row"]')).every((element) => element === progress)
-        }
         // S1
         // component defect, fixed by E4 — see docs/plan/handoff/S1-a11y-candidates
         // TextArea.css.js colors counter text with field-border state tokens.

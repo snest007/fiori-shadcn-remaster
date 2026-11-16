@@ -16,6 +16,7 @@ import { deleteIcon, edit } from "@/lib/fiori-icons"
 import { defineFixtures } from "../fixture-types"
 
 export type TableFixtureProps = {
+  loading?: boolean
   interactive?: boolean
   selection?: "single" | "multi"
   selected?: string[]
@@ -60,8 +61,190 @@ function StaticTableDrop({ children, placement }: { children: React.ReactNode; p
 
 export default defineFixtures<TableFixtureProps>({
   name: "table",
+  a11yDiff: {
+    "table": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-actions": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/1/children/0/children/3/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/1/children/0/children/3/children/0",
+        "/ui5/ax/0/children/1/children/1/children/3/children/0",
+        "/ui5/ax/0/children/1/children/1/children/3/children/1",
+        "/ui5/ax/0/children/1/children/1/children/3/children/2",
+        "/ui5/ax/0/children/1/children/2/children/3/children/0",
+        "/ui5/ax/0/children/1/children/2/children/3/children/1",
+        "/ui5/ax/0/children/1/children/2/children/3/children/2",
+        "/ui5/ax/0/children/1/children/3/children/3/children/0",
+        "/ui5/ax/0/children/1/children/3/children/3/children/1",
+        "/ui5/ax/0/children/1/children/3/children/3/children/2",
+        "/ui5/ax/0/children/1/children/4/children/3/children/0",
+        "/ui5/ax/0/children/1/children/4/children/3/children/1",
+        "/ui5/ax/0/children/1/children/4/children/3/children/2"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-alternate": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-drop-indicator-after": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/1/children/5",
+        "/ui5/ax/0/children/1/children/5/children/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-drop-indicator-before": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/1/children/5",
+        "/ui5/ax/0/children/1/children/5/children/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-drop-indicator-on": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/1/children/5",
+        "/ui5/ax/0/children/1/children/5/children/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-group": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-growing": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/3/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-interactive": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-loading": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/2/children/0",
+        "/ours/ax/0/children/0/children/2/children/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/2/children/0/children/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/2/children/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/2/children/0/children/0/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/1/children/5",
+        "/ui5/ax/0/children/1/children/5/children/0",
+        "/ui5/ax/0/children/1/children/5/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/5/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/5/children/0/children/0/children/0/children/1",
+        "/ui5/ax/0/children/1/children/5/children/0/children/0/children/0/children/2"
+      ],
+      "reason": "UI5 TableTemplate.js nests BusyIndicator under role=grid, violating axe aria-required-children. Relocate its complete loading overlay after its exact owning grid, preserving the progressbar and native focus sentinel with every channel/descendant/order. All busy, row/inert, spinner-description and focus-sentinel differences remain compared. React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order.",
+      "tableLoadingOverlay": {
+        "gridName": "Products",
+        "progressbarName": "Please wait",
+        "ax": "/ax/1/children/5",
+        "snapshot": "/snapshot/0/children/5"
+      }
+    },
+    "table-multi": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/1/children/0/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/1/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/2/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/3/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/4/children/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-multi-all": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/1/children/0/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/1/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/2/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/3/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/1/children/4/children/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-no-data": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-popin": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/1/children/0/children/2/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/1/children/0/children/2/children/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-single": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/1/children/0/children/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "table-sorted": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ui5/ax/0"
+      ],
+      "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    }
+  },
   cases: [
     { id: "table", props: {} },
+    { id: "table-loading", props: { loading: true } },
     { id: "table-interactive", props: { interactive: true }, interact: { selector: '[data-slot="table-row"]', ui5Selector: "ui5-table-row" } },
     { id: "table-drop-indicator-before", props: { dropPlacement: "Before" } },
     { id: "table-drop-indicator-after", props: { dropPlacement: "After" } },
@@ -81,7 +264,7 @@ export default defineFixtures<TableFixtureProps>({
   // ui5-table 2.28 has no row highlight (sap.m.Table's status bar); our highlight follows ui5-li's,
   // so there's nothing to compare it with. Checked by screenshot only.
   skipCompare: ["table-highlight"],
-  react: ({ selection, selected, highlight, actions, navigated, group, noData, popin, growing, sort, alternate, dropPlacement, interactive }) => {
+  react: ({ selection, selected, highlight, actions, navigated, group, noData, popin, growing, sort, alternate, dropPlacement, interactive, loading }) => {
     const rows = noData ? [] : TABLE_ROWS
     const renderRow = (r: (typeof TABLE_ROWS)[number], i: number) => (
       <TableRow
@@ -109,6 +292,8 @@ export default defineFixtures<TableFixtureProps>({
       <StaticTableDrop placement={dropPlacement}>
       <Table
         aria-label="Products"
+        loading={loading}
+        loadingDelay={0}
         style={{ width: popin ? TABLE_POPIN_WIDTH : TABLE_WIDTH }}
         overflowMode={popin ? "popin" : "scroll"}
         selectionMode={selection ?? "none"}

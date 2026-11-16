@@ -101,7 +101,6 @@ for (const name of pilots) {
     await page.mouse.down()
     if (["button", "input", "dialog"].includes(name)) await expect(target).toBeFocused()
     const pointer = await target.evaluate(appearance)
-    const knownFocus: unknown[] = []
     expect.soft(pointer.painted, "Pointer focus must not paint the keyboard indicator").toBe(false)
     await page.mouse.up()
     if (name === "dialog" || name === "select") {
@@ -127,17 +126,8 @@ for (const name of pilots) {
     await expect.poll(() => page.evaluate(() => Boolean(document.activeElement?.closest(".fiori-story-canvas")))).toBe(true)
     const keyboard = await page.locator("*:focus").evaluate(appearance)
     expect.soft(keyboard.focusVisible).toBe(true)
-    if (name === "data-table" && !keyboard.painted) {
-      // component defect, fixed by E4 — see docs/plan/handoff/S0-a11y-candidates
-      await expect(target).toBeFocused()
-      await expect(target).toHaveAttribute("aria-rowindex", "2")
-      await expect(target).toHaveAttribute("data-pointer-focus", "")
-      expect(await target.evaluate((node) => node === document.querySelector('[data-fiori-story="data-data-table--playground"] [data-slot="table-row"]')
-        && node.getAttribute("role") === "row" && node.textContent?.includes("Notebook Basic 15"))).toBe(true)
-      knownFocus.push({ story: "data-data-table--playground", phase: "keyboard-reentry", target: "Notebook Basic 15 row, aria-rowindex=2", appearance: keyboard })
-    } else expect.soft(keyboard.painted, "Tab must paint the keyboard indicator").toBe(true)
+    expect.soft(keyboard.painted, "Tab must paint the keyboard indicator").toBe(true)
     await testInfo.attach("focus-modality.json", { body: JSON.stringify({ pointer, keyboard }, null, 2), contentType: "application/json" })
-    if (knownFocus.length) await attachKnown(testInfo, "focus-modality", knownFocus)
   })
 }
 

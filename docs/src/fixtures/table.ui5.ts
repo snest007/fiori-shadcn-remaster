@@ -19,7 +19,7 @@ import "@ui5/webcomponents-icons/dist/sort-descending.js"
 import { defineUi5, h, type Ui5FixtureElement } from "../fixture-types"
 import set, { TABLE_COLUMNS, TABLE_POPIN_WIDTH, TABLE_ROWS, TABLE_WIDTH } from "./table"
 
-export default defineUi5(set, ({ selection, selected, actions, navigated, group, noData, popin, growing, sort, alternate, dropPlacement, interactive }) => {
+export default defineUi5(set, ({ selection, selected, actions, navigated, group, noData, popin, growing, sort, alternate, dropPlacement, interactive, loading }) => {
   const rows = noData ? [] : TABLE_ROWS
   const row = (r: (typeof TABLE_ROWS)[number], i: number) =>
     h(
@@ -50,6 +50,8 @@ export default defineUi5(set, ({ selection, selected, actions, navigated, group,
     "ui5-table",
     {
       "accessible-name": "Products",
+      loading,
+      "loading-delay": "0",
       "overflow-mode": popin ? "Popin" : "Scroll",
       "row-action-count": actions ? "3" : undefined,
       "alternate-row-colors": alternate,
