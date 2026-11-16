@@ -60,7 +60,7 @@ function StaticTableDrop({ children, placement }: { children: React.ReactNode; p
 
 export default defineFixtures<TableFixtureProps>({
   name: "table",
-  cases: [
+  cases: ([
     { id: "table", props: {} },
     { id: "table-interactive", props: { interactive: true }, interact: { selector: '[data-slot="table-row"]', ui5Selector: "ui5-table-row" } },
     { id: "table-drop-indicator-before", props: { dropPlacement: "Before" } },
@@ -77,7 +77,7 @@ export default defineFixtures<TableFixtureProps>({
     { id: "table-popin", props: { popin: true } },
     { id: "table-growing", props: { growing: true } },
     { id: "table-highlight", props: { highlight: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<TableFixtureProps>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "table-rtl" }] : [fixture]),
   // ui5-table 2.28 has no row highlight (sap.m.Table's status bar); our highlight follows ui5-li's,
   // so there's nothing to compare it with. Checked by screenshot only.
   skipCompare: ["table-highlight"],

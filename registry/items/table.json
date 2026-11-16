@@ -5,7 +5,8 @@
     "@fiori/button",
     "@fiori/checkbox",
     "@fiori/menu",
-    "@fiori/busy-indicator"
+    "@fiori/busy-indicator",
+    "@fiori/locale"
   ],
   "description": "Fiori responsive table (ui5-table): selection, popin, growing, row actions, group rows and grid keyboard navigation.",
   "files": [
@@ -42,7 +43,7 @@
         ]
       },
       {
-        "when": "Pick one of 2–12 predefined field values without inspecting row attributes; sort alphabetically above 8.",
+        "when": "Pick one of 2\u201312 predefined field values without inspecting row attributes; sort alphabetically above 8.",
         "use": [
           "select"
         ]
