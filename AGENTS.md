@@ -58,12 +58,32 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
 7. **Don't break public APIs.** Adding props is fine; renaming or removing exported names/props needs the card to say so.
 8. Tailwind v4 arbitrary vars: `h-(--fiori-x)`, `text-(length:--sapFontSize)`, `font-(family-name:--sapFontFamily)`;
    line height `leading-[normal]` (not `leading-normal`). No `-webkit-font-smoothing`. No `transition` unless UI5 has it.
+9. **Accessibility is ported in full, never trimmed.** Everything UI5's `dist/<Name>Template.js` and `dist/<Name>.js`
+   give assistive technology is part of the port: roles, every `aria-*` attribute and its states, hidden description /
+   label texts (`ui5-hidden-text`, `aria-describedby` targets), live-region announcements (`announce()`, `aria-live`),
+   the keyboard model, roving `tabindex` and focus management (initial focus, focus return, focus trap). Quote the UI5
+   template or function in a code comment for non-obvious ARIA.
+   - Every UI5 `accessibleName` / `accessibleNameRef` / `accessibleDescription` / `accessibleDescriptionRef` /
+     `accessibleRole` / `accessibilityAttributes` has an equivalent: native `aria-*` props passed through to the element
+     UI5 puts them on (document which element in the prop's JSDoc), or a named prop when UI5 builds the text itself.
+     Every announced or hidden text is an overridable string (rule 5).
+   - Customisation points (render props, `asChild`, custom cells/items/days, `className` slots) must not be able to drop
+     ARIA: the component, not the consumer's render output, owns roles, `aria-selected`/`aria-expanded`/`aria-checked`
+     /`aria-sort`/`aria-rowindex`…, ids and `tabindex`. Each customisation point gets a test that a custom render
+     keeps them.
+   - The accessibility tree must match UI5's for every fixture (`tests/a11y-tree.spec.ts`, added by card E4); deviations need an entry in
+     the fixture set's `a11yDiff` with a concrete reason (e.g. "UI5 bug: role=listitem inside role=grid, filed as …"),
+     never to make a failing test pass.
+   - Don't remove or weaken an existing ARIA attribute, keyboard shortcut or announcement without the card saying so
+     (rule 7 applies to accessibility behaviour too).
 
 ## Definition of done (every card)
 
 - `pnpm generate && pnpm typecheck && pnpm registry:build` succeed.
 - `PORT=4310 pnpm exec playwright test` passes with **0 failed and 0 flaky**; run it twice.
 - The card's own acceptance checks all hold.
+- Accessibility (rule 9): new or changed states have fixtures on both sides so `tests/a11y-tree.spec.ts` compares them;
+  axe stays clean; new keyboard paths and announcements have behaviour tests.
 - Git: work on a branch `codex/<card-id>`, small commits, messages in English, imperative mood. Don't push; don't merge.
   If you work in a separate worktree, leave the main checkout untouched (no edits, no branch switch) — an earlier run
   left an uncommitted draft and a stray branch there.

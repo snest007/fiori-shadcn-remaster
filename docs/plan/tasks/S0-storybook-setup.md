@@ -96,6 +96,13 @@ required, stop and explain why in your final message instead of adding it.
 - Stories only import from `@/components/ui/*`, `@/components/blocks/*`, `@/lib/*` and `docs/stories/_lib/*` — never
   from `docs/src/fixtures` or `docs/src/demos` (stories are user-facing examples; copy the JSX if a demo is a good
   starting point).
+- **Accessibility is part of every example** (AGENTS.md rule 9): every story gives each control an accessible name
+  (a `Label` with `htmlFor`, `aria-label` on icon-only buttons, a title for dialogs); compositions keep the
+  label/field/description links; no story overrides a component-owned role or state. Stories that show a
+  customisation point (custom cell, item, day) keep the component's ARIA, and the a11y test below checks it. The docs
+  page shows an **Accessibility** section per component, taken from the component's JSDoc and E4's
+  `docs/plan/a11y-audit.md` when present: keyboard shortcuts, the `aria-*`/`labels` props for names and announcements,
+  and which element they land on.
 - Component source files are **not** edited by S-cards, with one exception: adding a missing JSDoc comment to a prop
   type (comment only, no code change) so it shows in the props table. List such edits in the commit message.
 
@@ -120,7 +127,11 @@ Separate Playwright config (own `testDir`, so the main suite is unaffected) that
 - **Controls drive the component:** on the Button playground set `args=variant:emphasized` → the button has the
   emphasized background (compare computed `background-color` to `--sapButton_Emphasized_Background`).
 - **Accessibility:** axe (`@axe-core/playwright`) on every story in Morning Horizon and High Contrast Black, same rule
-  set as `tests/a11y.spec.ts`.
+  set as `tests/a11y.spec.ts`, including `color-contrast` in Morning Horizon (with the same disabled-control
+  exclusion). Every interactive element in a story has a non-empty accessible name (assert via
+  `getByRole(...).all()` + `accessibleName`). Every story with a Playground: changing each select/radio Control keeps
+  axe clean. Keyboard: on each pilot Playground, Tab reaches the component and the focus ring shows only after a
+  keyboard action (`:focus-visible`).
 - Deterministic: wait for the state you assert; no sleeps, no retries beyond the config default.
 
 ## Files
@@ -136,5 +147,7 @@ Shared (allowed): `package.json` (the 4 devDependencies + scripts), `pnpm-lock.y
 - `pnpm storybook:build && pnpm test:storybook` passes twice with 0 failed / 0 flaky.
 - `pnpm build:pages` produces `dist/storybook/index.html`, and it loads under the `/fiori-shadcn-remaster/storybook/`
   base path.
+- No pilot story has an axe violation or an unnamed control; the docs page of each pilot has its Accessibility
+  section.
 - Final message: screenshots of the Button and Data Table docs pages in Morning Horizon and Evening Horizon, and of the
   Dialog `Open` story in High Contrast Black; the list of stories per pilot component.
