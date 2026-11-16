@@ -19,6 +19,10 @@ import { usePopupMediaRange } from "@/components/ui/popover"
 // F4 / Alt+↓ / Alt+↑ open it (F4 doesn't close it again: inside, F4 belongs to the calendar),
 // Alt+↓ / Alt+↑ / Escape close it, Tab out of the field closes it. On close focus returns to the field.
 
+/**
+ * @accessibility Native aria-label / aria-labelledby / aria-describedby land on the input, id links its Label, roleDescription describes input type. pickerLabel names the popup; openIconLabel/closeIconLabel name the value-help control. The wrapper owns expanded and popup state.
+ * @accessibility F4 or Alt+Down/Up opens; Escape or Alt+Down/Up closes and restores input focus. f4Closes enables F4 closing. onPickerKeyDown extends the content keyboard model; content must retain its own roles and names.
+ */
 type PickerFieldProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "size" | "children"> & {
   /** The text in the field. */
   value: string

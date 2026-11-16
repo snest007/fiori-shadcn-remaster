@@ -17,6 +17,10 @@ import { examplePlaceholder, PickerField } from "@/components/ui/picker-field"
 // In the field, PageUp/PageDown (Shift: month, Ctrl+Shift: year) change the date the caret is in.
 // Gregorian calendar only.
 
+/**
+ * @accessibility Native aria-label / aria-labelledby / aria-describedby land on the input. pickerLabel names the popup; calendarLabels and the icon/footer label props override names.
+ * @accessibility F4 or Alt+Down/Up opens; Escape closes and restores input focus. Calendar selection requires start and end; PageUp/Down changes the endpoint under the caret, Shift changes month, Ctrl/Cmd+Shift changes year.
+ */
 type DateRangePickerProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "size" | "min" | "max"> & {
   /** The value as text: "<start> <delimiter> <end>". */
   value?: string

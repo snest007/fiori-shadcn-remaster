@@ -18,6 +18,10 @@ import { TimeSelectionClocks, type TimeSelectionLabels } from "@/components/ui/t
 // locale's medium date + time, "MMM d, y, h:mm:ss a" in en-US). Field keys as DatePicker (PageUp/Down
 // change the day / month / year and keep the time). Gregorian calendar only.
 
+/**
+ * @accessibility Native aria-label / aria-labelledby / aria-describedby land on the input. pickerLabel names the popup; calendarLabels, clockLabels and submitLabel/cancelLabel name its controls.
+ * @accessibility F4 or Alt+Down/Up opens. Date and time selections are a draft until OK; Cancel/Escape discards it. Calendar arrows select days; clocks use arrows, PageUp/Down, digits, colon/Space and Enter.
+ */
 type DateTimePickerProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "size" | "min" | "max"> & {
   value?: string
   defaultValue?: string
