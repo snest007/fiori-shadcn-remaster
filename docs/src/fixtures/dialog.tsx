@@ -12,14 +12,14 @@ const states = ["negative", "critical", "positive", "information"] as const
 // The wrapper clips the large dialog shadow so it can't bleed into neighbouring cells (both pages).
 export default defineFixtures<Props>({
   name: "dialog",
-  cases: [
+  cases: ([
     { id: "dialog", props: { footer: true } },
     { id: "dialog-no-footer", props: {} },
     { id: "dialog-draggable", props: { footer: true, draggable: true } },
     { id: "dialog-resizable", props: { footer: true, resizable: true } },
     { id: "dialog-resizable-rtl", props: { footer: true, resizable: true, rtl: true } },
     ...states.map((state) => ({ id: `dialog-${state}`, props: { state, footer: true } })),
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "dialog-rtl" }] : [fixture]),
   react: ({ state, footer, draggable, resizable, rtl }) => (
     <div className="overflow-hidden p-3" dir={rtl ? "rtl" : undefined}>
       <Dialog open modal={false}>
