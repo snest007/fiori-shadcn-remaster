@@ -12,13 +12,29 @@ import { Button } from "@/components/ui/button"
 import { ToggleButton } from "@/components/ui/toggle-button"
 import { Input } from "@/components/ui/input"
 
-import { multiselectAll, slimArrowDown } from "@/lib/fiori-icons"
+import { accept, multiselectAll, slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
 import { Token } from "@/components/ui/token"
 import { Tokenizer, type TokenizerHandle } from "@/components/ui/tokenizer"
+
+// UI5 MultiComboBox.js _onfocusin / generated/themes/MultiComboBox.css.js paints pointer focus too.
+// AGENTS rule 5 requires keyboard origin, including focus in a newly mounted popup.
+const multicomboboxFocusModality = new WeakMap<Document, { keyboard: boolean }>()
+function getMultiComboboxFocusModality(owner: Document) {
+  let state = multicomboboxFocusModality.get(owner)
+  if (!state) {
+    state = { keyboard: true }
+    const current = state
+    owner.addEventListener("keydown", () => { current.keyboard = true }, true)
+    owner.addEventListener("pointerdown", () => { current.keyboard = false }, true)
+    multicomboboxFocusModality.set(owner, current)
+  }
+  return state
+}
+if (typeof document !== "undefined") getMultiComboboxFocusModality(document)
 
 type MultiComboBoxFilter = "startsWithPerTerm" | "startsWith" | "contains" | "none"
 
@@ -662,21 +678,26 @@ function MultiComboBox({
           if (isSelected && selectedItems.length === 1 && filterSelected) setFilterSelected(false)
         } : undefined}
       >
-        <Checkbox
-          tabIndex={-1}
+        {/* MultiComboBoxItem.js/checkBoxAccInfo and CheckBoxTemplate.js render a
+            presentation-only indicator without an inner native input. The option
+            owns selection and keyboard focus; keep its pointer-only indicator. */}
+        <span
           aria-hidden
-          checked={isSelected}
-          disabled={readOnly}
-          className="fiori-multi-combobox__checkbox"
+          data-state={isSelected ? "checked" : "unchecked"}
+          data-disabled={readOnly ? "" : undefined}
+          className="fiori-checkbox fiori-multi-combobox__checkbox"
           onClick={(e) => {
-            // The check box toggles and keeps the list open (UI5 selectionComponentPressed).
             e.preventDefault()
             e.stopPropagation()
             if (readOnly) return
             toggleItem(item.key)
             ;(e.currentTarget.closest('[role="option"]') as HTMLElement | null)?.focus()
           }}
-        />
+        >
+          <span className="fiori-checkbox__inner">
+            <Icon icon={accept} className="fiori-checkbox__icon size-(--fiori-checkbox-icon-size)" />
+          </span>
+        </span>
         <span className="fiori-multi-combobox__item-text">{filtering && !filterSelected ? highlight(item.text, typed) : item.text}</span>
         {item.additionalText && <span className="fiori-multi-combobox__item-additional">{item.additionalText}</span>}
       </div>
@@ -834,6 +855,19 @@ function MultiComboBox({
       <Anchor asChild>
         <div
           ref={fieldRef}
+          onPointerDownCapture={(event) => {
+            event.currentTarget.setAttribute("data-pointer-focus", "")
+          }}
+          onFocusCapture={(event) => {
+            if (getMultiComboboxFocusModality(event.currentTarget.ownerDocument).keyboard) event.currentTarget.removeAttribute("data-pointer-focus")
+            else event.currentTarget.setAttribute("data-pointer-focus", "")
+          }}
+          onKeyDownCapture={(event) => {
+            event.currentTarget.removeAttribute("data-pointer-focus")
+          }}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute("data-pointer-focus")
+          }}
           data-slot="multi-combobox"
           data-value-state={hasState ? valueState : undefined}
           data-disabled={disabled ? "" : undefined}

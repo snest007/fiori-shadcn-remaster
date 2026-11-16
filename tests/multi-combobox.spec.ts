@@ -127,7 +127,7 @@ test.describe("MultiComboBox (Fiori model)", () => {
   test("clicking the check box toggles and keeps the list open; clicking the row toggles and closes", async ({ page }) => {
     await field(page).locator('[data-slot="multi-combobox-arrow"]').click()
     await expect(list(page)).toBeVisible()
-    await option(page, "Canada").locator('[data-slot="checkbox"]').click()
+    await option(page, "Canada").locator('.fiori-multi-combobox__checkbox').click()
     await expect(selected(page)).toHaveText("CA, FR, DE")
     await expect(list(page)).toBeVisible()
     await option(page, "Japan").click()
@@ -170,7 +170,7 @@ test.describe("MultiComboBox (Fiori model)", () => {
   test("'n more' opens the list with only the selected items", async ({ page }) => {
     await input(page).click()
     await openList(page, "F4")
-    for (const c of ["Argentina", "Australia", "Austria", "Belgium"]) await option(page, c).locator('[data-slot="checkbox"]').click()
+    for (const c of ["Argentina", "Australia", "Austria", "Belgium"]) await option(page, c).locator('.fiori-multi-combobox__checkbox').click()
     await page.keyboard.press("Escape")
     await page.locator("body").click({ position: { x: 5, y: 5 } })
     const more = field(page).locator(".fiori-tokenizer__more")
@@ -301,7 +301,7 @@ test.describe("MultiComboBox item groups", () => {
   test("selected-items view keeps only groups containing selected items", async ({ page }) => {
     await openGroupList(page)
     for (const name of ["Argentina", "Brazil", "Canada"]) {
-      await groupOption(page, name).locator('[data-slot="checkbox"]').click()
+      await groupOption(page, name).locator('.fiori-multi-combobox__checkbox').click()
       await expect(groupOption(page, name)).toHaveAttribute("aria-selected", "true")
     }
     await page.keyboard.press("Escape")
@@ -439,7 +439,7 @@ test.describe("MultiComboBox grouped ranges", () => {
   test("a hidden native range destination updates selection while keeping focus", async ({ page }) => {
     const errors = await observeRange(page)
     await openRangeList(page)
-    await rangeOption(page, "Apple").locator('[data-slot="checkbox"]').click()
+    await rangeOption(page, "Apple").locator('.fiori-multi-combobox__checkbox').click()
     await expect(rangeSelected(page)).toHaveText("Apple, Apricot, Asparagus, Broccoli")
     await expectRangeEvents(page, 1)
     await page.keyboard.press("Escape")
@@ -526,4 +526,73 @@ test("multi-combobox: RTL mirrors horizontal keyboard navigation", async ({ page
   await expect(tokens.last()).toBeFocused()
   await page.keyboard.press("ArrowLeft")
   await expect(input).toBeFocused()
+})
+
+
+test("multi-combobox: sap_horizon pointer origin and canceled pointer preserve keyboard reentry", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=multi-combobox-empty&theme=sap_horizon")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="multi-combobox-empty"]')
+  const target = cell.locator('input').first()
+  const owner = cell.locator('[data-slot="multi-combobox"]').first()
+  const painted = () => owner.evaluate((node) => {
+    const css = getComputedStyle(node, "::after")
+    return !["none", "normal"].includes(css.content) && css.display !== "none" && css.borderTopStyle !== "none" && Number.parseFloat(css.borderTopWidth) > 0
+  })
+  await target.click()
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "multi-combobox-e4-before"; before.textContent = "Before field"
+    node.before(before); before.focus()
+  })
+  const before = page.locator("#multi-combobox-e4-before")
+  await expect(before).toBeFocused()
+  // A canceled pointer action changes modality without moving focus. The next
+  // real Tab must independently restore keyboard origin before field reentry.
+  await before.hover()
+  await page.mouse.down(); await page.mouse.up()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})
+
+test("multi-combobox: sap_horizon_hcb pointer origin and canceled pointer preserve keyboard reentry", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=multi-combobox-empty&theme=sap_horizon_hcb")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="multi-combobox-empty"]')
+  const target = cell.locator('input').first()
+  const owner = cell.locator('[data-slot="multi-combobox"]').first()
+  const painted = () => owner.evaluate((node) => {
+    const css = getComputedStyle(node, "::after")
+    return !["none", "normal"].includes(css.content) && css.display !== "none" && css.borderTopStyle !== "none" && Number.parseFloat(css.borderTopWidth) > 0
+  })
+  await target.click()
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "multi-combobox-e4-before"; before.textContent = "Before field"
+    node.before(before); before.focus()
+  })
+  const before = page.locator("#multi-combobox-e4-before")
+  await expect(before).toBeFocused()
+  // A canceled pointer action changes modality without moving focus. The next
+  // real Tab must independently restore keyboard origin before field reentry.
+  await before.hover()
+  await page.mouse.down(); await page.mouse.up()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})
+
+
+test("MultiComboBox options own selection without an inner focusable checkbox", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=multi-combobox-list")
+  await page.waitForSelector("html[data-ready=true]")
+  const options = page.locator('[data-fixture="multi-combobox-list"]').getByRole('option')
+  await expect(options).toHaveCount(6)
+  await expect(options.locator('button, input, [role="checkbox"], [tabindex]')).toHaveCount(0)
+  await expect(options.first()).toHaveAttribute("role", "option")
+  await expect(options.first()).toHaveAttribute("aria-selected", "true")
+  await expect(options.first()).toHaveAttribute("tabindex", "0")
 })

@@ -118,3 +118,8 @@
   pointer-events: none;
   border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
 }
+
+/* UI5 multi-combobox paints pointer focus; AGENTS rule 5 keeps the ring keyboard-only. */
+.fiori-field[data-slot="multi-combobox"][data-pointer-focus]::after {
+  content: none;
+}
