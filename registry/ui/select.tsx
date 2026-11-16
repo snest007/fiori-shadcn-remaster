@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Select as SelectPrimitive, Slot } from "radix-ui"
 
@@ -19,6 +20,11 @@ import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/compo
 // in place without opening; Alt+Down, Alt+Up, F4, Space and Enter open the list.
 type SelectContextValue = {
   register: (value: string, node: HTMLElement | null, disabled: boolean) => void
+  count: number
+  groupCount: number
+  texts: SelectTexts
+  registerGroup: (id: string, node: HTMLElement | null) => void
+  announce: (value: string | undefined, open: boolean) => void
   step: (current: string | undefined, key: "ArrowUp" | "ArrowDown" | "Home" | "End") => string | undefined
 }
 const SelectContext = React.createContext<SelectContextValue | null>(null)
@@ -36,15 +42,19 @@ function SelectTriggerHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React
     else onKeyDown?.(event)
   }} />
 }
-function SelectContentHost({ asChild, onKeyDown, aliasKeyDown, ...props }: React.ComponentProps<"div"> & {
+function SelectContentHost({ asChild, onKeyDown, aliasKeyDown, popupDialog, popupLabel, ...props }: React.ComponentProps<"div"> & {
   asChild?: boolean
   aliasKeyDown?: React.KeyboardEventHandler<HTMLDivElement>
+  popupDialog?: boolean
+  popupLabel?: string
 }) {
   const Host = asChild ? Slot.Root : "div"
-  return <Host {...props} onKeyDown={(event) => {
+  const content = <Host {...props} onKeyDown={(event) => {
     if (isF6NavigationKey(event)) aliasKeyDown?.(event)
     else onKeyDown?.(event)
   }} />
+  // UI5 SelectPopoverTemplate.js: ListBox inside PopupTemplate.js dialog/aria-modal.
+  return popupDialog ? <div role="dialog" aria-modal="true" aria-label={popupLabel} className="flex min-h-0 flex-1 flex-col max-h-full">{content}</div> : content
 }
 
 // UI5 getEffectiveDir/ItemNavigation follows the nearest DOM direction. Radix otherwise
@@ -65,9 +75,18 @@ function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, expli
   return explicit ?? direction
 }
 
-type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root>
+type SelectTexts = {
+  roleDescription: string
+  optionsInGroups: (count: number, groups: number) => string
+  itemPosition: (position: number, count: number) => string
+}
+type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
+  texts?: Partial<SelectTexts>
+  /** Locale for numbers in the default group and position descriptions. */
+  locale?: string
+}
 
-function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, ...props }: SelectProps) {
+function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, texts, locale, ...props }: SelectProps) {
   const phone = useIsPhone()
   const phoneListId = React.useId()
   const [phoneState, setPhoneState] = React.useState<{ valueState: ValueState; message: React.ReactNode; accessibleName?: string }>({ valueState: "none", message: null })
@@ -96,12 +115,58 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
   )
 
   const items = React.useRef(new Map<string, { node: HTMLElement; disabled: boolean }>())
+  const groups = React.useRef(new Map<string, HTMLElement>())
+  const [revision, setRevision] = React.useState(0)
+  const register = React.useCallback((v: string, node: HTMLElement | null, disabled: boolean) => {
+    if (node) {
+      const prior = items.current.get(v)
+      if (prior?.node === node && prior.disabled === disabled) return
+      items.current.set(v, { node, disabled })
+    } else if (!items.current.delete(v)) return
+    setRevision((n) => n + 1)
+  }, [])
+  const registerGroup = React.useCallback((id: string, node: HTMLElement | null) => {
+    if (node) { if (groups.current.get(id) === node) return; groups.current.set(id, node) }
+    else if (!groups.current.delete(id)) return
+    setRevision((n) => n + 1)
+  }, [])
+  const t = React.useMemo<SelectTexts>(() => {
+    const number = new Intl.NumberFormat(locale ?? (typeof navigator === "undefined" ? "en" : navigator.language))
+    return {
+      roleDescription: "Listbox", // UI5 SELECT_ROLE_DESCRIPTION
+      optionsInGroups: (count, groupCount) => `${number.format(count)} results are available in ${number.format(groupCount)} groups`, // UI5 SELECT_OPTIONS_IN_GROUPS
+      itemPosition: (position, count) => `List item ${number.format(position)} of ${number.format(count)}`, // UI5 LIST_ITEM_POSITION
+      ...texts,
+    }
+  }, [locale, texts])
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
+  const announce = React.useCallback((next: string | undefined, isOpen: boolean) => {
+    const ordered = [...items.current.entries()].sort(([, a], [, b]) => (a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+    const index = ordered.findIndex(([key]) => key === next)
+    if (index < 0) return
+    const node = ordered[index][1].node
+    const popup = node.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]')
+    setAnnouncementTarget((isOpen ? popup : changeTarget.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]')) ?? document.body)
+    setAnnouncement((old) => ({ text: `${node.textContent ?? ""}${isOpen ? ` ${t.itemPosition(index + 1, ordered.length)}` : ""}`.trim(), sequence: old.sequence + 1 }))
+  }, [t])
+  const previousOpen = React.useRef(false)
+  React.useLayoutEffect(() => {
+    if (!open) { previousOpen.current = false; return }
+    if (!previousOpen.current && items.current.get(value ?? "")?.node.isConnected) {
+      previousOpen.current = true
+      announce(value, true)
+    }
+  }, [open, value, revision, announce])
+  React.useEffect(() => {
+    if (!announcement.text) return
+    // InvisibleMessage.js clears the last announcement after 3000 ms.
+    const timer = setTimeout(() => setAnnouncement((old) => old.sequence === announcement.sequence ? { ...old, text: "" } : old), 3000)
+    return () => clearTimeout(timer)
+  }, [announcement])
   const ctx = React.useMemo<SelectContextValue>(
     () => ({
-      register(v, node, disabled) {
-        if (node) items.current.set(v, { node, disabled })
-        else items.current.delete(v)
-      },
+      register, registerGroup, count: items.current.size, groupCount: groups.current.size, texts: t, announce,
       step(current, key) {
         const ordered = [...items.current.entries()]
           .filter(([, i]) => !i.disabled)
@@ -115,7 +180,7 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
         return i <= 0 ? ordered[0] : ordered[i - 1]
       },
     }),
-    []
+    [register, registerGroup, revision, t, announce]
   )
 
   return (
@@ -123,6 +188,9 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
       <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction }}>
         <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={!phone && open} onOpenChange={setOpen} {...props} />
       </SelectOpenContext.Provider>
+      {/* Select.js:itemSelectionAnnounce uses Polite; Popup routes its region inside
+          the dialog while open so modal accessibility scoping preserves it. */}
+      {announcementTarget && createPortal(<span data-slot="select-announcement" className="sr-only" role="alert" aria-live="polite" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>, announcementTarget)}
     </SelectContext.Provider>
   )
 }
@@ -140,8 +208,16 @@ const SelectOpenContext = React.createContext<{
   setPhoneState: React.Dispatch<React.SetStateAction<{ valueState: ValueState; message: React.ReactNode; accessibleName?: string }>>
 } | null>(null)
 
-function SelectGroup(props: React.ComponentProps<typeof SelectPrimitive.Group>) {
-  return <SelectPrimitive.Group data-slot="select-group" {...props} />
+function SelectGroup({ ref, ...props }: React.ComponentProps<typeof SelectPrimitive.Group>) {
+  const ctx = React.useContext(SelectContext)
+  const id = React.useId()
+  const register = ctx?.registerGroup
+  const setRef = React.useCallback((node: HTMLDivElement | null) => {
+    register?.(id, node)
+    if (typeof ref === "function") ref(node)
+    else if (ref) ref.current = node
+  }, [register, id, ref])
+  return <SelectPrimitive.Group data-slot="select-group" {...props} ref={setRef} />
 }
 
 function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) {
@@ -149,7 +225,7 @@ function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) 
 }
 
 /**
- * @accessibility Label.htmlFor / aria-label / aria-labelledby name SelectTrigger's combobox button. The component owns aria-expanded, aria-controls and aria-haspopup=listbox. Native aria-describedby reaches this trigger; a caller-supplied value currently replaces the built-in value-state message id rather than merging with it.
+ * @accessibility Label.htmlFor / aria-label / aria-labelledby name SelectTrigger's combobox button. aria-description and aria-describedby are merged with its owned value-state and group-count descriptions. The trigger owns aria-expanded, aria-controls and aria-haspopup=listbox; texts.roleDescription describes its role.
  * @accessibility Closed Up/Down/Home/End change selection; Enter, Space, F4 and Alt+Up/Down open. Popup arrows move option focus; Enter selects, Escape closes and restores trigger focus. SelectItem owns role=option, aria-selected and roving tabindex.
  */
 type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger> & {
@@ -176,11 +252,16 @@ function SelectTrigger({
   onPointerDown,
   onClick,
   asChild,
+  "aria-describedby": descriptionRefs,
+  "aria-description": description,
+  "aria-roledescription": roleDescription,
   ...props
 }: SelectTriggerProps) {
   const items = React.useContext(SelectContext)
   const state = React.useContext(SelectOpenContext)
   const messageId = React.useId()
+  const descriptionId = React.useId()
+  const groupCountId = React.useId()
   const hasState = valueState !== "none"
   const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
@@ -205,7 +286,8 @@ function SelectTrigger({
         disabled={disabled || readOnly}
         aria-readonly={readOnly || undefined}
         aria-invalid={valueState === "negative" || undefined}
-        aria-describedby={showMessage ? messageId : undefined}
+        aria-describedby={cn(descriptionRefs, description && descriptionId, showMessage && messageId, items?.groupCount && groupCountId) || undefined}
+        aria-roledescription={roleDescription ?? items?.texts.roleDescription}
         className={cn(
           "flex min-w-0 flex-1 cursor-[inherit] items-stretch border-0 bg-transparent p-0 text-start text-inherit outline-none [font:inherit]",
           "rounded-(--fiori-input-border-radius) [background:var(--fiori-select-bottom-border-gradient)]",
@@ -237,7 +319,12 @@ function SelectTrigger({
           if (!e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Home" || e.key === "End")) {
             e.preventDefault()
             const next = items.step(state.value, e.key)
-            if (next !== undefined && next !== state.value) state.setValue(next)
+            if (next !== undefined && next !== state.value) {
+              state.setValue(next)
+              // Select.js:_handleArrowNavigation announces the text without a
+              // position while the trigger is focused and its picker is closed.
+              items.announce(next, false)
+            }
           }
         }}
         onKeyUp={(e) => {
@@ -262,6 +349,7 @@ function SelectTrigger({
           e.preventDefault()
         }}
         {...props}
+        tabIndex={state?.open ? -1 : props.tabIndex ?? (state?.phone ? 0 : undefined)}
         asChild
       >
         <SelectTriggerHost asChild={asChild} aliasKeyDown={onKeyDown}>
@@ -275,6 +363,8 @@ function SelectTrigger({
         )}
         </SelectTriggerHost>
       </SelectPrimitive.Trigger>
+      {description && <span hidden id={descriptionId}>{description}</span>}
+      {!!items?.groupCount && <span hidden id={groupCountId}>{items.texts.optionsInGroups(items.count, items.groupCount)}</span>}
       {showMessage && (
         <div
           id={messageId}
@@ -348,7 +438,7 @@ function SelectContent({
         onKeyDown={onKeyDown}
         asChild
       >
-        <SelectContentHost asChild={asChild} aliasKeyDown={onKeyDown}>
+        <SelectContentHost asChild={asChild} aliasKeyDown={onKeyDown} popupDialog={!state?.phone} popupLabel={state?.phone ? undefined : dialogLabel ?? (state?.phoneState.accessibleName ? `${dialogNamePrefix} ${state.phoneState.accessibleName}` : dialogTitle)}>
         <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} className="rotate-180" />
         </SelectPrimitive.ScrollUpButton>
@@ -440,7 +530,7 @@ function SelectItem({ className, children, value, disabled = false, asChild, ...
   const phoneItems = React.useContext(PhoneSelectItems)
   const ref = React.useCallback(
     (node: HTMLDivElement | null) => ctx?.register(value, node, disabled),
-    [ctx, value, disabled]
+    [ctx?.register, value, disabled]
   )
   const PhoneHost = asChild ? Slot.Root : "div"
   if (phoneItems) return <PhoneHost {...props} data-slot="select-item" data-value={value} data-text-value={props.textValue} role="option" aria-selected={phoneItems.value === value} aria-disabled={disabled || undefined}
@@ -476,4 +566,4 @@ function SelectSeparator({ className, ...props }: React.ComponentProps<typeof Se
   return <SelectPrimitive.Separator data-slot="select-separator" className={cn("h-px bg-(--sapList_BorderColor)", className)} {...props} />
 }
 
-export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue }
+export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue, type SelectProps, type SelectTexts }

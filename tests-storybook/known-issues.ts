@@ -38,24 +38,6 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return nodes.length === 1 ? nodes[0] : null
         }
 
-        if (context.story === "forms-select--open" && !context.primary) {
-          const trigger = unique('[data-slot="select-trigger"][role="combobox"][aria-expanded="true"][aria-label="Country"]')
-          const list = unique('[data-slot="select-content"][role="listbox"][aria-label="Country choices"]', document)
-          const popper = unique("[data-radix-popper-content-wrapper]", document)
-          const viewport = list ? unique('[data-radix-select-viewport][role="presentation"]', list) : null
-          const options = list ? [...list.querySelectorAll('[role="option"]')] : []
-          const focusable = [...scope.querySelectorAll<HTMLElement>("*")].filter((element) =>
-            element.tabIndex >= 0 && !(element as HTMLButtonElement).disabled && visible(element) && !element.closest("[inert]"))
-          if (!trigger || !list || !popper || !visible(list) || !popper.contains(list)
-            || scope.getAttribute("aria-hidden") !== "true" || focusable.length !== 1 || focusable[0] !== trigger) return false
-          if (!viewport || options.length !== 4 || options.map((option) => option.textContent?.trim()).join("|") !== "Germany|France|China|United States (unavailable)"
-            || [...popper.querySelectorAll("[role]")].some((element) => element !== list
-              && element !== viewport && element.getAttribute("role") !== "group" && !options.includes(element))) return false
-          if (rule === "aria-hidden-focus") return actual === scope
-          if (rule === "landmark-one-main" || rule === "page-has-heading-one") return actual === document.documentElement
-          return rule === "region" && actual === popper
-        }
-
         if (rule === "label-content-name-mismatch") {
           const yearStory = context.story === "dates-calendar--year-picker" && !context.primary
           const customStory = context.story === "dates-calendar--custom-texts" && context.yearMode && !context.primary

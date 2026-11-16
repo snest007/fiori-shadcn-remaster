@@ -1,7 +1,8 @@
 {
   "title": "Select",
   "dependencies": [
-    "radix-ui"
+    "radix-ui",
+    "react-dom"
   ],
   "registryDependencies": [
     "@fiori/icons",
