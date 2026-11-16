@@ -1,9 +1,10 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 import { browseFolder, decline } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 
 type FileSizeExceed = { fileName: string; fileSize: number }
 
@@ -40,7 +41,16 @@ type FileUploaderProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   roleDescription?: string
   /** Advanced: the native input element. */
   inputRef?: React.Ref<HTMLInputElement>
+  texts?: Partial<FileUploaderTexts>
+  locale?: string
 }
+type FileUploaderTexts = { placeholder: string; multiplePlaceholder: string; valueMissing: string }
+const defaultTexts: FileUploaderTexts = {
+  placeholder: "Browse or drop a file", // UI5 FILEUPLOADER_DEFAULT_PLACEHOLDER
+  multiplePlaceholder: "Browse or drop multiple files", // UI5 FILEUPLOADER_DEFAULT_MULTIPLE_PLACEHOLDER
+  valueMissing: "Select or drag and drop a file to upload.", // UI5 FILEUPLOAER_VALUE_MISSING (native spelling)
+}
+const defaultTextsKeys = { placeholder: "FILEUPLOADER_DEFAULT_PLACEHOLDER", multiplePlaceholder: "FILEUPLOADER_DEFAULT_MULTIPLE_PLACEHOLDER", valueMissing: "FILEUPLOAER_VALUE_MISSING" } as const
 
 // Mirrors ui5-file-uploader (Horizon): an input-styled field showing the selected file names (as read-only
 // tokens) with a clear icon and a browse icon; or, with `hideInput`, any opener passed as children.
@@ -60,25 +70,40 @@ function FileUploader({
   onFilesChange,
   onFileSizeExceed,
   hideInput,
-  inputTitle = "All files will be replaced on each upload",
-  browseTitle = "Browse and replace all files",
-  clearTitle = "Remove all files",
-  roleDescription = "File Uploader",
+  inputTitle: inputTitleProp,
+  browseTitle: browseTitleProp,
+  clearTitle: clearTitleProp,
+  roleDescription: roleDescriptionProp,
   inputRef,
+  texts: textsProp,
+  locale: localeProp,
   className,
   style,
   children,
   "aria-label": ariaLabel,
   ...props
 }: FileUploaderProps) {
+  const valueStateTexts = useValueStateTexts()
+
+  const { t, localized, hasProvider } = useFioriLocale(localeProp)
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp, localeProp)
+  const inputTitle = inputTitleProp ?? t("FILEUPLOADER_INPUT_TOOLTIP", "All files will be replaced on each upload") // UI5 FILEUPLOADER_INPUT_TOOLTIP
+  const browseTitle = browseTitleProp ?? t("FILEUPLOADER_VALUE_HELP_TOOLTIP", "Browse and replace all files") // UI5 FILEUPLOADER_VALUE_HELP_TOOLTIP
+  const clearTitle = clearTitleProp ?? t("FILEUPLOADER_CLEAR_ICON_TOOLTIP", "Remove all files") // UI5 FILEUPLOADER_CLEAR_ICON_TOOLTIP
+  const roleDescription = roleDescriptionProp ?? t("FILEUPLOADER_ROLE_DESCRIPTION", "File Uploader") // UI5 FILEUPLOADER_ROLE_DESCRIPTION
+
   const nativeRef = React.useRef<HTMLInputElement>(null)
   React.useImperativeHandle(inputRef, () => nativeRef.current!, [])
   const [names, setNames] = React.useState<string[]>([])
   const messageId = React.useId()
   const hasState = valueState !== "none"
-  const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
+  const message = valueStateMessage === undefined && hasState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !disabled && !hideInput
-  const resolvedPlaceholder = placeholder ?? (multiple ? "Browse or drop multiple files" : "Browse or drop a file")
+  const resolvedPlaceholder = placeholder ?? (multiple ? texts.multiplePlaceholder : texts.placeholder)
+  React.useLayoutEffect(() => {
+    // FileUploader.js/formValidityMessage: required text belongs to the native file input.
+    nativeRef.current?.setCustomValidity((localized || hasProvider || textsProp) && required && !names.length ? texts.valueMissing : "")
+  }, [localized, hasProvider, textsProp, required, names, texts])
 
   const open = () => nativeRef.current?.click()
   const validate = (list: FileList) => {
@@ -235,4 +260,4 @@ function FileUploader({
   )
 }
 
-export { FileUploader, type FileUploaderProps }
+export { FileUploader, type FileUploaderProps, type FileUploaderTexts }

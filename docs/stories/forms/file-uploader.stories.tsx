@@ -89,3 +89,4 @@ export const SizeLimit: Story = { args: { maxFileSize: 2 } }
 export const ButtonOpener: Story = { args: { hideInput: true } }
 export const CustomTexts: Story = { args: { inputTitle: "Attach a purchase order", browseTitle: "Browse purchase order files", clearTitle: "Clear the purchase order selection", roleDescription: "Purchase attachment selector", valueState: "information", valueStateMessage: "Choose the approved purchase order document." } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+export const NativeFormTexts: Story = { args: { required: true, texts: { placeholder: "Attach one document", multiplePlaceholder: "Attach several documents", valueMissing: "Please attach a document" } } }
