@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useFioriLocale, collatorIncludes } from "@/lib/fiori-locale"
+import { useFioriLocale, useFioriTexts, collatorIncludes } from "@/lib/fiori-locale"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
 // UI5 2.28 ComboBoxPopoverTemplate.js renders an internal List (fastNavigation metadata).
@@ -76,6 +76,7 @@ type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue
   portal?: boolean
   locale?: string
   noDataText?: string
+  texts?: Partial<ComboBoxTexts>
   wrapperClassName?: string
   /** Phone dialog title and action labels (UI5 ComboBoxPopoverTemplate). */
   dialogTitle?: string
@@ -145,6 +146,7 @@ function ComboBox({
   wrapperClassName,
   locale: localeProp,
   noDataText,
+  texts,
   value: valueProp,
   defaultValue = "",
   onValueChange,
@@ -177,7 +179,8 @@ function ComboBox({
 }: ComboBoxProps) {
   const valueStateTexts = useValueStateTexts()
 
-  const { t, locale, localized } = useFioriLocale(localeProp)
+  const { t, locale, localized, hasProvider } = useFioriLocale(localeProp)
+  const announcementTexts = useFioriTexts(defaultComboBoxTexts, defaultComboBoxTextsKeys, texts, localeProp)
   const matchLocale = localized ? locale : undefined
   const collator = localized ? new Intl.Collator(locale, { sensitivity: "base" }) : { compare: (a: string, b: string) => a.toLowerCase() === b.toLowerCase() ? 0 : 1 }
   const arrowLabel = arrowLabelProp ?? t("INPUT_AVALIABLE_VALUES", "Select Options") // UI5 INPUT_AVALIABLE_VALUES
@@ -186,7 +189,7 @@ function ComboBox({
 
   const listLabel = listLabelProp ?? t("COMBOBOX_AVAILABLE_OPTIONS", "Available Options")
   const dialogTitle = dialogTitleProp ?? t("INPUT_SUGGESTIONS_TITLE", "All Items")
-  const emptyText = noDataText ?? (localized ? t("LIST_NO_DATA", "No data") : undefined) // OpenUI5 sap/m/messagebundle.properties LIST_NO_DATA; opt-in E5 extension.
+  const emptyText = noDataText ?? (localized || hasProvider ? t("LIST_NO_DATA", "No data") : undefined) // OpenUI5 sap/m/messagebundle.properties LIST_NO_DATA; opt-in E5 extension.
   const phone = useIsPhone()
   const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
   const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
@@ -226,6 +229,17 @@ function ComboBox({
   })
   const visible = rowsFor(visibleItems)
   const selected = visible.findIndex((i) => !isGroup(i) && collator.compare(i.text, value) === 0)
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const itemAnnouncement = (item: Entry | undefined, opened: boolean) => {
+    if (!item) return ""
+    // ComboBox.js/_announceSelectedItem counts only non-group items in _getItems.
+    if (isGroup(item)) return `${announcementTexts.groupHeader} ${item.headerText}`
+    return `${item.additionalText ?? ""} ${opened ? announcementTexts.itemPosition(visibleItems.indexOf(item) + 1, visibleItems.length) : ""}`.trim()
+  }
+  const focusedAnnouncement = open ? itemAnnouncement(visible[phone ? phoneFocused : active], true) : ""
+  React.useEffect(() => {
+    if (focusedAnnouncement) setAnnouncement(previous => ({ text: focusedAnnouncement, sequence: previous.sequence + 1 }))
+  }, [open, active, phoneFocused, focusedAnnouncement])
 
   const setValue = (v: string) => {
     if (valueProp === undefined) setUncontrolledValue(v)
@@ -295,6 +309,10 @@ function ComboBox({
       if (!item || isGroup(item)) return
     }
     setActive(open ? index : -1)
+    if (!open) {
+      const text = itemAnnouncement(item, false)
+      if (text) setAnnouncement(previous => ({ text, sequence: previous.sequence + 1 }))
+    }
     applyText(item.text, open ? userTyped.current : "")
   }
 
@@ -641,8 +659,18 @@ function ComboBox({
         </div>
       </Anchor>
       {!phone && portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
+      {/* ComboBox._announceSelectedItem uses InvisibleMessageMode.Polite. Keep the
+          announcement owned by the component for grouped/position navigation. */}
+      <span data-slot="combobox-announcement" role="status" aria-live="polite" aria-atomic="true" className="sr-only"><span key={announcement.sequence}>{announcement.text}</span></span>
     </Root>
   )
 }
 
-export { ComboBox, ComboBoxItem, ComboBoxItemGroup, type ComboBoxItemGroupProps, type ComboBoxFilter, type ComboBoxItemProps, type ComboBoxProps }
+type ComboBoxTexts = { itemPosition: (position: number, count: number) => string; groupHeader: string }
+const defaultComboBoxTexts: ComboBoxTexts = {
+  itemPosition: (position, count) => `List item ${position} of ${count}`, // UI5 LIST_ITEM_POSITION
+  groupHeader: "Group Header", // UI5 LIST_ITEM_GROUP_HEADER
+}
+const defaultComboBoxTextsKeys = { itemPosition: "LIST_ITEM_POSITION", groupHeader: "LIST_ITEM_GROUP_HEADER" } as const
+
+export { ComboBox, ComboBoxItem, ComboBoxItemGroup, type ComboBoxItemGroupProps, type ComboBoxFilter, type ComboBoxItemProps, type ComboBoxProps, type ComboBoxTexts }
