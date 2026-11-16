@@ -22,4 +22,3 @@ export const OneLine: Story = { args: { maxLines: 1 } }
 export const TwoLines: Story = { args: { maxLines: 2 } }
 export const ShortText: Story = { args: { children: "Delivery confirmed." } }
 export const RTL: Story = { globals: { dir: "rtl" } }
-

@@ -8,9 +8,11 @@ import { DocsPage } from "../_lib/DocsPage"
 import { fioriMeta } from "../_lib/meta"
 
 // Include the complete installed illustration catalog. SVG size modules are strings;
-// the named data modules expose all four sizes and their English UI5 defaults.
-const modules = import.meta.glob<{ default: IllustrationData | string }>(["@/lib/fiori-illustrations/*.ts", "!@/lib/fiori-illustrations/types.ts"], { eager: true })
-const illustrations = Object.fromEntries(Object.entries(modules).filter(([, module]) => typeof module.default === "object").map(([path, module]) => [path.split("/").at(-1)!.replace(/\.ts$/, ""), module.default as IllustrationData]))
+// named data modules expose all four sizes. Fiori has UI5 English text defaults;
+// TNT has no default title/subtitle, so the TNT example supplies its own content.
+const modules = import.meta.glob<{ default: IllustrationData | string }>(["@/lib/fiori-illustrations/*.ts", "@/lib/fiori-illustrations/tnt/*.ts", "!@/lib/fiori-illustrations/types.ts"], { eager: true })
+// TNT data lives in tnt/Success.ts but its public data name is TntSuccess.
+const illustrations = Object.fromEntries(Object.values(modules).filter((module) => module.default && typeof module.default === "object" && typeof module.default.name === "string").map((module) => { const illustration = module.default as IllustrationData; return [illustration.name, illustration] }))
 const names = Object.keys(illustrations).sort()
 type Args = IllustratedMessageProps & { illustrationName: string; actions: boolean; width: number; onAction: () => void }
 // Source-backed defaults from registry/ui/illustrated-message.tsx and installed UI5 2.28 i18n defaults.
@@ -18,12 +20,12 @@ const textDefaults = [
   {
     "prop": "IllustratedMessage.titleText",
     "key": "Selected illustration title key (NoData: IM_TITLE_NODATA)",
-    "value": "illustration.title (NoData: \"There's no data yet.\")"
+    "value": "illustration.title (TNT: unset; NoData: \"There's no data yet.\")"
   },
   {
     "prop": "IllustratedMessage.subtitleText",
     "key": "Selected illustration subtitle key (NoData: IM_SUBTITLE_NODATA)",
-    "value": "illustration.subtitle (NoData: \"When there is, you'll see it here.\")"
+    "value": "illustration.subtitle (TNT: unset; NoData: \"When there is, you'll see it here.\")"
   },
   {
     "prop": "IllustratedMessage.accessibleName",

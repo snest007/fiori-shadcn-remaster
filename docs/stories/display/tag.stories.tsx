@@ -74,4 +74,3 @@ export const Wrapping: Story = { args: { design: "critical", children: "Order co
 export const Truncated: Story = { args: { design: "critical", wrappingType: "none", children: "Order confirmation awaiting review" }, decorators: [(Story) => <div className="w-24"><Story /></div>] }
 export const CustomTexts: Story = { args: { design: "negative", tagText: "Order status: action required", roleDescription: "Order status action" } }
 export const RTL: Story = { globals: { dir: "rtl" } }
-

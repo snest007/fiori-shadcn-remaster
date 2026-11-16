@@ -111,4 +111,3 @@ export const ColorSet1CustomIcon: Story = { args: { design: "color-set-1", color
 export const ColorSet2CustomIcon: Story = { args: { design: "color-set-2", colorScheme: 5, icon: <Icon icon={favorite} /> } }
 export const CustomTexts: Story = { args: { closeButtonText: "Dismiss order notice", designText: "Order information", closableText: "Can be dismissed" } }
 export const RTL: Story = { globals: { dir: "rtl" } }
-

@@ -15,7 +15,7 @@
    const root = React.useContext(MenuContext)
    const { surface, setRef, hover } = useSurface(false, () => root?.setOpen(false))
    surface.escape = onEscapeKeyDown
-@@ -291,7 +293,10 @@
+@@ -291,5 +293,8 @@
      onOpenAutoFocus={(event) => event.preventDefault()} onCloseAutoFocus={(event) => { event.preventDefault(); root.trigger.current?.focus() }}>
      {content}
    </ResponsivePopoverContent>
@@ -25,5 +25,3 @@
 +  const desktop = <div role="dialog" aria-label={popupLabel}>{content}</div>
 +  return portal ? <MenuPrimitive.Portal>{desktop}</MenuPrimitive.Portal> : desktop
  }
- 
- type ItemExtras = { icon?: FioriIconData; additionalText?: React.ReactNode }

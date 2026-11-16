@@ -112,7 +112,16 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
         }
         const s3ViewSettingsStories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]
         if (!context.primary && s3ViewSettingsStories.some((name) => context.story === `overlays-view-settings-dialog--${name}`) && rule === "aria-input-field-name") {
+          // The owned Radix trigger links this canvas to its body portal by id.
+          // A matching listbox in an unrelated dialog is never this exception.
+          const opener = unique('[data-slot="dialog-trigger"][aria-haspopup="dialog"][aria-expanded="true"][data-state="open"]')
           const dialog = unique('.fiori-vsd[data-slot="dialog-content"][role="dialog"]', document)
+          const title = dialog ? unique('[data-slot="dialog-title"]', dialog) : null
+          const expectedTitle = context.story.endsWith("--custom-texts") ? "Product view" : "View Settings"
+          if (!opener || opener.textContent?.trim() !== "Configure product view" || !visible(opener)
+            || !dialog || dialog.parentElement !== document.body || dialog.getAttribute("data-state") !== "open"
+            || !opener.getAttribute("aria-controls") || opener.getAttribute("aria-controls") !== dialog.id
+            || !title || !title.id || dialog.getAttribute("aria-labelledby") !== title.id || title.textContent?.trim() !== expectedTitle) return false
           const list = dialog ? unique('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]', dialog) : null
           const options = list ? [...list.querySelectorAll('[data-slot="segmented-button-item"][role="option"]')] : []
           const expected = context.story.endsWith("--descending") ? "Sort|Group" : "Sort|Filter|Group"

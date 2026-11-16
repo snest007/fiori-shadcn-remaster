@@ -46,4 +46,3 @@ export const Truncated: Story = { args: { wrappingType: "none", children: "View 
 export const Navigation: Story = { args: { href: "#purchase-order", children: "Jump to purchase order" } }
 export const CustomTexts: Story = { args: { design: "emphasized", designText: "Priority navigation" } }
 export const RTL: Story = { globals: { dir: "rtl" } }
-

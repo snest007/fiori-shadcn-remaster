@@ -28,4 +28,3 @@ export const Wrapping: Story = { args: { size: "H4", children: "Purchase orders 
 export const Truncated: Story = { args: { size: "H4", wrappingType: "None", children: "Purchase orders awaiting confirmation from international suppliers" } }
 export const IndependentLevelAndSize: Story = { args: { level: "H3", size: "H1" } }
 export const RTL: Story = { globals: { dir: "rtl" } }
-

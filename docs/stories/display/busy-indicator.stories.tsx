@@ -45,4 +45,3 @@ export const Delayed: Story = { args: { delay: 1000 } }
 export const IndicatorOnly: Story = { args: { active: true }, render: (args) => <BusyIndicator {...args} /> }
 export const CustomTexts: Story = { args: { active: true, text: "Retrieving purchase orders", title: "Please wait for the order list" } }
 export const RTL: Story = { globals: { dir: "rtl" } }
-

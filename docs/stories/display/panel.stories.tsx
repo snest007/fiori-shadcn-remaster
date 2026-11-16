@@ -41,4 +41,3 @@ export const NoAnimation: Story = { args: { noAnimation: true } }
 export const StickyHeader: Story = { args: { stickyHeader: true } }
 export const CustomTexts: Story = { args: { toggleButtonText: "Show or hide delivery details" } }
 export const RTL: Story = { globals: { dir: "rtl" } }
-

@@ -58,4 +58,3 @@ export const HiddenValue: Story = { args: { hideValue: true } }
 export const DisplayValue: Story = { args: { value: 80, displayValue: "8 of 10 orders" } }
 export const CustomTexts: Story = { args: { valueState: "critical", valueStateText: "Upload needs attention" } }
 export const RTL: Story = { globals: { dir: "rtl" } }
-
