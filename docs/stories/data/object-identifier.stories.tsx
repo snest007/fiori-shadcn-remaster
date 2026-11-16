@@ -10,7 +10,18 @@ const meta = {
   parameters: { ...base.parameters, docs: { page: S2DocsPage } },
   args: { title: "Robot Arm Series 9", text: "PO-48865", titleActive: false, onTitlePress: fn() },
   argTypes: { ...base.argTypes, title: { control: "text" }, text: { control: "text" }, titleActive: { control: "boolean" }, titleHref: { control: "text" }, titleLevel: { control: "select", options: [undefined, "H1", "H2", "H3", "H4", "H5", "H6"] }, onTitlePress: { control: false } },
-  render: (args) => <ObjectIdentifier {...args} />,
+  render: (args) => {
+    const titleDepth = Number(args.titleLevel?.slice(1) ?? 0)
+    // A deep heading belongs in an existing document hierarchy. Keep every
+    // titleLevel Control meaningful without asking the component to invent it.
+    return <div className="grid gap-3">
+      {titleDepth > 2 && <h2>Inventory</h2>}
+      {titleDepth > 3 && <h3>Assembly systems</h3>}
+      {titleDepth > 4 && <h4>Robot arms</h4>}
+      {titleDepth > 5 && <h5>Precision assembly</h5>}
+      <ObjectIdentifier {...args} />
+    </div>
+  },
 } satisfies Meta<typeof ObjectIdentifier>
 export default meta
 type Story = StoryObj<typeof meta>
