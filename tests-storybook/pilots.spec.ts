@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 import { readFileSync } from "node:fs"
-import { axeViolations } from "./accessibility"
+import { axeViolations, waitForStoryFinished } from "./accessibility"
 import { attachKnown, classifyViolations } from "./known-issues"
 
 interface Entry { id: string; type: string; title: string; name: string }
@@ -116,6 +116,12 @@ for (const name of pilots) {
       await expect(page.locator(name === "dialog" ? '[data-slot="dialog-content"]' : '[data-slot="select-content"]')).toBeVisible()
       await page.keyboard.press("Escape")
       await expect(page.locator('[data-slot="dialog-content"], [data-slot="select-content"]')).toHaveCount(0)
+      // Radix FocusScope defers AUTOFOCUS_ON_UNMOUNT; Storybook's args
+      // rerender can also outlive the portal. Await both before this test
+      // starts its independent keyboard-modality phase (INTEGRATION cause 4).
+      await waitForStoryFinished(page)
+      await expect(target).toHaveAttribute("aria-expanded", "false")
+      await expect(target).toBeFocused()
     }
     await page.evaluate(() => {
       const before = document.createElement("button")
