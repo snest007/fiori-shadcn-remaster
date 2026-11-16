@@ -5,7 +5,8 @@
     "@fiori/button",
     "@fiori/input",
     "@fiori/label",
-    "@fiori/adapt-filters-dialog"
+    "@fiori/adapt-filters-dialog",
+    "@fiori/locale"
   ],
   "description": "Fiori filter bar with declarative condition editors, built-in Adapt Filters personalization, ordered visibility, live search, required-field validation and SAPUI5 active-filter summaries.",
   "usage": {
