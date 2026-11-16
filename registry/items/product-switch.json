@@ -1,7 +1,10 @@
 {
   "title": "Product Switch",
   "dependencies": [],
-  "registryDependencies": ["@fiori/icons"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/locale"
+  ],
   "description": "Fiori grid of product tiles with grid keyboard navigation, shown in a popover from the shell bar (ui5-product-switch).",
   "usage": {
     "summary": "Let users choose another product from a grid of labeled product entries.",

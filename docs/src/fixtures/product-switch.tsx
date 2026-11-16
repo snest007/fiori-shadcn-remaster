@@ -29,11 +29,11 @@ type Props = { count: number; selected?: number }
 
 export default defineFixtures<Props>({
   name: "product-switch",
-  cases: [
+  cases: ([
     { id: "product-switch-2", props: { count: 2 } },
     { id: "product-switch-3col", props: { count: 5, selected: 1 } },
     { id: "product-switch-4col", props: { count: 8 } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "product-switch-rtl" }] : [fixture]),
   react: ({ count, selected }) => (
     <ProductSwitch>
       {PRODUCTS.slice(0, count).map((p, i) => (
