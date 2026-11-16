@@ -418,6 +418,24 @@ for (const channel of ["name", "name-ref", "description", "description-ref", "ro
   } finally { await reference.close() }
 })
 
+test("List description refs track changed targets on the native ul description channel", async ({ page, browser }) => {
+  const id = "list-a11y-description-ref"
+  const reference = await browser.newPage()
+  try {
+    for (const [index, current] of [page, reference].entries()) {
+      await current.goto(`/${index ? "ui5" : "index"}.html?fixtures&only=${id}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const holder = current.locator(`[data-fixture="${id}"]`)
+      const list = holder.getByRole("list")
+      await expect(list).toHaveAttribute("aria-description", "Fresh fruit")
+      await expect(list).not.toHaveAttribute("aria-describedby")
+      await holder.locator('span[id^="list-a11y-description-ref-target"]').evaluate((target) => { target.textContent = "Seasonal produce" })
+      await expect(list).toHaveAccessibleDescription("Seasonal produce")
+      await expect(list).toHaveAttribute("aria-description", "Seasonal produce")
+    }
+  } finally { await reference.close() }
+})
+
 test("List custom focus description matches UI5 content and controls and clears on blur", async ({ page, browser }) => {
   await page.goto("/index.html?fixtures&only=list-custom")
   await page.waitForSelector("html[data-ready=true]")

@@ -393,8 +393,9 @@ type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> 
   notSelectedText?: string
 }
 
-/** Native aria-label/aria-labelledby and aria-description/aria-describedby apply
- * to the inner ul (UI5 ListTemplate.js), preserving generated descriptions.
+/** Native aria-label/aria-labelledby apply to the inner ul (UI5 ListTemplate.js).
+ * aria-description and resolved aria-describedby text compose its aria-description
+ * with the component-owned descriptions (UI5 List.js:ariaDescriptionText).
  */
 function List({
   selectionMode = "none",
@@ -502,12 +503,25 @@ function List({
     observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled", "tabindex", "data-item-type", "data-custom"] })
     return () => observer.disconnect()
   }, [selectionMode, core.rootRef])
+  const [referencedDescription, setReferencedDescription] = React.useState("")
+  React.useLayoutEffect(() => {
+    if (!ariaDescriptionRef) { setReferencedDescription(""); return }
+    const root = core.rootRef.current?.getRootNode() as Document | ShadowRoot | undefined
+    if (!root) return
+    const update = () => setReferencedDescription(ariaDescriptionRef.trim().split(/\s+/).map((target) => root.getElementById(target)?.textContent?.trim()).filter(Boolean).join(" "))
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["id"] })
+    return () => observer.disconnect()
+  }, [ariaDescriptionRef, core.rootRef])
   const headerId = `${id}-header`
   const modeId = `${id}-mode`
   const modeText = hasData ? (isSingle(selectionMode) ? t.selectable : selectionMode === "multiple" ? t.multiSelectable : selectionMode === "delete" ? t.deletable : undefined) : undefined
   const contentDescription = accessibleRole === "list" && structure.interactive ? t.listDescription : undefined
   const groupDescription = structure.groups ? accessibleRole === "list" ? t.groupDescription(structure.groups, structure.items) : accessibleRole === "listbox" ? t.listboxGroupDescription(structure.groups) : undefined : undefined
-  const description = [contentDescription, ariaDescription, groupDescription].filter(Boolean).join(" ") || undefined
+  // List.js:ariaDescriptionText resolves accessibleDescriptionRef before composing
+  // the list's owned interactive/group text on ListTemplate.js's ul aria-description.
+  const description = [contentDescription, referencedDescription || ariaDescription, groupDescription].filter(Boolean).join(" ") || undefined
   const labelledBy =
     ariaLabelledBy ?? (ariaLabel ? undefined : cn(modeText && modeId, !header && headerText && headerId) || undefined)
 
@@ -558,8 +572,7 @@ function List({
           role={accessibleRole}
           aria-label={ariaLabel}
           aria-labelledby={labelledBy}
-          aria-description={ariaDescriptionRef ? undefined : description}
-          aria-describedby={ariaDescriptionRef ? cn(contentDescription && `${id}-description-content`, ariaDescriptionRef, groupDescription && `${id}-description-groups`) : undefined}
+          aria-description={description}
           aria-multiselectable={accessibleRole === "listbox" && selectionMode === "multiple" ? true : undefined}
           className="fiori-list__ul"
           onKeyDown={(e) => {
@@ -573,8 +586,6 @@ function List({
             </li>
           )}
         </ul>
-        {ariaDescriptionRef && contentDescription && <span hidden id={`${id}-description-content`}>{contentDescription}</span>}
-        {ariaDescriptionRef && groupDescription && <span hidden id={`${id}-description-groups`}>{groupDescription}</span>}
         {growing === "button" && (
           <div className="fiori-list__growing">
             <div
@@ -1159,7 +1170,7 @@ function ListItemGroup({ headerText, header, className, children, ...props }: Li
     >
       <ul role="none" className="fiori-li-group__ul">
         {hasHeader && <ListItemGroupHeader id={headerId} ownedGroup={listbox ? undefined : { id: contentId, label: headerText ?? "" }}>{header ?? headerText}</ListItemGroupHeader>}
-        <div id={contentId} role="none">{children}</div>
+        <div id={contentId}>{children}</div>
       </ul>
     </li>
   )
