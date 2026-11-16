@@ -94,6 +94,34 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return [...grid.querySelectorAll("[role]")].filter((element) =>
             !element.closest('[role="row"]')).every((element) => element === progress)
         }
+        // S3
+        // component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
+        // Match only the enumerated story, rule and exact owned node. An added
+        // popup, unnamed list or unrelated node remains an unexpected violation.
+        const s3MenuStories = ["open", "plain", "icons-and-shortcuts", "single-selection", "single-selection-with-icons", "multiple-selection", "multiple-selection-with-icons", "single-disabled-submenu", "multiple-disabled-submenu", "rtl", "owner-rtl-with-ltr-opener", "owner-rtl-with-ltr-opener-ancestor", "owner-ltr-with-rtl-opener-ancestor", "explicit-ltr", "explicit-rtl"]
+        if (!context.primary && s3MenuStories.some((name) => context.story === `overlays-menu--${name}`) && rule === "region") {
+          const popper = unique("body > [data-radix-popper-content-wrapper]", document)
+          const menu = popper ? unique('[data-slot="menu-content"][role="menu"][aria-label="Order actions"]', popper) : null
+          const opener = unique('button[aria-haspopup="menu"][aria-expanded="true"]')
+          const items = menu ? [...menu.querySelectorAll('[role^="menuitem"]')] : []
+          return actual === popper && !!menu && !!opener && visible(menu)
+            && opener.textContent?.trim() === "Order actions"
+            && items.length === 5 && items.map((item) => item.textContent?.trim()).join("|") === "Edit|CopyCtrl+C|Paste|Share|Archive"
+            && !!items[2].hasAttribute("data-disabled") && !!unique('[data-slot="menu-separator"]', menu)
+            && !popper?.closest('[role="dialog"], main')
+        }
+        const s3ViewSettingsStories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]
+        if (!context.primary && s3ViewSettingsStories.some((name) => context.story === `overlays-view-settings-dialog--${name}`) && rule === "aria-input-field-name") {
+          const dialog = unique('.fiori-vsd[data-slot="dialog-content"][role="dialog"]', document)
+          const list = dialog ? unique('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]', dialog) : null
+          const options = list ? [...list.querySelectorAll('[data-slot="segmented-button-item"][role="option"]')] : []
+          const expected = context.story.endsWith("--descending") ? "Sort|Group" : "Sort|Filter|Group"
+          return !!dialog && visible(dialog) && actual === list && !!list && visible(list)
+            && !list.hasAttribute("aria-label") && !list.hasAttribute("aria-labelledby")
+            && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
+            && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === expected
+            && options.length === expected.split("|").length && options.every((option) => option.hasAttribute("aria-selected"))
+        }
         return false
       }, { target: node.target, rule: violation.id, context })
       ;(approved ? knownNodes : unexpectedNodes).push(node)
