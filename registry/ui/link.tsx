@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -44,7 +45,9 @@ function Link({
   onClick,
   ...props
 }: LinkProps) {
-  const hidden = designText === undefined ? defaultDesignText[design] : designText
+  const defaultDesignTextLocalized = useFioriTexts(defaultDesignText, defaultDesignTextKeys)
+
+  const hidden = designText === undefined ? defaultDesignTextLocalized[design] : designText
   return (
     <a
       data-slot="link"
@@ -84,3 +87,8 @@ function Link({
 }
 
 export { Link, type LinkProps, type LinkDesign }
+
+const defaultDesignTextKeys = {
+  "subtle": "LINK_SUBTLE",
+  "emphasized": "LINK_EMPHASIZED"
+} as const
