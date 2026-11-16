@@ -7,7 +7,7 @@ import { Token } from "@/components/ui/token"
 import { fioriMeta } from "../_lib/meta"
 import { DocsPage } from "../_lib/DocsPage"
 
-type Args = MultiInputProps & { tokenTexts: string[]; suggestions?: boolean }
+type Args = MultiInputProps & { tokenTexts: string[]; suggestions?: boolean; initialSuggestionsOpen?: boolean }
 const countries = ["Argentina", "Australia", "Austria", "Belgium", "Brazil", "Bulgaria", "Canada", "China", "France", "Germany", "Japan"]
 const base = fioriMeta({ name: "multi-input", component: MultiInput })
 const meta = {
@@ -101,22 +101,32 @@ const meta = {
   ]
 ] as const
   return <><DocsPage /><section aria-label="Localization text keys" className="sbdocs-content"><h2>Localization text keys</h2><p>Override these public text props in your application; CustomTexts demonstrates the supported API. Existing label props remain available.</p><table><thead><tr><th>Prop / key</th><th>UI5 key or source</th><th>English component default</th></tr></thead><tbody>{textKeys.map(([prop, key, value]) => <tr key={prop}><td><code>{prop}</code></td><td>{key}</td><td>{value}</td></tr>)}</tbody></table></section></>
-} } },
+}, story: { inline: false, height: "440px" } } },
   args: { value: "", tokenTexts: ["Germany", "France"], suggestions: true, showValueHelpIcon: false, filter: "startsWithPerTerm", noTypeahead: false, valueState: "none", disabled: false, readOnly: false, required: false, placeholder: "Type a country and press Enter", "aria-label": "Delivery countries", onValueChange: fn(), onCommit: fn(), onSuggestionSelect: fn(), onTokenDelete: fn(), onValueHelpTrigger: fn() },
   argTypes: { ...base.argTypes,
+    initialSuggestionsOpen: { control: false, table: { disable: true } },
     value: { control: "text" }, tokenTexts: { control: "object", description: "Country tokens managed by this example." }, suggestions: { control: "boolean", description: "Offer country suggestions not already selected." }, showValueHelpIcon: { control: "boolean" }, filter: { control: "select", options: ["startsWithPerTerm", "startsWith", "contains", "none"] }, noTypeahead: { control: "boolean" }, valueState: { control: "select", options: ["none", "negative", "critical", "positive", "information"] }, disabled: { control: "boolean" }, readOnly: { control: "boolean" }, required: { control: "boolean" }, placeholder: { control: "text" }, valueStateMessage: { control: "text" },
     valueHelpLabel: { control: "text" }, roleDescription: { control: "text" }, nMoreText: { control: false }, tokensCountText: { control: false }, dialogTitle: { control: "text" }, okText: { control: "text" }, cancelText: { control: "text" }, showTokensLabel: { control: "text" }, tokenDeleteLabel: { control: "text" }, suggestionsLabel: { control: "text" }, tokens: { control: false, table: { disable: true } },
     onValueChange: { control: false }, onCommit: { control: false }, onSuggestionSelect: { control: false }, onTokenDelete: { control: false }, onValueHelpTrigger: { control: false },
   },
   render: function DeliveryTokens(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const { tokenTexts, suggestions, ...props } = args
+    const { tokenTexts, suggestions, initialSuggestionsOpen, ...props } = args
+    const root = React.useRef<HTMLDivElement>(null)
+    React.useEffect(() => {
+      const input = root.current?.querySelector<HTMLInputElement>('input[role="combobox"]')
+      if (!initialSuggestionsOpen || !input) return
+      // Use the component's real typing path to display its suggestions.
+      input.focus()
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, "Ja")
+      input.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    }, [initialSuggestionsOpen])
     const add = (value: string) => {
       args.onCommit?.(value)
       const text = value.trim()
       updateArgs({ value: "", tokenTexts: text && !tokenTexts.includes(text) ? [...tokenTexts, text] : tokenTexts })
     }
-    return <div className="w-full max-w-lg"><MultiInput {...props}
+    return <div ref={root} className="w-full max-w-lg"><MultiInput {...props}
       tokens={tokenTexts.map((text) => <Token key={text} text={text} />)}
       onValueChange={(value) => { args.onValueChange?.(value); updateArgs({ value }) }}
       onCommit={add}
@@ -134,6 +144,7 @@ export const Tokens: Story = { args: { suggestions: false } }
 export const ValueHelp: Story = { args: { tokenTexts: [], showValueHelpIcon: true } }
 export const TokensAndValueHelp: Story = { args: { showValueHelpIcon: true } }
 export const Suggestions: Story = { args: { tokenTexts: [], value: "", suggestions: true } }
+export const Open: Story = { args: { tokenTexts: [], value: "", suggestions: true, initialSuggestionsOpen: true } }
 export const None: Story = { args: { valueState: "none" } }
 export const Negative: Story = { args: { valueState: "negative" } }
 export const Critical: Story = { args: { valueState: "critical" } }
