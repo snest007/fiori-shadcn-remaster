@@ -94,6 +94,56 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return [...grid.querySelectorAll("[role]")].filter((element) =>
             !element.closest('[role="row"]')).every((element) => element === progress)
         }
+
+        // S2
+        // component defect, fixed by E4 — see docs/plan/handoff/S2-a11y-candidates
+        if (rule === "aria-allowed-role") {
+          const openStories = ["dates-time-picker--open", "dates-time-picker--open-negative", "dates-time-picker--open-critical", "dates-date-time-picker--open", "dates-date-time-picker--open-negative", "dates-time-picker--twenty-four-hour-clocks"]
+          const primaryPicker = context.primary && ["dates-time-picker--playground", "dates-date-time-picker--playground"].includes(context.story)
+            && JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}").open === true
+          if (!openStories.includes(context.story) && !primaryPicker) return false
+          const clocks = unique('[data-slot="time-selection-clocks"]', document)
+          const entity = actual.getAttribute("data-clock-button")
+          if (!clocks || !visible(clocks) || !entity || !["hours", "minutes", "seconds"].includes(entity)
+            || actual !== unique(`button[data-clock-button="${entity}"][data-slot="button"][role="spinbutton"]`, clocks)
+            || !actual.closest(".fiori-time-picker-tsc-buttons") || !visible(actual)) return false
+          const min = Number(actual.getAttribute("aria-valuemin")), max = Number(actual.getAttribute("aria-valuemax")), now = Number(actual.getAttribute("aria-valuenow"))
+          const label = actual.getAttribute("aria-label")
+          return !!label && Number.isFinite(now) && now >= min && now <= max
+            && (entity === "hours" ? (min === 1 && max === 12 || min === 0 && max === 23) : min === 0 && max === 59)
+            && actual.getAttribute("aria-valuetext") === `${now} ${label}`
+        }
+        if (context.story === "data-table--loading" && !context.primary && rule === "aria-required-children") {
+          const grid = unique('.fiori-table__grid[role="grid"][aria-label="Products"][aria-busy="true"]')
+          if (!grid || actual !== grid) return false
+          const children = [...grid.children]
+          const header = unique(':scope > [data-slot="table-header-row"][role="row"]', grid)
+          const rows = unique(":scope > .fiori-table__rows[inert]", grid)
+          const end = children.find((child) => child.getAttribute("aria-hidden") === "true")
+          const loader = unique(':scope > .fiori-table__loading[data-slot="busy-indicator"][aria-busy="true"]', grid)
+          const progress = unique('.fiori-table__loading [role="progressbar"][aria-label="Please wait"]', grid)
+          if (!header || !rows || !end || !loader || !progress || children.length !== 4
+            || children.some((child) => ![header, rows, end, loader].includes(child)) || end.children.length) return false
+          const spacer = unique(":scope > .fiori-table__spacer", rows)
+          if (!spacer || rows.children.length !== 1 || spacer.children.length !== 4
+            || [...spacer.children].some((row) => row.getAttribute("role") !== "row" || row.getAttribute("data-slot") !== "table-row")) return false
+          return [...grid.querySelectorAll("[role]")].filter((element) => !element.closest('[role="row"]')).every((element) => element === progress)
+        }
+        if (rule === "aria-required-children") {
+          const timelineStories = ["data-timeline--playground", "data-timeline--vertical", "data-timeline--vertical-mixed-icons", "data-timeline--none", "data-timeline--negative", "data-timeline--critical", "data-timeline--positive", "data-timeline--information", "data-timeline--growing-button", "data-timeline--growing-scroll", "data-timeline--grouped", "data-timeline--collapsed-group", "data-timeline--horizontal", "data-timeline--horizontal-mixed-icons", "data-timeline--horizontal-growing", "data-timeline--horizontal-group", "data-timeline--horizontal-collapsed-group", "data-timeline--loading", "data-timeline--with-header", "data-timeline--custom-texts", "data-timeline--rtl"]
+          if (!timelineStories.includes(context.story) || context.primary && context.story !== "data-timeline--playground") return false
+          const list = unique('.fiori-timeline__list[aria-live="polite"]')
+          if (!list || actual !== list || !["list", "tree"].includes(list.getAttribute("role") ?? "") || !visible(list)) return false
+          const images = [...list.querySelectorAll('.fiori-tli__icon-outer > [role="img"]')].filter(visible)
+          if (!images.length || images.some((image) => {
+            const item = image.closest('[data-slot="timeline-item"]')
+            const bubble = item ? unique('.fiori-tli__bubble[data-timeline-nav][role="listitem"], .fiori-tli__bubble[data-timeline-nav][role="treeitem"]', item) : null
+            const name = image.getAttribute("aria-label")
+            return !name || !bubble || !(bubble.getAttribute("aria-label") ?? bubble.getAttribute("aria-description") ?? "").includes(name)
+          })) return false
+          // Only existing tooltip images outside the valid item subtrees are approved.
+          return [...list.querySelectorAll("[role]")].filter((element) => visible(element) && !element.closest('[role="listitem"], [role="treeitem"]')).every((element) => images.includes(element))
+        }
         return false
       }, { target: node.target, rule: violation.id, context })
       ;(approved ? knownNodes : unexpectedNodes).push(node)
