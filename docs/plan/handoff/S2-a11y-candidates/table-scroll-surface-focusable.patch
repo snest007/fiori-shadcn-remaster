@@ -1,0 +1,21 @@
+--- a/registry/ui/table.tsx
++++ b/registry/ui/table.tsx
+@@ -602,6 +602,18 @@
+     if (el instanceof HTMLInputElement) el.select()
+     ignoreFocusIn.current = false
+   }
++
++  // UI5 TableNavigation._focusElement adds tabindex only after first entry.
++  // Initialize the current item inside the scroll surface for Safari/axe while
++  // retaining the external sentinel entry and the existing navigation model.
++  React.useLayoutEffect(() => {
++    if (busy || getGrid().flat().some((item) => item.hasAttribute("tabindex"))) return
++    const initial = current()
++    if (initial) {
++      initial.setAttribute("tabindex", "0")
++      lastFocused.current = initial
++    }
++  }, [rowCount, busy])
+ 
+   // Virtual mode: a target row outside the rendered window is scrolled in, then focused.
+   React.useLayoutEffect(() => {

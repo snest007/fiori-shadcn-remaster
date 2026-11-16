@@ -97,8 +97,40 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
 
         // S2
         // component defect, fixed by E4 — see docs/plan/handoff/S2-a11y-candidates
+        if (rule === "color-contrast" && context.theme === "sap_horizon"
+          && context.story === "data-object-number--inverted" && !context.primary) {
+          const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
+          const number = unique('[data-slot="object-number"][data-state="positive"][data-inverted][data-emphasized]')
+          const inner = number ? unique(':scope > .fiori-object-number__inner', number) : null
+          const text = inner ? unique(':scope > .fiori-object-number__text', inner) : null
+          const unit = inner ? unique(':scope > .fiori-object-number__unit', inner) : null
+          if (!number || !inner || !text || !unit || (actual !== text && actual !== unit) || !visible(actual)
+            || number.hasAttribute("data-large") || number.hasAttribute("data-active") || inner.children.length !== 2
+            || args.state !== "positive" || args.inverted !== true || args.emphasized !== true
+            || text.textContent !== "379.99" || unit.textContent !== "USD") return false
+          const css = getComputedStyle(actual), badge = getComputedStyle(inner)
+          // OpenUI5 Horizon ObjectNumber.less applies sapContent_ContrastTextShadow
+          // here; the current port omits it. Only the reproduced 12px badge is known.
+          return css.color === "rgb(255, 255, 255)" && css.fontSize === "12px" && css.fontWeight === "700"
+            && css.textShadow === "none" && badge.backgroundColor === "rgb(48, 145, 76)"
+        }
+        if (rule === "scrollable-region-focusable" && context.story === "data-table--scroll-overflow" && !context.primary) {
+          const table = unique('[data-slot="table"][data-overflow-mode="scroll"].max-w-xs')
+          const grid = table ? unique(':scope > .fiori-table__grid[role="grid"][aria-label="Products"][aria-rowcount="5"][aria-colcount="3"]', table) : null
+          if (!table || !grid || actual !== grid || !visible(grid) || grid.hasAttribute("aria-busy")
+            || (grid as HTMLElement).scrollWidth <= (grid as HTMLElement).clientWidth || grid.hasAttribute("tabindex")) return false
+          const sentinels = [...table.querySelectorAll(':scope > [data-table-sentinel][tabindex="0"]')]
+          const header = unique(':scope > [data-slot="table-header-row"][role="row"][data-table-nav-row]', grid)
+          const rows = [...grid.querySelectorAll('[data-slot="table-row"][role="row"][data-table-nav-row]')]
+          const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
+          return args.selectionMode === "none" && args.overflowMode === "scroll" && args.loading === false
+            && args.interactiveRows === false && args.withActions === false && args.groupRows === false
+            && sentinels.length === 2 && sentinels.every((node) => !grid.contains(node))
+            && header !== null && rows.length === 4 && rows.map((row) => row.getAttribute("data-row-key")).join("|") === "p1|p2|p3|p4"
+            && !grid.querySelector('[tabindex], button, input, select, textarea, a[href], [contenteditable="true"]')
+        }
         if (rule === "color-contrast" && context.theme === "sap_horizon") {
-          const standalone = context.story === "data-object-status--indication5" && !context.primary
+          const standalone = context.story === "data-object-status--indication-5" && !context.primary
           const control = context.story === "data-object-status--playground" && context.primary
             && context.control?.prop === "state" && context.control.choice === "indication5"
           if (!standalone && !control) return false
