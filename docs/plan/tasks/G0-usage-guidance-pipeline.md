@@ -32,6 +32,18 @@ Writing rules (apply to this card and G1–G4):
   illustrated-message; tag vs object-status; tabs vs segmented-button; …).
 - Reflect our actual API: if a rule depends on a prop, name the prop (`selectionMode="Multiple"`, `growing`, …).
 
+Addendum after the G0 review (binding for G1–G5):
+
+- **Thresholds.** When the SAP text gives a number, keep it (e.g. select: 2–12 options, sort alphabetically above 8;
+  responsive table: about 200 loaded rows, rethink above 1,000; grid list: 200, growing up to 1,000). Never write
+  "short", "long", "large" or "many" alone when the source has a number. Without a source number, describe the
+  deciding property instead (needs type-ahead, needs free text, needs several attributes, needs sorting).
+- **Use when = user task first.** The first `useWhen` bullet must describe the user's task or the situation
+  ("Users pick a country from ~200 entries by typing"), not an API. At most one bullet may be mainly about props;
+  prop how-to belongs in the props table, not in usage.
+- **Pairs are symmetric.** If A's `avoidWhen` sends to B, B's `avoidWhen` should send back to A with the opposite
+  condition (when such a case exists). Same threshold on both sides.
+
 ## Schema (in the item's own JSON — no new files per component)
 
 `registry/items/<name>.json` and `registry/block-items/<name>.json` get an optional `usage` object:

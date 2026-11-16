@@ -20,7 +20,7 @@ Distinguish the `object-page` component from the `object-page-floorplan` block, 
 
 ## How
 
-1. Re-read G0 "Writing rules" and the pilot items (`table`, `select`, `list-report`, …) — match their tone and length.
+1. Re-read G0 "Writing rules" **including the addendum** (thresholds from the source, user task first, symmetric pairs). The pilot items predate the addendum: match their length and routing, not their API-heavy `useWhen`.
 2. Per item: read `registry/ui/<name>.tsx` (or the block source) for what it really supports, then the SAP guidance
    in `.ref/ai-skills-library/skills/sap-fiori-guidelines/references/` (`page-types.md`, `foundations-best-practices.md`, `ui-containers.md`). If SAP has no chapter for it, use the
    UI5 apidoc `### Overview` text in `node_modules/@ui5/webcomponents*/dist/custom-elements.json` and set
