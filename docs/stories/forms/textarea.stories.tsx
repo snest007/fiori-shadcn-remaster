@@ -78,3 +78,4 @@ export const OverLimit: Story = { args: { counterMode: "always", maxLength: 20 }
 export const NegativeCounter: Story = { args: { counterMode: "always", maxLength: 40, valueState: "negative" } }
 export const CustomTexts: Story = { args: { counterMode: "always", valueState: "critical", valueStateMessage: "Keep the delivery note brief.", counterText: (remaining) => remaining >= 0 ? `${remaining} characters available for the note` : `Remove ${-remaining} characters from the note` } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+export const ValidityTexts: Story = { args: { value: "", required: true, counterMode: "always", maxLength: 3, texts: { valueMissing: "Please add a delivery note", tooLong: count => `Remove ${count} extra letters`, counter: remaining => `${remaining} letters available` } } }

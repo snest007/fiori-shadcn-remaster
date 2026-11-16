@@ -2,7 +2,8 @@
   "title": "TextArea",
   "registryDependencies": [
     "@fiori/icons",
-    "@fiori/input"
+    "@fiori/input",
+    "@fiori/locale"
   ],
   "description": "Fiori multi-line text field with rows, growing, character counter and value states.",
   "usage": {
