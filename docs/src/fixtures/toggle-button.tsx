@@ -10,13 +10,13 @@ type Props = { variant: NonNullable<ButtonProps["variant"]>; pressed?: boolean; 
 
 export default defineFixtures<Props>({
   name: "toggle-button",
-  cases: [
+  cases: ([
     ...variants.map((variant) => ({ id: `toggle-button-${variant}`, props: { variant, text: "Toggle" } })),
     ...variants.map((variant) => ({ id: `toggle-button-${variant}-pressed`, props: { variant, text: "Toggle", pressed: true } })),
     { id: "toggle-button-pressed-disabled", props: { variant: "default", text: "Toggle", pressed: true, disabled: true } },
     { id: "toggle-button-icon-pressed", props: { variant: "default", text: "Edit", icon: true, pressed: true } },
     { id: "toggle-button-icon-only-pressed", props: { variant: "transparent", icon: true, pressed: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "toggle-button-rtl" }] : [fixture]),
   react: ({ variant, pressed, disabled, icon, text }) => (
     <ToggleButton variant={variant} defaultPressed={pressed} disabled={disabled} size={text ? "default" : "icon"} aria-label={text ? undefined : "Edit"}>
       {icon && <Icon icon={edit} />}
