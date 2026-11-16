@@ -1,5 +1,34 @@
 {
   "title": "Variant Management",
   "description": "OpenUI5-compatible view selection, Save View and Manage Views with application-owned persistence.",
-  "registryDependencies": ["@fiori/button", "@fiori/checkbox", "@fiori/dialog", "@fiori/icons", "@fiori/illustrated-message", "@fiori/illustrations-core", "@fiori/input", "@fiori/list", "@fiori/popover", "@fiori/radio-group", "@fiori/table", "@fiori/title", "@fiori/toolbar"]
+  "registryDependencies": ["@fiori/button", "@fiori/checkbox", "@fiori/dialog", "@fiori/icons", "@fiori/illustrated-message", "@fiori/illustrations-core", "@fiori/input", "@fiori/list", "@fiori/popover", "@fiori/radio-group", "@fiori/table", "@fiori/title", "@fiori/toolbar"],
+  "usage": {
+    "summary": "Save, select and maintain named views of filter or table personalization settings.",
+    "useWhen": [
+      "Let users return to recurring combinations of filter values or table settings through saved views.",
+      "Let users organize views through naming, favorites, defaults and sharing when the application supports them.",
+      "Handle onSelect, onSave and onManage in the host application; this control does not persist or retrieve view settings itself."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Choose only fixed predefined views without creating or managing saved settings.",
+        "use": [
+          "select"
+        ]
+      },
+      {
+        "when": "Edit current filter criteria without saving or managing reusable views.",
+        "use": [
+          "filter-bar"
+        ]
+      },
+      {
+        "when": "Adjust sorting, grouping or predefined filter values for the current view without saving it.",
+        "use": [
+          "view-settings-dialog"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

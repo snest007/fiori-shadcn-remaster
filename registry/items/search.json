@@ -14,5 +14,28 @@
     "@fiori/use-is-phone",
     "@fiori/list"
   ],
-  "description": "Fiori search field with scope select, type-ahead and suggestions, plus the collapsible ShellBarSearch (ui5-search, ui5-shellbar-search)."
+  "description": "Fiori search field with scope select, type-ahead and suggestions, plus the collapsible ShellBarSearch (ui5-search, ui5-shellbar-search).",
+  "usage": {
+    "summary": "Find content by submitting a query, optionally with scopes and suggestions.",
+    "useWhen": [
+      "Let users find content or business objects by typing a query instead of browsing every item.",
+      "Offer product-wide or cross-product search from the shell bar, or keyword search within a list.",
+      "Group suggestions with SearchItemGroup; when no results page exists and a group exceeds five results, use action to offer progressive loading."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Narrow a result collection by several separate criteria rather than a keyword alone.",
+        "use": [
+          "filter-bar"
+        ]
+      },
+      {
+        "when": "Choose one suggested field value rather than submit a content-search query.",
+        "use": [
+          "combobox"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

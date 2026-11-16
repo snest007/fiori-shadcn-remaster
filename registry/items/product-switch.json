@@ -2,5 +2,27 @@
   "title": "Product Switch",
   "dependencies": [],
   "registryDependencies": ["@fiori/icons"],
-  "description": "Fiori grid of product tiles with grid keyboard navigation, shown in a popover from the shell bar (ui5-product-switch)."
+  "description": "Fiori grid of product tiles with grid keyboard navigation, shown in a popover from the shell bar (ui5-product-switch).",
+  "usage": {
+    "summary": "Let users choose another product from a grid of labeled product entries.",
+    "useWhen": [
+      "Give users access to other products from the shell bar product-switch entry point.",
+      "Identify each destination with a product title and optional subtitle, icon or image."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Navigate modules or destinations within the current product.",
+        "use": [
+          "side-navigation"
+        ]
+      },
+      {
+        "when": "Inspect the signed-in user or access account settings and sign out.",
+        "use": [
+          "user-menu"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

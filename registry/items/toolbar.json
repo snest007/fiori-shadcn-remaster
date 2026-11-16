@@ -1,5 +1,28 @@
 {
   "title": "Toolbar",
   "registryDependencies": ["@fiori/button", "@fiori/icons", "@fiori/popover", "@fiori/select", "@fiori/combobox", "@fiori/multi-combobox", "@fiori/date-picker", "@fiori/switch"],
-  "description": "Fiori toolbar with priority-based overflow, stable arbitrary items, spacers, separators and UI5 arrow-key navigation."
+  "description": "Fiori toolbar with priority-based overflow, stable arbitrary items, spacers, separators and UI5 arrow-key navigation.",
+  "usage": {
+    "summary": "Group related actions and controls in a horizontal row with keyboard navigation and responsive overflow.",
+    "useWhen": [
+      "Let users act on page content or selected items from one labeled group of controls.",
+      "Keep secondary controls reachable through an overflow popover when the available width shrinks.",
+      "Use overflowPriority=\"neverOverflow\" on ToolbarButton or ToolbarItem for main actions that must remain visible."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Arrange a header or footer with independent start, centered and end content without toolbar navigation or overflow.",
+        "use": [
+          "bar"
+        ]
+      },
+      {
+        "when": "Provide product branding and global search, notifications or profile access on every screen.",
+        "use": [
+          "shell-bar"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

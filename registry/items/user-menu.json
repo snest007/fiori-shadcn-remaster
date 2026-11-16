@@ -2,5 +2,28 @@
   "title": "User Menu",
   "dependencies": [],
   "registryDependencies": ["@fiori/icons", "@fiori/avatar", "@fiori/button", "@fiori/popover"],
-  "description": "Fiori user menu popover with account header, manage account, menu items and sign out (ui5-user-menu)."
+  "description": "Fiori user menu popover with account header, manage account, menu items and sign out (ui5-user-menu).",
+  "usage": {
+    "summary": "Expose signed-in user information, user-specific actions and sign out from the profile entry point.",
+    "useWhen": [
+      "Let users inspect the current account and access settings, legal information or other user-specific actions.",
+      "Open the account menu from the shell bar profile entry point without leaving the current page.",
+      "Set showManageAccount only when a central profile-management destination exists."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Offer general object or page commands without signed-in user information.",
+        "use": [
+          "menu"
+        ]
+      },
+      {
+        "when": "Let users switch between products rather than access their current user settings.",
+        "use": [
+          "product-switch"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

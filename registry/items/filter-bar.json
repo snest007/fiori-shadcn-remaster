@@ -7,5 +7,46 @@
     "@fiori/label",
     "@fiori/adapt-filters-dialog"
   ],
-  "description": "Fiori filter bar with declarative condition editors, built-in Adapt Filters personalization, ordered visibility, live search, required-field validation and SAPUI5 active-filter summaries."
+  "description": "Fiori filter bar with declarative condition editors, built-in Adapt Filters personalization, ordered visibility, live search, required-field validation and SAPUI5 active-filter summaries.",
+  "usage": {
+    "summary": "Let users limit a result collection by several criteria in the page header.",
+    "useWhen": [
+      "Help users narrow objects in a list report or other result page using several filter criteria.",
+      "Let users combine a keyword search with typed fields, then inspect the active-filter summary.",
+      "Use liveMode for updates after committed condition changes; otherwise use onGo for manual search."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Filter a table inside an object-page section rather than a result-page header.",
+        "use": [
+          "view-settings-dialog"
+        ]
+      },
+      {
+        "when": "Find items in a list using only a keyword query.",
+        "use": [
+          "search"
+        ]
+      },
+      {
+        "when": "Personalize only filter-field visibility, order and conditions in a separate dialog.",
+        "use": [
+          "adapt-filters-dialog"
+        ]
+      },
+      {
+        "when": "Manage named saved views rather than edit the current filter criteria.",
+        "use": [
+          "variant-management"
+        ]
+      },
+      {
+        "when": "Guide users through data-entry steps rather than filter a result collection.",
+        "use": [
+          "wizard"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

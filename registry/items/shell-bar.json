@@ -2,5 +2,28 @@
   "title": "Shell Bar",
   "dependencies": [],
   "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/list", "@fiori/menu", "@fiori/popover", "@fiori/search"],
-  "description": "Fiori application header with branding, content, collapsible search, notifications, custom items, overflow, profile and product switch (ui5-shellbar)."
+  "description": "Fiori application header with branding, content, collapsible search, notifications, custom items, overflow, profile and product switch (ui5-shellbar).",
+  "usage": {
+    "summary": "Provide a consistent product header with branding and global entry points.",
+    "useWhen": [
+      "Let users recognize the product and reach global search, notifications, profile and other products from every screen.",
+      "Keep global functions available while the page content or navigation target changes.",
+      "Provide search through ShellBarSearch and use profile, notification and product-switch callbacks to open the appropriate surfaces."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Group actions that apply to page content or selected table items.",
+        "use": [
+          "toolbar"
+        ]
+      },
+      {
+        "when": "Arrange a local page or dialog header/footer in start, center and end areas without global product functions.",
+        "use": [
+          "bar"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

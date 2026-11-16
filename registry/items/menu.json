@@ -10,5 +10,40 @@
     "@fiori/button",
     "@fiori/use-is-phone"
   ],
-  "description": "Fiori menu with single/multiple checkable groups, icons, additional text, submenus, separators and disabled items (ui5-menu)."
+  "description": "Fiori menu with single/multiple checkable groups, icons, additional text, submenus, separators and disabled items (ui5-menu).",
+  "usage": {
+    "summary": "Let users choose commands from an opened hierarchy of menu items.",
+    "useWhen": [
+      "Offer related commands from a button or contextual opener instead of navigating to another page.",
+      "Group commands and expose submenus when actions have a hierarchy.",
+      "Use MenuGroup checkMode=\"single\" or \"multiple\" when menu commands represent checked choices."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Show mixed contextual information or editable content beside an opener on every device.",
+        "use": [
+          "popover"
+        ]
+      },
+      {
+        "when": "Show mixed contextual content anchored on desktop and in a full-screen phone dialog.",
+        "use": [
+          "responsive-popover"
+        ]
+      },
+      {
+        "when": "Require a form or explicit confirmation before users resume the page.",
+        "use": [
+          "dialog"
+        ]
+      },
+      {
+        "when": "Show the signed-in user, account information, user settings and sign-out actions.",
+        "use": [
+          "user-menu"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

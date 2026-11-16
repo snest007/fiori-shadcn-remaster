@@ -1,5 +1,27 @@
 {
   "title": "Breadcrumbs",
   "description": "Fiori breadcrumbs with responsive leading overflow, UI5 separator styles and arrow-key navigation.",
-  "registryDependencies": ["@fiori/icons", "@fiori/list", "@fiori/popover"]
+  "registryDependencies": ["@fiori/icons", "@fiori/list", "@fiori/popover"],
+  "usage": {
+    "summary": "Show the current location and let users return to ancestors in the navigation path.",
+    "useWhen": [
+      "Help users understand their location after drilling down and return to an ancestor.",
+      "Use a consistent hierarchy across pages; for fixed hierarchies, show the same path regardless of how users arrived."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Choose application modules or primary destinations rather than return along a location path.",
+        "use": [
+          "side-navigation"
+        ]
+      },
+      {
+        "when": "Switch between content facets within the current page.",
+        "use": [
+          "tabs"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

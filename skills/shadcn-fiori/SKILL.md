@@ -108,16 +108,16 @@ Read [Floorplans](references/floorplans.md) for region nesting, alternatives and
 
 | Item | Summary |
 | --- | --- |
-| [adapt-filters-dialog](references/overlays.md#adapt-filters-dialog) | OpenUI5 Adapt Filters personalization: transactional filter values, visibility and order, List/Group views, search, Reset and keyboard reordering. |
-| [dialog](references/overlays.md#dialog) | Fiori modal dialog with header/footer bars and Negative/Critical/Positive/Information states (ui5-dialog). |
-| [menu](references/overlays.md#menu) | Fiori menu with single/multiple checkable groups, icons, additional text, submenus, separators and disabled items (ui5-menu). |
-| [popover](references/overlays.md#popover) | Fiori popover with arrow, optional header/footer bars and padded content (ui5-popover). |
-| [responsive-popover](references/overlays.md#responsive-popover) | UI5 responsive popover: desktop popover, full-screen phone dialog with header and footer slots. |
-| [toast](references/overlays.md#toast) | Fiori toast: auto-dismisses after its duration, pauses on hover/focus, nine placements (ui5-toast). |
+| [adapt-filters-dialog](references/overlays.md#adapt-filters-dialog) | Personalize filter fields, their order and values in a staged dialog before applying changes. |
+| [dialog](references/overlays.md#dialog) | Pause the current task for a focused decision, confirmation or contained editing task. |
+| [menu](references/overlays.md#menu) | Let users choose commands from an opened hierarchy of menu items. |
+| [popover](references/overlays.md#popover) | Show information or actions tied to an opener without leaving the current page. |
+| [responsive-popover](references/overlays.md#responsive-popover) | Keep contextual content anchored on desktop and tablet, then show it in a full-screen phone dialog. |
+| [toast](references/overlays.md#toast) | Confirm a completed action or provide information in a non-disruptive message that disappears automatically. |
 | [use-is-phone](references/overlays.md#use-is-phone) | Reactive UI5-style touch/phone detection with a data-fiori-device override. |
-| [user-menu](references/overlays.md#user-menu) | Fiori user menu popover with account header, manage account, menu items and sign out (ui5-user-menu). |
+| [user-menu](references/overlays.md#user-menu) | Expose signed-in user information, user-specific actions and sign out from the profile entry point. |
 | [value-help-dialog](references/overlays.md#value-help-dialog) | Find business values through a searchable result table or define filter conditions in a dialog. |
-| [view-settings-dialog](references/overlays.md#view-settings-dialog) | Fiori view settings dialog: sort/filter/group pages, two-level filter navigation with counters, Reset, OK/Cancel (ui5-view-settings-dialog). |
+| [view-settings-dialog](references/overlays.md#view-settings-dialog) | Adjust a list or table view through sorting, grouping and predefined filter choices. |
 
 ### Display
 
@@ -143,20 +143,20 @@ Read [Floorplans](references/floorplans.md) for region nesting, alternatives and
 
 | Item | Summary |
 | --- | --- |
-| [bar](references/navigation.md#bar) | Fiori bar (header, subheader, footer, floating footer) with start, middle and end content. |
-| [breadcrumbs](references/navigation.md#breadcrumbs) | Fiori breadcrumbs with responsive leading overflow, UI5 separator styles and arrow-key navigation. |
+| [bar](references/navigation.md#bar) | Arrange page or dialog header and footer content in start, centered and end areas. |
+| [breadcrumbs](references/navigation.md#breadcrumbs) | Show the current location and let users return to ancestors in the navigation path. |
 | [f6-navigation](references/navigation.md#f6-navigation) | Opt-in UI5 fast navigation between page groups, with scoped roots, Popup containers, shadows and slots. |
-| [filter-bar](references/navigation.md#filter-bar) | Fiori filter bar with declarative condition editors, built-in Adapt Filters personalization, ordered visibility, live search, required-field validation and SAPUI5 active-filter summaries. |
-| [notification-list](references/navigation.md#notification-list) | Fiori notifications with state icons, read/unread, importance, actions menu, close button, More/Less and collapsible groups with button or scroll growing (ui5-notification-list). |
-| [product-switch](references/navigation.md#product-switch) | Fiori grid of product tiles with grid keyboard navigation, shown in a popover from the shell bar (ui5-product-switch). |
-| [search](references/navigation.md#search) | Fiori search field with scope select, type-ahead and suggestions, plus the collapsible ShellBarSearch (ui5-search, ui5-shellbar-search). |
-| [shell-bar](references/navigation.md#shell-bar) | Fiori application header with branding, content, collapsible search, notifications, custom items, overflow, profile and product switch (ui5-shellbar). |
-| [side-navigation](references/navigation.md#side-navigation) | Fiori side navigation: groups, items and sub-items as a keyboard tree; collapsed icon mode with sub-item popovers and a height-aware overflow menu; fixed footer items (ui5-side-navigation). |
-| [tabs](references/navigation.md#tabs) | Fiori IconTabBar / TabContainer: text and icon tabs, counts, semantic designs, responsive overflow, UI5 keyboard model. |
-| [toolbar](references/navigation.md#toolbar) | Fiori toolbar with priority-based overflow, stable arbitrary items, spacers, separators and UI5 arrow-key navigation. |
-| [variant-management](references/navigation.md#variant-management) | OpenUI5-compatible view selection, Save View and Manage Views with application-owned persistence. |
+| [filter-bar](references/navigation.md#filter-bar) | Let users limit a result collection by several criteria in the page header. |
+| [notification-list](references/navigation.md#notification-list) | Collect business-event updates that users may read, act on or dismiss without interrupting their task. |
+| [product-switch](references/navigation.md#product-switch) | Let users choose another product from a grid of labeled product entries. |
+| [search](references/navigation.md#search) | Find content by submitting a query, optionally with scopes and suggestions. |
+| [shell-bar](references/navigation.md#shell-bar) | Provide a consistent product header with branding and global entry points. |
+| [side-navigation](references/navigation.md#side-navigation) | Provide the main navigation between modules or destinations within a product. |
+| [tabs](references/navigation.md#tabs) | Switch between content facets or prominent filtered views within the current page. |
+| [toolbar](references/navigation.md#toolbar) | Group related actions and controls in a horizontal row with keyboard navigation and responsive overflow. |
+| [variant-management](references/navigation.md#variant-management) | Save, select and maintain named views of filter or table personalization settings. |
 | [variants](references/navigation.md#variants) | Controlled FilterBar view state, Save/Save As and Manage operations, default views and an optional localStorage persistence adapter. |
-| [wizard](references/navigation.md#wizard) | Fiori wizard: step tabs (number or icon, title, subtitle, separators) over scrolling step contents; keyboard tab navigation, scroll-to-step, disabled future steps, collapsed step stacks (ui5-wizard). |
+| [wizard](references/navigation.md#wizard) | Guide users through a task in reachable steps inside an existing page or custom workflow. |
 
 ### Layout
 
