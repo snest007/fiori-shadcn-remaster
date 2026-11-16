@@ -1,11 +1,13 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
+import { formatNumber, numberSymbols, parseNumber } from "@/lib/fiori-numbers"
 
 // UI5 InputPopoverTemplate/Popup.onEnterDOM: the standalone value-state message is a Popup scope.
 
 import { add, less } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 
 /**
  * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the spinbutton input. decrementLabel and incrementLabel name the internal buttons; valueStateMessage supplies a linked validation description.
@@ -36,7 +38,17 @@ type StepInputProps = Omit<
   onValidityChange?: (valid: boolean) => void
   decrementLabel?: string
   incrementLabel?: string
+  locale?: string
+  texts?: Partial<StepInputTexts>
   wrapperClassName?: string
+}
+
+type StepInputTexts = {
+  decrement: string
+  increment: string
+  invalidFormat: (precision: number) => string
+  belowMinimum: (minimum: number) => string
+  aboveMaximum: (maximum: number) => string
 }
 
 const INITIAL_WAIT = 500
@@ -62,8 +74,10 @@ function StepInput({
   valueState = "none",
   valueStateMessage,
   onValidityChange,
-  decrementLabel = "Decrease",
-  incrementLabel = "Increase",
+  decrementLabel: decrementLabelProp,
+  incrementLabel: incrementLabelProp,
+  locale: localeProp,
+  texts,
   disabled,
   readOnly,
   id,
@@ -73,7 +87,17 @@ function StepInput({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: StepInputProps) {
-  const format = React.useCallback((n: number) => n.toFixed(valuePrecision), [valuePrecision])
+  const valueStateTexts = useValueStateTexts()
+
+  const { t, locale, localized, hasProvider } = useFioriLocale(localeProp)
+  const resolvedTexts = useFioriTexts(defaultStepInputTexts, defaultStepInputTextsKeys, texts, localeProp)
+  const decrementLabel = decrementLabelProp ?? resolvedTexts.decrement
+  const incrementLabel = incrementLabelProp ?? resolvedTexts.increment
+
+  // UI5 2.28.1 NumericInput.formatter/_formatNumber uses locale NumberFormat with decimals=valuePrecision.
+  // Retain the registry's pre-E5 toFixed display when no locale was opted into (E5 compatibility).
+  const format = React.useCallback((n: number) => localized ? formatNumber(n, locale, { minFractionDigits: valuePrecision, maxFractionDigits: valuePrecision }) : n.toFixed(valuePrecision), [valuePrecision, locale, localized])
+  const parseValue = React.useCallback((s: string) => localized ? parseNumber(s, locale) : parse(s), [locale, localized])
   const [uncontrolled, setUncontrolled] = React.useState(defaultValue)
   const value = valueProp ?? uncontrolled
   const [text, setText] = React.useState(() => format(value))
@@ -84,11 +108,13 @@ function StepInput({
 
   // Re-format when the value changes from outside (controlled updates, precision changes).
   const shown = React.useRef(value)
+  const previousFormat = React.useRef(format)
   React.useEffect(() => {
-    if (shown.current !== value || parse(text) !== value) {
+    if (shown.current !== value || parseValue(text) !== value || previousFormat.current !== format) {
       shown.current = value
       setText(format(value))
     }
+    previousFormat.current = format
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, format])
 
@@ -103,8 +129,9 @@ function StepInput({
   }
   const validate = (v: number, display: string) => {
     const inRange = (min === undefined || v >= min) && (max === undefined || v <= max)
-    const decimals = display.includes(".") ? display.split(".")[1].length : 0
-    const precisionOk = (valuePrecision === 0 && !display.includes(".")) || decimals === valuePrecision
+    const decimal = localized ? numberSymbols(locale).decimal : "."
+    const decimals = display.includes(decimal) ? display.split(decimal)[1].length : 0
+    const precisionOk = (valuePrecision === 0 && !display.includes(decimal)) || decimals === valuePrecision
     const ok = inRange && precisionOk
     if (ok === invalid) onValidityChange?.(ok)
     setInvalid(!ok)
@@ -131,7 +158,7 @@ function StepInput({
 
   const commit = () => {
     const raw = inputRef.current?.value ?? text
-    const parsed = raw === "" ? (min ?? 0) : parse(raw)
+    const parsed = raw === "" ? (min ?? 0) : parseValue(raw)
     const next = Number.isNaN(parsed) ? (min ?? 0) : parsed
     const display = raw === "" || Number.isNaN(parsed) ? format(next) : raw
     // Like UI5, a value with the wrong precision is kept as typed (and flagged), not reformatted.
@@ -178,7 +205,15 @@ function StepInput({
   const autoId = React.useId()
   const messageId = `${id ?? autoId}-vsm`
   const hasState = effectiveState !== "none"
-  const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[effectiveState] : valueStateMessage
+  const decimal = localized ? numberSymbols(locale).decimal : "."
+  const decimalLength = text.includes(decimal) ? text.split(decimal)[1].length : 0
+  // NumericInput.formValidityMessage/_isValueWithCorrectPrecision checks precision before bounds, except zero.
+  const validationText = value !== 0 && decimalLength !== valuePrecision ? resolvedTexts.invalidFormat(valuePrecision)
+    : min !== undefined && value < min ? resolvedTexts.belowMinimum(min)
+      : max !== undefined && value > max ? resolvedTexts.aboveMaximum(max) : ""
+  React.useLayoutEffect(() => { inputRef.current?.setCustomValidity(localized || hasProvider || texts ? validationText : "") }, [validationText, localized, hasProvider, texts])
+  // Native NumericInput constraint messages are independent of its standard value-state popup text.
+  const message = valueStateMessage === undefined && hasState ? valueStateTexts[effectiveState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
 
   const button = (dir: -1 | 1) => {
@@ -308,4 +343,13 @@ function parse(s: string) {
   return NUMBER.test(s.trim()) ? Number(s) : Number.NaN
 }
 
-export { StepInput, type StepInputProps }
+export { StepInput, type StepInputProps, type StepInputTexts }
+
+const defaultStepInputTexts: StepInputTexts = {
+  decrement: "Decrease", // UI5 NUMBERINPUT_DEC_ICON_TITLE
+  increment: "Increase", // UI5 NUMBERINPUT_INC_ICON_TITLE
+  invalidFormat: precision => `This format is not supported. Enter a number with ${precision} decimal places.`, // UI5 NUMBERINPUT_PATTERN_MISSMATCH
+  belowMinimum: minimum => `Enter a number higher than the minimum value of  ${minimum}.`, // UI5 NUMBERINPUT_RANGEUNDERFLOW
+  aboveMaximum: maximum => `Enter a number lower than the maximum value of  ${maximum}.`, // UI5 NUMBERINPUT_RANGEOVERFLOW
+}
+const defaultStepInputTextsKeys = { decrement: "NUMBERINPUT_DEC_ICON_TITLE", increment: "NUMBERINPUT_INC_ICON_TITLE", invalidFormat: "NUMBERINPUT_PATTERN_MISSMATCH", belowMinimum: "NUMBERINPUT_RANGEUNDERFLOW", aboveMaximum: "NUMBERINPUT_RANGEOVERFLOW" } as const

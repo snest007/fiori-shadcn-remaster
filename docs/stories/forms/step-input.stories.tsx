@@ -68,3 +68,7 @@ export const ReadOnly: Story = { args: { readOnly: true } }
 export const Required: Story = { args: { required: true } }
 export const CustomTexts: Story = { args: { decrementLabel: "Remove one unit", incrementLabel: "Add one unit", valueState: "critical", valueStateMessage: "Review the requested quantity." } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+
+export const German: Story = { globals: { locale: "de" }, args: { value: 1.5, step: 0.1, valuePrecision: 1 } }
+export const Arabic: Story = { globals: { locale: "ar", dir: "rtl" }, args: { value: 1.5, step: 0.1, valuePrecision: 1 } }
+export const ProviderOverride: Story = { globals: { locale: "de" }, args: { texts: { increment: "Add one delivery unit" } } }
