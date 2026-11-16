@@ -70,6 +70,9 @@ const FilterBarContext = React.createContext<{ onGo?: () => void }>({})
 
 type FilterBarState = { values: FilterValues; visibleKeys: string[]; search: string }
 
+/**
+ * @accessibility Every filter renderer must keep its supplied id and matching label, required flag and value-state description. Tab reaches fields and actions; Enter in a field submits Go. texts names the toggle, search and actions; Adapt Filters owns its dialog focus.
+ */
 type FilterBarProps = Omit<React.ComponentProps<"div">, "title"> & {
   /** Variant management / page title shown in the header row (slot). */
   variant?: React.ReactNode

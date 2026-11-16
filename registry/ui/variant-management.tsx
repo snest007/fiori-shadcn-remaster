@@ -83,6 +83,9 @@ type TextKey = keyof typeof variantManagementTexts
 type VariantManagementTexts = Partial<Record<TextKey | `VARIANT_MANAGEMENT_${TextKey}`, string>>
 type VariantRole = { key: string; title: string }
 type Surface = "list" | "save" | "manage"
+/**
+ * @accessibility The selected view title and texts.SEL_VARIANT name the trigger; texts names Save, Manage, validation and role dialogs. The component owns list/grid selection and dialog focus. Keyboard shortcuts follow OpenUI5 VariantManagement, with Ctrl/Cmd+S and Ctrl/Cmd+Enter for saving; dialogs return focus to the opener.
+ */
 type VariantManagementProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
   items: VariantItem[]
   selectedKey?: string

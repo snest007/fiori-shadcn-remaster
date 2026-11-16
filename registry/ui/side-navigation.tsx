@@ -777,6 +777,9 @@ function OverflowMenuItem({ item, keyboard, onSelected, close, parentRow = false
 
 // ---------------------------------------------------------------------------------------------
 
+/**
+ * @accessibility accessibleName names the nav; texts names primary/fixed trees or menubars and collapsed popovers. Selection uses aria-current, children use aria-expanded. One Tab stop enters each list; arrows navigate, expand or collapse (mirrored in RTL), Home/End jump and Enter/Space activate.
+ */
 type SideNavigationProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
   /** Collapsed mode: icons only, sub-items in a popover. Defaults to the enclosing NavigationLayout's state. */
   collapsed?: boolean

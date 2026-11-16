@@ -199,6 +199,9 @@ type ShellBarClickEvent = { targetRef: HTMLElement; preventDefault: () => void }
 type ShellBarSearchButtonEvent = ShellBarClickEvent & { searchFieldVisible: boolean }
 type ShellBarBreakpoint = "S" | "M" | "L" | "XL" | "XXL"
 
+/**
+ * @accessibility texts.label names the shell navigation; branding needs accessibleName when its title is non-text or hidden. Icon actions have text-derived names; accessibilityAttributes advertises their popup states. Arrow keys and Home/End navigate shell actions. Popup content retains its own focus model.
+ */
 type ShellBarProps = Omit<React.ComponentProps<"div">, "content"> & {
   /** A button before the branding (e.g. the side navigation toggle). */
   startButton?: React.ReactNode

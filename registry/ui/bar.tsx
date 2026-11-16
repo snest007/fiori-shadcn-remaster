@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils"
 // items prefer <Toolbar>, which also provides arrow-key navigation.
 type BarDesign = "header" | "subheader" | "footer" | "floating-footer"
 
+/**
+ * @accessibility Content areas inherit their meaning from placement; there is no default role. Name icon-only buttons with aria-label. Use Toolbar for an arrow-key composite with three or more actions.
+ */
 type BarProps = React.ComponentProps<"div"> & {
   design?: BarDesign
   /** Content at the start (left in LTR). */

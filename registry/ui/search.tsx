@@ -85,6 +85,9 @@ const SearchItemContext = React.createContext<{
   focusItem: (text: string) => void
 } | null>(null)
 
+/**
+ * @accessibility accessibleName names the field and search landmark. texts names search, clear, scopes and suggestions. ArrowDown enters suggestions, ArrowUp from the first returns to the field, Enter searches and Escape closes while restoring typed text. inputProps forwards native input accessibility.
+ */
 type SearchProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onInput" | "onChange"> & {
   value?: string
   defaultValue?: string

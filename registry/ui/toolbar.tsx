@@ -17,6 +17,9 @@ type ToolbarItemOptions = {
   preventOverflowClosing?: boolean
 }
 
+/**
+ * @accessibility Native aria-label names the toolbar. Its actions retain their accessible names when moved into overflow; overflowButtonLabel and overflowPopoverLabel name that surface. One Tab stop enters; arrows and Home/End move. Escape closes overflow and restores focus.
+ */
 type ToolbarProps = React.ComponentProps<"div"> & {
   alignContent?: "start" | "end"
   design?: "solid" | "transparent"

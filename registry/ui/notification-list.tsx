@@ -111,6 +111,9 @@ function stopBusyKeyboardEvent(event: React.KeyboardEvent<HTMLDivElement>) {
   if (event.currentTarget.hasAttribute("data-busy")) event.stopPropagation()
 }
 
+/**
+ * @accessibility texts.list names the list; titleText and hidden read/state texts name each item. Arrow keys, Home/End and PageUp/PageDown navigate, F2 enters content, Shift+Enter toggles full text, Shift+F10 opens actions and Delete requests dismissal. The caller removes dismissed records.
+ */
 type NotificationListProps = Omit<React.ComponentProps<"div">, "onClick"> & {
   /** An item was activated (click, Enter, Space). */
   onItemClick?: (value: string) => void
