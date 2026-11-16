@@ -10,12 +10,12 @@ const icons = { edit, add }
 
 export default defineFixtures<Props>({
   name: "button",
-  cases: [
+  cases: ([
     ...variants.map((variant) => ({ id: `button-${variant}`, props: { variant, text: "Button" } })),
     ...variants.map((variant) => ({ id: `button-${variant}-disabled`, props: { variant, text: "Button", disabled: true } })),
     { id: "button-icon-text", props: { variant: "default", text: "Edit", icon: "edit" } },
     { id: "button-icon-only", props: { variant: "transparent", icon: "add" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "button-rtl" }] : [fixture]),
   react: ({ variant, text, icon, disabled }) => (
     <Button variant={variant} size={text ? "default" : "icon"} disabled={disabled} aria-label={text ? undefined : icon}>
       {icon && <Icon icon={icons[icon]} />}
