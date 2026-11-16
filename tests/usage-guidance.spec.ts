@@ -47,6 +47,10 @@ test("floorplans show the list-report layout, use case and variations", async ({
   await expect(report.locator("[data-usage-guidance] pre code")).toHaveText(listReport.usage.layout.join("\n"))
   await expect(report.getByText(listReport.usage.summary, { exact: true })).toBeVisible()
   for (const variation of listReport.usage.variations) await expect(report.getByText(variation, { exact: true })).toBeVisible()
+  await report.locator('[data-usage-guidance] a[href="#/object-page-floorplan"]').click()
+  await expect(page.locator('main[data-docs-route="object-page-floorplan"]')).toBeVisible()
+  await expect(page).toHaveURL(/#\/object-page-floorplan$/)
+  await expect(page.locator('main[data-docs-route="object-page-floorplan"] a').filter({ hasText: "Open Object Page" })).toBeVisible()
 })
 
 test("shadcn build preserves usage in both the registry payload and markdown docs", async () => {
