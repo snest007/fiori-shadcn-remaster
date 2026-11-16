@@ -141,3 +141,45 @@ export async function attachKnown(testInfo: TestInfo, name: string, record: unkn
     body: JSON.stringify({ comment: componentDefect, records: record }, null, 2), contentType: "application/json",
   })
 }
+
+// S1
+// component defect, fixed by E4 — see docs/plan/handoff/S1-a11y-candidates
+// S0's generated focus tests cover pilots only. The S1 supplemental focus audit
+// calls this exact story/target/pointer-state classifier; it never changes axe.
+// UI5 TextArea/ComboBox/MultiComboBox/MultiInput/FileUploader and NumericInput
+// CSS paint pointer focus too; Token.css.js also does so on desktop. Input
+// compositions below inherit the separately documented S0 Input candidate.
+export async function classifyS1PointerFocus(page: Page, context: { story: string; theme: string; phase: string }) {
+  return page.evaluate(({ story, theme, phase }) => {
+    if (phase !== "pointer" || !["sap_horizon", "sap_horizon_hcb"].includes(theme)
+      || document.documentElement.dataset.theme !== theme) return false
+    const selectors: Record<string, string> = {
+      "forms-textarea--playground": '[data-slot="textarea"] textarea[aria-label="Delivery notes"]',
+      "forms-step-input--playground": '[data-slot="step-input"] input[role="spinbutton"][aria-label="Order quantity"][aria-valuenow="5"]',
+      "forms-combobox--playground": '[data-slot="combobox"] input[role="combobox"][aria-label="Delivery country"][aria-expanded="false"]',
+      "forms-multi-combobox--playground": '[data-slot="multi-combobox"] input[role="combobox"][aria-label="Delivery countries"][aria-expanded="false"]',
+      "forms-multi-input--playground": '[data-slot="multi-input"] input[role="combobox"][aria-label="Delivery countries"][aria-roledescription="Multi Value Input"][aria-expanded="false"]',
+      "forms-file-uploader--playground": '[data-slot="file-uploader"] input[type="file"][aria-label="Purchase order attachment"][aria-roledescription="File Uploader"]',
+      "forms-form--edit": '[data-slot="form"] input[id$="-company"][value="Northwind Traders"]',
+      "forms-label--playground": '.fiori-field input[placeholder="Enter the company name"]',
+      "forms-token--playground": '[role="listbox"][aria-label="Delivery countries"] > [data-slot="token"][role="option"][aria-selected="false"]',
+      "forms-tokenizer--playground": '[data-slot="tokenizer"] [role="listbox"][aria-label="Delivery countries"] [data-slot="token"][role="option"][data-value="Argentina"][aria-selected="false"]',
+    }
+    const selector = selectors[story]
+    if (!selector) return false
+    const canvases = document.querySelectorAll(`#storybook-root [data-fiori-story="${story}"]`)
+    if (canvases.length !== 1) return false
+    const nodes = canvases[0].querySelectorAll<HTMLElement>(selector)
+    if (nodes.length !== 1 || nodes[0] !== document.activeElement || !nodes[0].checkVisibility()) return false
+    const node = nodes[0]
+    if ((node as HTMLInputElement).disabled || node.getAttribute("aria-disabled") === "true") return false
+    if (story === "forms-token--playground" && node.querySelector('.fiori-token__text')?.textContent !== "Germany") return false
+    const textarea = node.closest('.fiori-textarea')
+    const owner = textarea?.querySelector('.fiori-textarea__wrapper') ?? node.closest('.fiori-field') ?? node
+    if (owner.hasAttribute("data-pointer-focus") || owner.hasAttribute("data-value-state") || owner.hasAttribute("data-readonly")) return false
+    const css = getComputedStyle(owner), after = getComputedStyle(owner, "::after")
+    return (css.outlineStyle !== "none" && Number.parseFloat(css.outlineWidth) > 0)
+      || (!["none", "normal"].includes(after.content) && after.display !== "none" && after.visibility !== "hidden"
+        && after.borderTopStyle !== "none" && Number.parseFloat(after.borderTopWidth) > 0)
+  }, context)
+}

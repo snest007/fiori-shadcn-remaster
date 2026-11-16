@@ -23,8 +23,8 @@ const meta = {
   ],
   [
     "valueStateMessage (positive)",
-    "TextArea.js hasMessageState",
-    "No default message for positive; caller may provide one"
+    "TextArea.js hasValueState (React hasMessageState)",
+    "No positive message is shown"
   ],
   [
     "valueStateMessage (information)",
