@@ -43,6 +43,10 @@ function withPositions(children: React.ReactNode, level: number) {
   ))
 }
 
+/**
+ * @accessibility aria-label / aria-labelledby name the internal tree; TreeItem and TreeItemCustom own treeitem/group roles, aria-level/posinset/setsize, expansion, selection and roving tabindex. expandText/collapseText name toggle tooltips; deleteText names deletion.
+ * @accessibility Up/Down, Home/End and PageUp/Down move visible nodes. Physical Right expands or enters a child; Left collapses or returns to parent in both directions. Enter/Space activates/selects; Delete requests deletion. hasChildren supports caller-managed lazy loading.
+ */
 type TreeProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
   selectionMode?: ListSelectionMode
   /** Values of the selected items (controlled). */

@@ -265,6 +265,10 @@ function handleNavigationKey(e: React.KeyboardEvent, core: ListCore, opts?: { gr
 // ---------------------------------------------------------------------------------------------
 // List
 
+/**
+ * @accessibility aria-label / aria-labelledby name the internal list/listbox. accessibleRole chooses listitem or option semantics. ListItemCustom preserves owned roles, selection state and roving tabindex; selectedText/notSelectedText and deleteText/detailText name item actions.
+ * @accessibility Items form one Tab stop. Up/Down, Home/End and PageUp/Down move items. Enter/Space activates or selects; Delete requests deletion. Tab enters custom controls and returns to list navigation; movable items request order changes with Ctrl/Cmd+arrows or Home/End.
+ */
 type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & FioriMoveHandlers & {
   selectionMode?: ListSelectionMode
   /** Values of the selected items (controlled). Every mode uses an array; single modes hold at most one. */
