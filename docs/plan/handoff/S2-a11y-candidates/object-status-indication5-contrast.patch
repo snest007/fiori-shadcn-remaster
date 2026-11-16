@@ -1,0 +1,16 @@
+--- a/registry/styles/components/object-status.css
++++ b/registry/styles/components/object-status.css
+@@ -62,6 +62,13 @@
+ .fiori-object-status[data-state="indication8"] { --fiori-x-os-text-color: var(--sapIndicationColor_8); --fiori-x-os-icon-color: var(--sapIndicationColor_8); }
+ .fiori-object-status[data-state="indication9"] { --fiori-x-os-text-color: var(--sapIndicationColor_9); --fiori-x-os-icon-color: var(--sapIndicationColor_9); }
+ .fiori-object-status[data-state="indication10"] { --fiori-x-os-text-color: var(--sapIndicationColor_10); --fiori-x-os-icon-color: var(--sapIndicationColor_10); }
++
++/* OpenUI5 ObjectStatus.less uses sapIndicationColor_5 for ordinary text too.
++   Its Morning 14px text fails 4.5:1 on sapBackgroundColor; this accessibility
++   deviation retains SAP tokens and the indication icon/inverted colors. */
++[data-theme="sap_horizon"] .fiori-object-status[data-state="indication5"]:not([data-inverted]) {
++  --fiori-x-os-text-color: var(--sapInformativeTextColor);
++}
+ 
+ /* Large */
+ .fiori-object-status[data-large] {

@@ -97,6 +97,24 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
 
         // S2
         // component defect, fixed by E4 — see docs/plan/handoff/S2-a11y-candidates
+        if (rule === "color-contrast" && context.theme === "sap_horizon") {
+          const standalone = context.story === "data-object-status--indication5" && !context.primary
+          const control = context.story === "data-object-status--playground" && context.primary
+            && context.control?.prop === "state" && context.control.choice === "indication5"
+          if (!standalone && !control) return false
+          const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
+          const status = unique(':scope > [data-slot="object-status"][data-state="indication5"]')
+          const text = status ? unique(':scope > .fiori-object-status__wrapper > .fiori-object-status__text', status) : null
+          if (!status || !text || actual !== text || !visible(text) || args.state !== "indication5"
+            || status.hasAttribute("data-inverted") || status.hasAttribute("data-large") || status.hasAttribute("data-active")
+            || text.textContent !== (standalone ? "Delivery stage 5" : "Delivered")) return false
+          const css = getComputedStyle(text), surface = getComputedStyle(canvas)
+          // ObjectStatus.less uses this same SAP indication token and shadow. Only
+          // the reproduced 14px Morning text on its mandated SAP canvas is known.
+          return css.color === "rgb(0, 112, 242)" && css.fontSize === "14px" && css.fontWeight === "400"
+            && css.textShadow === "rgb(255, 255, 255) 0px 0px 2px"
+            && surface.backgroundColor === "rgb(245, 246, 247)"
+        }
         if (rule === "aria-allowed-role") {
           const openStories = ["dates-time-picker--open", "dates-time-picker--open-negative", "dates-time-picker--open-critical", "dates-date-time-picker--open", "dates-date-time-picker--open-negative", "dates-time-picker--twenty-four-hour-clocks"]
           const primaryPicker = context.primary && ["dates-time-picker--playground", "dates-date-time-picker--playground"].includes(context.story)
