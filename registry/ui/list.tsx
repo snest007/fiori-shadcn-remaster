@@ -889,6 +889,8 @@ type ListItemBaseProps = Omit<React.ComponentProps<"li">, "value" | "type" | "co
 }
 
 type ItemRenderOptions = ListItemBaseProps & {
+  /** Explicit native-state fixture paint; roles, selection and tabindex remain owned. */
+  "data-active"?: string
   /** data-* layout flags for the root (UI5 host attributes). */
   flags: Record<string, string | undefined>
   content: React.ReactNode
@@ -923,6 +925,7 @@ function ListItemRoot({
   "aria-label": accessibleName,
   "aria-labelledby": externalNameRef,
   "aria-describedby": externalDescriptionRef,
+  "data-active": activeFlag,
   ...props
 }: ItemRenderOptions) {
   const { core, value, selected, active, actionable, inactive, handlers } = useListItemBehaviour({
@@ -961,7 +964,9 @@ function ListItemRoot({
       data-li-row=""
       data-selected={selected ? "" : undefined}
       data-actionable={actionable && !disabled ? "" : undefined}
-      data-active={active && actionable ? "" : undefined}
+      // Preserve the existing native-state fixture flag when spreading other
+      // consumer attributes before the component-owned accessibility channels.
+      data-active={activeFlag ?? (active && actionable ? "" : undefined)}
       data-has-border={core.hasBorder(value) ? "" : undefined}
       data-disabled={disabled ? "" : undefined}
       data-highlight={highlight !== "none" ? highlight : undefined}
@@ -1082,8 +1087,10 @@ function ListItemStandard({
                 {additional}
               </div>
             )}
-            {/* ListItemStandardTemplate.js:listItemContent includes the non-active type hint. */}
-            {props.type && props.type !== "active" && props.type !== "inactiveSelectable" && <span className="sr-only">{texts[props.type]}</span>}
+            {/* ListItemStandardTemplate.js:listItemContent includes the non-active type hint.
+             * Separate its text from the title in React's inline DOM as Chromium does
+             * when composing the native shadow content's accessible name. */}
+            {props.type && props.type !== "active" && props.type !== "inactiveSelectable" && <span className="sr-only"> {texts[props.type]}</span>}
           </div>
           {!description && additional}
         </>
