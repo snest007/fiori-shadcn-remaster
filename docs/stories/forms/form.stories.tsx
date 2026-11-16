@@ -90,19 +90,24 @@ const meta = {
   </main>
 } } },
   args: { headerText: "Supplier", layout: "S1 M1 L1 XL1", labelSpan: "S12 M4 L4 XL4", emptySpan: "S0 M0 L0 XL0", accessibleMode: "display", itemSpacing: "normal", headerLevel: "H2", grouped: false, allFieldTypes: false },
-  argTypes: { ...base.argTypes, headerText: { control: "text" }, headerLevel: { control: "select", options: ["H1", "H2", "H3", "H4", "H5", "H6"] }, layout: { control: "select", options: ["S1 M1 L1 XL1", "S1 M2 L2 XL2", "S1 M3 L3 XL3"] }, labelSpan: { control: "select", options: ["S12 M4 L4 XL4", "S12 M12 L12 XL12", "S12 M6 L6 XL6"] }, emptySpan: { control: "text" }, accessibleMode: { control: "inline-radio", options: ["display", "edit"] }, itemSpacing: { control: "select", options: ["normal", "large"] }, accessibleName: { control: "text" }, grouped: { control: "boolean", description: "Show Address, Contact and Purchasing groups." }, allFieldTypes: { control: "boolean", description: "Compose all supported field families in an editable supplier form." }, header: { control: false } },
+  argTypes: { ...base.argTypes, headerText: { control: "text" }, headerLevel: { control: "select", options: ["H1", "H2", "H3", "H4", "H5", "H6"], description: "Sample context headings preserve the document outline before the chosen form header level." }, layout: { control: "select", options: ["S1 M1 L1 XL1", "S1 M2 L2 XL2", "S1 M3 L3 XL3"] }, labelSpan: { control: "select", options: ["S12 M4 L4 XL4", "S12 M12 L12 XL12", "S12 M6 L6 XL6"] }, emptySpan: { control: "text" }, accessibleMode: { control: "inline-radio", options: ["display", "edit"] }, itemSpacing: { control: "select", options: ["normal", "large"] }, accessibleName: { control: "text" }, grouped: { control: "boolean", description: "Show Address, Contact and Purchasing groups." }, allFieldTypes: { control: "boolean", description: "Compose all supported field families in an editable supplier form." }, header: { control: false } },
   render: function SupplierForm(args: Args) {
     const { grouped, allFieldTypes, ...props } = args
     const id = React.useId()
     const edit = args.accessibleMode === "edit"
+    const fieldId = (label: string) => `${id}-${label.toLowerCase().replace(/\s+/g, "-")}`
+    // Changing headerLevel must still demonstrate a complete document outline.
+    const contextTitles = ["Procurement", "Supplier management", "Supplier record", "Record fields"]
+    const contextHeadings = Array.from({ length: Math.max(0, Number(args.headerLevel?.slice(1) ?? 2) - 2) }, (_, index) => React.createElement(`h${index + 2}`, { key: index }, contextTitles[index]))
+    const withContext = (form: React.ReactNode) => <div className="w-full">{contextHeadings}{form}</div>
     const [tags, setTags] = React.useState(["Germany", "France"])
     const [tagValue, setTagValue] = React.useState("")
     const [regions, setRegions] = React.useState(["Europe", "Americas"])
     const groups = [{ title: "Address", items: [["Company", "Northwind Traders"], ["Street", "Market Street 12"], ["City", "Berlin"]] }, { title: "Contact", items: [["Phone", "+49 30 123456"], ["Email", "purchasing@example.com"]] }, { title: "Purchasing", items: [["Buyer", "Alex Morgan"], ["Payment terms", "Net 30 days"]] }]
-    const item = (label: string, value: string) => <FormItem key={label} label={<Label showColon htmlFor={edit ? `${id}-${label}` : undefined}>{label}</Label>}>{edit ? <Input id={`${id}-${label}`} defaultValue={value} /> : <Text>{value}</Text>}</FormItem>
-    if (!allFieldTypes) return <div className="w-full"><Form {...props}>{grouped ? groups.map((group) => <FormGroup key={group.title} headerText={group.title}>{group.items.map(([label, value]) => item(label, value))}</FormGroup>) : groups.flatMap((group) => group.items).map(([label, value]) => item(label, value))}</Form></div>
+    const item = (label: string, value: string) => <FormItem key={label} label={<Label showColon htmlFor={edit ? fieldId(label) : undefined}>{label}</Label>}>{edit ? <Input id={fieldId(label)} defaultValue={value} /> : <Text>{value}</Text>}</FormItem>
+    if (!allFieldTypes) return withContext(<Form {...props}>{grouped ? groups.map((group) => <FormGroup key={group.title} headerText={group.title}>{group.items.map(([label, value]) => item(label, value))}</FormGroup>) : groups.flatMap((group) => group.items).map(([label, value]) => item(label, value))}</Form>)
     const label = (text: string, field?: string) => <Label showColon htmlFor={field ? `${id}-${field}` : undefined}>{text}</Label>
-    return <Form {...props} accessibleMode="edit">
+    return withContext(<Form {...props} accessibleMode="edit">
       <FormGroup headerText="Supplier details">
         <FormItem label={label("Company", "company")}><Input id={`${id}-company`} defaultValue="Northwind Traders" /></FormItem>
         <FormItem label={label("Notes", "notes")}><TextArea id={`${id}-notes`} defaultValue="Deliver to the receiving desk." growing /></FormItem>
@@ -131,7 +136,7 @@ const meta = {
         <FormItem label={label("Appointment", "datetime")}><DateTimePicker id={`${id}-datetime`} /></FormItem>
         <FormItem label={label("Available dates")}><Calendar aria-label="Available delivery dates" /></FormItem>
       </FormGroup>
-    </Form>
+    </Form>)
   },
 } satisfies Meta<Args>
 export default meta
