@@ -25,8 +25,9 @@ import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { TimePicker } from "@/components/ui/time-picker"
 import { Calendar } from "@/components/ui/calendar"
-import { fioriMeta } from "../_lib/meta"
-import { DocsPage } from "../_lib/DocsPage"
+import { fioriMeta, docsLink } from "../_lib/meta"
+import { ArgTypes, Controls, DocsContext, DocsStory, Primary, Title } from "@storybook/addon-docs/blocks"
+import { Button } from "@/components/ui/button"
 
 type Args = FormProps & { grouped?: boolean; allFieldTypes?: boolean }
 const base = fioriMeta({ name: "form", component: Form })
@@ -45,7 +46,48 @@ const meta = {
     "Group {0}"
   ]
 ] as const
-  return <><DocsPage /><section aria-label="Localization text keys" className="sbdocs-content"><h2>Localization text keys</h2><p>Override these public text props in your application; CustomTexts demonstrates the supported API. Existing label props remain available.</p><table><thead><tr><th>Prop / key</th><th>UI5 key or source</th><th>English component default</th></tr></thead><tbody>{textKeys.map(([prop, key, value]) => <tr key={prop}><td><code>{prop}</code></td><td>{key}</td><td>{value}</td></tr>)}</tbody></table></section></>
+  const context = React.useContext(DocsContext)
+  const variants = context.componentStories().slice(1)
+  const [copied, setCopied] = React.useState(false)
+  // Story-local fallback: S0 DocsPage assumes every avoidWhen has a use array.
+  // Form's application-owned submission warning intentionally has no alternative.
+  const usage = {
+  "summary": "Arrange related labels and fields for one record in responsive groups.",
+  "useWhen": [
+    "Let users inspect or edit related fields of one record in a consistent layout.",
+    "Group fields by meaning and keep their labels aligned as available width changes.",
+    "Use accessibleMode=\"edit\" for editable fields; the default display mode presents label-value pairs."
+  ],
+  "avoidWhen": [
+    {
+      "when": "Compare repeated records in rows rather than fields of one record.",
+      "use": [
+        "table",
+        "data-table"
+      ]
+    },
+    {
+      "when": "Guide users through 3\u20138 steps: use Wizard within an existing page or Wizard Page for a complete creation page.",
+      "use": [
+        "wizard",
+        "wizard-page"
+      ]
+    },
+    {
+      "when": "Submit or validate data automatically; provide caller-owned submission and validation."
+    }
+  ],
+  "source": "ui5-apidoc"
+}
+  const accessibility = ["accessibleName or native aria-label/aria-labelledby names the form root when headerText is absent. Headers name their own form or region; FormGroup accessibleName names groups.", "Form does not add keyboard stops. Each edit FormItem keeps a Label htmlFor association or an explicitly named control; display mode uses definition-list semantics."]
+  return <main><Title /><p>Fiori form (ui5-form): responsive label/field layout with columns per size range, labelSpan / emptySpan, groups, display (definition list) and edit modes.</p>
+    <section aria-label="Install component" className="mb-6"><div className="flex items-center gap-3"><pre><code>npx shadcn add @fiori/form</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText("npx shadcn add @fiori/form"); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
+    <section aria-label="Usage guidance"><p>{usage.summary}</p><h2>When to use</h2><ul>{usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when}{" "}{entry.use?.map((alternative, index) => <React.Fragment key={alternative}>{index > 0 && ", "}<a href={docsLink(alternative)} target="_top">{alternative}</a></React.Fragment>)}</li>)}</ul></section>
+    <section aria-label="Accessibility"><h2>Accessibility</h2><ul>{accessibility.map((note) => <li key={note}>{note}</li>)}</ul></section>
+    <section aria-label="Localization"><h2>Localization</h2><p>Supply translated field labels and group headings in your application.</p></section>
+    <section aria-label="Localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Prop / key</th><th>UI5 key or source</th><th>English component default</th></tr></thead><tbody>{textKeys.map(([prop, key, value]) => <tr key={prop}><td><code>{prop}</code></td><td>{key}</td><td>{value}</td></tr>)}</tbody></table></section>
+    <h2>Playground</h2><div data-fiori-primary><Primary /></div><div data-fiori-controls><Controls /></div><h2>Props</h2><ArgTypes /><h2>Variants and examples</h2>{variants.map((story) => <DocsStory key={story.id} of={story.moduleExport} __forceInitialArgs={false} />)}
+  </main>
 } } },
   args: { headerText: "Supplier", layout: "S1 M1 L1 XL1", labelSpan: "S12 M4 L4 XL4", emptySpan: "S0 M0 L0 XL0", accessibleMode: "display", itemSpacing: "normal", headerLevel: "H2", grouped: false, allFieldTypes: false },
   argTypes: { ...base.argTypes, headerText: { control: "text" }, headerLevel: { control: "select", options: ["H1", "H2", "H3", "H4", "H5", "H6"] }, layout: { control: "select", options: ["S1 M1 L1 XL1", "S1 M2 L2 XL2", "S1 M3 L3 XL3"] }, labelSpan: { control: "select", options: ["S12 M4 L4 XL4", "S12 M12 L12 XL12", "S12 M6 L6 XL6"] }, emptySpan: { control: "text" }, accessibleMode: { control: "inline-radio", options: ["display", "edit"] }, itemSpacing: { control: "select", options: ["normal", "large"] }, accessibleName: { control: "text" }, grouped: { control: "boolean", description: "Show Address, Contact and Purchasing groups." }, allFieldTypes: { control: "boolean", description: "Compose all supported field families in an editable supplier form." }, header: { control: false } },
