@@ -44,7 +44,7 @@ verify("List", "accessibleRole", "accessibleRole on inner ul; list/listbox/menu/
 verify("List", "accessibilityAttributes", "growingButtonName / growingButtonDescription on the owned growing button and description target", "tests/list.spec.ts: List growing reaches the native owning element")
 verify("ListItemStandard", "accessibleName", "aria-label prop composed with the active hint in li aria-labelledby", "tests/list.spec.ts: List list-a11y-standard-name preserves UI5 descriptions and custom content semantics")
 verify("ListItemCustom", "accessibleName", "aria-label prop composed with the active hint in li aria-labelledby", "tests/list.spec.ts: List list-a11y-custom-name preserves UI5 descriptions and custom content semantics")
-verify("ListItemCustom", "accessibleRole", "role on the owned li, overriding parent inheritance", "tests/list.spec.ts: List list-a11y-custom-name preserves UI5 descriptions and custom content semantics")
+verify("ListItemCustom", "accessibleRole", "role on the owned li, overriding parent inheritance and retaining selection under an ordinary list", "tests/list.spec.ts: List list-a11y-custom-name preserves UI5 descriptions and custom content semantics; list: an explicit Option item keeps its selected state under an ordinary list")
 verify("ListItemCustom", "accessibilityAttributes", "aria-posinset / aria-setsize on the owned li, retaining selected/description/tabindex", "tests/list.spec.ts: List list-a11y-custom-name preserves UI5 descriptions and custom content semantics")
 verify("ListItemGroupHeader", "accessibleName", "accessibleName appended to visible title in the owned li aria-label", "tests/list.spec.ts: List list-a11y-group-header-name preserves UI5 descriptions and custom content semantics")
 for (const [member, equivalent] of [
@@ -52,7 +52,7 @@ for (const [member, equivalent] of [
   ["accessibleNameRef", "aria-labelledby on SelectTrigger combobox"],
   ["accessibleDescription", "aria-description on SelectTrigger combobox"],
   ["accessibleDescriptionRef", "aria-describedby on SelectTrigger combobox"],
-]) verify("Select", member, equivalent, "tests/select.spec.ts: Select <channel> reaches the same native combobox as UI5")
+]) verify("Select", member, equivalent + (member === "accessibleName" || member === "accessibleNameRef" ? "; resolved field name also reaches the phone listbox and prefixed dialog name" : ""), "tests/select.spec.ts: Select <channel> reaches the same native combobox as UI5; phone name/name-ref/label/unnamed cases follow live label updates")
 for (const [member, equivalent] of [
   ["accessibleName", "aria-label on inner ul role=tree"],
   ["accessibleNameRef", "aria-labelledby on inner ul role=tree"],
