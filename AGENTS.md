@@ -76,6 +76,24 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
      never to make a failing test pass.
    - Don't remove or weaken an existing ARIA attribute, keyboard shortcut or announcement without the card saying so
      (rule 7 applies to accessibility behaviour too).
+10. **Localization is ported in full, never trimmed.** Everything UI5 makes locale-dependent is locale-dependent here.
+    - **Texts:** every UI5 i18n key the component's `dist/<Name>.js` / template uses (`i18nBundle.getText(KEY)`,
+      `messagebundle_en.json`) has an English default **and** an overridable string, in the component's `texts` object
+      (`texts?: Partial<<Name>Texts>`, existing `labels` props stay). Name the UI5 key in a comment next to each
+      default (`// UI5 STEPINPUT_DEC_ICON_TITLE`). Placeholders keep UI5's order (`{0}`, `{1}`) as function texts:
+      `(count: number) => string`. Texts also resolve from `FioriLocaleProvider` (card E5); a prop wins over the provider.
+    - **Formats:** dates, times, numbers, percentages, units, sort/filter comparison and plural forms go through `Intl`
+      (`DateTimeFormat`, `NumberFormat`, `Collator`, `PluralRules`) or `registry/lib/fiori-dates.ts` /
+      `fiori-numbers.ts` (E5), with the locale from the prop, else the provider, else `navigator.language`. No
+      hard-coded separators, digit grouping, week start, AM/PM, month names or `toFixed` for display. Where UI5 formats
+      with its CLDR data, the result must match UI5's for the same locale (fixtures in `de-DE`, `zh-CN`, `ar-EG`).
+      Parsing user input is locale-aware wherever formatting is.
+    - **Direction:** every component works in RTL (logical CSS properties, mirrored icons where UI5 mirrors them, arrow
+      keys swapped where UI5 swaps them). New components and new visual states get an RTL fixture and an RTL behaviour
+      test for direction-dependent keys.
+    - Calendars stay Gregorian-only (owner's decision, README); everything else in this rule applies to them.
+    - Don't remove a text prop, hard-code a string or format, or narrow locale support without the card saying so
+      (rule 7 applies to localization too).
 
 ## Definition of done (every card)
 
@@ -84,6 +102,8 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
 - The card's own acceptance checks all hold.
 - Accessibility (rule 9): new or changed states have fixtures on both sides so `tests/a11y-tree.spec.ts` compares them;
   axe stays clean; new keyboard paths and announcements have behaviour tests.
+- Localization (rule 10): every new user-visible or announced string is in `texts` with its UI5 key named; new formatted
+  values use `Intl` with the resolved locale; new states have an RTL fixture.
 - Git: work on a branch `codex/<card-id>`, small commits, messages in English, imperative mood. Don't push; don't merge.
   If you work in a separate worktree, leave the main checkout untouched (no edits, no branch switch) — an earlier run
   left an uncommitted draft and a stray branch there.

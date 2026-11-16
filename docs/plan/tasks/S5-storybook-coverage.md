@@ -14,14 +14,16 @@
 3. **Docs-site handover** — the docs site's component pages (`/#/<name>`) get a prominent "Open in Storybook" link to
    the matching docs page (`./storybook/?path=/docs/<category>-<name>--docs`). The docs site keeps its fixtures, UI5
    reference and floorplan pages unchanged.
-4. **AGENTS.md** — rule: a PR that adds a component or a visual state must add/extend its stories; the coverage gate
+4. **Locale toolbar** — if `.storybook/preview.tsx` has no Locale menu yet (E5 ran before S0 was merged, so it skipped
+   its section 6), add the Locale toolbar and its test as described in E5 section 6. Skip if E5 isn't merged.
+5. **AGENTS.md** — rule: a PR that adds a component or a visual state must add/extend its stories; the coverage gate
    enforces the first half.
-5. **README** — make the Storybook URL the first "browse components" link.
+6. **README** — make the Storybook URL the first "browse components" link.
 
 ## Files
 
 `tests-storybook/coverage.spec.ts` (new), any `docs/stories/**` file (gap fixes), `docs/src/main.tsx` (the link
-only), `AGENTS.md`, `README.md`.
+only), `.storybook/preview.tsx` (Locale toolbar only), `tests-storybook/storybook.spec.ts`, `AGENTS.md`, `README.md`.
 
 ## Acceptance
 

@@ -103,6 +103,11 @@ required, stop and explain why in your final message instead of adding it.
   page shows an **Accessibility** section per component, taken from the component's JSDoc and E4's
   `docs/plan/a11y-audit.md` when present: keyboard shortcuts, the `aria-*`/`labels` props for names and announcements,
   and which element they land on.
+- **Localization is part of every example** (AGENTS.md rule 10): stories never hard-code a `locale` or a component
+  text unless the story is about it, so the Locale toolbar (added by E5) drives them. Each component with `texts` /
+  `labels` gets one `CustomTexts` story overriding a few of them, and the docs page lists the component's text keys
+  (with their UI5 key and English default) under **Localization**. Direction-dependent components get an `RTL`
+  story (`globals: { dir: "rtl" }`).
 - Component source files are **not** edited by S-cards, with one exception: adding a missing JSDoc comment to a prop
   type (comment only, no code change) so it shows in the props table. List such edits in the commit message.
 

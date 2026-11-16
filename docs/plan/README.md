@@ -76,6 +76,7 @@ F1 and F2 can run in parallel after F0.
 - [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
 - [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/fiori-shadcn-remaster, Pages; push only, no gh; run in the main checkout, not via RUN.md)
 - [ ] [E4 Accessibility parity: tree vs UI5 + accessible* audit](tasks/E4-a11y-parity.md) — L (owner: accessibility is kept in full; AGENTS.md rule 9. Run before wave H; parallel to wave S)
+- [ ] [E5 Localization parity: locale provider, UI5 texts audit, numbers, language packs](tasks/E5-l10n-parity.md) — L (owner: localization is kept in full; AGENTS.md rule 10. Run before wave H; parallel to wave S and E4, one component at a time where they overlap)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
