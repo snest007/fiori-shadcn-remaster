@@ -13,7 +13,7 @@ const slideCss = { width: "100%", height: "6rem", display: "flex", alignItems: "
 
 export default defineFixtures<Props>({
   name: "carousel",
-  cases: [
+  cases: ([
     { id: "carousel-default", props: {} },
     { id: "carousel-page-2", props: { page: 2 } },
     { id: "carousel-last-page", props: { page: 4 } },
@@ -31,7 +31,7 @@ export default defineFixtures<Props>({
     { id: "carousel-transparent", props: { backgroundDesign: "Transparent", pageIndicatorBackgroundDesign: "Transparent" } },
     { id: "carousel-items-s2", props: { itemsPerPage: "S2 M3 L4 XL5", width: "30rem", page: 1 } },
     { id: "carousel-items-m3", props: { itemsPerPage: "S2 M3 L4 XL5", width: "48rem" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "carousel-rtl" }] : [fixture]),
   react: ({ page, count = 5, width = "24rem", ...props }) => (
     <Carousel {...props} accessibleName="Fixture" defaultPageIndex={page} style={{ width }}>
       {Array.from({ length: count }, (_, i) => (

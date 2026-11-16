@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 // UI5 2.28 Carousel fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -78,15 +79,22 @@ function Carousel({
   defaultPageIndex = 0,
   onNavigate,
   accessibleName,
-  ofText = "of",
-  previousPageText = "Previous Page",
-  nextPageText = "Next Page",
-  roleDescription = "Carousel",
-  listLabel = "Item Container",
+  ofText: ofTextProp,
+  previousPageText: previousPageTextProp,
+  nextPageText: nextPageTextProp,
+  roleDescription: roleDescriptionProp,
+  listLabel: listLabelProp,
   className,
   children,
   ...props
 }: CarouselProps) {
+  const { t } = useFioriLocale()
+  const ofText = ofTextProp ?? t("CAROUSEL_OF_TEXT", "of") // UI5 CAROUSEL_OF_TEXT
+  const previousPageText = previousPageTextProp ?? t("CAROUSEL_PREVIOUS_ARROW_TEXT", "Previous Page") // UI5 CAROUSEL_PREVIOUS_ARROW_TEXT
+  const nextPageText = nextPageTextProp ?? t("CAROUSEL_NEXT_ARROW_TEXT", "Next Page") // UI5 CAROUSEL_NEXT_ARROW_TEXT
+  const roleDescription = roleDescriptionProp ?? t("CAROUSEL_ARIA_ROLE_DESCRIPTION", "Carousel") // UI5 CAROUSEL_ARIA_ROLE_DESCRIPTION
+  const listLabel = listLabelProp ?? t("CAROUSEL_ARIA_LIST_LABEL", "Item Container") // UI5 CAROUSEL_ARIA_LIST_LABEL
+
   const hostRef = React.useRef<HTMLDivElement>(null)
   const listRef = React.useRef<HTMLDivElement>(null)
   const [size, setSize] = React.useState<{ width?: number; rtl: boolean }>({ rtl: false })
