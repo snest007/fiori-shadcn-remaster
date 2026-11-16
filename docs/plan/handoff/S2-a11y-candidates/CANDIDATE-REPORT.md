@@ -49,10 +49,31 @@ first row through the original sentinel. This browser-only DOM proof does not va
 All six patches pass `git apply --check` against this S2 branch. None have been applied. The contrast candidate
 has only a browser-only stylesheet proof; the three structural candidates have not been runtime-tested.
 
-## S2 final validation
+## S2 validation checkpoint — acceptance pending
 
 Canonical component runtime sources remain unchanged; none of these six candidates were applied.
-S2's main suite passed twice (`1418 passed (7.5m)` each) and its final complete Storybook suite passed twice
-(`1197 passed (3.7m)`, `1197 passed (3.5m)`). All four run JSONs have 0 skipped, 0 unexpected and 0 flaky; full
-Storybook runs used the default 75% workers with retries 0. Raw known findings remain attached to individual checks.
-The complete evidence, candidate reproductions and 286-story runtime inventory are in `.integration/S2-evidence/`.
+The five author findings from fresh review 1 are repaired at `4c1a27f`: monotonic Table/List growing identities,
+classifier fallthrough outside S2-owned contexts, corrected picker and ObjectStatus/ObjectNumber localization
+documentation, and List DropBefore/DropAfter/DropOn stories. The final runtime inventory contains 289 S2 stories
+(List: 49; all runtime stories including S0: 388). Generate, typecheck, registry build and fresh Storybook builds pass.
+
+The two preserved main suites each report `1418 passed (7.5m)`, with 0 skipped, unexpected or flaky tests.
+They are reused for this checkpoint, not freshly executed: `main-input-reuse-proof.json` independently verifies
+1,212 unchanged main inputs, including runtime source, fixtures, main tests, generators, configuration and dependencies.
+
+Fresh repaired Storybook run 1 reports `1 failed` and `1205 passed (3.4m)` using the default 75% workers and retries 0.
+All 867 S2-owned story checks pass, with 0 skipped, unexpected or flaky checks. The sole full-suite failure is the
+inherited S0 Dialog focus-modality pilot at `tests-storybook/pilots.spec.ts:127`: after Escape and removal of the
+dialog content, the newly focused `#storybook-before-example` is inactive. The active focus destination was not
+captured; the exact race remains unproved. The same shared pilot failed independently in S1. No component marker,
+helper change or retry was added for this setup/readiness failure.
+
+Root stopped a second blind full run until the shared owner resolves that failure. The second fresh Storybook
+build passed, but its suite was not launched. The two mandatory green repaired Storybook runs therefore remain
+pending, and S2 is unchecked. Earlier pre-review Storybook passes (`1197 passed (3.7m)`, `1197 passed (3.5m)`) are
+preserved historical evidence, not repaired-source acceptance. Root will tick the card only after merged verification.
+
+Complete logs, JSON results, the failed result directory, exact repair interaction/Control/classifier evidence,
+refreshed Evening screenshots and the authoritative story inventory are in `.integration/S2-evidence/`.
+`final-acceptance.json` distinguishes reused main results from the fresh repaired Storybook result and missing run.
+Raw known findings remain attached to individual checks. Shared Docs globals/Controls limitations remain handed to S5.
