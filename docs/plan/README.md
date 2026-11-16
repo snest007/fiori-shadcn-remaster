@@ -90,6 +90,21 @@ generated agent skill `skills/shadcn-fiori/`. G0 first (pipeline + pilot); G1–
 - [ ] [G4 Layouts and floorplans](tasks/G4-usage-layout-floorplans.md) — M (after G0)
 - [ ] [G5 Coverage gate, pilot rewrite, exports filter + agent eval](tasks/G5-usage-coverage-eval.md) — M (after G1–G4)
 
+## Wave S — Storybook (browse components: variants, live Controls, code, theme toolbar)
+
+Asked for in the follow-up to issue #1: the docs page is hard to browse. Storybook 10.6.7 is added as the main place
+to browse components; the existing docs site stays (fixtures, UI5 reference and tests depend on it). S0 first (setup,
+theme/density/direction toolbar, docs page with install + usage, deploy, tests, pilot stories); S1–S4 are stories only
+and run in parallel (each owns different `docs/stories/**` files); S5 last. Independent of wave G (S0 renders
+`usage` when present).
+
+- [ ] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
+- [ ] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
+- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (after S0)
+- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (after S0)
+- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (after S0)
+- [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
+
 ## Out of scope (owner's decision)
 
 - Non-Gregorian calendars: won't be built. Calendar/DatePicker stay Gregorian-only (documented in README).
