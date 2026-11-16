@@ -1,4 +1,5 @@
 import * as React from "react"
+import { collatorIncludes, useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 
 // UI5 2.28 SearchPopoverTemplate.js renders an internal List (fastNavigation metadata).
@@ -112,6 +113,7 @@ type SearchProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onInput" 
   action?: React.ReactNode
   /** Render the suggestions in place instead of in a portal on document.body. */
   portal?: boolean
+  locale?: string
   texts?: Partial<SearchTexts>
   inputProps?: Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "placeholder">
 }
@@ -145,6 +147,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     action,
     portal = true,
     texts: textsProp,
+    locale: localeProp,
     inputProps,
     children,
     className,
@@ -154,7 +157,9 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
   const mobileRef = React.useRef<HTMLInputElement>(null)
   const beforeOpen = React.useRef(valueProp ?? defaultValue)
   const escapedPhoneDialog = React.useRef(false)
-  const texts = { ...defaultTexts, ...textsProp }
+  const { locale, localized } = useFioriLocale(localeProp)
+  const matchLocale = localized ? locale : undefined
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp, localeProp)
   const inputRef = React.useRef<HTMLInputElement>(null)
   const rootRef = React.useRef<HTMLDivElement>(null)
   const popRef = React.useRef<HTMLDivElement>(null)
@@ -194,7 +199,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
   // The controlled value wins whenever it changes from outside.
   React.useEffect(() => {
     // (Unless it is what the user typed and the field shows its type-ahead completion.)
-    if (valueProp === undefined || (matched === shown && shown.toLowerCase().startsWith(valueProp.toLowerCase()))) return
+    if (valueProp === undefined || (matched === shown && collatorIncludes(shown, valueProp, matchLocale, true))) return
     setShown(valueProp)
     setTyped(valueProp)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -232,7 +237,7 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
     beforeArrows.current = undefined
     const match =
       !noTypeahead && !inputType.startsWith("delete") && !inputType.startsWith("history") && v
-        ? texts_.find((t) => t.toLowerCase().startsWith(v.toLowerCase()))
+        ? texts_.find((text) => collatorIncludes(text, v, matchLocale, true))
         : undefined
     setMatched(match)
     if (match) {
@@ -777,3 +782,18 @@ export {
   type SearchTexts,
   type ShellBarSearchProps,
 }
+
+// UI5 keys resolved at their rendered/announced owner.
+const defaultTextsKeys = {
+  "field": "SEARCH_FIELD_LABEL",
+  "search": "SEARCH_FIELD_SEARCH_ICON",
+  "clear": "SEARCH_FIELD_CLEAR_ICON",
+  "scope": "SEARCH_FIELD_SCOPE_SELECT_LABEL",
+  "suggestions": "SEARCH_SUGGESTIONS",
+  "searchIn": "SEARCH_FIELD_PLACEHOLDER_WITH_SCOPE",
+  "open": "SHELLBAR_SEARCH_COLLAPSED",
+  "collapse": "SHELLBAR_SEARCH_EXPANDED",
+  "remove": "SEARCH_ITEM_DELETE_BUTTON_TOOLTIP",
+  "cancel": "SEARCH_CANCEL_BUTTON",
+  "scopeClose": "RESPONSIVE_POPOVER_CLOSE_DIALOG_BUTTON"
+} as const
