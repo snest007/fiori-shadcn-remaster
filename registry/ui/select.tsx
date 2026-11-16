@@ -9,6 +9,7 @@ import { Select as SelectPrimitive, Slot } from "radix-ui"
 
 import { useIsPhone } from "@/lib/use-is-phone"
 import { Button } from "@/components/ui/button"
+import { Title } from "@/components/ui/title"
 import { ResponsivePopover, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
 
 import { slimArrowDown } from "@/lib/fiori-icons"
@@ -19,7 +20,7 @@ import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/compo
 // Fiori keyboard model for a closed Select (ui5-select): Up/Down/Home/End change the selection
 // in place without opening; Alt+Down, Alt+Up, F4, Space and Enter open the list.
 type SelectContextValue = {
-  register: (value: string, node: HTMLElement | null, disabled: boolean) => void
+  register: (value: string, node: HTMLElement | null, disabled: boolean) => (() => void) | undefined
   count: number
   groupCount: number
   texts: SelectTexts
@@ -115,15 +116,28 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
   )
 
   const items = React.useRef(new Map<string, { node: HTMLElement; disabled: boolean }>())
+  const itemHosts = React.useRef(new Map<string, Map<HTMLElement, { node: HTMLElement; disabled: boolean }>>())
   const groups = React.useRef(new Map<string, HTMLElement>())
   const [revision, setRevision] = React.useState(0)
   const register = React.useCallback((v: string, node: HTMLElement | null, disabled: boolean) => {
-    if (node) {
+    if (!node) return
+    let hosts = itemHosts.current.get(v)
+    if (!hosts) { hosts = new Map(); itemHosts.current.set(v, hosts) }
+    const registeredHosts = hosts
+    registeredHosts.set(node, { node, disabled })
+    const reconcile = () => {
+      const remaining = [...registeredHosts.values()].reverse()
+      // The hidden Radix collection and visible phone option represent one
+      // native Select option. Retain both host registrations; closing the
+      // dialog must restore the closed-keyboard collection, not erase it.
+      const next = remaining.find((item) => item.node.isConnected) ?? remaining[0]
       const prior = items.current.get(v)
-      if (prior?.node === node && prior.disabled === disabled) return
-      items.current.set(v, { node, disabled })
-    } else if (!items.current.delete(v)) return
-    setRevision((n) => n + 1)
+      if (next) items.current.set(v, next)
+      else { items.current.delete(v); itemHosts.current.delete(v) }
+      if (prior?.node !== next?.node || prior?.disabled !== next?.disabled) setRevision((n) => n + 1)
+    }
+    reconcile()
+    return () => { registeredHosts.delete(node); reconcile() }
   }, [])
   const registerGroup = React.useCallback((id: string, node: HTMLElement | null) => {
     if (node) { if (groups.current.get(id) === node) return; groups.current.set(id, node) }
@@ -266,7 +280,25 @@ function SelectTrigger({
   const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
 
-  React.useLayoutEffect(() => { state?.setPhoneState({ valueState, accessibleName: props["aria-label"], message: showMessage ? (valueStateMessage === undefined && hasState ? `${valueStateTypeText?.[valueState] ?? ({ negative: "Value State Error", critical: "Value State Warning", positive: "Value State Success", information: "Value State Information" }[valueState])} ${message}` : message) : null }) }, [valueState, message, showMessage, valueStateTypeText, props["aria-label"]])
+  React.useLayoutEffect(() => {
+    const trigger = state?.changeTarget.current?.querySelector<HTMLElement>('[data-slot="select-trigger"]')
+    if (!trigger) return
+    // Select.js:ariaLabelText and AccessibilityTextsHelper.js resolve referenced
+    // text before aria-label, then associated labels. Keep the header title
+    // independent of this field name (Select.js:_headerTitleText).
+    const update = () => {
+      const refs = trigger.getAttribute("aria-labelledby")?.split(/\s+/).filter(Boolean)
+      const referenced = refs?.map((id) => trigger.ownerDocument.getElementById(id)?.textContent ?? "").filter(Boolean).join(" ")
+      const associated = trigger.id ? [...trigger.ownerDocument.querySelectorAll<HTMLLabelElement>("label[for]")].filter((label) => label.htmlFor === trigger.id).map((label) => label.textContent ?? "").filter(Boolean).join(" ") : ""
+      const accessibleName = (refs?.length ? referenced : trigger.getAttribute("aria-label")) || associated || undefined
+      const phoneMessage = showMessage ? (valueStateMessage === undefined && hasState ? `${valueStateTypeText?.[valueState] ?? ({ negative: "Value State Error", critical: "Value State Warning", positive: "Value State Success", information: "Value State Information" }[valueState])} ${message}` : message) : null
+      state?.setPhoneState((previous) => previous.valueState === valueState && previous.accessibleName === accessibleName && previous.message === phoneMessage ? previous : { valueState, accessibleName, message: phoneMessage })
+    }
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(trigger.ownerDocument.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["id", "for", "aria-label", "aria-labelledby"] })
+    return () => observer.disconnect()
+  }, [valueState, message, showMessage, valueStateTypeText, props["aria-label"], props["aria-labelledby"], props.id])
 
   return (
     <div
@@ -383,7 +415,7 @@ function SelectTrigger({
 }
 
 /**
- * @accessibility aria-label / aria-labelledby name the desktop listbox content. On phones, dialogTitle labels the listbox; dialogLabel or dialogNamePrefix plus the trigger's aria-label name the modal dialog. The fallback does not resolve Label.htmlFor / aria-labelledby; provide dialogLabel for those naming paths. cancelText names its closing action.
+ * @accessibility aria-label / aria-labelledby name the desktop listbox content. On phones the resolved trigger name (aria-labelledby, aria-label, or Label.htmlFor) names the listbox; dialogLabel or dialogNamePrefix plus that name names the modal dialog. dialogTitle is the visible header and unnamed-list fallback. cancelText names its closing action.
  */
 type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content> & {
   onOpenAutoFocus?: (event: Event) => void
@@ -405,10 +437,10 @@ function SelectContent({
   onEscapeKeyDown,
   ref,
   asChild,
-  dialogTitle = "All Items",
-  cancelText = "Cancel",
+  dialogTitle = "All Items", // UI5 SELECT_LISTBOX_LABEL
+  cancelText = "Cancel", // UI5 SELECT_DIALOG_CANCEL_BUTTON
   dialogLabel,
-  dialogNamePrefix = "Select",
+  dialogNamePrefix = "Select:", // UI5 SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX
   ...props
 }: SelectContentProps) {
   const state = React.useContext(SelectOpenContext)
@@ -454,8 +486,9 @@ function SelectContent({
   // Keep Radix's hidden item collection for SelectValue, form integration and
   // closed keyboard navigation; the real phone list lives in a stretch Dialog.
   return <>{desktop}<ResponsivePopover dir={state.direction} open={state.open} onOpenChange={(open) => !open && closePhone(true)}>
-    <ResponsivePopoverContent {...props} ref={ref} className={className} aria-label={props["aria-label"] ?? dialogLabel ?? (state.phoneState.accessibleName ? `${dialogNamePrefix} ${state.phoneState.accessibleName}` : undefined)} headerText={dialogTitle} phoneField phoneClassName="fiori-select-phone"
-      phoneHeader={<div className="fiori-responsive-popover__rows"><div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
+    <ResponsivePopoverContent {...props} ref={ref} className={className} aria-label={props["aria-label"] ?? dialogLabel ?? `${dialogNamePrefix} ${state.phoneState.accessibleName || dialogTitle}`} headerText={dialogTitle} phoneField phoneClassName="fiori-select-phone"
+      // SelectPopoverTemplate.js uses Title's default H2 accessibility level.
+      phoneHeader={<div className="fiori-responsive-popover__rows"><div className="fiori-responsive-popover__row"><Title wrappingType="None" className="w-full">{dialogTitle}</Title></div>
         {state.phoneState.valueState !== "none" && state.phoneState.valueState !== "positive" && state.phoneState.message != null &&
           <div data-value-state={state.phoneState.valueState} className="fiori-value-state-message fiori-select-phone__message">{state.phoneState.message}</div>}
       </div>}
@@ -505,7 +538,7 @@ function SelectContent({
         }
       }}>
       <PhoneSelectItems.Provider value={{ value: draft, select: (value, close = true) => { setDraft(value); if (close) closePhone(false, value) } }}>
-        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true">{children}</div>
+        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={state.phoneState.accessibleName || dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true">{children}</div>
       </PhoneSelectItems.Provider>
     </ResponsivePopoverContent>
   </ResponsivePopover></>
@@ -525,28 +558,55 @@ function SelectLabel({ className, ...props }: React.ComponentProps<typeof Select
   )
 }
 
-function SelectItem({ className, children, value, disabled = false, asChild, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) {
+function SelectItem({ className, children, value, disabled = false, asChild, ref: consumerRef, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) {
   const ctx = React.useContext(SelectContext)
   const phoneItems = React.useContext(PhoneSelectItems)
   const ref = React.useCallback(
-    (node: HTMLDivElement | null) => ctx?.register(value, node, disabled),
-    [ctx?.register, value, disabled]
+    (node: HTMLDivElement | null) => {
+      const unregister = ctx?.register(value, node, disabled)
+      const cleanup = typeof consumerRef === "function" ? consumerRef(node) : undefined
+      if (consumerRef && typeof consumerRef !== "function") consumerRef.current = node
+      return () => {
+        unregister?.()
+        if (typeof cleanup === "function") cleanup()
+        else if (typeof consumerRef === "function") consumerRef(null)
+        else if (consumerRef) consumerRef.current = null
+      }
+    },
+    [ctx?.register, value, disabled, consumerRef]
   )
-  const PhoneHost = asChild ? Slot.Root : "div"
-  if (phoneItems) return <PhoneHost {...props} data-slot="select-item" data-value={value} data-text-value={props.textValue} role="option" aria-selected={phoneItems.value === value} aria-disabled={disabled || undefined}
-    tabIndex={!disabled && phoneItems.value === value ? 0 : -1} data-state={phoneItems.value === value ? "checked" : "unchecked"}
-    className={cn("fiori-list-item", className)} onMouseDown={(event) => { props.onMouseDown?.(event); event.preventDefault() }}
-    onClick={(event) => { props.onClick?.(event); if (!event.defaultPrevented && !disabled) phoneItems.select(value) }} onKeyDown={(event) => {
-      props.onKeyDown?.(event)
-      // Option.js inherits ListItemBase: Enter presses on keydown; plain Space
-      // only prevents scrolling here and presses on keyup.
+  const generatedId = React.useId()
+  const custom = phoneItems && asChild ? React.Children.only(children) as React.ReactElement<React.ComponentProps<"div">> : undefined
+  const customRef = custom?.props.ref
+  const phoneRef = React.useCallback((node: HTMLDivElement | null) => {
+    const cleanup = ref(node)
+    const customCleanup = typeof customRef === "function" ? customRef(node) : undefined
+    if (customRef && typeof customRef !== "function") customRef.current = node
+    return () => {
+      if (typeof cleanup === "function") cleanup(); else ref(null)
+      if (typeof customCleanup === "function") customCleanup()
+      else if (typeof customRef === "function") customRef(null)
+      else if (customRef) customRef.current = null
+    }
+  }, [ref, customRef])
+  if (phoneItems) {
+    const phoneProps: React.ComponentProps<"div"> & { "data-slot": string; "data-value": string; "data-text-value"?: string; "data-state": string } = { ...props, ref: phoneRef, id: props.id ?? custom?.props.id ?? generatedId, "data-slot": "select-item", "data-value": value, "data-text-value": props.textValue, role: "option", "aria-selected": phoneItems.value === value, "aria-checked": undefined, "aria-pressed": undefined, "aria-disabled": disabled || undefined,
+    tabIndex: !disabled && phoneItems.value === value ? 0 : -1, "data-state": phoneItems.value === value ? "checked" : "unchecked",
+    className: cn("fiori-list-item", custom?.props.className, className), onMouseDown: (event) => { custom?.props.onMouseDown?.(event); props.onMouseDown?.(event); event.preventDefault() },
+    onClick: (event) => { custom?.props.onClick?.(event); props.onClick?.(event); if (!event.defaultPrevented && !disabled) phoneItems.select(value) }, onKeyDown: (event) => {
+      custom?.props.onKeyDown?.(event); props.onKeyDown?.(event)
       if (event.defaultPrevented || disabled || event.target !== event.currentTarget || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
       if (event.key === " ") event.preventDefault()
       if (event.key === "Enter") { event.preventDefault(); phoneItems.select(value) }
-    }} onKeyUp={(event) => {
-      props.onKeyUp?.(event)
+    }, onKeyUp: (event) => {
+      custom?.props.onKeyUp?.(event); props.onKeyUp?.(event)
       if (!event.defaultPrevented && !disabled && event.target === event.currentTarget && event.key === " " && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) phoneItems.select(value)
-    }}>{children}</PhoneHost>
+    } }
+    // OptionTemplate.js/ListItemBaseTemplate.js own the option host. Slot lets
+    // the child overwrite those props; reconstruct a valid custom host with
+    // owned role/state/id/navigation channels applied last.
+    return custom ? React.cloneElement(custom, phoneProps) : <div {...phoneProps}>{children}</div>
+  }
   return (
     <SelectPrimitive.Item
       ref={ref}

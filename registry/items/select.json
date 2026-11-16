@@ -10,7 +10,8 @@
     "@fiori/f6-navigation",
     "@fiori/use-is-phone",
     "@fiori/responsive-popover",
-    "@fiori/button"
+    "@fiori/button",
+    "@fiori/title"
   ],
   "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open).",
   "usage": {
