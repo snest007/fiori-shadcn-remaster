@@ -85,6 +85,7 @@ const defaultTexts: AdaptFiltersTexts = {
   dragResizeHint: "Use Arrow keys to move, Shift+Arrow keys to resize",
   hiddenWithValue: "The filter will not show in the filter bar.",
 }
+/** @accessibility texts.title names the dialog and texts names search, views, visibility, reorder controls and announcements. Field render functions must retain the supplied id, required state and value-state description. Arrow keys move sort rows; Ctrl+Arrow keys reorder, Ctrl+Enter applies, Escape cancels and restores opener focus. */
 type AdaptFiltersDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
