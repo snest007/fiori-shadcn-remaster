@@ -6,7 +6,8 @@
     "@fiori/label",
     "@fiori/link",
     "@fiori/progress-indicator",
-    "@fiori/illustrated-message"
+    "@fiori/illustrated-message",
+    "@fiori/locale"
   ],
   "description": "Fiori upload collection: file list with thumbnails, progress and Complete/Error/Ready/Uploading states, retry/terminate/delete, drag & drop overlay (ui5-upload-collection). Upload transport is up to the caller.",
   "usage": {

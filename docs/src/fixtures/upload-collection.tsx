@@ -8,14 +8,14 @@ type Props = { state?: UploadState; progress?: number; clickable?: boolean; empt
 
 export default defineFixtures<Props>({
   name: "upload-collection",
-  cases: [
+  cases: ([
     { id: "upload-collection-complete", props: { state: "complete", description: "Uploaded by John Doe" } },
     { id: "upload-collection-uploading", props: { state: "uploading", progress: 40 } },
     { id: "upload-collection-ready", props: { state: "ready", progress: 0 } },
     { id: "upload-collection-error", props: { state: "error", progress: 70 } },
     { id: "upload-collection-link", props: { state: "complete", clickable: true } },
     { id: "upload-collection-empty", props: { empty: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "upload-collection-rtl" }] : [fixture]),
   react: ({ state, progress, clickable, empty, description }) => (
     <UploadCollection style={{ width: "40rem" }} aria-label="Attachments">
       {!empty && (
