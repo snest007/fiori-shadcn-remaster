@@ -200,9 +200,9 @@ function S2DocsPage() {
   },
   {
     "prop": "phoneHeaderText",
-    "text": "Field accessible name (or pickerLabel)",
-    "key": "Application text; no identical UI5 2.28 default"
+    "text": "Input aria-label prop; otherwise \"Enter date\"",
+    "key": "DATEPICKER_MOBILE_HEADER_TITLE (phone fallback in PickerField)"
   }
 ]
-  return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>Override these props to translate built-in labels and announcements. English defaults below describe the current component API.</p><table><thead><tr><th>Text prop / key</th><th>UI5 reference key</th><th>English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.prop}><td><code>{text.prop}</code></td><td>{text.key}</td><td>{text.text}</td></tr>)}</tbody></table></section></>
+  return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>Override these props to translate built-in labels and announcements. English defaults below describe the current component API. phoneHeaderText wins over the literal input aria-label prop. The phone title does not fall back to pickerLabel or aria-labelledby.</p><table><thead><tr><th>Text prop / key</th><th>UI5 reference key</th><th>English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.prop}><td><code>{text.prop}</code></td><td>{text.key}</td><td>{text.text}</td></tr>)}</tbody></table></section></>
 }

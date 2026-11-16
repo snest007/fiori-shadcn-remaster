@@ -43,30 +43,95 @@ export const CustomTexts: Story = { args: { state: "critical", text: "Review nee
 export const RTL: Story = { globals: { dir: "rtl" } }
 
 
-// Current defaults are read from registry/ui/object-status.tsx and its shared calendar/input/clock primitives.
-// UI5 keys come from the installed 2.28 English i18n defaults; non-identical wording is identified explicitly.
+// No UI5 Web Component exists for this display. Installed OpenUI5 1.154 is the reference.
+// ObjectStatus._getStateText delegates to sap.ui.core.ValueStateSupport / IndicationColorSupport.
+// The current port retains its shorter inherited announcement defaults, shown separately below.
 function S2DocsPage() {
   const textKeys = [
   {
-    "prop": "stateAnnouncementText.negative",
+    "state": "negative",
     "text": "Error",
-    "key": "TAG_ERROR"
+    "key": "VALUE_STATE_ERROR",
+    "nativeText": "Invalid entry"
   },
   {
-    "prop": "stateAnnouncementText.critical",
+    "state": "critical",
     "text": "Warning",
-    "key": "TAG_WARNING, BUTTON_ARIA_TYPE_ATTENTION"
+    "key": "VALUE_STATE_WARNING",
+    "nativeText": "Warning issued"
   },
   {
-    "prop": "stateAnnouncementText.positive",
+    "state": "positive",
     "text": "Success",
-    "key": "TAG_SUCCESS"
+    "key": "VALUE_STATE_SUCCESS",
+    "nativeText": "Entry successfully validated"
   },
   {
-    "prop": "stateAnnouncementText.information",
+    "state": "information",
     "text": "Information",
-    "key": "TAG_INFORMATION"
+    "key": "VALUE_STATE_INFORMATION",
+    "nativeText": "Informative entry"
+  },
+  {
+    "state": "indication1",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION01",
+    "nativeText": "Indication Color 1"
+  },
+  {
+    "state": "indication2",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION02",
+    "nativeText": "Indication Color 2"
+  },
+  {
+    "state": "indication3",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION03",
+    "nativeText": "Indication Color 3"
+  },
+  {
+    "state": "indication4",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION04",
+    "nativeText": "Indication Color 4"
+  },
+  {
+    "state": "indication5",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION05",
+    "nativeText": "Indication Color 5"
+  },
+  {
+    "state": "indication6",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION06",
+    "nativeText": "Indication Color 6"
+  },
+  {
+    "state": "indication7",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION07",
+    "nativeText": "Indication Color 7"
+  },
+  {
+    "state": "indication8",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION08",
+    "nativeText": "Indication Color 8"
+  },
+  {
+    "state": "indication9",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION09",
+    "nativeText": "Indication Color 9"
+  },
+  {
+    "state": "indication10",
+    "text": "No default announcement",
+    "key": "INDICATION_STATE_INDICATION10",
+    "nativeText": "Indication Color 10"
   }
 ]
-  return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>Override these props to translate built-in labels and announcements. English defaults below describe the current component API.</p><table><thead><tr><th>Text prop / key</th><th>UI5 reference key</th><th>English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.prop}><td><code>{text.prop}</code></td><td>{text.key}</td><td>{text.text}</td></tr>)}</tbody></table></section></>
+  return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>stateAnnouncementText is a single string overriding the hidden announcement for the current state; pass null to omit it. The inherited defaults in this port differ from the owning OpenUI5 defaults shown below. Indication states currently have no built-in announcement; supply stateAnnouncementText for them.</p><table><thead><tr><th>State for stateAnnouncementText</th><th>Current English default</th><th>OpenUI5 reference key</th><th>OpenUI5 English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.state}><td><code>{text.state}</code></td><td>{text.text}</td><td>{text.key}</td><td>{text.nativeText}</td></tr>)}</tbody></table></section></>
 }

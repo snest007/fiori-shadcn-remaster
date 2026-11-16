@@ -32,30 +32,35 @@ export const RTL: Story = { globals: { dir: "rtl" } }
 export const FormattedAmount: Story = { render: () => <ObjectNumber number={new Intl.NumberFormat(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(12897)} unit="EUR" emphasized={false} /> }
 
 
-// Current defaults are read from registry/ui/object-number.tsx and its shared calendar/input/clock primitives.
-// UI5 keys come from the installed 2.28 English i18n defaults; non-identical wording is identified explicitly.
+// No UI5 Web Component exists for this display. Installed OpenUI5 1.154 is the reference.
+// ObjectNumber._getStateText uses the sap.m OBJECTNUMBER_ARIA_VALUE_STATE_* keys.
+// The current port retains its shorter inherited announcement defaults, shown separately below.
 function S2DocsPage() {
   const textKeys = [
   {
-    "prop": "stateAnnouncementText.negative",
+    "state": "negative",
     "text": "Error",
-    "key": "TAG_ERROR"
+    "key": "OBJECTNUMBER_ARIA_VALUE_STATE_ERROR",
+    "nativeText": "Value State Error"
   },
   {
-    "prop": "stateAnnouncementText.critical",
+    "state": "critical",
     "text": "Warning",
-    "key": "TAG_WARNING, BUTTON_ARIA_TYPE_ATTENTION"
+    "key": "OBJECTNUMBER_ARIA_VALUE_STATE_WARNING",
+    "nativeText": "Value State Warning"
   },
   {
-    "prop": "stateAnnouncementText.positive",
+    "state": "positive",
     "text": "Success",
-    "key": "TAG_SUCCESS"
+    "key": "OBJECTNUMBER_ARIA_VALUE_STATE_SUCCESS",
+    "nativeText": "Value State Success"
   },
   {
-    "prop": "stateAnnouncementText.information",
+    "state": "information",
     "text": "Information",
-    "key": "TAG_INFORMATION"
+    "key": "OBJECTNUMBER_ARIA_VALUE_STATE_INFORMATION",
+    "nativeText": "Value State Information"
   }
 ]
-  return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>Override these props to translate built-in labels and announcements. English defaults below describe the current component API.</p><table><thead><tr><th>Text prop / key</th><th>UI5 reference key</th><th>English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.prop}><td><code>{text.prop}</code></td><td>{text.key}</td><td>{text.text}</td></tr>)}</tbody></table></section></>
+  return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>stateAnnouncementText is a single string overriding the hidden announcement for the current state; pass null to omit it. The inherited defaults in this port differ from the owning OpenUI5 defaults shown below.</p><table><thead><tr><th>State for stateAnnouncementText</th><th>Current English default</th><th>OpenUI5 reference key</th><th>OpenUI5 English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.state}><td><code>{text.state}</code></td><td>{text.text}</td><td>{text.key}</td><td>{text.nativeText}</td></tr>)}</tbody></table></section></>
 }

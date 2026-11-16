@@ -45,12 +45,17 @@ const meta = {
   },
   render: function ProductsTable(args: Args) {
     const [, updateArgs] = useArgs<Args>()
+    const lastProductNumber = React.useRef(products.length)
     const { items, interactiveRows, withActions, groupRows, showHighlights, movable, stickyHeader, sorted, onAction, ...props } = args
     const highlights: TableRowHighlight[] = ["negative", "critical", "positive", "information"]
     const row = (product: Product, index: number) => <TableRow key={product.id} rowKey={product.id} interactive={interactiveRows} movable={movable} navigated={withActions && index === 1} highlight={showHighlights ? highlights[index % highlights.length] : undefined} actions={withActions ? <><TableRowAction icon={edit} text={`Edit ${product.name}`} onClick={() => onAction?.("Edit", product.id)} /><TableRowAction icon={deleteIcon} text={`Delete ${product.name}`} onClick={() => { onAction?.("Delete", product.id); updateArgs({ items: items.filter((item) => item.id !== product.id) }) }} /><TableRowActionNavigation interactive text={`Open ${product.name}`} onClick={() => onAction?.("Open", product.id)} /></> : undefined}>
       <TableCell>{product.name}</TableCell><TableCell>{product.supplier}</TableCell><TableCell>{new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(product.price)}</TableCell>
     </TableRow>
-    return <Table {...props} rowActionCount={withActions ? 3 : 0} onSelectionChange={(selectedRows) => { args.onSelectionChange?.(selectedRows); updateArgs({ selectedRows }) }} onLoadMore={() => { args.onLoadMore?.(); const next = items.length + 1; updateArgs({ items: [...items, { id: `p${next}`, name: `Notebook Pro ${next}`, supplier: "Red Point Stores", price: 560 + next }] }) }} onMoveOver={(event) => { args.onMoveOver?.(event); if (event.destination.placement !== "On") event.preventDefault() }} onMove={(event) => {
+    return <Table {...props} rowActionCount={withActions ? 3 : 0} onSelectionChange={(selectedRows) => { args.onSelectionChange?.(selectedRows); updateArgs({ selectedRows }) }} onLoadMore={() => { args.onLoadMore?.()
+      // Keep identifiers above every existing or previously issued product number.
+      const next = Math.max(lastProductNumber.current, ...items.map((item) => Number(/^p(\d+)$/.exec(item.id)?.[1] ?? 0))) + 1
+      lastProductNumber.current = next
+      updateArgs({ items: [...items, { id: `p${next}`, name: `Notebook Pro ${next}`, supplier: "Red Point Stores", price: 560 + next }] }) }} onMoveOver={(event) => { args.onMoveOver?.(event); if (event.destination.placement !== "On") event.preventDefault() }} onMove={(event) => {
       args.onMove?.(event)
       const source = event.source.element?.dataset.rowKey
       const target = event.destination.element.dataset.rowKey

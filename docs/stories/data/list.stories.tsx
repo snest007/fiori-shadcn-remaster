@@ -8,9 +8,21 @@ import { Button } from "@/components/ui/button"
 import { calendar, email, product, settings } from "@/lib/fiori-icons"
 import { DocsPage } from "../_lib/DocsPage"
 import { fioriMeta } from "../_lib/meta"
+import { FioriDropIndicator } from "@/lib/fiori-drag-and-drop"
 
 type Item = ListItemStandardProps & { value: string; text: string; "data-moving"?: string; "data-active"?: string }
 const fruits: Item[] = [{ value: "apples", text: "Apples" }, { value: "bananas", text: "Bananas" }, { value: "cherries", text: "Cherries" }]
+function PositionedListDrop({ placement }: { placement: "Before" | "After" | "On" }) {
+  const ref = React.useRef<HTMLDivElement>(null)
+  const [nodes, setNodes] = React.useState<{ owner: HTMLElement; target: HTMLElement } | null>(null)
+  React.useLayoutEffect(() => {
+    const owner = ref.current?.querySelector<HTMLElement>('[data-slot="list"]')
+    const target = owner?.querySelectorAll<HTMLElement>('[data-slot="list-item"]')[1]
+    if (owner && target) setNodes({ owner, target })
+  }, [])
+  return <div className="relative max-w-xs" ref={ref}><List aria-label="Fruit drop preview">{fruits.map((item) => <ListItemStandard key={item.value} {...item} />)}</List>{nodes && <FioriDropIndicator ownerReference={nodes.owner} targetReference={nodes.target} placement={placement} />}</div>
+}
+
 type Args = ListProps & { items: Item[]; customItems?: boolean; grouped?: boolean; onDetail?: (value: string) => void }
 const base = fioriMeta({ name: "list", component: List })
 const meta = {
@@ -26,9 +38,14 @@ const meta = {
   },
   render: function ProductList(args: Args) {
     const [, updateArgs] = useArgs<Args>()
+    const lastProductNumber = React.useRef(fruits.length)
     const { items, customItems, grouped, onDetail, ...props } = args
     const row = (item: Item) => customItems ? <ListItemCustom key={item.value} value={item.value} type={item.type} disabled={item.disabled} highlight={item.highlight}><div className="flex w-full items-center justify-between gap-2"><span>{item.text}</span><Button onClick={() => onDetail?.(item.value)} aria-label={`Edit ${item.text}`}>Edit</Button></div></ListItemCustom> : <ListItemStandard key={item.value} {...item} onDetailClick={() => onDetail?.(item.value)} />
-    return <List {...props} onValueChange={(value, detail) => { args.onValueChange?.(value, detail); updateArgs({ value }) }} onItemDelete={(value) => { args.onItemDelete?.(value); updateArgs({ items: items.filter((item) => item.value !== value) }) }} onLoadMore={() => { args.onLoadMore?.(); const n = items.length + 1; updateArgs({ items: [...items, { value: `product-${n}`, text: `Seasonal fruit ${n}` }] }) }} onMoveOver={(event) => { args.onMoveOver?.(event); if (event.destination.placement !== "On") event.preventDefault() }} onMove={(event) => {
+    return <List {...props} onValueChange={(value, detail) => { args.onValueChange?.(value, detail); updateArgs({ value }) }} onItemDelete={(value) => { args.onItemDelete?.(value); updateArgs({ items: items.filter((item) => item.value !== value) }) }} onLoadMore={() => { args.onLoadMore?.()
+      // Keep identifiers above every existing or previously issued product number.
+      const n = Math.max(lastProductNumber.current, ...items.map((item) => Number(/^product-(\d+)$/.exec(item.value)?.[1] ?? 0))) + 1
+      lastProductNumber.current = n
+      updateArgs({ items: [...items, { value: `product-${n}`, text: `Seasonal fruit ${n}` }] }) }} onMoveOver={(event) => { args.onMoveOver?.(event); if (event.destination.placement !== "On") event.preventDefault() }} onMove={(event) => {
       args.onMove?.(event)
       const source = event.source.element?.dataset.navKey
       const target = event.destination.element.dataset.navKey
@@ -80,6 +97,9 @@ export const Loading: Story = { args: { loading: true, loadingDelay: 0 } }
 export const CustomItems: Story = { args: { customItems: true } }
 export const CustomMultiple: Story = { args: { customItems: true, selectionMode: "multiple", value: ["bananas"] } }
 export const CustomSingleStart: Story = { args: { customItems: true, selectionMode: "singleStart", value: ["bananas"] } }
+export const DropBefore: Story = { render: () => <PositionedListDrop placement="Before" /> }
+export const DropAfter: Story = { render: () => <PositionedListDrop placement="After" /> }
+export const DropOn: Story = { render: () => <PositionedListDrop placement="On" /> }
 export const DragAndDrop: Story = { args: { items: fruits.map((item) => ({ ...item, movable: true })) } }
 export const MovableDisabled: Story = { args: { items: fruits.map((item, index) => ({ ...item, movable: true, disabled: index === 1 })) } }
 export const Moving: Story = { args: { items: fruits.map((item, index) => ({ ...item, movable: true, "data-moving": index === 1 ? "" : undefined })) } }

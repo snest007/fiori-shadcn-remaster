@@ -129,11 +129,11 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             && header !== null && rows.length === 4 && rows.map((row) => row.getAttribute("data-row-key")).join("|") === "p1|p2|p3|p4"
             && !grid.querySelector('[tabindex], button, input, select, textarea, a[href], [contenteditable="true"]')
         }
-        if (rule === "color-contrast" && context.theme === "sap_horizon") {
+        if (rule === "color-contrast" && context.theme === "sap_horizon"
+          && (context.story === "data-object-status--indication-5" && !context.primary
+            || context.story === "data-object-status--playground" && context.primary
+              && context.control?.prop === "state" && context.control.choice === "indication5")) {
           const standalone = context.story === "data-object-status--indication-5" && !context.primary
-          const control = context.story === "data-object-status--playground" && context.primary
-            && context.control?.prop === "state" && context.control.choice === "indication5"
-          if (!standalone && !control) return false
           const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
           const status = unique(':scope > [data-slot="object-status"][data-state="indication5"]')
           const text = status ? unique(':scope > .fiori-object-status__wrapper > .fiori-object-status__text', status) : null
@@ -147,11 +147,11 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             && css.textShadow === "rgb(255, 255, 255) 0px 0px 2px"
             && surface.backgroundColor === "rgb(245, 246, 247)"
         }
-        if (rule === "aria-allowed-role") {
-          const openStories = ["dates-time-picker--open", "dates-time-picker--open-negative", "dates-time-picker--open-critical", "dates-date-time-picker--open", "dates-date-time-picker--open-negative", "dates-time-picker--twenty-four-hour-clocks"]
-          const primaryPicker = context.primary && ["dates-time-picker--playground", "dates-date-time-picker--playground"].includes(context.story)
-            && JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}").open === true
-          if (!openStories.includes(context.story) && !primaryPicker) return false
+        // Foreign contexts fall through to later card blocks; only owning S2 checks return.
+        const s2OpenStories = ["dates-time-picker--open", "dates-time-picker--open-negative", "dates-time-picker--open-critical", "dates-date-time-picker--open", "dates-date-time-picker--open-negative", "dates-time-picker--twenty-four-hour-clocks"]
+        const s2PrimaryPicker = context.primary && ["dates-time-picker--playground", "dates-date-time-picker--playground"].includes(context.story)
+          && JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}").open === true
+        if (rule === "aria-allowed-role" && (s2OpenStories.includes(context.story) || s2PrimaryPicker)) {
           const clocks = unique('[data-slot="time-selection-clocks"]', document)
           const entity = actual.getAttribute("data-clock-button")
           if (!clocks || !visible(clocks) || !entity || !["hours", "minutes", "seconds"].includes(entity)
@@ -179,9 +179,9 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             || [...spacer.children].some((row) => row.getAttribute("role") !== "row" || row.getAttribute("data-slot") !== "table-row")) return false
           return [...grid.querySelectorAll("[role]")].filter((element) => !element.closest('[role="row"]')).every((element) => element === progress)
         }
-        if (rule === "aria-required-children") {
-          const timelineStories = ["data-timeline--playground", "data-timeline--vertical", "data-timeline--vertical-mixed-icons", "data-timeline--none", "data-timeline--negative", "data-timeline--critical", "data-timeline--positive", "data-timeline--information", "data-timeline--growing-button", "data-timeline--growing-scroll", "data-timeline--grouped", "data-timeline--collapsed-group", "data-timeline--horizontal", "data-timeline--horizontal-mixed-icons", "data-timeline--horizontal-growing", "data-timeline--horizontal-group", "data-timeline--horizontal-collapsed-group", "data-timeline--loading", "data-timeline--with-header", "data-timeline--custom-texts", "data-timeline--rtl"]
-          if (!timelineStories.includes(context.story) || context.primary && context.story !== "data-timeline--playground") return false
+        const s2TimelineStories = ["data-timeline--playground", "data-timeline--vertical", "data-timeline--vertical-mixed-icons", "data-timeline--none", "data-timeline--negative", "data-timeline--critical", "data-timeline--positive", "data-timeline--information", "data-timeline--growing-button", "data-timeline--growing-scroll", "data-timeline--grouped", "data-timeline--collapsed-group", "data-timeline--horizontal", "data-timeline--horizontal-mixed-icons", "data-timeline--horizontal-growing", "data-timeline--horizontal-group", "data-timeline--horizontal-collapsed-group", "data-timeline--loading", "data-timeline--with-header", "data-timeline--custom-texts", "data-timeline--rtl"]
+        if (rule === "aria-required-children" && s2TimelineStories.includes(context.story)
+          && (!context.primary || context.story === "data-timeline--playground")) {
           const list = unique('.fiori-timeline__list[aria-live="polite"]')
           if (!list || actual !== list || !["list", "tree"].includes(list.getAttribute("role") ?? "") || !visible(list)) return false
           const images = [...list.querySelectorAll('.fiori-tli__icon-outer > [role="img"]')].filter(visible)
