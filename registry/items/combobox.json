@@ -8,20 +8,21 @@
     "@fiori/input",
     "@fiori/use-is-phone",
     "@fiori/responsive-popover",
-    "@fiori/button"
+    "@fiori/button",
+    "@fiori/locale"
   ],
   "description": "Fiori combo box: free-text field with type-ahead filtering, inline autocomplete and the SAP keyboard model.",
   "usage": {
     "summary": "Choose one suggested value by typing, with filtering and optional free-text entry.",
     "useWhen": [
-      "Let users find one suggested value by typing, typically across 20–200 options.",
+      "Let users find one suggested value by typing, typically across 20\u2013200 options.",
       "Accept a custom value alongside suggestions when the task permits free text.",
       "Keep selection in a field when one suggestion label is enough to identify the value.",
       "Choose filter for the supplied ComboBoxItem entries; onCommit receives text and onSelectionChange reports a matched item or null."
     ],
     "avoidWhen": [
       {
-        "when": "Choose one of 2–12 predefined options without typing or free text; sort alphabetically above 8. Use Input for text without suggestions.",
+        "when": "Choose one of 2\u201312 predefined options without typing or free text; sort alphabetically above 8. Use Input for text without suggestions.",
         "use": [
           "select",
           "input"

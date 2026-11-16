@@ -15,14 +15,14 @@ export const CB_GROUPS = [
 
 export default defineFixtures<Props>({
   name: "combobox",
-  cases: [
+  cases: ([
     { id: "combobox-empty", props: { placeholder: "Choose a country" } },
     { id: "combobox-value", props: { value: "Germany" } },
     ...states.map((valueState) => ({ id: `combobox-${valueState}`, props: { value: "Germany", valueState } })),
     { id: "combobox-disabled", props: { value: "Germany", disabled: true } },
     { id: "combobox-readonly", props: { value: "Germany", readOnly: true } },
     { id: "combobox-groups-open", props: { value: "Brazil", list: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "combobox-rtl" }] : [fixture]),
   react: ({ value, list, ...p }) => {
     const field = (
       <ComboBox wrapperClassName="w-(--w)" defaultValue={value} open={list || undefined} portal={!list} valueStateMessage={null} aria-label="Country" {...p}>

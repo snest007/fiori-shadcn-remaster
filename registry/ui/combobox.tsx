@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, collatorIncludes } from "@/lib/fiori-locale"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
 // UI5 2.28 ComboBoxPopoverTemplate.js renders an internal List (fastNavigation metadata).
@@ -13,7 +14,7 @@ import { ResponsivePopover, ResponsivePopoverAnchor, ResponsivePopoverContent } 
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 
 type ComboBoxFilter = "startsWithPerTerm" | "startsWith" | "contains" | "none"
 
@@ -73,6 +74,8 @@ type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue
   listLabel?: string
   /** Render the list in place instead of in a portal on document.body. */
   portal?: boolean
+  locale?: string
+  noDataText?: string
   wrapperClassName?: string
   /** Phone dialog title and action labels (UI5 ComboBoxPopoverTemplate). */
   dialogTitle?: string
@@ -89,10 +92,10 @@ const NO_AUTOCOMPLETE = new Set([
 ])
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-const filters: Record<ComboBoxFilter, (value: string, text: string) => boolean> = {
-  startsWithPerTerm: (v, t) => new RegExp(`(^|\\s)${escapeRegExp(v.toLowerCase())}`).test(t.toLowerCase()),
-  startsWith: (v, t) => t.toLowerCase().startsWith(v.toLowerCase()),
-  contains: (v, t) => t.toLowerCase().includes(v.toLowerCase()),
+const filters: Record<ComboBoxFilter, (value: string, text: string, locale: string | undefined) => boolean> = {
+  startsWithPerTerm: (v, text, locale) => text.split(/\s+/).some(term => collatorIncludes(term, v, locale, true)),
+  startsWith: (v, text, locale) => collatorIncludes(text, v, locale, true),
+  contains: (v, text, locale) => collatorIncludes(text, v, locale),
   none: () => true,
 }
 
@@ -118,9 +121,9 @@ function collectEntries(children: React.ReactNode, out: Entry[] = []) {
 }
 
 /** Bold the first word that starts with `match` (UI5's generateHighlightedMarkupFirstMatch). */
-function highlight(text: string, match: string) {
+function highlight(text: string, match: string, locale: string | undefined) {
   if (!match) return text
-  const i = text.toLowerCase().search(new RegExp(`(^|\\s)${escapeRegExp(match.toLowerCase())}`))
+  const i = (locale ? text.toLocaleLowerCase(locale) : text.toLowerCase()).search(new RegExp(`(^|\\s)${escapeRegExp((locale ? match.toLocaleLowerCase(locale) : match.toLowerCase()))}`))
   if (i === -1) return text
   const start = text[i] === " " ? i + 1 : i
   return (
@@ -140,6 +143,8 @@ function ComboBox({
   children,
   className,
   wrapperClassName,
+  locale: localeProp,
+  noDataText,
   value: valueProp,
   defaultValue = "",
   onValueChange,
@@ -152,12 +157,12 @@ function ComboBox({
   onOpenChange,
   valueState = "none",
   valueStateMessage,
-  arrowLabel = "Select Options",
-  listLabel = "Available Options",
+  arrowLabel: arrowLabelProp,
+  listLabel: listLabelProp,
   portal = true,
-  dialogTitle = "All Items",
-  okText = "OK",
-  cancelText = "Cancel",
+  dialogTitle: dialogTitleProp,
+  okText: okTextProp,
+  cancelText: cancelTextProp,
   disabled,
   readOnly,
   id,
@@ -170,6 +175,18 @@ function ComboBox({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: ComboBoxProps) {
+  const valueStateTexts = useValueStateTexts()
+
+  const { t, locale, localized } = useFioriLocale(localeProp)
+  const matchLocale = localized ? locale : undefined
+  const collator = localized ? new Intl.Collator(locale, { sensitivity: "base" }) : { compare: (a: string, b: string) => a.toLowerCase() === b.toLowerCase() ? 0 : 1 }
+  const arrowLabel = arrowLabelProp ?? t("INPUT_AVALIABLE_VALUES", "Select Options") // UI5 INPUT_AVALIABLE_VALUES
+  const okText = okTextProp ?? t("COMBOBOX_DIALOG_OK_BUTTON", "OK") // UI5 COMBOBOX_DIALOG_OK_BUTTON
+  const cancelText = cancelTextProp ?? t("COMBOBOX_DIALOG_CANCEL_BUTTON", "Cancel") // UI5 COMBOBOX_DIALOG_CANCEL_BUTTON
+
+  const listLabel = listLabelProp ?? t("COMBOBOX_AVAILABLE_OPTIONS", "Available Options")
+  const dialogTitle = dialogTitleProp ?? t("INPUT_SUGGESTIONS_TITLE", "All Items")
+  const emptyText = noDataText ?? (localized ? t("LIST_NO_DATA", "No data") : undefined) // OpenUI5 sap/m/messagebundle.properties LIST_NO_DATA; opt-in E5 extension.
   const phone = useIsPhone()
   const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
   const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
@@ -199,7 +216,7 @@ function ComboBox({
   const optionId = (i: number) => `${baseId}-option-${i}`
   const messageId = `${baseId}-vsm`
 
-  const visibleItems = open ? items.filter((i) => filters[filter](filterValue, i.text)) : items
+  const visibleItems = open ? items.filter((i) => filters[filter](filterValue, i.text, matchLocale)) : items
   // UI5 ComboBox.js/_filterItems places matching groups before standalone items.
   const orderedEntries = open ? [...entries.filter(isGroup), ...entries.filter((entry) => !isGroup(entry))] : entries
   const rowsFor = (shown: ComboBoxItemProps[], opened = open) => (opened ? [...entries.filter(isGroup), ...entries.filter((entry) => !isGroup(entry))] : entries).flatMap((entry): Entry[] => {
@@ -208,7 +225,7 @@ function ComboBox({
     return groupItems.length ? [...(entry.headerText ? [entry] : []), ...groupItems] : []
   })
   const visible = rowsFor(visibleItems)
-  const selected = visible.findIndex((i) => !isGroup(i) && i.text.toLowerCase() === value.toLowerCase())
+  const selected = visible.findIndex((i) => !isGroup(i) && collator.compare(i.text, value) === 0)
 
   const setValue = (v: string) => {
     if (valueProp === undefined) setUncontrolledValue(v)
@@ -233,13 +250,13 @@ function ComboBox({
   }
   /** Put `text` in the field and select it from `from` to the end (UI5's atomic value + selection). */
   const applyText = (text: string, typed: string) => {
-    const from = typed && text.toLowerCase().startsWith(typed.toLowerCase()) ? typed.length : 0
+    const from = typed && collatorIncludes(text, typed, matchLocale, true) ? typed.length : 0
     pendingSelection.current = [from, text.length]
     setValue(text)
   }
 
   // Selection changes are reported for the item whose text matches the value.
-  const selectedItem = items.find((i) => i.text.toLowerCase() === value.toLowerCase()) ?? null
+  const selectedItem = items.find((i) => collator.compare(i.text, value) === 0) ?? null
   const prevSelected = React.useRef(selectedItem)
   React.useEffect(() => {
     if (prevSelected.current?.text !== selectedItem?.text) {
@@ -317,7 +334,7 @@ function ComboBox({
     setOpen(true)
     if (phone) return
     const allRows = rowsFor(items, true)
-    const sel = allRows.findIndex((i) => !isGroup(i) && i.text.toLowerCase() === value.toLowerCase())
+    const sel = allRows.findIndex((i) => !isGroup(i) && collator.compare(i.text, value) === 0)
     if (sel >= 0) setActive(sel)
     else if (!value && items.length) {
       // UI5 ComboBox.js/_resetFilter + _keydown select the first non-group
@@ -347,7 +364,7 @@ function ComboBox({
   }
 
   const hasState = valueState !== "none"
-  const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
+  const message = valueStateMessage === undefined && hasState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
   const showHeader = open && showMessage && valueState !== "positive"
 
@@ -373,7 +390,7 @@ function ComboBox({
         if (event.target === event.currentTarget && event.key === " " && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) choose(i)
       } : undefined}
     >
-      <span className="fiori-combobox__item-text">{highlight(item.text, filterValue)}</span>
+      <span className="fiori-combobox__item-text">{highlight(item.text, filterValue, matchLocale)}</span>
       {item.additionalText && <span className="fiori-combobox__item-additional">{item.additionalText}</span>}
     </div>
   )
@@ -427,7 +444,7 @@ function ComboBox({
       }}
       className={phone ? undefined : cn(
         "fiori-popover fiori-combobox__popover z-50 flex max-h-(--radix-popover-content-available-height) min-w-(--radix-popover-trigger-width) max-w-[40rem] flex-col",
-        !visible.length && !showHeader && "hidden"
+        !visible.length && !showHeader && !emptyText && "hidden"
       )}
       {...phoneProps}
     >
@@ -437,7 +454,7 @@ function ComboBox({
           {message}
         </div>
       )}
-      {visible.length > 0 && (
+      {(visible.length > 0 || emptyText) && (
         <div
           ref={listRef}
           id={listId}
@@ -464,6 +481,7 @@ function ComboBox({
             if (next >= 0) { event.preventDefault(); rows[next]?.focus(); rows[next]?.scrollIntoView({ block: "nearest" }) }
           } : undefined}
         >
+          {!visible.length && emptyText && <div data-slot="combobox-no-data">{emptyText}</div>}
           {orderedEntries.map((entry, index) => {
             if (!isGroup(entry)) return visible.includes(entry) ? renderItem(entry, visible.indexOf(entry)) : null
             const groupItems = entry.items.filter((item) => visible.includes(item))
@@ -521,11 +539,11 @@ function ComboBox({
               setFilterValue(typed)
               setActive(-1)
               let next = typed
-              const matches = items.filter((i) => filters[filter](typed, i.text))
+              const matches = items.filter((i) => filters[filter](typed, i.text, matchLocale))
               const composing = (e.nativeEvent as InputEvent).isComposing
               if (!noTypeahead && !composing && typed && !NO_AUTOCOMPLETE.has(inputType)) {
-                const starts = rowsFor(matches, true).filter((i): i is ComboBoxItemProps => !isGroup(i) && i.text.toLowerCase().startsWith(typed.toLowerCase()))
-                const item = starts.find((i) => i.text.toLowerCase() === typed.toLowerCase()) ?? starts[0]
+                const starts = rowsFor(matches, true).filter((i): i is ComboBoxItemProps => !isGroup(i) && collatorIncludes(i.text, typed, matchLocale, true))
+                const item = starts.find((i) => collator.compare(i.text, typed) === 0) ?? starts[0]
                 if (item) {
                   next = item.text
                   pendingSelection.current = [typed.length, item.text.length]
