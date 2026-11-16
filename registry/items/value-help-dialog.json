@@ -11,5 +11,41 @@
     "@fiori/tabs",
     "@fiori/use-is-phone"
   ],
-  "description": "Fiori value help dialog (composite after the Fiori design guidelines): Search and Select with filters and a result table, Define Conditions, selected items and conditions as tokens, single/multi selection."
+  "description": "Fiori value help dialog (composite after the Fiori design guidelines): Search and Select with filters and a result table, Define Conditions, selected items and conditions as tokens, single/multi selection.",
+  "usage": {
+    "summary": "Find business values through a searchable result table or define filter conditions in a dialog.",
+    "useWhen": [
+      "Search business keys and descriptions across columns; identify returned keys with keyField and optional descriptionField.",
+      "Select several values with selectionMode=\"multiple\", or confirm one row immediately with selectionMode=\"single\".",
+      "Define operators and ranges with supportConditions in multiple mode; disable it for selection-only tasks.",
+      "Supply filters for multiattribute search, or handle onSearch and pass updated items for server-side results."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Pick one value from a short predefined list without inspecting additional attributes.",
+        "use": [
+          "select"
+        ]
+      },
+      {
+        "when": "Choose one value from suggestions or accept free text without a separate search task.",
+        "use": [
+          "combobox"
+        ]
+      },
+      {
+        "when": "Select several values from a manageable predefined list without conditions.",
+        "use": [
+          "multi-combobox"
+        ]
+      },
+      {
+        "when": "Enter several tokens without needing a search dialog.",
+        "use": [
+          "multi-input"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

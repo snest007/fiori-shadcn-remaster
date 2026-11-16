@@ -77,6 +77,12 @@ Fiori behaviour this library reproduces (beyond appearance):
 - **F6 navigation**: install `@fiori/f6-navigation` and call `useF6Navigation()` or `installF6Navigation()` to enable page-group navigation. The five main floorplan blocks opt in; Popup scopes keep navigation inside the open surface.
 - **Chinese text**: the 72 font has no CJK glyphs, so the font stack falls back to PingFang SC / Microsoft YaHei / Noto Sans CJK.
 
+## Use with coding agents
+
+Copy `skills/shadcn-fiori` into your project's `.claude/skills/` or `.agents/skills/` directory. The skill helps agents
+choose components and floorplans using this registry's APIs. Its category references are generated from the same item
+metadata as the docs and registry; run `pnpm skill:build` after editing usage guidance.
+
 ## Develop
 
 ```bash

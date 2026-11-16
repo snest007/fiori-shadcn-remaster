@@ -1,5 +1,6 @@
 // Writes registry.json (the shadcn registry manifest). Kept as a script so item lists stay in one place.
-import { readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { readFileSync, writeFileSync } from "node:fs"
+import { componentOwners, itemMetadata, usageMarkdown, validateUsage } from "./skill/usage.mjs"
 
 // Where public/r is served. Consumers' components.json gets "@fiori" -> this URL on `shadcn init`.
 const REGISTRY_URL = (process.env.REGISTRY_URL ?? "http://localhost:4173/r").replace(/\/$/, "")
@@ -18,21 +19,22 @@ const ui = (name, extra = {}) => ({
   registryDependencies: ["@fiori/fiori-theme", ...(extra.registryDependencies ?? [])],
   dependencies: extra.dependencies ?? [],
   files: [...(extra.type === "registry:lib" ? [] : [{ path: `registry/ui/${name}.tsx`, type: "registry:ui" }]), ...(extra.files ?? [])],
+  ...(extra.usage ? { meta: { usage: extra.usage }, docs: usageMarkdown(extra.usage) } : {}),
 })
-const components = readdirSync("registry/items")
-  .filter((f) => f.endsWith(".json"))
-  .map((f) => f.replace(/\.json$/, ""))
-  .sort()
-  .map((name) => ui(name, JSON.parse(readFileSync(`registry/items/${name}.json`, "utf8"))))
+const componentMetadata = itemMetadata("registry/items")
+const blockMetadata = itemMetadata("registry/block-items").map((item) => ({ ...item, type: "registry:block" }))
+// SAP illustrations: written by scripts/generate-illustrations.mjs (illustrations-core + one item each).
+const illustrations = JSON.parse(readFileSync("registry/lib/fiori-illustrations/registry-items.json", "utf8"))
+validateUsage([
+  ...componentMetadata.map((item) => ({ ...item, type: item.type ?? "registry:ui" })), ...blockMetadata, ...illustrations,
+  { name: "fiori" }, { name: "fiori-theme" }, { name: "icons" },
+], componentOwners(process.cwd(), componentMetadata), { requireUsage: process.argv.includes("--require-usage") })
+const components = componentMetadata.map((extra) => ui(extra.name, extra))
 
 // Blocks (floorplans / page templates): registry/blocks/<name>.tsx + registry/block-items/<name>.json
 // ({ title, description, dependencies?, registryDependencies?, files? }). Installed into components/.
-const blocks = readdirSync("registry/block-items")
-  .filter((f) => f.endsWith(".json"))
-  .map((f) => f.replace(/\.json$/, ""))
-  .sort()
-  .map((name) => {
-    const extra = JSON.parse(readFileSync(`registry/block-items/${name}.json`, "utf8"))
+const blocks = blockMetadata.map((extra) => {
+    const name = extra.name
     return {
       name,
       type: "registry:block",
@@ -42,11 +44,9 @@ const blocks = readdirSync("registry/block-items")
       dependencies: extra.dependencies ?? [],
       files: [{ path: `registry/blocks/${name}.tsx`, type: "registry:block" }, ...(extra.files ?? [])],
       categories: extra.categories ?? ["floorplan"],
+      ...(extra.usage ? { meta: { usage: extra.usage }, docs: usageMarkdown(extra.usage) } : {}),
     }
   })
-
-// SAP illustrations: written by scripts/generate-illustrations.mjs (illustrations-core + one item each).
-const illustrations = JSON.parse(readFileSync("registry/lib/fiori-illustrations/registry-items.json", "utf8"))
 
 // Blocks install into components/<name>.tsx next to components/ui/; a block named like a component would
 // overwrite it (or vice versa), so names must be unique across both.
@@ -109,5 +109,7 @@ const registry = {
   ],
 }
 
+// shadcn 4.23's registryItemSchema preserves both `docs` and `meta` in public/r (covered by
+// usage-guidance.spec.ts). No post-processing is needed; the CLI installs the original file payloads.
 writeFileSync("registry.json", JSON.stringify(registry, null, 2) + "\n")
 console.log(`registry.json written (${registry.items.length} items)`)

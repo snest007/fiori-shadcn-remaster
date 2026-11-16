@@ -10,5 +10,40 @@
     "@fiori/responsive-popover",
     "@fiori/button"
   ],
-  "description": "Fiori combo box: free-text field with type-ahead filtering, inline autocomplete and the SAP keyboard model."
+  "description": "Fiori combo box: free-text field with type-ahead filtering, inline autocomplete and the SAP keyboard model.",
+  "usage": {
+    "summary": "Choose one suggested value by typing, with filtering and optional free-text entry.",
+    "useWhen": [
+      "Narrow a single-value choice by typing; choose the filter strategy for the supplied ComboBoxItem entries.",
+      "Accept a custom value as well as suggestions; handle committed text with onCommit.",
+      "Use onSelectionChange to distinguish a matched item from free text, which reports null."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Require one short predefined choice and disallow free-text entry.",
+        "use": [
+          "select"
+        ]
+      },
+      {
+        "when": "Select multiple predefined options.",
+        "use": [
+          "multi-combobox"
+        ]
+      },
+      {
+        "when": "Create several free-form or caller-validated tokens.",
+        "use": [
+          "multi-input"
+        ]
+      },
+      {
+        "when": "Find a business value through several searchable attributes or enter conditions.",
+        "use": [
+          "value-help-dialog"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

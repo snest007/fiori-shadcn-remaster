@@ -13,5 +13,46 @@
       "path": "registry/lib/fiori-drag-and-drop.ts",
       "type": "registry:lib"
     }
-  ]
+  ],
+  "usage": {
+    "summary": "Compose responsive rows and cells when users compare and act on business items.",
+    "useWhen": [
+      "Show several attributes per item and keep related values aligned under column headers.",
+      "Compose custom cell controls with TableRow and TableCell; use overflowMode=\"popin\" to move secondary columns below each row on narrow screens.",
+      "Enable selectionMode=\"single\" or \"multi\" for item actions, and use growing=\"button\" or \"scroll\" with onLoadMore for incremental loading."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Generate columns from data, offer built-in sorting, or render a large row set with virtualization.",
+        "use": [
+          "data-table"
+        ]
+      },
+      {
+        "when": "Show a few attributes per item without comparing columns.",
+        "use": [
+          "list"
+        ]
+      },
+      {
+        "when": "Expose expandable parent-child relationships.",
+        "use": [
+          "tree"
+        ]
+      },
+      {
+        "when": "Choose one value from a short predefined list without showing row details.",
+        "use": [
+          "select"
+        ]
+      },
+      {
+        "when": "Collect fields for editing one object rather than comparing independent items.",
+        "use": [
+          "form"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

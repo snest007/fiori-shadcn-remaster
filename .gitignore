@@ -13,3 +13,4 @@ sapui5/dist/
 sapui5/.ui5/
 .integration/
 .worktrees/
+.ref/
