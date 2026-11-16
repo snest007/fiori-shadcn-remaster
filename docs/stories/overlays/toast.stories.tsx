@@ -19,7 +19,7 @@ const meta = {
 } satisfies Meta<typeof Toast>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const Trigger: Story = {}
 export const Open: Story = { args: { open: true, duration: Infinity } }
 export const Wrapping: Story = { args: { open: true, duration: Infinity, children: "The changes were saved and all purchase order approvers have been notified.", className: "max-w-xs" } }

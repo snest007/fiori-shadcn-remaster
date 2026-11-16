@@ -17,27 +17,27 @@ const filters: FilterDefinition[] = [
 const textDefaults = [
   {
     "prop": "texts.title",
-    "key": "filterbar.ADAPT, filterbar.ADAPT_TITLE",
+    "key": "filterbar.ADAPT_TITLE",
     "value": "Adapt Filters"
   },
   {
     "prop": "texts.reset",
-    "key": "p13nDialog.RESET, p13n.POPUP_RESET",
+    "key": "p13n.POPUP_RESET",
     "value": "Reset"
   },
   {
     "prop": "texts.ok",
-    "key": "p13nDialog.OK, p13n.POPUP_OK",
+    "key": "p13n.POPUP_OK",
     "value": "OK"
   },
   {
     "prop": "texts.cancel",
-    "key": "p13nDialog.CANCEL, p13n.POPUP_CANCEL",
+    "key": "p13n.POPUP_CANCEL",
     "value": "Cancel"
   },
   {
     "prop": "texts.warning",
-    "key": "Application text; no matching component UI5 default",
+    "key": "MSGBOX_TITLE_WARNING (OpenUI5 MessageBox)",
     "value": "Warning"
   },
   {
@@ -52,17 +52,17 @@ const textDefaults = [
   },
   {
     "prop": "texts.group",
-    "key": "p13nDialog.TAB_Group, adaptFiltersPanel.GROUP, p13n.DEFAULT_TITLE_GROUP",
+    "key": "adaptFiltersPanel.GROUP",
     "value": "Group"
   },
   {
     "prop": "texts.listView",
-    "key": "filterbar.ADAPT_LIST_VIEW",
+    "key": "Application default; also in OpenUI5 bundle: filterbar.ADAPT_LIST_VIEW",
     "value": "List View"
   },
   {
     "prop": "texts.groupView",
-    "key": "filterbar.ADAPT_GROUP_VIEW",
+    "key": "Application default; also in OpenUI5 bundle: filterbar.ADAPT_GROUP_VIEW",
     "value": "Group View"
   },
   {
@@ -82,7 +82,7 @@ const textDefaults = [
   },
   {
     "prop": "texts.sort",
-    "key": "p13nDialog.TAB_Sort, adaptFiltersPanel.VIEW_MODE_SORT, p13n.DEFAULT_TITLE_SORT",
+    "key": "adaptFiltersPanel.VIEW_MODE_SORT",
     "value": "Sort"
   },
   {
@@ -117,17 +117,17 @@ const textDefaults = [
   },
   {
     "prop": "texts.showFilter",
-    "key": "Application text; no matching component UI5 default",
+    "key": "Application wording; UI5 adaptFiltersPanel.ACTION_VISIBILITY_SHOW defaults to \"Show\"",
     "value": "Show on Filter Bar"
   },
   {
     "prop": "texts.hideFilter",
-    "key": "Application text; no matching component UI5 default",
+    "key": "Application wording; UI5 adaptFiltersPanel.ACTION_VISIBILITY_SHOW defaults to \"Show\"",
     "value": "Hide on Filter Bar"
   },
   {
     "prop": "texts.removeFilter",
-    "key": "Application text; no matching component UI5 default",
+    "key": "Application wording; UI5 adaptFiltersPanel.ACTION_DELETE defaults to \"Remove\"",
     "value": "Remove Filter"
   },
   {
@@ -137,22 +137,22 @@ const textDefaults = [
   },
   {
     "prop": "texts.moveTop",
-    "key": "filterbar.ADAPT_MOVE_TO_TOP, p13nDialog.MOVE_TO_TOP, p13n.MOVE_TO_TOP",
+    "key": "p13n.MOVE_TO_TOP",
     "value": "Move to Top"
   },
   {
     "prop": "texts.moveUp",
-    "key": "filterbar.ADAPT_MOVE_UP, p13nDialog.MOVE_UP, p13n.MOVE_UP",
+    "key": "p13n.MOVE_UP",
     "value": "Move Up"
   },
   {
     "prop": "texts.moveDown",
-    "key": "filterbar.ADAPT_MOVE_DOWN, p13nDialog.MOVE_DOWN, p13n.MOVE_DOWN",
+    "key": "p13n.MOVE_DOWN",
     "value": "Move Down"
   },
   {
     "prop": "texts.moveBottom",
-    "key": "filterbar.ADAPT_MOVE_TO_BOTTOM, p13nDialog.MOVE_TO_BOTTOM, p13n.MOVE_TO_BOTTOM",
+    "key": "p13n.MOVE_TO_BOTTOM",
     "value": "Move to Bottom"
   },
   {
@@ -162,7 +162,7 @@ const textDefaults = [
   },
   {
     "prop": "texts.filter",
-    "key": "filterbar.ADAPT_COLUMN_DESCRIPTION, p13nDialog.LIST_VIEW_COLUMN, p13nDialog.TAB_Filter, adaptFiltersPanel.FILTER_BUTTON, p13n.DEFAULT_TITLE_FILTER",
+    "key": "Application default; also in OpenUI5 bundle: adaptFiltersPanel.FILTER_BUTTON",
     "value": "Filter"
   },
   {
@@ -172,42 +172,42 @@ const textDefaults = [
   },
   {
     "prop": "texts.visible",
-    "key": "p13nDialog.GROUPMODE_VISIBLE",
+    "key": "Application default; also in OpenUI5 bundle: p13nDialog.GROUPMODE_VISIBLE",
     "value": "Visible"
   },
   {
     "prop": "texts.active",
-    "key": "p13nDialog.GROUPMODE_ACTIVE, p13nDialog.LIST_VIEW_ACTIVE",
+    "key": "Application default; also in OpenUI5 bundle: p13nDialog.GROUPMODE_ACTIVE",
     "value": "Active"
   },
   {
     "prop": "texts.visibleActive",
-    "key": "p13nDialog.GROUPMODE_VISIBLE_ACTIVE",
+    "key": "Application default; also in OpenUI5 bundle: p13nDialog.GROUPMODE_VISIBLE_ACTIVE",
     "value": "Visible and Active"
   },
   {
     "prop": "texts.all",
-    "key": "p13nDialog.GROUPMODE_ALL",
+    "key": "Application default; also in OpenUI5 bundle: p13nDialog.GROUPMODE_ALL",
     "value": "All"
   },
   {
     "prop": "texts.mandatory",
-    "key": "p13nDialog.GROUPMODE_MANDATORY",
+    "key": "Application default; also in OpenUI5 bundle: p13nDialog.GROUPMODE_MANDATORY",
     "value": "Mandatory"
   },
   {
     "prop": "texts.showValues",
-    "key": "filterbar.ADAPT_SHOW_VALUE",
+    "key": "Application default; also in OpenUI5 bundle: filterbar.ADAPT_SHOW_VALUE",
     "value": "Show Values"
   },
   {
     "prop": "texts.hideValues",
-    "key": "filterbar.ADAPT_HIDE_VALUE",
+    "key": "Application default; also in OpenUI5 bundle: filterbar.ADAPT_HIDE_VALUE",
     "value": "Hide Values"
   },
   {
     "prop": "texts.basic",
-    "key": "p13nDialog.FILTER_DEFAULT_GROUP, adaptFiltersPanel.GROUP_DEFAULT, p13n.BASIC_DEFAULT_GROUP",
+    "key": "adaptFiltersPanel.GROUP_DEFAULT",
     "value": "Basic"
   },
   {
@@ -227,7 +227,7 @@ const textDefaults = [
   },
   {
     "prop": "texts.added",
-    "key": "p13nDialog.ADAPT_FILTER_ADD_ANNOUNCE, p13n.FILTERPANEL_ADDINGFILTER_ANNOUNCEMENT",
+    "key": "p13nDialog.ADAPT_FILTER_ADD_ANNOUNCE",
     "value": "Filter {0} added"
   },
   {
@@ -272,22 +272,22 @@ const textDefaults = [
   },
   {
     "prop": "texts.searchUpdate",
-    "key": "Application text; no matching component UI5 default",
+    "key": "Application fragment; UI5 table.ANNOUNCEMENT_TABLE_UPDATED_* supplies complete sentences",
     "value": "Table {0} has been updated. {1}"
   },
   {
     "prop": "texts.oneItemAvailable",
-    "key": "Application text; no matching component UI5 default",
+    "key": "Application fragment; UI5 table.ANNOUNCEMENT_TABLE_UPDATED_* supplies complete sentences",
     "value": "1 item available."
   },
   {
     "prop": "texts.itemsAvailable",
-    "key": "Application text; no matching component UI5 default",
+    "key": "Application fragment; UI5 table.ANNOUNCEMENT_TABLE_UPDATED_* supplies complete sentences",
     "value": "{0} items available."
   },
   {
     "prop": "texts.noItemsAvailable",
-    "key": "Application text; no matching component UI5 default",
+    "key": "Application fragment; UI5 table.ANNOUNCEMENT_TABLE_UPDATED_* supplies complete sentences",
     "value": "No items available."
   },
   {
@@ -297,17 +297,17 @@ const textDefaults = [
   },
   {
     "prop": "texts.resize",
-    "key": "Application text; no matching component UI5 default",
+    "key": "DIALOG_DRAG_AND_RESIZE_HANDLE_ARIA_LABEL",
     "value": "Drag and resize dialog"
   },
   {
     "prop": "texts.handleRoleDescription",
-    "key": "Application text; no matching component UI5 default",
+    "key": "DIALOG_HANDLE_ARIA_ROLEDESCRIPTION",
     "value": "Handle"
   },
   {
     "prop": "texts.dragResizeHint",
-    "key": "Application text; no matching component UI5 default",
+    "key": "Application wording; UI5 Dialog uses DIALOG_ARIA_DESCRIBEDBY_DRAGGABLE_RESIZABLE",
     "value": "Use Arrow keys to move, Shift+Arrow keys to resize"
   },
   {
@@ -320,7 +320,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "adapt-filters-dialog", component: AdaptFiltersDialog })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "800px" } } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "800px" } } },
   args: { open: false, filters, values: initialValues, visibleKeys: ["name", "country"], initialValues, initialVisibleKeys: ["name", "country"], p13nMode: ["item", "value"], defaultView: "list", defaultMode: "edit", defaultSearch: "", resetEnabled: false, modal: true, onOpenChange: fn(), onApply: fn(), onReset: fn() },
   argTypes: { ...base.argTypes, open: { control: "boolean" }, values: { control: "object" }, visibleKeys: { control: "object" }, initialValues: { control: "object" }, initialVisibleKeys: { control: "object" }, p13nMode: { control: "check", options: ["item", "value"] }, defaultView: { control: "inline-radio", options: ["list", "group"] }, defaultMode: { control: "inline-radio", options: ["edit", "sort"] }, defaultSearch: { control: "text" }, resetEnabled: { control: "boolean" }, modal: { control: "boolean" }, contentWidth: { control: "text" }, contentHeight: { control: "text" }, texts: { control: "object" }, filters: { control: false }, defaultResetConfirmation: { control: "boolean" }, portal: { control: false }, onOpenChange: { control: false }, onApply: { control: false }, onReset: { control: false } },
   render: function ProductFilters(args: AdaptFiltersDialogProps) {
@@ -330,7 +330,7 @@ const meta = {
 } satisfies Meta<typeof AdaptFiltersDialog>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const Trigger: Story = {}
 export const Open: Story = { args: { open: true } }
 export const ListEdit: Story = { args: { open: true } }

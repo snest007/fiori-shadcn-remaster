@@ -89,7 +89,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "view-settings-dialog", component: ViewSettingsDialog })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "650px" } } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "650px" } } },
   args: { open: false, sortItems: [{ text: "Product", selected: true }, { text: "Supplier" }, { text: "Price" }], filterItems: [{ text: "Supplier", values: [{ text: "Northwind Traders", selected: true }, { text: "Contoso" }] }, { text: "Availability", values: [{ text: "In stock" }, { text: "Preorder" }] }], groupItems: [{ text: "Supplier", selected: true }, { text: "Availability" }], sortDescending: false, groupDescending: false, resetEnabled: false, onOpenChange: fn(), onConfirm: fn(), onCancel: fn(), onReset: fn() },
   argTypes: { ...base.argTypes, open: { control: "boolean" }, sortItems: { control: "object" }, filterItems: { control: "object" }, groupItems: { control: "object" }, sortDescending: { control: "boolean" }, groupDescending: { control: "boolean" }, resetEnabled: { control: "boolean" }, texts: { control: "object" }, portal: { control: false }, onOpenChange: { control: false }, onConfirm: { control: false }, onCancel: { control: false }, onReset: { control: false } },
   render: function ProductViewSettings(args: ViewSettingsDialogProps) {
@@ -100,7 +100,7 @@ const meta = {
 } satisfies Meta<typeof ViewSettingsDialog>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const Trigger: Story = {}
 export const Open: Story = { args: { open: true } }
 export const SortFilterAndGroup: Story = { args: { open: true } }

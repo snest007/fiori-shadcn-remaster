@@ -47,7 +47,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "user-menu", component: UserMenu })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "620px" } } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "620px" } } },
   args: { open: false, account: { titleText: "John Doe", subtitleText: "john.doe@example.com", avatarInitials: "JD" }, showManageAccount: true, avatarInteractive: false, icons: true, hideArrow: false, side: "bottom", align: "start", onOpenChange: fn(), onAvatarClick: fn(), onManageAccountClick: fn(), onSignOutClick: fn(), onItemClick: fn() },
   argTypes: { ...base.argTypes, open: { control: "boolean" }, account: { control: "object" }, showManageAccount: { control: "boolean" }, avatarInteractive: { control: "boolean" }, icons: { control: "boolean" }, hideArrow: { control: "boolean" }, side: { control: "select", options: ["top", "right", "bottom", "left"] }, align: { control: "inline-radio", options: ["start", "center", "end"] }, texts: { control: "object" }, opener: { control: false }, infoArea: { control: false }, footer: { control: false }, onOpenChange: { control: false }, onAvatarClick: { control: false }, onManageAccountClick: { control: false }, onSignOutClick: { control: false }, onItemClick: { control: false } },
   render: function AccountMenu(args: Args) {
@@ -60,7 +60,7 @@ const meta = {
 } satisfies Meta<Args>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const Trigger: Story = {}
 export const Open: Story = { args: { open: true } }
 export const Plain: Story = { args: { open: true, icons: false, showManageAccount: false, account: { titleText: "John Doe", avatarInitials: "JD" } } }

@@ -171,7 +171,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "value-help-dialog", component: ValueHelpDialog })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "800px" } } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "800px" } } },
   args: { open: false, title: "Products", columns, items: products, keyField: "id", descriptionField: "name", selectionMode: "multiple", supportConditions: true, filters: columns, defaultValue: { keys: ["HT1000"], conditions: [] }, onOpenChange: fn(), onSearch: fn(), onConfirm: fn(), onCancel: fn() },
   argTypes: { ...base.argTypes, open: { control: "boolean" }, title: { control: "text" }, columns: { control: "object" }, items: { control: "object" }, keyField: { control: "text" }, descriptionField: { control: "text" }, selectionMode: { control: "inline-radio", options: ["single", "multiple"] }, supportConditions: { control: "boolean" }, conditionLabel: { control: "text" }, filters: { control: "object" }, operators: { control: "object" }, defaultValue: { control: "object" }, texts: { control: "object" }, operatorTexts: { control: "object" }, portal: { control: false }, onOpenChange: { control: false }, onSearch: { control: false }, onConfirm: { control: false }, onCancel: { control: false } },
   render: function ProductValueHelp(args: ValueHelpDialogProps) {
@@ -183,7 +183,7 @@ const meta = {
 } satisfies Meta<typeof ValueHelpDialog>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const Trigger: Story = {}
 export const Open: Story = { args: { open: true } }
 export const MultipleSelection: Story = { args: { open: true, defaultValue: { keys: ["HT1000", "HT1002"], conditions: [{ operator: "StartsWith", values: ["HT"] }, { operator: "Contains", values: ["100"] }] } } }

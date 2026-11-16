@@ -26,7 +26,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "busy-indicator", component: BusyIndicator })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
   args: { active: false, delay: 0, size: "M", textPlacement: "bottom" },
   argTypes: { ...base.argTypes, active: { control: "boolean" }, delay: { control: "number" }, size: { control: "select", options: ["S", "M", "L"] }, text: { control: "text" }, title: { control: "text" }, textPlacement: { control: "inline-radio", options: ["top", "bottom"] } },
   render: function LoadingArea(args) { const [, updateArgs] = useArgs(); return <div className="grid gap-3"><Button onClick={() => updateArgs({ active: !args.active })}>{args.active ? "Stop loading" : "Load orders"}</Button><BusyIndicator {...args}><div className="max-w-sm p-4"><Text>Purchase order details remain visible while loading.</Text></div></BusyIndicator></div> },

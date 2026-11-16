@@ -13,7 +13,7 @@ import { fioriMeta } from "../_lib/meta"
 const textDefaults = [
   {
     "prop": "Tag.tagText",
-    "value": "Tag + state (Error / Warning / Success / Information)",
+    "value": "Tag (neutral/set1/set2); Tag Error / Tag Warning / Tag Success / Tag Information",
     "key": "TAG_DESCRIPTION_TAG, TAG_ERROR, TAG_WARNING, TAG_SUCCESS, TAG_INFORMATION"
   },
   {
@@ -26,7 +26,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "tag", component: Tag })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
   args: { children: "In review", design: "neutral", colorScheme: 1, size: "S", wrappingType: "normal", hideStateIcon: false, interactive: false, onClick: fn() },
   argTypes: { ...base.argTypes, children: { control: "text", table: { disable: false } }, design: { control: "select", options: ["neutral", "positive", "negative", "critical", "information", "set1", "set2"] }, colorScheme: { control: "select", options: [1,2,3,4,5,6,7,8,9,10] }, size: { control: "inline-radio", options: ["S", "L"] }, wrappingType: { control: "inline-radio", options: ["normal", "none"] }, hideStateIcon: { control: "boolean" }, interactive: { control: "boolean" }, tagText: { control: "text" }, roleDescription: { control: "text" }, icon: { control: false }, onClick: { control: false } },
   render: function StatusTag(args) { const [count, setCount] = React.useState(0); return <div className="grid max-w-xs gap-2"><Tag {...args} onClick={(event) => { args.onClick?.(event); setCount((value) => value + 1) }} />{args.interactive && <output>Opened {count} times</output>}</div> },

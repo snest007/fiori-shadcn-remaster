@@ -15,7 +15,7 @@ const failedPicture = "data:image/png;base64,bm90LWEtcGljdHVyZQ=="
 type Args = MediaGalleryProps & { count: number; selectedIndex: number; disabledIndex: number; hiddenIndex: number; itemLayout: "Square" | "Wide"; thumbnails: boolean; video: boolean; width: number; height: number; contentless: boolean; siblingSlot: "none" | "content" | "thumbnail"; recoverySlot: "none" | "content" | "thumbnail"; removeFailure: boolean; mixedLayout: boolean }
 const textDefaults = [
   {
-    "prop": "MediaGallery.overflowText",
+    "prop": "MediaGallery.overflowText(count)",
     "key": "Application text; UI5 builds \"+\" + count",
     "value": "+{0}"
   },
@@ -48,7 +48,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "media-gallery", component: MediaGallery })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
   args: { accessibleName: "Product pictures", layout: "Horizontal", menuHorizontalAlign: "Left", menuVerticalAlign: "Bottom", showAllThumbnails: false, interactiveDisplayArea: false, count: 4, selectedIndex: 0, disabledIndex: -1, hiddenIndex: -1, itemLayout: "Square", thumbnails: false, video: false, width: 640, height: 416, contentless: false, siblingSlot: "none", recoverySlot: "none", removeFailure: false, mixedLayout: false, onSelectionChange: fn(), onOverflowClick: fn(), onDisplayAreaClick: fn() },
   argTypes: { ...base.argTypes, accessibleName: { control: "text" }, layout: { control: "select", options: ["Auto", "Horizontal", "Vertical"] }, menuHorizontalAlign: { control: "inline-radio", options: ["Left", "Right"] }, menuVerticalAlign: { control: "inline-radio", options: ["Top", "Bottom"] }, showAllThumbnails: { control: "boolean" }, interactiveDisplayArea: { control: "boolean" }, count: { control: "number" }, selectedIndex: { control: "number" }, disabledIndex: { control: "number" }, hiddenIndex: { control: "number" }, itemLayout: { control: "inline-radio", options: ["Square", "Wide"] }, thumbnails: { control: "boolean" }, video: { control: "boolean" }, width: { control: "number" }, height: { control: "number" }, contentless: { control: "boolean" }, siblingSlot: { control: "select", options: ["none", "content", "thumbnail"] }, recoverySlot: { control: "select", options: ["none", "content", "thumbnail"] }, removeFailure: { control: "boolean" }, mixedLayout: { control: "boolean" }, carouselProps: { control: "object" }, overflowText: { control: false }, onSelectionChange: { control: false }, onOverflowClick: { control: false }, onDisplayAreaClick: { control: false } },
   render: function ProductMedia(args: Args) {

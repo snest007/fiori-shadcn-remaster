@@ -21,7 +21,7 @@ const textDefaults = [
     "value": "Card Header"
   },
   {
-    "prop": "CardHeader (interactive).roleDescription",
+    "prop": "CardHeader.roleDescription (interactive=true)",
     "key": "ARIA_ROLEDESCRIPTION_INTERACTIVE_CARD_HEADER",
     "value": "Interactive Card Header"
   }
@@ -30,7 +30,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "card", component: Card })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
   args: { accessibleName: "Quarterly sales", titleText: "Quarterly Sales", subtitleText: "Europe, Middle East and Africa", additionalText: "3 of 10", interactive: false, titleLevel: 2, avatarKind: "none", action: false, showHeader: true, showContent: true, onHeaderClick: fn() },
   argTypes: { ...base.argTypes, accessibleName: { control: "text" }, titleText: { control: "text" }, subtitleText: { control: "text" }, additionalText: { control: "text" }, interactive: { control: "boolean" }, titleLevel: { control: "select", options: [1,2,3,4,5,6] }, roleDescription: { control: "text" }, avatarKind: { control: "select", options: ["none", "avatar", "icon"] }, action: { control: "boolean" }, showHeader: { control: "boolean" }, showContent: { control: "boolean" }, onHeaderClick: { control: false } },
   render: function SalesCard(args: Args) {

@@ -15,8 +15,8 @@ type Args = AvatarProps & { groupType: "none" | "group" | "individual"; count: n
 const textDefaults = [
   {
     "prop": "Avatar.accessibleName",
-    "key": "Application text; no matching component UI5 default",
-    "value": "Avatar {initials}"
+    "key": "AVATAR_TOOLTIP (prefix; initials appended)",
+    "value": "Avatar, or Avatar {initials}"
   },
   {
     "prop": "AvatarGroup.texts.groupLabel",
@@ -29,7 +29,7 @@ const textDefaults = [
     "value": "Individual avatars."
   },
   {
-    "prop": "AvatarGroup.texts.displayedHiddenLabel",
+    "prop": "AvatarGroup.texts.displayedHiddenLabel(displayed, hidden)",
     "key": "AVATAR_GROUP_DISPLAYED_HIDDEN_LABEL",
     "value": "{0} displayed, {1} hidden."
   },
@@ -44,16 +44,16 @@ const textDefaults = [
     "value": "Press ARROW keys to move."
   },
   {
-    "prop": "AvatarGroup.texts.overflowButtonText",
-    "key": "Application text; no matching component UI5 default",
-    "value": "+{hidden}, capped at 99"
+    "prop": "AvatarGroup.texts.overflowButtonText(hidden)",
+    "key": "UI5 AvatarGroup.js _overflowButtonText (count expression; no i18n key)",
+    "value": "+min(99, hidden)"
   }
 ]
 
 const base = fioriMeta({ name: "avatar", component: Avatar })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
   args: { size: "S", shape: "circle", colorScheme: "auto", initials: "JD", interactive: false, disabled: false, mode: "image", accessibleName: "John Doe", groupType: "none", count: 6, narrow: true, customOverflow: false, onClick: fn(), onGroupClick: fn(), onOverflowClick: fn() },
   argTypes: { ...base.argTypes, size: { control: "select", options: ["XS", "S", "M", "L", "XL"] }, shape: { control: "inline-radio", options: ["circle", "square"] }, colorScheme: { control: "select", options: ["auto", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "accent7", "accent8", "accent9", "accent10", "placeholder", "transparent"] }, initials: { control: "text" }, src: { control: "text" }, alt: { control: "text" }, accessibleName: { control: "text" }, interactive: { control: "boolean" }, disabled: { control: "boolean" }, mode: { control: "inline-radio", options: ["image", "decorative"] }, groupType: { control: "select", options: ["none", "group", "individual"] }, count: { control: "number" }, narrow: { control: "boolean" }, customOverflow: { control: "boolean" }, groupTexts: { control: false }, icon: { control: false }, fallbackIcon: { control: false }, badge: { control: false }, onClick: { control: false }, onGroupClick: { control: false }, onOverflowClick: { control: false } },
   render: function TeamAvatar(args: Args) {

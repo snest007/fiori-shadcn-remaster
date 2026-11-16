@@ -17,25 +17,25 @@ type Args = IllustratedMessageProps & { illustrationName: string; actions: boole
 const textDefaults = [
   {
     "prop": "IllustratedMessage.titleText",
-    "key": "Application text; no matching component UI5 default",
-    "value": "The selected illustration’s UI5 English title"
+    "key": "Selected illustration title key (NoData: IM_TITLE_NODATA)",
+    "value": "illustration.title (NoData: \"There's no data yet.\")"
   },
   {
     "prop": "IllustratedMessage.subtitleText",
-    "key": "Application text; no matching component UI5 default",
-    "value": "The selected illustration’s UI5 English subtitle"
+    "key": "Selected illustration subtitle key (NoData: IM_SUBTITLE_NODATA)",
+    "value": "illustration.subtitle (NoData: \"When there is, you'll see it here.\")"
   },
   {
     "prop": "IllustratedMessage.accessibleName",
-    "key": "Application text; no matching component UI5 default",
-    "value": "The selected illustration name"
+    "key": "UI5 IllustratedMessageTemplate.js: name (not an i18n key)",
+    "value": "illustration.name (NoData: \"NoData\")"
   }
 ]
 
 const base = fioriMeta({ name: "illustrated-message", component: IllustratedMessage })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
   args: { illustrationName: "NoData", illustration: illustrations.NoData, design: "Auto", titleLevel: "H2", titleWrappingType: "Normal", decorative: false, actions: true, width: 480, onAction: fn() },
   argTypes: { ...base.argTypes, illustrationName: { control: "select", options: names, description: "All 118 Fiori and TNT illustration data modules." }, illustration: { control: false }, design: { control: "select", options: ["Auto", "Base", "Dot", "Spot", "Dialog", "Scene"] }, titleText: { control: "text" }, subtitleText: { control: "text" }, titleLevel: { control: "select", options: ["H1", "H2", "H3", "H4", "H5", "H6"] }, titleWrappingType: { control: "inline-radio", options: ["Normal", "None"] }, accessibleName: { control: "text" }, decorative: { control: "boolean" }, actions: { control: "boolean" }, width: { control: { type: "range", min: 120, max: 800, step: 10 } }, onAction: { control: false } },
   render: function IllustratedState(args: Args) {

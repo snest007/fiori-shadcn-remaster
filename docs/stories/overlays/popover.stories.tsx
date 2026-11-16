@@ -21,7 +21,7 @@ const meta = {
 } satisfies Meta<Args>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const Trigger: Story = {}
 export const Open: Story = { args: { open: true } }
 export const BodyOnly: Story = { args: { open: true, title: "", footer: false, hideArrow: true } }

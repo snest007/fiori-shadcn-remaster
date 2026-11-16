@@ -46,7 +46,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "expandable-text", component: ExpandableText })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
   args: { text: details, maxCharacters: 100, overflowMode: "InPlace", emptyIndicatorMode: "Off", defaultExpanded: false, showPopover: false },
   argTypes: { ...base.argTypes, text: { control: "text" }, maxCharacters: { control: "number" }, overflowMode: { control: "inline-radio", options: ["InPlace", "Popover"] }, emptyIndicatorMode: { control: "inline-radio", options: ["Off", "On"] }, defaultExpanded: { control: "boolean" }, showPopover: { control: false }, showMoreText: { control: "text" }, showLessText: { control: "text" }, closeText: { control: "text" }, showFullTextLabel: { control: "text" }, closePopoverLabel: { control: "text" }, emptyIndicatorLabel: { control: "text" } },
   render: function OrderDescription(args: Args) {

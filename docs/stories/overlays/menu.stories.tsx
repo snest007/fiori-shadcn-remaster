@@ -27,17 +27,17 @@ const textDefaults = [
     "value": "Navigate Back"
   },
   {
-    "prop": "MenuGroup.none",
+    "prop": "MenuGroup.aria-label (checkMode=\"none\")",
     "key": "MENU_ITEM_GROUP_NONE_ACCESSIBLE_NAME",
     "value": "Contains Non-Selectable Items"
   },
   {
-    "prop": "MenuGroup.single",
+    "prop": "MenuGroup.aria-label (checkMode=\"single\")",
     "key": "MENU_ITEM_GROUP_SINGLE_ACCESSIBLE_NAME",
     "value": "Contains Selectable Items"
   },
   {
-    "prop": "MenuGroup.multiple",
+    "prop": "MenuGroup.aria-label (checkMode=\"multiple\")",
     "key": "MENU_ITEM_GROUP_MULTI_ACCESSIBLE_NAME",
     "value": "Contains Multi-Selectable Items"
   }
@@ -46,7 +46,7 @@ const textDefaults = [
 const base = fioriMeta({ name: "menu", component: Menu })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "400px" } } },
+  parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></>, story: { inline: false, height: "400px" } } },
   args: { open: false, modal: false, side: "bottom", align: "start", checkMode: "none", icons: true, disabledSubmenu: false, onOpenChange: fn(), onSelect: fn(), onCheckedChange: fn() },
   argTypes: { ...base.argTypes, open: { control: "boolean" }, modal: { control: "boolean" }, checkMode: { control: "inline-radio", options: ["none", "single", "multiple"] }, icons: { control: "boolean" }, disabledSubmenu: { control: "boolean" }, side: { control: "select", options: ["top", "right", "bottom", "left"] }, align: { control: "inline-radio", options: ["start", "center", "end"] }, headerText: { control: "text" }, cancelLabel: { control: "text" }, onOpenChange: { control: false }, onSelect: { control: false }, onCheckedChange: { control: false }, dir: { control: false }, openerDirection: { control: false }, openerAncestorDirection: { control: false } },
   render: function OrderActions(args: Args) {
@@ -59,7 +59,7 @@ const meta = {
 } satisfies Meta<Args>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const Trigger: Story = {}
 export const Open: Story = { args: { open: true } }
 export const Plain: Story = { args: { open: true, icons: false } }
