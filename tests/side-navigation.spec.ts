@@ -1119,3 +1119,17 @@ test("side-navigation: RTL mirrors horizontal keyboard navigation", async ({ pag
   await page.keyboard.press("ArrowLeft")
   await expect(parent).toHaveAttribute("aria-expanded", "true")
 })
+
+test("SideNavigation paired external-anchor fixture establishes real keyboard focus before freezing static paint", async ({ page }) => {
+  const id = "side-navigation-overflow-menu-external-anchor-focus"
+  for (const native of [false, true]) {
+    await page.goto(native ? `/ui5.html?theme=sap_horizon_hcb&density=compact&only=${id}` : `/index.html?fixtures&theme=sap_horizon_hcb&density=compact&only=${id}`)
+    await page.waitForSelector("html[data-ready=true]")
+    const anchor = page.locator(`[data-fixture="${id}"]`).locator("a[href]")
+    await expect(anchor).toBeFocused()
+    await expect(anchor).toHaveAttribute("role", "menuitem")
+    await expect(anchor).toHaveAccessibleName(native ? "External Is Active" : "External")
+    expect(await anchor.evaluate((node) => node.matches(":focus-visible"))).toBe(true)
+    await expect(anchor).toHaveCSS("outline-style", "auto")
+  }
+})

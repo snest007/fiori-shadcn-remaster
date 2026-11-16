@@ -21,7 +21,7 @@ import "@ui5/webcomponents-icons/dist/arrow-right.js"
 import "@ui5/webcomponents-icons/dist/overflow.js"
 import { renderFinished } from "@ui5/webcomponents-base/dist/Render.js"
 
-import { defineUi5, h } from "../fixture-types"
+import { defineUi5, h, type Ui5FixtureElement } from "../fixture-types"
 import { showShadowPopupInPlace } from "./ui5-popup-in-place"
 import set, { ICON_IDS, SN_HEIGHT, isGroup, type Entry, type ItemSpec, type SubSpec } from "./side-navigation"
 
@@ -40,18 +40,31 @@ export default defineUi5(set, ({ entries, fixed, collapsed, selected, height = S
       ...it.items.map(menuItem),
     ] : []))
     const host = h("ui5-navigation-menu", {}, ...(entries as ItemSpec[]).map(menuItem))
-    const frame = showShadowPopupInPlace(host, ".ui5-menu-rp", "14rem")
+    const frame = showShadowPopupInPlace(host, ".ui5-menu-rp", "14rem") as Ui5FixtureElement
     if (overflowAnchorFocus) {
       const focusAnchor = async (tries = 0): Promise<void> => {
         await renderFinished()
         const link = host.querySelector("ui5-navigation-menu-item[href]")?.shadowRoot?.querySelector<HTMLAnchorElement>("a")
-        if (link) link.focus({ preventScroll: true })
+        if (link) {
+          link.focus({ preventScroll: true })
+          // INTEGRATION cause 3: the enlarged E4 reference page lets later
+          // fixtures take focus from this NavigationMenuItemTemplate.js anchor.
+          // First establish real keyboard focus, then retain only its actual
+          // browser paint for the static whole-page capture. Read the UA style;
+          // no browser RGB or design value is introduced. Isolated behavior
+          // tests below still require actual focus and the owned menuitem role.
+          if (link.matches(":focus-visible")) {
+            const outline = getComputedStyle(link)
+            link.style.outline = outline.outline
+            link.style.outlineOffset = outline.outlineOffset
+          }
+        }
         else if (tries < 100) {
           await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
           return focusAnchor(tries + 1)
         } else throw new Error("SideNavigation overflow fixture anchor did not render")
       }
-      void focusAnchor()
+      frame.fixtureReady = focusAnchor()
     }
     return frame
   }
