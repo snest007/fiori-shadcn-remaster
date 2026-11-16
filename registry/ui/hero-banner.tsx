@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 // a heading, actions, and start/end content in one or two columns (one column under a 600px container).
 // Static; has no keyboard model of its own.
 
+/** @accessibility landmarkRole and landmarkLabel name the banner root; inside main use a named region. headerText supplies the heading. Give each action an accessible name, and retain keyboard focus behavior from the composed Button. */
 type HeroBannerProps = React.ComponentProps<"div"> & {
   headerText?: string
   /** Small text above the heading. */

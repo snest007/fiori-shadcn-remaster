@@ -13,6 +13,7 @@ type AvatarColorScheme =
   | "placeholder"
   | "transparent"
 
+/** @accessibility accessibleName names the Avatar image or interactive button; mode=decorative hides it. Enter/Space activate interactive avatars. AvatarGroup owns the group button or roving avatar buttons and its overflow control; texts names the group, hidden count and complete-list action. Direction-aware arrows move individual avatar focus. */
 type AvatarProps = Omit<React.ComponentProps<"button">, "children"> & {
   size?: AvatarSize
   shape?: "circle" | "square"
