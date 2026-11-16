@@ -20,11 +20,11 @@ type Props = { mode: "anchor" | "tabs"; snapped?: boolean }
 // (see tests/object-page.spec.ts for behaviour).
 export default defineFixtures<Props>({
   name: "object-page",
-  cases: [
+  cases: ([
     { id: "object-page-anchor", props: { mode: "anchor" } },
     { id: "object-page-snapped", props: { mode: "anchor", snapped: true } },
     { id: "object-page-tabs", props: { mode: "tabs" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "object-page-rtl" }] : [fixture]),
   react: ({ mode, snapped }) => (
     <ObjectPage
       mode={mode}
