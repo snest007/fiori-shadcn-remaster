@@ -15,12 +15,12 @@ export const vsdGroupItems: SortItem[] = [{ text: "Name" }, { text: "Position", 
 // ui5-dialog inside the view settings dialog's shadow root, see view-settings-dialog.ui5.ts.
 export default defineFixtures<Props>({
   name: "view-settings-dialog",
-  cases: [
+  cases: ([
     { id: "view-settings-dialog-sort", props: { sort: true, filter: true, group: true } },
     { id: "view-settings-dialog-descending", props: { sort: true, group: true, descending: true } },
     { id: "view-settings-dialog-filter-only", props: { filter: true } },
     { id: "view-settings-dialog-group-only", props: { group: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "view-settings-dialog-rtl" }] : [fixture]),
   react: ({ sort, filter, group, descending }) => (
     <div className="overflow-hidden p-3">
       <ViewSettingsDialog

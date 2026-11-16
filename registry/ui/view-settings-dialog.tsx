@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 ViewSettingsDialogTemplate.js renders an internal List (fastNavigation metadata).
 
@@ -49,9 +50,11 @@ type ViewSettingsTexts = {
   filterTooltip: string
   groupTooltip: string
   back: string
+  resetAnnouncement?: string
+  filterItemLabel?: (text: string, count: number) => string
 }
 
-const defaultTexts: ViewSettingsTexts = {
+const defaultTexts: Required<ViewSettingsTexts> = {
   title: "View Settings",
   reset: "Reset",
   ok: "OK",
@@ -67,6 +70,8 @@ const defaultTexts: ViewSettingsTexts = {
   filterTooltip: "Filter",
   groupTooltip: "Group",
   back: "Back",
+  resetAnnouncement: "Reset has reverted all settings to initial state", // UI5 VSD_RESET_BUTTON_ACTION
+  filterItemLabel: (text, count) => `${text}, Counter ${count},`, // UI5 VSD_FILTER_ITEM_LABEL_TEXT; preserve existing no-provider punctuation
 }
 
 type ViewSettingsDialogProps = {
@@ -264,7 +269,8 @@ function ViewSettingsDialog(props: ViewSettingsDialogProps) {
     children,
     className,
   } = props
-  const t = { ...defaultTexts, ...props.texts }
+  const t = useFioriTexts<Required<ViewSettingsTexts>>(defaultTexts, defaultTextsKeys, props.texts)
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
   const [innerOpen, setInnerOpen] = React.useState(!!defaultOpen)
   const open = openProp ?? innerOpen
   const setOpen = (o: boolean) => {
@@ -369,7 +375,7 @@ function ViewSettingsDialog(props: ViewSettingsDialogProps) {
             key={f.text}
             mode="none"
             additionalText={count ? String(count) : undefined}
-            aria-label={count ? `${f.text}, Counter ${count},` : undefined}
+            aria-label={count ? t.filterItemLabel(f.text, count) : undefined}
             onPress={() => {
               setFilterIndex(i)
               focusFirstIn()
@@ -434,6 +440,8 @@ function ViewSettingsDialog(props: ViewSettingsDialogProps) {
               disabled={!resetEnabled && !dirty}
               onClick={() => {
                 restore(initial)
+                // ViewSettingsDialog.js/_onResetSettings announces through InvisibleMessageMode.Assertive.
+                setAnnouncement(old => ({ text: t.resetAnnouncement, sequence: old.sequence + 1 }))
                 onReset?.()
                 focusFirstIn()
               }}
@@ -475,9 +483,31 @@ function ViewSettingsDialog(props: ViewSettingsDialogProps) {
             {t.cancel}
           </Button>
         </DialogFooter>
+        <span className="sr-only" role="status" aria-live="assertive" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>
       </DialogContent>
     </Dialog>
   )
 }
 
-export { ViewSettingsDialog, type ViewSettingsDialogProps, type ViewSettings, type SortItem, type FilterItem, type FilterOption }
+export { ViewSettingsDialog, type ViewSettingsDialogProps, type ViewSettingsTexts, type ViewSettings, type SortItem, type FilterItem, type FilterOption }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTextsKeys = {
+  "title": "VSD_DIALOG_TITLE_SORT",
+  "reset": "VSD_RESET_BUTTON",
+  "ok": "VSD_SUBMIT_BUTTON",
+  "cancel": "VSD_CANCEL_BUTTON",
+  "sortOrder": "VSD_SORT_ORDER",
+  "sortBy": "VSD_SORT_BY",
+  "groupOrder": "VSD_GROUP_ORDER",
+  "groupBy": "VSD_GROUP_BY",
+  "filterBy": "VSD_FILTER_BY",
+  "ascending": "VSD_ORDER_ASCENDING",
+  "descending": "VSD_ORDER_DESCENDING",
+  "sortTooltip": "VSD_SORT_TOOLTIP",
+  "filterTooltip": "VSD_FILTER_TOOLTIP",
+  "groupTooltip": "VSD_GROUP_TOOLTIP",
+  "back": "MENU_BACK_BUTTON_ARIA_LABEL",
+  resetAnnouncement: "VSD_RESET_BUTTON_ACTION",
+  filterItemLabel: "VSD_FILTER_ITEM_LABEL_TEXT"
+} as const

@@ -1,6 +1,14 @@
 {
   "title": "ViewSettingsDialog",
-  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/dialog", "@fiori/segmented-button", "@fiori/radio-group", "@fiori/checkbox"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button",
+    "@fiori/dialog",
+    "@fiori/segmented-button",
+    "@fiori/radio-group",
+    "@fiori/checkbox",
+    "@fiori/locale"
+  ],
   "description": "Fiori view settings dialog: sort/filter/group pages, two-level filter navigation with counters, Reset, OK/Cancel (ui5-view-settings-dialog).",
   "usage": {
     "summary": "Adjust a list or table view through sorting, grouping and predefined filter choices.",
