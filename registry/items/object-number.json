@@ -16,12 +16,15 @@
         ]
       },
       {
-        "when": "Show how much of a running process is complete on a 0–100% scale.",
+        "when": "Show how much of a running process is complete on a 0\u2013100% scale.",
         "use": [
           "progress-indicator"
         ]
       }
     ],
     "source": "sap-fiori-guidelines"
-  }
+  },
+  "registryDependencies": [
+    "@fiori/locale"
+  ]
 }
