@@ -1,4 +1,5 @@
 import * as React from "react"
+import { collatorIncludes, useFioriLocale } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 import { decline, edit, favorite, messageError, resizeCorner, search, slimArrowDown, unfavorite } from "@/lib/fiori-icons"
@@ -106,6 +107,7 @@ type VariantManagementProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
   level?: TitleLevel | "Auto"
   titleStyle?: TitleLevel | "Auto"
   maxWidth?: React.CSSProperties["maxWidth"]
+  locale?: string
   texts?: VariantManagementTexts
   /** Host-owned role candidates, replacing OpenUI5's injected roles ComponentContainer. */
   roles?: VariantRole[]
@@ -240,8 +242,11 @@ function VariantManagement({
   supportApplyAutomatically = true, supportPublic = true, supportContexts = false,
   showSaveAs = true, creationAllowed = true, showFooter = true, popoverTitle = "",
   inErrorState = false, level = "Auto", titleStyle = "Auto", maxWidth = "100%",
-  texts, roles = [], portal = true, defaultOpen, className, style, onKeyDown, ...props
+  texts, locale: localeProp, roles = [], portal = true, defaultOpen, className, style, onKeyDown, ...props
 }: VariantManagementProps) {
+  const { t: translate, locale, localized } = useFioriLocale(localeProp)
+  const matchLocale = localized ? locale : undefined
+  const equalNames = (a: string, b: string) => localized ? new Intl.Collator(locale, { sensitivity: "base" }).compare(a, b) === 0 : a.toLowerCase() === b.toLowerCase()
   const id = React.useId()
   const rootRef = React.useRef<HTMLDivElement>(null)
   const triggerRef = React.useRef<HTMLButtonElement>(null)
@@ -256,7 +261,7 @@ function VariantManagement({
   const cancelRef = React.useRef<HTMLButtonElement>(null)
   const saving = React.useRef(false)
   const t = (key: TextKey, ...args: (string | number)[]) => {
-    let value: string = texts?.[key] ?? texts?.[`VARIANT_MANAGEMENT_${key}`] ?? variantManagementTexts[key]
+    let value: string = texts?.[key] ?? texts?.[`VARIANT_MANAGEMENT_${key}`] ?? translate(variantManagementKeys[key] ?? `VARIANT_MANAGEMENT_${key}`, variantManagementTexts[key], ...args)
     args.forEach((arg, index) => { value = value.replaceAll(`{${index}}`, String(arg)) })
     return value
   }
@@ -293,7 +298,7 @@ function VariantManagement({
   const saveTooltip = t(mac ? "SAVE_TT_MAC" : "SAVE_TT")
   const canSave = creationAllowed && modified && !!selected?.changeable && !inErrorState
   const favorites = normalized.filter((item) => item.visible && (!supportFavorites || item.favorite))
-  const listItems = favorites.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()))
+  const listItems = favorites.filter((item) => collatorIncludes(item.title, query, matchLocale))
   // _suspendManagementTableBinding: editing a matching title must not filter its
   // focused row out of an active search. Recompute membership only for a search action.
   const visibleDraft = draft.filter((item) => item.visible && !deleted.includes(item.key) && manageKeys.includes(item.key))
@@ -303,7 +308,7 @@ function VariantManagement({
   // forbidden. Candidate names are trimmed and the exact maximum is 100 characters.
   function validate(value: string, key?: string, candidates = normalized, activeSearch = false) {
     const trimmed = value.trim()
-    if (candidates.some((item) => item.key !== key && item.title.toLowerCase() === trimmed.toLowerCase()))
+    if (candidates.some((item) => item.key !== key && equalNames(item.title, trimmed)))
       return t(activeSearch ? "ERROR_DUPLICATE_SAVE" : "ERROR_DUPLICATE")
     if (!trimmed) return t("ERROR_EMPTY")
     if (trimmed.includes("{")) return t("NOT_ALLOWED_CHAR", "{")
@@ -439,7 +444,7 @@ function VariantManagement({
   function changeSearch(nextQuery: string, manage: boolean) {
       setQuery(nextQuery)
       if (manage) setManageKeys(draft.filter((item) => item.visible && [item.title, item.author]
-        .some((value) => value.toLowerCase().includes(nextQuery.toLowerCase()))).map((item) => item.key))
+        .some((value) => collatorIncludes(value, nextQuery, matchLocale))).map((item) => item.key))
   }
   const searchField = (manage = false) => <Toolbar className={cn("fiori-vm-search", manage && "fiori-vm-manage-search")}>
     <Input ref={manage ? manageSearchRef : listSearchRef} value={query} onChange={(event) => changeSearch(event.target.value, manage)}
@@ -613,3 +618,68 @@ function VariantManagement({
 
 export { VariantManagement, variantManagementTexts, type VariantManagementProps, type VariantManagementTexts,
   type VariantItem, type VariantContexts, type VariantRole, type VariantSaveEvent, type VariantManageEvent }
+
+// OpenUI5 1.154 sap/m/messagebundle.properties: native keys for existing public text aliases.
+const variantManagementKeys: Partial<Record<TextKey, string>> = {
+  "SAVE": "VARIANT_MANAGEMENT_SAVE",
+  "SAVE_TT": "VARIANT_MANAGEMENT_SAVE_TT",
+  "SAVE_TT_MAC": "VARIANT_MANAGEMENT_SAVE_TT_MAC",
+  "SAVE_MAIN_TT": "VARIANT_MANAGEMENT_SAVE_MAIN_TT",
+  "SAVE_MAIN_TT_MAC": "VARIANT_MANAGEMENT_SAVE_MAIN_TT_MAC",
+  "SAVEAS": "VARIANT_MANAGEMENT_SAVEAS",
+  "OK": "VARIANT_MANAGEMENT_OK",
+  "CANCEL": "VARIANT_MANAGEMENT_CANCEL",
+  "MANAGE": "VARIANT_MANAGEMENT_MANAGE",
+  "NAME": "VARIANT_MANAGEMENT_NAME",
+  "SETASDEFAULT": "VARIANT_MANAGEMENT_SETASDEFAULT",
+  "SETASPUBLIC": "VARIANT_MANAGEMENT_SETASPUBLIC",
+  "VARIANTTYPE": "VARIANT_MANAGEMENT_VARIANTTYPE",
+  "PUBLIC": "VARIANT_MANAGEMENT_PUBLIC",
+  "PRIVATE": "VARIANT_MANAGEMENT_PRIVATE",
+  "SAVEDIALOG": "VARIANT_MANAGEMENT_SAVEDIALOG",
+  "MANAGEDIALOG": "VARIANT_MANAGEMENT_MANAGEDIALOG",
+  "NODATA_FOUND": "VARIANT_MANAGEMENT_NODATA_FOUND",
+  "NODATA_FOUND_DESCR": "VARIANT_MANAGEMENT_NODATA_FOUND_DESCR",
+  "NODATA": "VARIANT_MANAGEMENT_NODATA",
+  "NODATA_DESCR": "VARIANT_MANAGEMENT_NODATA_DESCR",
+  "DEFAULT": "VARIANT_MANAGEMENT_DEFAULT",
+  "EXECUTEONSELECT": "VARIANT_MANAGEMENT_EXECUTEONSELECT",
+  "AUTHOR": "VARIANT_MANAGEMENT_AUTHOR",
+  "FAVORITE_COLUMN": "VARIANT_MANAGEMENT_FAVORITE_COLUMN",
+  "ACTION_COLUMN": "VARIANT_MANAGEMENT_ACTION_COLUMN",
+  "SEL_VARIANT": "VARIANT_MANAGEMENT_SEL_VARIANT",
+  "SEL_VARIANT_MOD": "VARIANT_MANAGEMENT_SEL_VARIANT_MOD",
+  "VARIANTS": "VARIANT_MANAGEMENT_VARIANTS",
+  "ERROR_DUPLICATE": "VARIANT_MANAGEMENT_ERROR_DUPLICATE",
+  "ERROR_DUPLICATE_SAVE": "VARIANT_MANAGEMENT_ERROR_DUPLICATE_SAVE",
+  "ERROR_EMPTY": "VARIANT_MANAGEMENT_ERROR_EMPTY",
+  "NOT_ALLOWED_CHAR": "VARIANT_MANAGEMENT_NOT_ALLOWED_CHAR",
+  "MAX_LEN": "VARIANT_MANAGEMENT_MAX_LEN",
+  "TRIGGER_TT": "VARIANT_MANAGEMENT_TRIGGER_TT",
+  "DELETE": "VARIANT_MANAGEMENT_DELETE",
+  "FAV_ADD_ACC": "VARIANT_MANAGEMENT_FAV_ADD_ACC",
+  "FAV_DEL_ACC": "VARIANT_MANAGEMENT_FAV_DEL_ACC",
+  "FAV_DEL_TOOLTIP": "VARIANT_MANAGEMENT_FAV_DEL_TOOLTIP",
+  "FAV_ADD_TOOLTIP": "VARIANT_MANAGEMENT_FAV_ADD_TOOLTIP",
+  "ERROR_TEXT1": "VARIANT_MANAGEMENT_ERROR_TEXT1",
+  "ERROR_TEXT2": "VARIANT_MANAGEMENT_ERROR_TEXT2",
+  "VISIBILITY": "VARIANT_MANAGEMENT_VISIBILITY",
+  "CHANGE_VISIBILITY": "VARIANT_MANAGEMENT_CHANGE_VISIBILITY",
+  "VISIBILITY_NON_RESTRICTED": "VARIANT_MANAGEMENT_VISIBILITY_NON_RESTRICTED",
+  "VISIBILITY_RESTRICTED": "VARIANT_MANAGEMENT_VISIBILITY_RESTRICTED",
+  "VISIBILITY_ICON_TT": "VARIANT_MANAGEMENT_VISIBILITY_ICON_TT",
+  "SELECTROLES_DIALOG": "VARIANT_MANAGEMENT_SELECTROLES_DIALOG",
+  "CREATETILE": "VARIANT_MANAGEMENT_CREATETILE",
+  "NO_DEFAULT_ON_RESTRICTED_VIEWS": "VARIANT_MANAGEMENT_NO_DEFAULT_ON_RESTRICTED_VIEWS",
+  "VIEW_LIST": "VARIANT_MANAGEMENT_VIEW_LIST",
+  "SEARCH": "FACETFILTER_SEARCH",
+  "SEARCH_RESET": "VIEWSETTINGS_RESET",
+  "SELECTED": "LIST_ITEM_SELECTED",
+  "NOT_SELECTED": "LIST_ITEM_NOT_SELECTED",
+  "DRAG_RESIZE_LABEL": "DIALOG_DRAG_AND_RESIZE_HANDLE_ARIA_LABEL",
+  "DRAG_RESIZE_DESCRIPTION": "DIALOG_HEADER_ARIA_DESCRIBEDBY_DRAGGABLE_RESIZABLE",
+  "RESIZE_LABEL": "POPOVER_RESIZE_HANDLE_ARIA_LABEL",
+  "RESIZE_DESCRIPTION": "DIALOG_HEADER_ARIA_DESCRIBEDBY_RESIZABLE",
+  "RESIZE_TOOLTIP": "DIALOG_RESIZE_HANDLE_TOOLTIP",
+  "HANDLE_ROLE": "DIALOG_HANDLE_ARIA_ROLEDESCRIPTION"
+}

@@ -14,7 +14,8 @@
     "@fiori/radio-group",
     "@fiori/table",
     "@fiori/title",
-    "@fiori/toolbar"
+    "@fiori/toolbar",
+    "@fiori/locale"
   ],
   "usage": {
     "summary": "Save, select and maintain named views of filter or table personalization settings.",
@@ -25,7 +26,7 @@
     ],
     "avoidWhen": [
       {
-        "when": "Choose one of 2–12 fixed predefined views without creating or managing saved settings; sort alphabetically above 8.",
+        "when": "Choose one of 2\u201312 fixed predefined views without creating or managing saved settings; sort alphabetically above 8.",
         "use": [
           "select"
         ]
