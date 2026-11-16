@@ -78,3 +78,7 @@ export const OverLimit: Story = { args: { counterMode: "always", maxLength: 20 }
 export const NegativeCounter: Story = { args: { counterMode: "always", maxLength: 40, valueState: "negative" } }
 export const CustomTexts: Story = { args: { counterMode: "always", valueState: "critical", valueStateMessage: "Keep the delivery note brief.", counterText: (remaining) => remaining >= 0 ? `${remaining} characters available for the note` : `Remove ${-remaining} characters from the note` } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+
+export const CriticalCounter: Story = { args: { counterMode: "always", maxLength: 40, valueState: "critical" } }
+export const CounterOnApplicationSurface: Story = { args: { counterMode: "always", maxLength: 40, valueState: "critical" }, decorators: [(Story) => <div style={{ backgroundColor: "var(--sapBackgroundColor)" }}><Story /></div>] }
+export const RTLCriticalCounter: Story = { args: { counterMode: "always", maxLength: 40, valueState: "critical" }, globals: { dir: "rtl" } }

@@ -38,33 +38,6 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return nodes.length === 1 ? nodes[0] : null
         }
 
-        // S1
-        // component defect, fixed by E4 — see docs/plan/handoff/S1-a11y-candidates
-        // TextArea.css.js colors counter text with field-border state tokens.
-        // Only these two existing counters on the Morning application surface
-        // fail contrast. Foreign stories/rules fall through to their own blocks.
-        if (!context.primary && context.theme === "sap_horizon" && rule === "color-contrast"
-          && ["forms-textarea--negative-counter", "forms-textarea--custom-texts"].includes(context.story)) {
-          const negative = context.story === "forms-textarea--negative-counter"
-          const state = negative ? "negative" : "critical"
-          const root = unique(`[data-slot="textarea"][data-counter][data-value-state="${state}"]`)
-          const field = root ? unique('textarea[aria-label="Delivery notes"]', root) : null
-          const counter = root ? unique(':scope > .fiori-textarea__counter', root) : null
-          const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
-          if (!root || !field || !counter || actual !== counter || !visible(counter) || counter.children.length
-            || root.hasAttribute("data-disabled") || root.hasAttribute("data-readonly") || counter.hasAttribute("data-hidden")
-            || args.counterMode !== "always" || args.valueState !== state || args.maxLength !== (negative ? 40 : 80)
-            || args.value !== "Deliver to the receiving desk." || !counter.id.endsWith("-counter")
-            || !field.getAttribute("aria-describedby")?.split(" ").includes(counter.id)
-            || counter.textContent !== (negative ? "10 characters left" : "50 characters available for the note")) return false
-          const rgb = (token: string) => {
-            const hex = getComputedStyle(root).getPropertyValue(token).trim().replace(/^#/, "")
-            if (!/^[0-9a-f]{6}$/i.test(hex)) return null
-            return `rgb(${[0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16)).join(", ")})`
-          }
-          return getComputedStyle(counter).color === rgb(negative ? "--sapField_InvalidColor" : "--sapField_WarningColor")
-            && getComputedStyle(canvas).backgroundColor === rgb("--sapBackgroundColor")
-        }
         // MultiComboBoxItem.js/checkBoxAccInfo uses role=presentation. The current
         // React component instead nests its hidden button/checkbox in each option.
         // Match only this exact indicator in the four authored open-list stories.
