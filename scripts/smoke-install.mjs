@@ -21,22 +21,22 @@ export function createConsumerHarness(root = resolve(".")) {
     const r = spawnSync(cmd, { cwd, shell: true, encoding: "utf8", maxBuffer: 1 << 28, env: { ...process.env, ...env } })
     const out = (r.stdout ?? "") + (r.stderr ?? "")
     if (r.status !== 0) throw new Error(`${cmd} (in ${cwd}) failed:\n${out.split("\n").slice(-30).join("\n")}`)
-  return out
+    return out
   }
   const servers = []
   const serve = (cmd, cwd, port) => {
     const p = spawn(cmd, { cwd, shell: true, stdio: "ignore", detached: true })
     servers.push(p)
-  return waitFor(`http://localhost:${port}/`)
+    return waitFor(`http://localhost:${port}/`)
   }
   async function waitFor(url, ms = 60_000) {
     const end = Date.now() + ms
     while (Date.now() < end) {
-    try {
-      if ((await fetch(url, { signal: AbortSignal.timeout(Math.min(10_000, end - Date.now())) })).ok) return
-    } catch {}
-    await new Promise((r) => setTimeout(r, 300))
-  }
+      try {
+        if ((await fetch(url, { signal: AbortSignal.timeout(Math.min(10_000, end - Date.now())) })).ok) return
+      } catch {}
+      await new Promise((r) => setTimeout(r, 300))
+    }
     throw new Error(`Timed out waiting for ${url}`)
   }
 
@@ -49,7 +49,6 @@ export function createConsumerHarness(root = resolve(".")) {
     writeFileSync(join(dir, "src/index.css"), `@import "tailwindcss";\n`)
     run("pnpm add react@19 react-dom@19", dir)
     run("pnpm add -D vite@8 @vitejs/plugin-react@6 tailwindcss@4 @tailwindcss/vite@4 typescript@5.9 @types/react@19 @types/react-dom@19 @types/node@24", dir)
-
   }
   function initRegistry(dir, registry) { run(`npx -y ${SHADCN} init ${registry}/fiori.json --yes`, dir) }
   function addItems(dir, names) {
@@ -62,6 +61,7 @@ export function createConsumerHarness(root = resolve(".")) {
   function restoreRegistry() { spawnSync("pnpm registry:build", { cwd: root, shell: true, stdio: "ignore" }) }
   return { run, serve, waitFor, setupConsumer, initRegistry, addItems, stopServers, restoreRegistry }
 }
+
 export async function runSmoke() {
   const root = resolve(".")
   const keep = process.argv.includes("--keep")
