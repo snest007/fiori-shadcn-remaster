@@ -100,7 +100,7 @@ theme/density/direction toolbar, docs page with install + usage, deploy, tests, 
 and run in parallel (each owns different `docs/stories/**` files); S5 last. Independent of wave G (S0 renders
 `usage` when present).
 
-- [ ] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
+- [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
 - [ ] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
 - [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (after S0)
 - [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (after S0)
