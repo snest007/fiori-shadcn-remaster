@@ -4,7 +4,7 @@ import { Checkbox as CheckboxPrimitive } from "radix-ui"
 import { accept } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, type ValueState } from "@/components/ui/input"
 
 /**
  * @accessibility text supplies the checkbox name; native aria-label, aria-labelledby and aria-describedby reach the checkbox button.
@@ -38,6 +38,8 @@ function Checkbox({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: CheckboxProps) {
+  const valueStateTexts = useValueStateTexts()
+
   const descId = React.useId()
   const hasState = valueState !== "none"
   return (
@@ -79,7 +81,7 @@ function Checkbox({
       {/* hidden: referenced by aria-describedby, kept out of the accessible name */}
       {hasState && (
         <span id={descId} hidden>
-          {valueStateText ?? valueStateDefaultText[valueState]}
+          {valueStateText ?? valueStateTexts[valueState]}
         </span>
       )}
     </CheckboxPrimitive.Root>
