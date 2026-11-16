@@ -1,8 +1,26 @@
 {
   "title": "Wizard page (floorplan)",
   "description": "Fiori Wizard floorplan: a Page with a Wizard of form steps (Select, Input, DatePicker, Checkbox), step-by-step validation, a review page with Edit links and a footer with Review / Submit / Cancel.",
-  "registryDependencies": ["@fiori/page", "@fiori/wizard", "@fiori/bar", "@fiori/button", "@fiori/checkbox", "@fiori/date-picker", "@fiori/input", "@fiori/label", "@fiori/link", "@fiori/message-strip", "@fiori/select", "@fiori/text", "@fiori/title", "@fiori/icons"],
-  "categories": ["floorplan", "wizard"],
+  "registryDependencies": [
+    "@fiori/page",
+    "@fiori/wizard",
+    "@fiori/bar",
+    "@fiori/button",
+    "@fiori/checkbox",
+    "@fiori/date-picker",
+    "@fiori/input",
+    "@fiori/label",
+    "@fiori/link",
+    "@fiori/message-strip",
+    "@fiori/select",
+    "@fiori/text",
+    "@fiori/title",
+    "@fiori/icons"
+  ],
+  "categories": [
+    "floorplan",
+    "wizard"
+  ],
   "usage": {
     "summary": "Guide linear creation through validated steps, a review screen and final submission actions.",
     "useWhen": [
@@ -35,12 +53,6 @@
         "when": "Find and filter a business-record collection.",
         "use": [
           "list-report"
-        ]
-      },
-      {
-        "when": "Offer an entry point with favorite app tiles.",
-        "use": [
-          "launchpad"
         ]
       }
     ],

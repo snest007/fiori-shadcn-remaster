@@ -1,14 +1,24 @@
 # Floorplans
 
+| Item | Summary |
+| --- | --- |
+| [app-shell](#app-shell) | Frame application pages with shared shell actions, optional side navigation and a scrolling content area. |
+| [empty-states](#empty-states) | Start from a gallery of empty, no-results, failure and success messages with recovery-action examples. |
+| [launchpad](#launchpad) | Start an application-entry page from a shared shell, selected side navigation and replaceable page content. |
+| [list-report](#list-report) | Find and act on business records with saved views, applied filters and a responsive results table. |
+| [master-detail](#master-detail) | Browse a searchable record list beside its selected detail and, when needed, a related sub-detail. |
+| [object-page-floorplan](#object-page-floorplan) | Inspect and edit one object through a complete header, sectioned details and Save/Cancel flow. |
+| [wizard-page](#wizard-page) | Guide linear creation through validated steps, a review screen and final submission actions. |
+
 ## app-shell
 
 Frame application pages with shared shell actions, optional side navigation and a scrolling content area.
 
 ### Use when
 
-- Work across application pages while retaining global search, notifications, profile and product access.
-- Start from shell actions already wired to their notification, product-switch and user-menu surfaces.
-- Supply page content as children and an optional sideNavigation slot; replace the sample account, search and notification data.
+- Let users work across application pages while retaining global search, notifications, profile and product access.
+- Keep global shell actions available as users navigate between business tasks.
+- Provide an application frame around page content, with optional persistent side navigation.
 
 ### Don't use when
 
@@ -36,8 +46,8 @@ viewport frame
 
 ### Variations
 
-- Replace the placeholder content with the application’s page and supply sideNavigation as a render function to connect its collapsed state to the menu button.
-- Replace sample search results, account, product targets and notification handlers with application services; preserve each shell action’s opener and focus return.
+- Supply page content as children and sideNavigation as a node or render function; the render function connects collapsed state to the menu button.
+- Replace the sample account, search results, product targets and notification data and handlers with application services; preserve shell openers and focus return.
 - Omit sideNavigation for a page that needs no navigation rail; the menu trigger is then absent.
 
 Main exports: `AppShell` (default export).
@@ -134,15 +144,17 @@ Find and act on business records with saved views, applied filters and a respons
 
 ### Use when
 
-- Search and filter a record collection before reviewing relevant rows and taking item or mass actions.
-- Reuse saved FilterBar states through VariantManagement; replace the sample storage and data flow for the application.
-- Keep page filters in a collapsing header and reveal the action footer only after rows are selected.
+- Let users search and filter a business-record collection before taking item or mass actions.
+- Return to saved filter views when the same search tasks recur.
+- Keep applied results distinct from draft filters and reveal finalizing actions after row selection.
 
 ### Don't use when
 
-- View or edit one record with all of its details. → [object-page-floorplan](floorplans.md#object-page-floorplan)
-- Keep a record list and its selected detail visible in adjacent columns. → [master-detail](floorplans.md#master-detail)
-- Guide users through sequential data entry steps. → [wizard-page](floorplans.md#wizard-page)
+- Inspect or edit one record with categorized details, or keep a list beside its selected detail. → [object-page-floorplan](floorplans.md#object-page-floorplan), [master-detail](floorplans.md#master-detail)
+- Create an unfamiliar object through 3–8 validated steps and review. → [wizard-page](floorplans.md#wizard-page)
+- Compose a custom result-page container with DynamicPage, or categorized details for one object with ObjectPage, instead of adapting a complete results floorplan. → [dynamic-page](layout.md#dynamic-page), [object-page](layout.md#object-page)
+- Build shared global application framing around the business results page. → [app-shell](floorplans.md#app-shell)
+- Explain an empty or unavailable result and provide recovery actions rather than show available rows. → [empty-states](floorplans.md#empty-states)
 
 ### Layout
 
@@ -182,8 +194,7 @@ Browse a searchable record list beside its selected detail and, when needed, a r
 - Search and filter records with saved views, a results table and mass actions. → [list-report](floorplans.md#list-report)
 - Inspect or edit one object without keeping a record list beside it. → [object-page-floorplan](floorplans.md#object-page-floorplan)
 - Show lightweight temporary details tied to an opener. → [popover](overlays.md#popover)
-- Compose different related pages and column contents instead of adapting the sample product flow. → [flexible-column-layout](layout.md#flexible-column-layout)
-- Offer an application-entry page with favorite app tiles. → [launchpad](floorplans.md#launchpad)
+- Compose custom related pages and columns with FlexibleColumnLayout, or supply only global application framing around those pages with AppShell. → [flexible-column-layout](layout.md#flexible-column-layout), [app-shell](floorplans.md#app-shell)
 
 ### Layout
 
@@ -224,8 +235,7 @@ Inspect and edit one object through a complete header, sectioned details and Sav
 - Find and filter a record collection or act on selected records together. → [list-report](floorplans.md#list-report)
 - Keep a record list and its selected detail visible in adjacent columns. → [master-detail](floorplans.md#master-detail)
 - Guide unfamiliar object creation through 3–8 validated steps and review. → [wizard-page](floorplans.md#wizard-page)
-- Compose an object layout with your own sections and edit handling inside an existing application. → [object-page](layout.md#object-page)
-- Offer an application-entry page with favorite app tiles. → [launchpad](floorplans.md#launchpad)
+- Compose custom sections and edit handling with ObjectPage, or supply only shared global framing around the object page with AppShell. → [object-page](layout.md#object-page), [app-shell](floorplans.md#app-shell)
 
 ### Layout
 
@@ -274,7 +284,6 @@ Guide linear creation through validated steps, a review screen and final submiss
 - Inspect or edit one object directly through sectioned details instead of a guided sequence. → [object-page](layout.md#object-page), [object-page-floorplan](floorplans.md#object-page-floorplan)
 - Need the step control inside an existing or custom page with your own validation and final actions. → [wizard](navigation.md#wizard)
 - Find and filter a business-record collection. → [list-report](floorplans.md#list-report)
-- Offer an entry point with favorite app tiles. → [launchpad](floorplans.md#launchpad)
 
 ### Layout
 

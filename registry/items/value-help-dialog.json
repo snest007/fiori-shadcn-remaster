@@ -15,34 +15,41 @@
   "usage": {
     "summary": "Find business values through a searchable result table or define filter conditions in a dialog.",
     "useWhen": [
-      "Search business keys and descriptions across columns; identify returned keys with keyField and optional descriptionField.",
-      "Select several values with selectionMode=\"multiple\", or confirm one row immediately with selectionMode=\"single\".",
-      "Define operators and ranges with supportConditions in multiple mode; disable it for selection-only tasks.",
-      "Supply filters for multiattribute search, or handle onSearch and pass updated items for server-side results."
+      "Let users find business values among more than 200 entries or identify them by several searchable attributes.",
+      "Let users select one or several matching records, or define ranges and filter conditions.",
+      "Keep a distinct search-and-confirm task when a suggestion label alone cannot identify the right value.",
+      "Supply columns, items and keyField; use selectionMode=\"multiple\" with supportConditions for ranges, and onSearch for caller-filtered results."
     ],
     "avoidWhen": [
       {
-        "when": "Pick one value from a short predefined list without inspecting additional attributes.",
+        "when": "Pick one of 2–12 predefined values without other attributes (sort alphabetically above 8), or enter text without a selection/search task.",
         "use": [
-          "select"
+          "select",
+          "input"
         ]
       },
       {
-        "when": "Choose one value from suggestions or accept free text without a separate search task.",
+        "when": "Choose one suggestion by type-ahead across 20–200 options or accept free text without a separate search task.",
         "use": [
           "combobox"
         ]
       },
       {
-        "when": "Select several values from a manageable predefined list without conditions.",
+        "when": "Select several predefined values from fewer than 200 options without conditions.",
         "use": [
           "multi-combobox"
         ]
       },
       {
-        "when": "Enter several tokens without needing a search dialog.",
+        "when": "Enter several caller-validated tokens, including values from datasets above 200, without a separate multiattribute search task.",
         "use": [
           "multi-input"
+        ]
+      },
+      {
+        "when": "Personalize which filter fields appear, their order and conditions across fields rather than select values for one field.",
+        "use": [
+          "adapt-filters-dialog"
         ]
       }
     ],

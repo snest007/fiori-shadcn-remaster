@@ -1,5 +1,11 @@
 # Actions
 
+| Item | Summary |
+| --- | --- |
+| [button](#button) | Trigger an explicit action with priority and semantic intent. |
+| [segmented-button](#segmented-button) | Switch related view or setting options in a connected group. |
+| [toggle-button](#toggle-button) | Keep a secondary toolbar action visibly on or off. |
+
 ## button
 
 Trigger an explicit action with priority and semantic intent.
@@ -20,7 +26,7 @@ Trigger an explicit action with priority and semantic intent.
 - Select local files for upload. → [file-uploader](forms.md#file-uploader)
 - Navigate through a guided sequence of task steps. → [wizard](navigation.md#wizard)
 
-Main exports: `Button`, `buttonVariants`.
+Main exports: `Button`.
 
 ```bash
 npx shadcn add @fiori/button
@@ -40,7 +46,7 @@ Switch related view or setting options in a connected group.
 ### Don't use when
 
 - Present mutually exclusive form answers rather than change a view or setting. → [radio-group](forms.md#radio-group)
-- Collapse 2–12 predefined options because their labels do not fit a horizontal group. → [select](forms.md#select)
+- Collapse 2–12 predefined options whose labels do not fit a horizontal group; sort alphabetically above 8. → [select](forms.md#select)
 - Navigate distinct content sections rather than change the current view or setting. → [tabs](navigation.md#tabs)
 - Activate or deactivate one independent toolbar action. → [toggle-button](actions.md#toggle-button)
 - Run an explicit action such as Save rather than select an option. → [button](actions.md#button)

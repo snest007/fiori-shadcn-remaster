@@ -1,5 +1,14 @@
 # Layout
 
+| Item | Summary |
+| --- | --- |
+| [dynamic-page](#dynamic-page) | Compose a page with a structured title, collapsing header, scrolling content and optional finalizing footer. |
+| [dynamic-side-content](#dynamic-side-content) | Keep supplementary context beside or below the main task without covering its content. |
+| [flexible-column-layout](#flexible-column-layout) | Show up to three related pages in responsive list, detail and sub-detail columns. |
+| [navigation-layout](#navigation-layout) | Compose a full-screen header, vertical navigation and page content with responsive navigation visibility. |
+| [object-page](#object-page) | Compose one object’s categorized details with a dynamic header and anchor or tab navigation. |
+| [page](#page) | Hold one application screen with a header bar, scrolling content and optional floating or fixed footer. |
+
 ## dynamic-page
 
 Compose a page with a structured title, collapsing header, scrolling content and optional finalizing footer.
@@ -17,7 +26,7 @@ Compose a page with a structured title, collapsing header, scrolling content and
 - Start from a complete record-search page with saved filters, results and mass actions. → [list-report](floorplans.md#list-report)
 - Show a product-home greeting or hero that scrolls away (5.75rem/92px minimum height; 24rem/384px recommended maximum). → [hero-banner](display.md#hero-banner)
 
-Main exports: `DynamicPage`, `DynamicPageHeader`, `DynamicPageTitle`, `defaultDynamicPageTexts`.
+Main exports: `DynamicPage`, `DynamicPageHeader`, `DynamicPageTitle`.
 
 ```bash
 npx shadcn add @fiori/dynamic-page

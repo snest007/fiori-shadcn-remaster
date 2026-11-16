@@ -23,6 +23,10 @@ const ui = (name, extra = {}) => ({
 })
 const componentMetadata = itemMetadata("registry/items")
 const blockMetadata = itemMetadata("registry/block-items").map((item) => ({ ...item, type: "registry:block" }))
+// Coverage exemptions: registry:lib (f6-navigation, use-is-phone, variants) provides utilities,
+// not selectable UI or floorplans. Script-emitted fiori (base), fiori-theme (style), icons
+// (library), illustrations-core and illustration-* (assets) have no hand-authored usage source.
+// Only authored registry:ui and registry:block items are required by --require-usage.
 // SAP illustrations: written by scripts/generate-illustrations.mjs (illustrations-core + one item each).
 const illustrations = JSON.parse(readFileSync("registry/lib/fiori-illustrations/registry-items.json", "utf8"))
 validateUsage([

@@ -1,5 +1,28 @@
 # Forms
 
+| Item | Summary |
+| --- | --- |
+| [checkbox](#checkbox) | Select independent options, including choices reviewed before submission. |
+| [color-palette](#color-palette) | Choose a predefined color from swatches kept visible in the page. |
+| [color-palette-popover](#color-palette-popover) | Choose a predefined color in an on-demand anchored surface. |
+| [color-picker](#color-picker) | Choose an arbitrary color visually or enter its channel values. |
+| [combobox](#combobox) | Choose one suggested value by typing, with filtering and optional free-text entry. |
+| [file-uploader](#file-uploader) | Select local files for a caller-managed upload flow. |
+| [form](#form) | Arrange related labels and fields for one record in responsive groups. |
+| [input](#input) | Enter one line of text, a number or a formatted string. |
+| [label](#label) | Give a form field a persistent, accessible name. |
+| [multi-combobox](#multi-combobox) | Select several predefined options from a filterable list and display selections as tokens. |
+| [multi-input](#multi-input) | Collect several values as caller-managed tokens, with suggestions and optional value help. |
+| [radio-group](#radio-group) | Choose one mutually exclusive answer while keeping every option visible. |
+| [rating-indicator](#rating-indicator) | Collect an icon-based rating or display an aggregate rating. |
+| [select](#select) | Choose one value from a short predefined list without entering free text. |
+| [slider](#slider) | Adjust one value or a numeric interval along a visual scale. |
+| [step-input](#step-input) | Enter an exact number or adjust it by a predefined step. |
+| [switch](#switch) | Turn a setting on or off with an immediate effect. |
+| [textarea](#textarea) | Enter editable prose across multiple lines. |
+| [token](#token) | Represent one previously selected value as a selectable, removable item. |
+| [tokenizer](#tokenizer) | Manage keyboard navigation, selection and overflow for existing tokens. |
+
 ## checkbox
 
 Select independent options, including choices reviewed before submission.
@@ -40,7 +63,7 @@ Choose a predefined color from swatches kept visible in the page.
 - Show predefined colors only after opening a contextual chooser. → [color-palette-popover](forms.md#color-palette-popover)
 - Choose an arbitrary color or enter its channel values directly. → [color-picker](forms.md#color-picker)
 
-Main exports: `ColorPalette`, `ColorPaletteItem`, `ColorPaletteStateContext`, `ColorPaletteStateProvider`.
+Main exports: `ColorPalette`, `ColorPaletteItem`.
 
 ```bash
 npx shadcn add @fiori/color-palette
@@ -82,7 +105,7 @@ Choose an arbitrary color visually or enter its channel values.
 - Choose only predefined colors that stay visible in the page. → [color-palette](forms.md#color-palette)
 - Choose predefined colors in an on-demand anchored chooser. → [color-palette-popover](forms.md#color-palette-popover)
 
-Main exports: `ColorPicker`, `ColorPickerStateProvider`.
+Main exports: `ColorPicker`.
 
 ```bash
 npx shadcn add @fiori/color-picker
@@ -94,16 +117,18 @@ Choose one suggested value by typing, with filtering and optional free-text entr
 
 ### Use when
 
-- Narrow a single-value choice by typing; choose the filter strategy for the supplied ComboBoxItem entries.
-- Accept a custom value as well as suggestions; handle committed text with onCommit.
-- Use onSelectionChange to distinguish a matched item from free text, which reports null.
+- Let users find one suggested value by typing, typically across 20–200 options.
+- Accept a custom value alongside suggestions when the task permits free text.
+- Keep selection in a field when one suggestion label is enough to identify the value.
+- Choose filter for the supplied ComboBoxItem entries; onCommit receives text and onSelectionChange reports a matched item or null.
 
 ### Don't use when
 
-- Require one short predefined choice and disallow free-text entry. → [select](forms.md#select)
-- Select multiple predefined options. → [multi-combobox](forms.md#multi-combobox)
-- Create several free-form or caller-validated tokens. → [multi-input](forms.md#multi-input)
-- Find a business value through several searchable attributes or enter conditions. → [value-help-dialog](overlays.md#value-help-dialog)
+- Choose one of 2–12 predefined options without typing or free text; sort alphabetically above 8. Use Input for text without suggestions. → [select](forms.md#select), [input](forms.md#input)
+- Collect several values: fewer than 200 predefined options need MultiComboBox; free-form, caller-validated entries or datasets above 200 need MultiInput. → [multi-combobox](forms.md#multi-combobox), [multi-input](forms.md#multi-input)
+- Find a value above 200 entries, search several attributes, or define conditions in a separate search task. → [value-help-dialog](overlays.md#value-help-dialog)
+- Browse business items with List or expand a hierarchy with Tree rather than choose a field value. → [list](data.md#list), [tree](data.md#tree)
+- Submit a content-search query with optional scopes rather than choose a field value. → [search](navigation.md#search)
 
 Main exports: `ComboBox`, `ComboBoxItem`, `ComboBoxItemGroup`.
 
@@ -172,7 +197,7 @@ Enter one line of text, a number or a formatted string.
 - Adjust a numeric value with increment and decrement buttons or a visual scale. → [step-input](forms.md#step-input), [slider](forms.md#slider)
 - Collect several values: use MultiComboBox for fewer than 200 predefined options, or MultiInput for caller-validated entries and datasets above 200. → [multi-combobox](forms.md#multi-combobox), [multi-input](forms.md#multi-input)
 
-Main exports: `Input`, `InputIcon`, `valueStateDefaultText`, `valueStateIcons`.
+Main exports: `Input`, `InputIcon`.
 
 ```bash
 npx shadcn add @fiori/input
@@ -205,15 +230,17 @@ Select several predefined options from a filterable list and display selections 
 
 ### Use when
 
-- Choose multiple supplied MultiComboBoxItem values while typing narrows the list.
-- Control selectedValues and onSelectionChange separately from the typed value.
-- Offer showSelectAll when selecting the whole option set is useful; keep the default validation when entries must match supplied items.
+- Let users select several predefined values from fewer than 200 options while typing narrows the list.
+- Keep selected values visible as tokens and prevent unmatched text from becoming selected options.
+- Offer selection of the whole set only when it helps the task.
+- Control selectedValues with onSelectionChange separately from typed value; noValidation allows unmatched text but does not select it.
 
 ### Don't use when
 
-- Choose just one value. → [select](forms.md#select), [combobox](forms.md#combobox)
-- Create arbitrary or application-validated tokens; noValidation permits unmatched text but does not turn it into a selected option. → [multi-input](forms.md#multi-input)
-- Search a large business dataset by several attributes or define ranges and conditions. → [value-help-dialog](overlays.md#value-help-dialog)
+- Choose one value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), ComboBox covers type-ahead across 20–200, and Input covers text without suggestions. → [select](forms.md#select), [combobox](forms.md#combobox), [input](forms.md#input)
+- Collect arbitrary or caller-validated entries, or work with a dataset above 200; provide caller-managed tokens and optional value help. → [multi-input](forms.md#multi-input)
+- Search above 200 business entries by several attributes or define ranges and conditions. → [value-help-dialog](overlays.md#value-help-dialog)
+- Navigate and remove existing tokens without adding values through a choice list. → [tokenizer](forms.md#tokenizer)
 
 Main exports: `MultiComboBox`, `MultiComboBoxItem`, `MultiComboBoxItemGroup`.
 
@@ -227,15 +254,17 @@ Collect several values as caller-managed tokens, with suggestions and optional v
 
 ### Use when
 
-- Accept multiple free-form or application-validated entries; create tokens in onCommit and supply them through tokens.
-- Suggest values with SuggestionItem; set filter when the component should narrow the supplied suggestions.
-- Remove caller-managed tokens in onTokenDelete, and connect showValueHelpIcon and onValueHelpTrigger to a separate selection surface.
+- Let users collect several free-form or application-validated values, including choices from datasets above 200.
+- Offer suggestions or connect a separate value-help surface when users need help identifying an entry.
+- Keep creation and validation of tokens in the application; the field does not choose a predefined option set for the caller.
+- Create tokens in onCommit, supply tokens and handle onTokenDelete; showValueHelpIcon and onValueHelpTrigger connect a caller-supplied surface.
 
 ### Don't use when
 
-- Select only from a predefined option set and let the control manage selected option tokens. → [multi-combobox](forms.md#multi-combobox)
-- Collect one value without tokens. → [input](forms.md#input), [combobox](forms.md#combobox)
-- Provide the actual multiattribute search or condition editor; the value-help callback only opens a surface supplied by the caller. → [value-help-dialog](overlays.md#value-help-dialog)
+- Select only predefined options from fewer than 200 values and let the control manage selected option tokens. → [multi-combobox](forms.md#multi-combobox)
+- Collect one value: use Input without suggestions, ComboBox for type-ahead across 20–200, or Select for 2–12 fixed options without typing (sort alphabetically above 8). → [input](forms.md#input), [combobox](forms.md#combobox), [select](forms.md#select)
+- Provide the actual search across several attributes or condition editor, especially above 200 entries; the field only opens the caller-supplied surface. → [value-help-dialog](overlays.md#value-help-dialog)
+- Inspect and remove existing tokens without entering new values. → [tokenizer](forms.md#tokenizer)
 
 Main exports: `MultiInput`, `SuggestionItem`.
 
@@ -256,7 +285,7 @@ Choose one mutually exclusive answer while keeping every option visible.
 ### Don't use when
 
 - Select independent options or multiple answers. → [checkbox](forms.md#checkbox)
-- Collapse a predefined list of 2–12 options instead of showing every answer. → [select](forms.md#select)
+- Collapse a predefined list of 2–12 options instead of showing every answer; sort alphabetically above 8. → [select](forms.md#select)
 - Switch compact related view or setting options rather than answer a form question. → [segmented-button](actions.md#segmented-button)
 - Run an explicit action rather than select an answer. → [button](actions.md#button)
 - Adjust a numeric value along a visual scale rather than choose categorical options. → [slider](forms.md#slider)
@@ -293,17 +322,18 @@ Choose one value from a short predefined list without entering free text.
 
 ### Use when
 
-- Offer a short set of mutually exclusive choices whose option labels are sufficient.
-- Keep choices collapsed until needed in a form, table or toolbar.
-- Provide a useful initial choice with defaultValue, or control the selected value with value and onValueChange.
+- Let users choose one predefined value from 2–12 options without entering free text.
+- Keep options collapsed when users do not need to compare every answer at once.
+- Order options meaningfully; sort alphabetically when there are more than 8 options.
+- Offer a useful initial choice with defaultValue, or control value with onValueChange.
 
 ### Don't use when
 
-- Type to narrow a longer list or accept a value outside the supplied options. → [combobox](forms.md#combobox)
-- Select several predefined values. → [multi-combobox](forms.md#multi-combobox)
-- Enter multiple caller-validated values or create tokens from suggestions. → [multi-input](forms.md#multi-input)
-- Search across business keys and descriptions or define filter conditions. → [value-help-dialog](overlays.md#value-help-dialog)
-- Keep every single-choice option visible at once. → [radio-group](forms.md#radio-group)
+- Narrow one choice by typing, typically across 20–200 options, or accept free text with suggestions; use Input when no suggestions or choice list is needed. → [combobox](forms.md#combobox), [input](forms.md#input)
+- Collect several values: fewer than 200 predefined options need MultiComboBox; caller-validated entries or datasets above 200 need MultiInput. → [multi-combobox](forms.md#multi-combobox), [multi-input](forms.md#multi-input)
+- Find a value above 200 entries, search several attributes, or define conditions. → [value-help-dialog](overlays.md#value-help-dialog)
+- Keep every form answer visible with RadioGroup, change compact related views with SegmentedButton, or create and manage saved views with VariantManagement. → [radio-group](forms.md#radio-group), [segmented-button](actions.md#segmented-button), [variant-management](navigation.md#variant-management)
+- Browse business items with List, expand a hierarchy with Tree, or inspect repeated row attributes with Table rather than choose a field value. → [list](data.md#list), [tree](data.md#tree), [table](data.md#table)
 
 Main exports: `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectSeparator`, `SelectTrigger`, `SelectValue`.
 
@@ -329,7 +359,7 @@ Adjust one value or a numeric interval along a visual scale.
 - Choose categorical answers rather than a numeric value. → [radio-group](forms.md#radio-group), [checkbox](forms.md#checkbox)
 - Give an icon-based evaluation such as a star rating. → [rating-indicator](forms.md#rating-indicator)
 
-Main exports: `RangeSlider`, `Slider`, `isSliderHandlePressed`, `sliderValueAt`.
+Main exports: `RangeSlider`, `Slider`.
 
 ```bash
 npx shadcn add @fiori/slider

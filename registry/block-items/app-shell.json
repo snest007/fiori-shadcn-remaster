@@ -1,13 +1,27 @@
 {
   "title": "App Shell",
   "description": "SAP Fiori launchpad-style shell: a ShellBar wired to notifications, user menu and product switch popovers, with a side navigation slot and a content area.",
-  "registryDependencies": ["@fiori/icons", "@fiori/avatar", "@fiori/button", "@fiori/card", "@fiori/notification-list", "@fiori/popover", "@fiori/product-switch", "@fiori/search", "@fiori/shell-bar", "@fiori/text", "@fiori/title", "@fiori/user-menu", "@fiori/f6-navigation"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/avatar",
+    "@fiori/button",
+    "@fiori/card",
+    "@fiori/notification-list",
+    "@fiori/popover",
+    "@fiori/product-switch",
+    "@fiori/search",
+    "@fiori/shell-bar",
+    "@fiori/text",
+    "@fiori/title",
+    "@fiori/user-menu",
+    "@fiori/f6-navigation"
+  ],
   "usage": {
     "summary": "Frame application pages with shared shell actions, optional side navigation and a scrolling content area.",
     "useWhen": [
-      "Work across application pages while retaining global search, notifications, profile and product access.",
-      "Start from shell actions already wired to their notification, product-switch and user-menu surfaces.",
-      "Supply page content as children and an optional sideNavigation slot; replace the sample account, search and notification data."
+      "Let users work across application pages while retaining global search, notifications, profile and product access.",
+      "Keep global shell actions available as users navigate between business tasks.",
+      "Provide an application frame around page content, with optional persistent side navigation."
     ],
     "avoidWhen": [
       {
@@ -53,8 +67,8 @@
       "    default content: Card with Title and Text; replaced by children"
     ],
     "variations": [
-      "Replace the placeholder content with the application’s page and supply sideNavigation as a render function to connect its collapsed state to the menu button.",
-      "Replace sample search results, account, product targets and notification handlers with application services; preserve each shell action’s opener and focus return.",
+      "Supply page content as children and sideNavigation as a node or render function; the render function connects collapsed state to the menu button.",
+      "Replace the sample account, search results, product targets and notification data and handlers with application services; preserve shell openers and focus return.",
       "Omit sideNavigation for a page that needs no navigation rail; the menu trigger is then absent."
     ]
   }

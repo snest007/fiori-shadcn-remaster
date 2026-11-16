@@ -7,7 +7,7 @@
     "@fiori/checkbox",
     "@fiori/radio-group"
   ],
-  "description": "Fiori list: standard / custom items, groups, selection modes (single, multiple, delete\u2026), growing, roving focus.",
+  "description": "Fiori list: standard / custom items, groups, selection modes (single, multiple, delete…), growing, roving focus.",
   "files": [
     {
       "path": "registry/lib/fiori-drag-and-drop.ts",
@@ -17,13 +17,14 @@
   "usage": {
     "summary": "Present a sequence of business items for browsing, navigation or selection without column comparison.",
     "useWhen": [
-      "Show a few attributes per item with ListItemStandard, or compose custom item content with ListItemCustom.",
-      "Group a flat collection with ListItemGroup instead of adding expandable hierarchy.",
-      "Enable selectionMode=\"single\" or \"multiple\" for item choice; use growing=\"button\" or \"scroll\" with onLoadMore to request more items."
+      "Let users browse, navigate or select business items with a few attributes per item.",
+      "Group a flat collection without introducing expandable parent-child relationships.",
+      "Show standard item text and supporting attributes, or provide custom content for the same item task.",
+      "Use selectionMode=\"single\" or \"multiple\" for choices and growing=\"button\" or \"scroll\" with onLoadMore for incremental loading."
     ],
     "avoidWhen": [
       {
-        "when": "Compare several attributes across aligned columns.",
+        "when": "Compare aligned row attributes: Table suits roughly 200 loaded rows of average complexity without built-in sorting; DataTable supplies sorting and virtualization, with a design rethink above 1,000.",
         "use": [
           "table",
           "data-table"
@@ -36,15 +37,22 @@
         ]
       },
       {
-        "when": "Choose one value from a short list inside a field.",
+        "when": "Choose one field value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), and ComboBox covers type-ahead across 20–200.",
         "use": [
-          "select"
+          "select",
+          "combobox"
         ]
       },
       {
-        "when": "Type to narrow a single-value choice or enter a new value.",
+        "when": "Read events and changes to an object in chronological order.",
         "use": [
-          "combobox"
+          "timeline"
+        ]
+      },
+      {
+        "when": "Retain business-event updates with unread states and per-event actions rather than browse ordinary records.",
+        "use": [
+          "notification-list"
         ]
       }
     ],

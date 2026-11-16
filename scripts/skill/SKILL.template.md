@@ -6,8 +6,6 @@ description: Build React enterprise pages with the shadcn-fiori registry. Use fo
 # Build with shadcn-fiori
 
 Choose a floorplan for the page's task, then read the relevant category reference to choose its controls.
-The tables below index every documented registry item. Detailed usage is authored incrementally; entries
-without it provide an API/export index, not a recommendation for that use case.
 
 ## Install
 
@@ -19,7 +17,7 @@ npx shadcn add @fiori/<name>
 ```
 
 Components install into `@/components/ui/<name>`; floorplan blocks install into `@/components/<name>`.
-Read the installed source or the component docs for props; the reference lists runtime exports, not the full API.
+Read the installed source for props; the references list composition exports, not the full API.
 Replace floorplan sample data and action handlers with the application's own data flow.
 
 ## Fiori rules
@@ -36,12 +34,13 @@ Replace floorplan sample data and action handlers with the application's own dat
 
 Read [Floorplans](references/floorplans.md) for region nesting, alternatives and valid adaptations.
 
-## Component pickers
-
-{{COMPONENT_PICKERS}}
-
-## Reference index
+## Category index
 
 {{REFERENCE_INDEX}}
+
+## Verify
+
+Before reporting done, run the app's typecheck and build, then open the page and check for browser console and page errors.
+If a prop does not type-check, re-read that installed component's source, correct the API usage, and repeat verification.
 
 Guidance is adapted from SAP's Apache-2.0 ai-skills-library at the pinned revision in [NOTICE](NOTICE).

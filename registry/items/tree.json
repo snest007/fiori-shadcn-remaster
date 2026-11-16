@@ -1,30 +1,33 @@
 {
   "title": "Tree",
-  "registryDependencies": ["@fiori/icons", "@fiori/list"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/list"
+  ],
   "description": "Fiori tree: nested items with expand/collapse (→ / ←), indentation levels and the List selection modes.",
   "usage": {
     "summary": "Browse or select hierarchical items through expandable parent-child nodes.",
     "useWhen": [
-      "Expose a meaningful nested hierarchy that users need to expand and collapse.",
-      "Allow one or several node selections with selectionMode=\"single\" or \"multiple\".",
-      "Handle expansion with onItemToggle; control a TreeItem with expanded and onExpandedChange when the application owns its state."
+      "Let users browse or select items in a meaningful parent-child hierarchy.",
+      "Keep relationships visible through expansion and collapse instead of flattening them into group headers.",
+      "Use selectionMode=\"single\" or \"multiple\" for selection and onItemToggle for expansion; expanded and onExpandedChange control individual nodes."
     ],
     "avoidWhen": [
       {
-        "when": "Present flat items or a collection with only group headers and one item level.",
+        "when": "Present flat items or only group headers with one item level.",
         "use": [
           "list"
         ]
       },
       {
-        "when": "Choose one value from a short nonhierarchical list.",
+        "when": "Choose one nonhierarchical field value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), and ComboBox covers type-ahead across 20–200.",
         "use": [
           "select",
           "combobox"
         ]
       },
       {
-        "when": "Compare attributes of flat records in columns.",
+        "when": "Compare flat record attributes in columns: Table suits roughly 200 loaded rows without built-in sorting; DataTable adds sorting and virtualization, with a design rethink above 1,000.",
         "use": [
           "table",
           "data-table"

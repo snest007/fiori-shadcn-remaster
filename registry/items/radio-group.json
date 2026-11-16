@@ -22,7 +22,7 @@
         ]
       },
       {
-        "when": "Collapse a predefined list of 2–12 options instead of showing every answer.",
+        "when": "Collapse a predefined list of 2–12 options instead of showing every answer; sort alphabetically above 8.",
         "use": [
           "select"
         ]
