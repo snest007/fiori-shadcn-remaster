@@ -6,7 +6,7 @@ const meta = { ...fioriMeta({ name: "tree", component: Tree }), render: () => <T
 export default meta
 type Story = StoryObj<typeof meta>
 export const Playground: Story = {}
-export const AccessibleDescription: Story = { render: () => <Tree aria-label="Files" aria-description="Browse company documents"><TreeItem value="docs" text="Documents" aria-label="Document collection" aria-haspopup="dialog" /></Tree> }
+export const AccessibleDescription: Story = { render: () => <Tree aria-label="Files" aria-description="Browse company documents"><TreeItem value="docs" text="Documents" aria-label="Documents collection" aria-haspopup="dialog" /></Tree> }
 export const RTLAccessibleDescription: Story = { ...AccessibleDescription, globals: { dir: "rtl" } }
 export const CustomContentSelection: Story = { render: () => <Tree aria-label="Files" selectionMode="singleStart"><TreeItemCustom value="docs" content={<span>Custom documents</span>} defaultExpanded><TreeItem value="report" text="Report.pdf" /></TreeItemCustom></Tree> }
 export const RTLCustomContentSelection: Story = { ...CustomContentSelection, globals: { dir: "rtl" } }

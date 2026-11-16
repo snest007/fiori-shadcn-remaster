@@ -400,7 +400,10 @@ function TreeItem({ text, additionalText, additionalTextState = "none", ...props
       content={
         <>
           <div className="fiori-li__text-wrapper">{text != null && text !== "" && <div className="fiori-li__title">{text}</div>}</div>
-          {additionalText && <AdditionalText text={additionalText} state={additionalTextState} />}
+          {/* TreeItemTemplate.js renders title and additional text in separate
+              blocks. Keep a DOM word boundary too, so axe's visible-text channel
+              agrees with Chromium's space-separated accessible name. */}
+          {additionalText && <> <AdditionalText text={additionalText} state={additionalTextState} /></>}
         </>
       }
     />

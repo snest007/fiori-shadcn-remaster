@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test"
+import AxeBuilder from "@axe-core/playwright"
 
 test.beforeEach(async ({ page }) => {
   await page.goto(`/index.html#/tree`)
@@ -7,6 +8,19 @@ test.beforeEach(async ({ page }) => {
 
 const tree = (page: Page) => page.locator("#tree-demo")
 const node = (page: Page, name: string) => tree(page).getByRole("treeitem", { name: `${name} Tree Item Is Active`, exact: true })
+
+test("tree: additional text keeps its native accessible name and a readable visible-text boundary", async ({ page, browser }) => {
+  const notes = node(page, "Notes.txt 2 KB")
+  await expect(notes).toHaveAccessibleName("Notes.txt 2 KB Tree Item Is Active")
+  const audit = await new AxeBuilder({ page }).withRules(["label-content-name-mismatch"]).analyze()
+  expect(audit.violations).toEqual([])
+  const reference = await browser.newPage()
+  try {
+    await reference.goto("/ui5.html?only=tree-basic")
+    await reference.waitForSelector("html[data-ready=true]")
+    await expect(reference.locator('[data-fixture="tree-basic"]').getByRole("treeitem", { name: "Notes.txt 2 KB Tree Item Is Active", exact: true })).toHaveCount(1)
+  } finally { await reference.close() }
+})
 
 test("tree: tree/treeitem roles with level, set size, position, expanded and selected", async ({ page }) => {
   await expect(tree(page).getByRole("tree")).toHaveAttribute("aria-multiselectable", "true")
