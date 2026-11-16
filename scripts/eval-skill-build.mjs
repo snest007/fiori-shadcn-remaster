@@ -33,9 +33,18 @@ export function outputImports(source, file, registry) {
         if (!item) throw new Error(`${file}: unknown imported registry item ${match[2]}`)
         if (match[1] ? item.type !== "registry:ui" : item.type !== "registry:block") throw new Error(`${file}: wrong consumer import path ${name}`)
         modules.add(match[2])
-        const clause = ts.isImportDeclaration(node) ? node.importClause : undefined
-        const hasValue = !clause || (!clause.isTypeOnly && (!!clause.name || (clause.namedBindings &&
-          (ts.isNamespaceImport(clause.namedBindings) || clause.namedBindings.elements.some((element) => !element.isTypeOnly)))))
+        let hasValue = true
+        if (ts.isImportDeclaration(node)) {
+          const clause = node.importClause
+          hasValue = !clause || (!clause.isTypeOnly && (!!clause.name || (clause.namedBindings &&
+            (ts.isNamespaceImport(clause.namedBindings) || clause.namedBindings.elements.some((element) => !element.isTypeOnly)))))
+        } else if (ts.isExportDeclaration(node)) {
+          // TypeScript erases both `export type ...` and individual `type` specifiers.
+          // Value/star/namespace re-exports still load the module; mixed named exports count
+          // only when at least one value remains. Keep modules above even for erased exports.
+          hasValue = !node.isTypeOnly && (!node.exportClause || ts.isNamespaceExport(node.exportClause)
+            || node.exportClause.elements.some((element) => !element.isTypeOnly))
+        }
         if (hasValue) imports.add(match[2])
       } else if (name !== "react" && name !== "react/jsx-runtime" && !/^@\/lib\/[a-z0-9-/]+$/.test(name)) {
         throw new Error(`${file}: unsupported consumer import ${name}`)
