@@ -137,6 +137,13 @@ Separate Playwright config (own `testDir`, so the main suite is unaffected) that
   `getByRole(...).all()` + `accessibleName`). Every story with a Playground: changing each select/radio Control keeps
   axe clean. Keyboard: on each pilot Playground, Tab reaches the component and the focus ring shows only after a
   keyboard action (`:focus-visible`).
+  - **Known component defects (owner's decision, 2026-11-16):** five defects the pilot checks found in component
+    source (Table loading overlay inside `role=grid`, Calendar year-range name mismatch, Select popup dialog semantics,
+    Input focus ring on pointer, Table focus re-entry) are fixed by **E4**, not here. Commit the candidate patches and
+    report to `docs/plan/handoff/S0-a11y-candidates/`. In `tests-storybook/`, mark each affected check as narrowly as
+    possible — the specific story, axe rule and node selector, or the specific focus assertion — with the comment
+    `component defect, fixed by E4 — see docs/plan/handoff/S0-a11y-candidates`. No global rule disabling, no
+    baselines, no skips of whole stories.
 - Deterministic: wait for the state you assert; no sleeps, no retries beyond the config default.
 
 ## Files
@@ -144,7 +151,7 @@ Separate Playwright config (own `testDir`, so the main suite is unaffected) that
 Shared (allowed): `package.json` (the 4 devDependencies + scripts), `pnpm-lock.yaml`, `vite.config.ts`,
 `vite.aliases.ts` (new), `.storybook/**` (new), `docs/stories/**` (new), `tests-storybook/**` (new),
 `playwright.storybook.config.ts` (new), `tsconfig.json` (`include` only), `.gitignore`, `.github/workflows/ci.yml`,
-`docs/src/main.tsx` (ShellBar link only), `AGENTS.md`, `README.md`.
+`docs/src/main.tsx` (ShellBar link only), `AGENTS.md`, `README.md`, `docs/plan/handoff/S0-a11y-candidates/**` (new).
 
 ## Acceptance
 
@@ -152,7 +159,7 @@ Shared (allowed): `package.json` (the 4 devDependencies + scripts), `pnpm-lock.y
 - `pnpm storybook:build && pnpm test:storybook` passes twice with 0 failed / 0 flaky.
 - `pnpm build:pages` produces `dist/storybook/index.html`, and it loads under the `/fiori-shadcn-remaster/storybook/`
   base path.
-- No pilot story has an axe violation or an unnamed control; the docs page of each pilot has its Accessibility
+- No pilot story has an axe violation or an unnamed control, apart from the marked E4 defects; the docs page of each pilot has its Accessibility
   section.
 - Final message: screenshots of the Button and Data Table docs pages in Morning Horizon and Evening Horizon, and of the
   Dialog `Open` story in High Contrast Black; the list of stories per pilot component.
