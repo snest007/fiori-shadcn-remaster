@@ -10,5 +10,34 @@
   ],
   "dependencies": [
     "radix-ui"
-  ]
+  ],
+  "usage": {
+    "summary": "Keep contextual content anchored on desktop and tablet, then show it in a full-screen phone dialog.",
+    "useWhen": [
+      "Let users inspect or edit information related to an opener across desktop, tablet and phone.",
+      "Use it when contextual content would take more than one-third of the phone screen.",
+      "Provide a phone title and closing action through headerText and closeLabel, or replace the phone bars with phoneHeader and phoneFooter."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Keep lightweight contextual content anchored on every device and within one-third of the phone screen.",
+        "use": [
+          "popover"
+        ]
+      },
+      {
+        "when": "Require a focused modal task and explicit confirmation on desktop as well as phone.",
+        "use": [
+          "dialog"
+        ]
+      },
+      {
+        "when": "Show commands in menu rows or submenus without mixed contextual content.",
+        "use": [
+          "menu"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

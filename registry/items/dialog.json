@@ -2,5 +2,46 @@
   "title": "Dialog",
   "dependencies": ["radix-ui"],
   "registryDependencies": ["@fiori/icons", "@fiori/input", "@fiori/popover"],
-  "description": "Fiori modal dialog with header/footer bars and Negative/Critical/Positive/Information states (ui5-dialog)."
+  "description": "Fiori modal dialog with header/footer bars and Negative/Critical/Positive/Information states (ui5-dialog).",
+  "usage": {
+    "summary": "Pause the current task for a focused decision, confirmation or contained editing task.",
+    "useWhen": [
+      "Ask users to confirm an action or supply input before returning to the main screen.",
+      "Keep a contained editing task in a modal window when the surrounding page must remain blocked.",
+      "Use state=\"negative\" or \"critical\" for an alert dialog that needs immediate attention."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Show contextual information beside an opener while users can keep working on the page.",
+        "use": [
+          "popover"
+        ]
+      },
+      {
+        "when": "Show contextual content as a popover on desktop and a full-screen dialog on phones.",
+        "use": [
+          "responsive-popover"
+        ]
+      },
+      {
+        "when": "Offer a hierarchy of commands without a form or confirmation task.",
+        "use": [
+          "menu"
+        ]
+      },
+      {
+        "when": "Confirm a completed action transiently without requiring a response.",
+        "use": [
+          "toast"
+        ]
+      },
+      {
+        "when": "Keep a contextual message visible alongside otherwise usable page content.",
+        "use": [
+          "message-strip"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

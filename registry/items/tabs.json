@@ -6,5 +6,40 @@
     "@fiori/list",
     "@fiori/popover"
   ],
-  "description": "Fiori IconTabBar / TabContainer: text and icon tabs, counts, semantic designs, responsive overflow, UI5 keyboard model."
+  "description": "Fiori IconTabBar / TabContainer: text and icon tabs, counts, semantic designs, responsive overflow, UI5 keyboard model.",
+  "usage": {
+    "summary": "Switch between content facets or prominent filtered views within the current page.",
+    "useWhen": [
+      "Let users browse different facets of a business object without leaving its page.",
+      "Offer prominent filters above a list, optionally with counts for all items and each filtered view.",
+      "Use overflowMode=\"startAndEnd\" when tabs represent process states whose order must stay visible."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Choose compact related options that change the same view or setting rather than distinct content sections.",
+        "use": [
+          "segmented-button"
+        ]
+      },
+      {
+        "when": "Navigate application modules or primary destinations rather than facets within one page.",
+        "use": [
+          "side-navigation"
+        ]
+      },
+      {
+        "when": "Guide users through task steps and control which steps they can reach.",
+        "use": [
+          "wizard"
+        ]
+      },
+      {
+        "when": "Show a location path and let users return to its ancestors.",
+        "use": [
+          "breadcrumbs"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

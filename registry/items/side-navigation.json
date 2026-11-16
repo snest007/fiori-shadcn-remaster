@@ -1,5 +1,44 @@
 {
   "title": "SideNavigation",
   "registryDependencies": ["@fiori/icons", "@fiori/popover", "@fiori/menu", "@fiori/f6-navigation"],
-  "description": "Fiori side navigation: groups, items and sub-items as a keyboard tree; collapsed icon mode with sub-item popovers and a height-aware overflow menu; fixed footer items (ui5-side-navigation)."
+  "description": "Fiori side navigation: groups, items and sub-items as a keyboard tree; collapsed icon mode with sub-item popovers and a height-aware overflow menu; fixed footer items (ui5-side-navigation).",
+  "usage": {
+    "summary": "Provide the main navigation between modules or destinations within a product.",
+    "useWhen": [
+      "Let users move between multiple application destinations from a persistent vertical navigation.",
+      "Group related destinations and expose sub-items when the navigation has a hierarchy.",
+      "Label the first destination Home and link it to the entry page; keep any footer action focused on the essential task."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Switch facets of content within one page rather than application destinations.",
+        "use": [
+          "tabs"
+        ]
+      },
+      {
+        "when": "Switch to a different product rather than navigate within the current one.",
+        "use": [
+          "product-switch"
+        ]
+      },
+      {
+        "when": "Show the current location and return to ancestors in its navigation path.",
+        "use": [
+          "breadcrumbs"
+        ]
+      },
+      {
+        "when": "Arrange the shell, navigation and content regions rather than provide navigation items.",
+        "use": [
+          "navigation-layout"
+        ]
+      },
+      {
+        "when": "Offer only a single navigation target.",
+        "use": []
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }
