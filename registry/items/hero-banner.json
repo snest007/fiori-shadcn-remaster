@@ -1,4 +1,27 @@
 {
   "title": "HeroBanner",
-  "description": "Fiori hero banner: overline, heading, actions and one or two content columns on the Horizon hero background (ui5-hero-banner)."
+  "description": "Fiori hero banner: overline, heading, actions and one or two content columns on the Horizon hero background (ui5-hero-banner).",
+  "usage": {
+    "summary": "Introduce a product home page with a greeting, context and task shortcuts.",
+    "useWhen": [
+      "Welcome users to a product home page and surface the context and tasks they need first.",
+      "Place the hero below the shell bar, let it scroll away, and aim for a height of 5.75–24rem (92–384px).",
+      "Supply the date or greeting through overlineText and headerText, and place supporting content and secondary buttons in the content and actions areas."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Preview one focused business topic with a route to its underlying content.",
+        "use": [
+          "card"
+        ]
+      },
+      {
+        "when": "Keep filters and page actions in a header that collapses while users work with business data.",
+        "use": [
+          "dynamic-page"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

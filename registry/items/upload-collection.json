@@ -1,5 +1,35 @@
 {
   "title": "UploadCollection",
-  "registryDependencies": ["@fiori/icons", "@fiori/button", "@fiori/label", "@fiori/link", "@fiori/progress-indicator", "@fiori/illustrated-message"],
-  "description": "Fiori upload collection: file list with thumbnails, progress and Complete/Error/Ready/Uploading states, retry/terminate/delete, drag & drop overlay (ui5-upload-collection). Upload transport is up to the caller."
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button",
+    "@fiori/label",
+    "@fiori/link",
+    "@fiori/progress-indicator",
+    "@fiori/illustrated-message"
+  ],
+  "description": "Fiori upload collection: file list with thumbnails, progress and Complete/Error/Ready/Uploading states, retry/terminate/delete, drag & drop overlay (ui5-upload-collection). Upload transport is up to the caller.",
+  "usage": {
+    "summary": "Manage prepared or uploaded files with per-file status and lifecycle actions.",
+    "useWhen": [
+      "Let users review a collection of attachments and remove, retry or terminate individual uploads.",
+      "Use UploadCollectionItem uploadState and progress for per-file feedback; handle onDropFiles and upload transport in the application.",
+      "Keep filenames, thumbnails and descriptive metadata together for files before or after upload."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Select local files for a form without showing or managing an attachment collection.",
+        "use": [
+          "file-uploader"
+        ]
+      },
+      {
+        "when": "Inspect images or videos through thumbnails without upload lifecycle actions.",
+        "use": [
+          "media-gallery"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

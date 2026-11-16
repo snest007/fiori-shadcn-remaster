@@ -1,5 +1,29 @@
 {
   "title": "Carousel",
   "description": "Fiori carousel: items per page by container width, arrows over the content or beside the page indicator, dots or numeric indicator, cyclic navigation, swipe, the SAP keyboard model (ui5-carousel).",
-  "registryDependencies": ["@fiori/icons"]
+  "registryDependencies": [
+    "@fiori/icons"
+  ],
+  "usage": {
+    "summary": "Let users browse a sequence of images or other content pages.",
+    "useWhen": [
+      "Let users browse ordered images or content pages with arrows, keyboard navigation or swipe.",
+      "Present one item or a deliberate group at a time while preserving the sequence."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Select a thumbnail and inspect an image or video in a dedicated display area.",
+        "use": [
+          "media-gallery"
+        ]
+      },
+      {
+        "when": "Represent one person or business entity with a photo, initials or an icon.",
+        "use": [
+          "avatar"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

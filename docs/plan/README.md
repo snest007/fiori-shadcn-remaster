@@ -87,7 +87,7 @@ generated agent skill `skills/shadcn-fiori/`. G0 first (pipeline + pilot); G1–
 
 - [x] [G0 Schema, pipeline, docs, skill generator + pilot](tasks/G0-usage-guidance-pipeline.md) — M
 - [x] [G1 Forms and dates](tasks/G1-usage-forms-dates.md) — M (after G0)
-- [ ] [G2 Data and display](tasks/G2-usage-data-display.md) — M (after G0)
+- [x] [G2 Data and display](tasks/G2-usage-data-display.md) — M (after G0)
 - [ ] [G3 Overlays and navigation](tasks/G3-usage-overlays-navigation.md) — M (after G0)
 - [ ] [G4 Layouts and floorplans](tasks/G4-usage-layout-floorplans.md) — M (after G0)
 - [ ] [G5 Coverage gate, pilot rewrite, exports filter + agent eval](tasks/G5-usage-coverage-eval.md) — M (after G1–G4)

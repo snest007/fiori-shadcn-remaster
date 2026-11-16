@@ -1,5 +1,31 @@
 {
   "title": "Avatar",
-  "registryDependencies": ["@fiori/icons", "@fiori/button"],
-  "description": "Fiori avatar (XS–XL, circle/square, initials/icon/image, accent colours, interactive) and AvatarGroup."
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button"
+  ],
+  "description": "Fiori avatar (XS–XL, circle/square, initials/icon/image, accent colours, interactive) and AvatarGroup.",
+  "usage": {
+    "summary": "Represent people or business entities with recognizable images, initials or placeholders.",
+    "useWhen": [
+      "Help users recognize a person, product or business entity consistently across the application.",
+      "Use shape=\"circle\" for people, shape=\"square\" for business entities, and initials for 1–3 Latin letters when no photo exists.",
+      "Show related people together with AvatarGroup, and provide meaningful alternative text for identity images."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Browse a sequence of pictures rather than represent one identity.",
+        "use": [
+          "carousel"
+        ]
+      },
+      {
+        "when": "Select image or video thumbnails to inspect the corresponding media.",
+        "use": [
+          "media-gallery"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

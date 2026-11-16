@@ -1,1 +1,44 @@
-{ "title": "Text", "description": "Fiori body text with maxLines truncation." }
+{
+  "title": "Text",
+  "description": "Fiori body text with maxLines truncation.",
+  "usage": {
+    "summary": "Display read-only body text in an application content area.",
+    "useWhen": [
+      "Let users read descriptions, explanations or other body content without an action attached.",
+      "Use maxLines only when truncation is acceptable; leave it unset when users must read the full content."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Let users reveal prose that exceeds the available space.",
+        "use": [
+          "expandable-text"
+        ]
+      },
+      {
+        "when": "Name a page or section with heading semantics.",
+        "use": [
+          "title"
+        ]
+      },
+      {
+        "when": "Navigate to a destination when users activate the text.",
+        "use": [
+          "link"
+        ]
+      },
+      {
+        "when": "Provide a label associated with an input or form field.",
+        "use": [
+          "label"
+        ]
+      },
+      {
+        "when": "Let users edit the prose.",
+        "use": [
+          "textarea"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
+}

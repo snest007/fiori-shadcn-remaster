@@ -1,5 +1,38 @@
 {
   "title": "MediaGallery",
   "description": "Fiori image and video gallery with measured thumbnail overflow, selectable items, keyboard navigation, responsive layouts, and a phone carousel (ui5-media-gallery).",
-  "registryDependencies": ["@fiori/button", "@fiori/carousel", "@fiori/icons"]
+  "registryDependencies": [
+    "@fiori/button",
+    "@fiori/carousel",
+    "@fiori/icons"
+  ],
+  "usage": {
+    "summary": "Browse images and videos by selecting thumbnails and inspecting the selected media.",
+    "useWhen": [
+      "Let users choose an image or video thumbnail and inspect the corresponding item in a display area.",
+      "Keep alternative views of the same object together, with responsive thumbnail placement and overflow access.",
+      "Compose MediaGalleryItem children with thumbnails; use interactiveDisplayArea when pressing the selected media opens a detailed view."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Browse generic content pages in sequence without thumbnail selection.",
+        "use": [
+          "carousel"
+        ]
+      },
+      {
+        "when": "Show one identity photo, initials or placeholder for a person or entity.",
+        "use": [
+          "avatar"
+        ]
+      },
+      {
+        "when": "Manage attached files with upload status, deletion, retry or termination.",
+        "use": [
+          "upload-collection"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

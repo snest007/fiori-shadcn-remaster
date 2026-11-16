@@ -1,5 +1,43 @@
 {
   "title": "MessageStrip",
-  "registryDependencies": ["@fiori/icons", "@fiori/button"],
-  "description": "Fiori message strip: information/positive/negative/critical and color-set designs, closable."
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button"
+  ],
+  "description": "Fiori message strip: information/positive/negative/critical and color-set designs, closable.",
+  "usage": {
+    "summary": "Explain application messages in context within a page or section.",
+    "useWhen": [
+      "Keep users informed about a warning, status change or guidance that applies to the current page or section.",
+      "Place the message close to the affected content so users can keep working and understand its scope.",
+      "Use design for message severity; handle onClose in the application when users may dismiss the strip."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Confirm a completed action briefly without requiring a response.",
+        "use": [
+          "toast"
+        ]
+      },
+      {
+        "when": "An empty or unavailable area needs an illustration and a recovery or next-step action.",
+        "use": [
+          "illustrated-message"
+        ]
+      },
+      {
+        "when": "Interrupt the flow to require an explicit decision or immediate response.",
+        "use": [
+          "dialog"
+        ]
+      },
+      {
+        "when": "Show the state of an individual object inside a table cell or list item.",
+        "use": [
+          "object-status"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

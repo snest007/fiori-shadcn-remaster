@@ -1,4 +1,27 @@
 {
   "title": "ObjectIdentifier",
-  "description": "Fiori object identifier and object attribute (sap.m look): bold title (optionally a link) with secondary text; \"Title: value\" attributes."
+  "description": "Fiori object identifier and object attribute (sap.m look): bold title (optionally a link) with secondary text; \"Title: value\" attributes.",
+  "usage": {
+    "summary": "Identify a business object with a primary title and supporting identifier or attributes.",
+    "useWhen": [
+      "Help users distinguish a specific business object by its name and supporting identifier.",
+      "Keep the primary identifier visible in the first table column; use ObjectAttribute for supporting title-and-value details.",
+      "Use titleActive with titleHref or onTitlePress when the primary identity navigates to object details."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Provide a single navigation label without a supporting object identifier.",
+        "use": [
+          "link"
+        ]
+      },
+      {
+        "when": "Name a page or section with heading semantics rather than identify a business object.",
+        "use": [
+          "title"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }
