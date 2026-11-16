@@ -96,7 +96,7 @@ const meta = {
   ],
   [
     "suggestionsLabel",
-    "INPUT_SUGGESTIONS",
+    "React popup listbox label extension (no direct UI5 text key)",
     "Suggestions"
   ]
 ] as const
