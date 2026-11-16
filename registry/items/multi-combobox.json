@@ -13,7 +13,8 @@
     "@fiori/use-is-phone",
     "@fiori/responsive-popover",
     "@fiori/button",
-    "@fiori/toggle-button"
+    "@fiori/toggle-button",
+    "@fiori/locale"
   ],
   "description": "Fiori multi combo box: tokens plus a filterable check box list, \"show selected\" via n more, select all and the SAP keyboard model.",
   "usage": {
@@ -26,7 +27,7 @@
     ],
     "avoidWhen": [
       {
-        "when": "Choose one value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), ComboBox covers type-ahead across 20–200, and Input covers text without suggestions.",
+        "when": "Choose one value: Select covers 2\u201312 fixed options without typing (sort alphabetically above 8), ComboBox covers type-ahead across 20\u2013200, and Input covers text without suggestions.",
         "use": [
           "select",
           "combobox",

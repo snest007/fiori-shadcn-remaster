@@ -27,7 +27,7 @@ const MANY = MCB_ITEMS.slice(0, 5)
 
 export default defineFixtures<Props>({
   name: "multi-combobox",
-  cases: [
+  cases: ([
     { id: "multi-combobox-empty", props: { placeholder: "Choose countries" } },
     { id: "multi-combobox-tokens", props: { selected: TWO, width: "20rem" } },
     { id: "multi-combobox-n-more", props: { selected: MANY } },
@@ -37,7 +37,7 @@ export default defineFixtures<Props>({
     { id: "multi-combobox-list", props: { selected: TWO, list: true } },
     { id: "multi-combobox-list-select-all", props: { selected: TWO, list: true, selectAll: true } },
     { id: "multi-combobox-groups-open", props: { selected: TWO, list: true, groups: true, selectAll: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "multi-combobox-rtl" }] : [fixture]),
   react: ({ selected = [], width = FIELD_WIDTH, list, selectAll, groups, ...p }) => {
     const field = (
       <MultiComboBox

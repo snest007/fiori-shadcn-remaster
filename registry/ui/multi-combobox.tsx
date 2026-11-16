@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, collatorIncludes } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
@@ -16,7 +17,7 @@ import { multiselectAll, slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 import { Token } from "@/components/ui/token"
 import { Tokenizer, type TokenizerHandle } from "@/components/ui/tokenizer"
 
@@ -95,6 +96,8 @@ type MultiComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "default
   tokensCountText?: (count: number) => string
   /** Render the list in place instead of in a portal on document.body. */
   portal?: boolean
+  locale?: string
+  noDataText?: string
   wrapperClassName?: string
   dialogTitle?: string
   okText?: string
@@ -106,10 +109,10 @@ type Item = MultiComboBoxItemProps & { key: string }
 
 const SKIP_ITEMS = 10
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-const filters: Record<MultiComboBoxFilter, (value: string, text: string) => boolean> = {
-  startsWithPerTerm: (v, t) => new RegExp(`(^|\\s)${escapeRegExp(v.toLowerCase())}`).test(t.toLowerCase()),
-  startsWith: (v, t) => t.toLowerCase().startsWith(v.toLowerCase()),
-  contains: (v, t) => t.toLowerCase().includes(v.toLowerCase()),
+const filters: Record<MultiComboBoxFilter, (value: string, text: string, locale: string | undefined) => boolean> = {
+  startsWithPerTerm: (v, text, locale) => text.split(/\s+/).some(term => collatorIncludes(term, v, locale, true)),
+  startsWith: (v, text, locale) => collatorIncludes(text, v, locale, true),
+  contains: (v, text, locale) => collatorIncludes(text, v, locale),
   none: () => true,
 }
 const NO_AUTOCOMPLETE = new Set([
@@ -142,9 +145,9 @@ function collectEntries(children: React.ReactNode, out: Entry[] = []) {
 }
 
 /** Bold the first word that starts with `match` (UI5's generateHighlightedMarkupFirstMatch). */
-function highlight(text: string, match: string) {
+function highlight(text: string, match: string, locale: string | undefined) {
   if (!match) return text
-  const i = text.toLowerCase().search(new RegExp(`(^|\\s)${escapeRegExp(match.toLowerCase())}`))
+  const i = (locale ? text.toLocaleLowerCase(locale) : text.toLowerCase()).search(new RegExp(`(^|\\s)${escapeRegExp((locale ? match.toLocaleLowerCase(locale) : match.toLowerCase()))}`))
   if (i === -1) return text
   const start = text[i] === " " ? i + 1 : i
   return (
@@ -168,6 +171,8 @@ function MultiComboBox({
   children,
   className,
   wrapperClassName,
+  locale: localeProp,
+  noDataText,
   selectedValues: selectedProp,
   defaultSelectedValues = [],
   onSelectionChange,
@@ -184,18 +189,18 @@ function MultiComboBox({
   onOpenChange,
   valueState: valueStateProp = "none",
   valueStateMessage,
-  arrowLabel = "Select Options",
-  listLabel = "Available Options",
-  selectAllText = defaultSelectAllText,
-  alreadySelectedText = "This value is already selected.",
+  arrowLabel: arrowLabelProp,
+  listLabel: listLabelProp,
+  selectAllText: selectAllTextProp,
+  alreadySelectedText: alreadySelectedTextProp,
   invalidText,
   nMoreText,
-  tokensCountText = defaultTokensCountText,
+  tokensCountText: tokensCountTextProp,
   portal = true,
-  dialogTitle = "All Items",
-  okText = "OK",
-  cancelText = "Cancel",
-  showSelectedLabel = "Show Selected Items Only",
+  dialogTitle: dialogTitleProp,
+  okText: okTextProp,
+  cancelText: cancelTextProp,
+  showSelectedLabel: showSelectedLabelProp,
   disabled,
   readOnly,
   placeholder,
@@ -209,6 +214,21 @@ function MultiComboBox({
   "aria-label": ariaLabel,
   ...props
 }: MultiComboBoxProps) {
+  const valueStateTexts = useValueStateTexts()
+
+  const { t, locale, localized } = useFioriLocale(localeProp)
+  const matchLocale = localized ? locale : undefined
+  const collator = localized ? new Intl.Collator(locale, { sensitivity: "base" }) : { compare: (a: string, b: string) => a.toLowerCase() === b.toLowerCase() ? 0 : 1 }
+  const tokensCountText = tokensCountTextProp ?? ((count: number) => t(count === 0 ? "TOKENIZER_ARIA_CONTAIN_TOKEN" : count === 1 ? "TOKENIZER_ARIA_CONTAIN_ONE_TOKEN" : "TOKENIZER_ARIA_CONTAIN_SEVERAL_TOKENS", defaultTokensCountText(count), count))
+  const selectAllText = selectAllTextProp ?? ((selected: number, total: number) => t("MCB_SELECTED_ITEMS", defaultSelectAllText(selected, total), selected, total))
+  const arrowLabel = arrowLabelProp ?? t("SELECT_OPTIONS", "Select Options") // UI5 SELECT_OPTIONS
+  const listLabel = listLabelProp ?? t("COMBOBOX_AVAILABLE_OPTIONS", "Available Options") // UI5 COMBOBOX_AVAILABLE_OPTIONS
+  const alreadySelectedText = alreadySelectedTextProp ?? t("VALUE_STATE_ERROR_ALREADY_SELECTED", "This value is already selected.") // UI5 VALUE_STATE_ERROR_ALREADY_SELECTED
+  const dialogTitle = dialogTitleProp ?? t("INPUT_SUGGESTIONS_TITLE", "All Items") // UI5 INPUT_SUGGESTIONS_TITLE
+  const okText = okTextProp ?? t("MULTICOMBOBOX_DIALOG_OK_BUTTON", "OK") // UI5 MULTICOMBOBOX_DIALOG_OK_BUTTON
+  const cancelText = cancelTextProp ?? t("MULTICOMBOBOX_DIALOG_CANCEL_BUTTON", "Cancel") // UI5 MULTICOMBOBOX_DIALOG_CANCEL_BUTTON
+  const showSelectedLabel = showSelectedLabelProp ?? t("SHOW_SELECTED_BUTTON", "Show Selected Items Only") // UI5 SHOW_SELECTED_BUTTON
+
   const phone = useIsPhone()
   const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
   const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
@@ -259,7 +279,7 @@ function MultiComboBox({
   const messageId = `${baseId}-vsm`
 
   const selectedItems = items.filter((i) => selectedSet.has(i.key))
-  const filtered = filtering ? items.filter((i) => filters[filter](typed, i.text)) : items
+  const filtered = filtering ? items.filter((i) => filters[filter](typed, i.text, matchLocale)) : items
   const visible = filterSelected ? selectedItems : filtered
   const rowsFor = (shown: Item[]) => entries.flatMap((entry): Entry[] => {
     if (!isGroup(entry)) return shown.includes(entry) ? [entry] : []
@@ -275,9 +295,9 @@ function MultiComboBox({
   const message: React.ReactNode = alreadySelected
     ? alreadySelectedText
     : internalError
-      ? (invalidText ?? valueStateDefaultText.negative)
+      ? (invalidText ?? valueStateTexts.negative)
       : valueStateMessage === undefined && valueState !== "none"
-        ? valueStateDefaultText[valueState]
+        ? valueStateTexts[valueState]
         : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
   const showHeader = open && showMessage && valueState !== "positive"
@@ -372,7 +392,7 @@ function MultiComboBox({
     if (open) return setOpen(false)
     setFiltering(false)
     setFilterSelected(false)
-    const match = items.findIndex((i) => i.text.localeCompare(value, undefined, { sensitivity: "base" }) === 0)
+    const match = items.findIndex((i) => localized ? collator.compare(i.text, value) === 0 : i.text.localeCompare(value, undefined, { sensitivity: "base" }) === 0)
     const fromToken = focusedTokenText !== undefined ? items.findIndex((i) => i.text === focusedTokenText) : -1
     const firstSelected = items.findIndex((i) => selectedSet.has(i.key))
     const itemIndex = fromToken >= 0 ? fromToken : match >= 0 ? match : firstSelected >= 0 ? firstSelected : 0
@@ -471,7 +491,7 @@ function MultiComboBox({
     // to _handleTab, unlike its exact-predicate row/select-all handlers.
     if (key === "Tab") return setOpen(false)
     if (key === "Enter") {
-      const match = items.find((i) => i.text.toLowerCase() === value.toLowerCase())
+      const match = items.find((i) => collator.compare(i.text, value) === 0)
       if (match) {
         if (selectedSet.has(match.key)) flagAlreadySelected()
         else {
@@ -677,7 +697,7 @@ function MultiComboBox({
             ;(e.currentTarget.closest('[role="option"]') as HTMLElement | null)?.focus()
           }}
         />
-        <span className="fiori-multi-combobox__item-text">{filtering && !filterSelected ? highlight(item.text, typed) : item.text}</span>
+        <span className="fiori-multi-combobox__item-text">{filtering && !filterSelected ? highlight(item.text, typed, matchLocale) : item.text}</span>
         {item.additionalText && <span className="fiori-multi-combobox__item-additional">{item.additionalText}</span>}
       </div>
     )
@@ -714,7 +734,7 @@ function MultiComboBox({
             header blank while retaining the source value and Cancel snapshot.
             Preserve the phone Input's own edit state across dialog openings. */}
         <Input ref={phoneInputRef} aria-label={dialogTitle} placeholder={placeholder} value={phoneInputValue} valueState={valueState} valueStateMessage={null}
-          onChange={(e) => { const text = e.target.value; setPhoneInputValue(text); setValue(text); setTyped(text); setFiltering(true); setFilterSelected(false); setInvalid(!items.some((i) => filters[filter](text, i.text))) }}
+          onChange={(e) => { const text = e.target.value; setPhoneInputValue(text); setValue(text); setTyped(text); setFiltering(true); setFilterSelected(false); setInvalid(!items.some((i) => filters[filter](text, i.text, matchLocale))) }}
           onKeyDown={(e) => {
             // MultiComboBox.js/_onMobileInputKeydown handles plain Enter only.
             // The embedded phone Input does not forward arrows to this List.
@@ -916,7 +936,7 @@ function MultiComboBox({
             onChange={(e) => {
               const t = e.target.value
               const ne = e.nativeEvent as InputEvent
-              const matches = items.filter((i) => filters[filter](t, i.text))
+              const matches = items.filter((i) => filters[filter](t, i.text, matchLocale))
               setTyped(t)
               setFiltering(!!t)
               setFilterSelected(false)
@@ -924,7 +944,7 @@ function MultiComboBox({
               setInvalid(!ne.isComposing && !matches.length && !!t)
               let next = t
               if (!noTypeahead && !ne.isComposing && t && matches.length && !NO_AUTOCOMPLETE.has(ne.inputType)) {
-                const item = items.find((i) => !selectedSet.has(i.key) && i.text.toLowerCase().startsWith(t.toLowerCase()))
+                const item = items.find((i) => !selectedSet.has(i.key) && collatorIncludes(i.text, t, matchLocale, true))
                 if (item) {
                   next = item.text
                   pendingSelection.current = [t.length, item.text.length]
