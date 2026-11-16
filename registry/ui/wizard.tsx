@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 Wizard fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -51,9 +52,14 @@ type WizardTexts = {
   /** Content region name "Step {n} {title}". */
   stepContentLabel: (n: number, title: string | undefined) => string
   cancel: string
+  stepHeading?: string
+  activeStep?: string
+  inactiveStep?: string
+  optionalStep?: string
+  actionSheetSteps?: string
 }
 
-const defaultTexts: WizardTexts = {
+const defaultTexts: Required<WizardTexts> = {
   wizard: "Wizard",
   navigation: "Wizard Progress Bar",
   steps: "Wizard Steps",
@@ -62,6 +68,11 @@ const defaultTexts: WizardTexts = {
     `Step ${(title ? `${n} ${title}` : `Step ${n}`) + ` ${enabled ? "Active" : "Inactive"}` + (optional ? " Optional" : "")}`.trim(),
   stepContentLabel: (n, title) => `Step ${n} ${title ?? ""}`.trim(),
   cancel: "Cancel",
+  stepHeading: "Step", // UI5 WIZARD_NAV_STEP_DEFAULT_HEADING
+  activeStep: "Active", // UI5 WIZARD_STEP_ACTIVE
+  inactiveStep: "Inactive", // UI5 WIZARD_STEP_INACTIVE
+  optionalStep: "Optional", // UI5 WIZARD_OPTIONAL_STEP_ARIA_LABEL
+  actionSheetSteps: "Steps", // UI5 WIZARD_ACTIONSHEET_STEPS_ARIA_LABEL
 }
 
 type StepChange = { previousStep: string | undefined; withScroll: boolean }
@@ -140,7 +151,16 @@ function Wizard({
   children,
   ...props
 }: WizardProps) {
-  const texts = { ...defaultTexts, ...textsProp }
+  const texts = useFioriTexts<Required<WizardTexts>>(defaultTexts, defaultTextsKeys, textsProp)
+  const { t, hasProvider } = useFioriLocale()
+  // Wizard.js/getStepsInfo composes title, state and optional status before
+  // getStepAriaLabelText substitutes WIZARD_STEP_ARIA_LABEL. Retain all parts.
+  const stepLabel = textsProp?.stepLabel ?? ((n: number, title: string | undefined, enabled: boolean, optional: boolean) => {
+    const heading = title ? `${n} ${title}` : `${texts.stepHeading} ${n}`
+    const label = `${heading} ${enabled ? texts.activeStep : texts.inactiveStep} ${optional ? texts.optionalStep : ""}`.trim()
+    return t("WIZARD_STEP_ARIA_LABEL", () => textsProp ? `Step ${label}` : defaultTexts.stepLabel(n, title, enabled, optional), label)
+  })
+  const stepContentLabel = textsProp?.stepContentLabel ?? ((n: number, title: string | undefined) => `${texts.stepHeading} ${n} ${title ?? ""}`.trim())
   const id = React.useId()
   const steps = React.Children.toArray(children)
     .filter(React.isValidElement)
@@ -327,7 +347,7 @@ function Wizard({
                     aria-current={i === current ? "step" : undefined}
                     aria-setsize={steps.length}
                     aria-posinset={i + 1}
-                    aria-label={texts.stepLabel(i + 1, step.titleText, !step.disabled, !!step.subtitleText)}
+                    aria-label={stepLabel(i + 1, step.titleText, !step.disabled, !!step.subtitleText)}
                     aria-disabled={step.disabled || undefined}
                     onFocus={() => setFocusIndex(i)}
                     onKeyDown={(e) => {
@@ -378,7 +398,7 @@ function Wizard({
               data-stretch={i === lastEnabled ? "" : undefined}
               hidden={step.disabled}
               role="region"
-              aria-label={texts.stepContentLabel(i + 1, step.titleText)}
+              aria-label={stepContentLabel(i + 1, step.titleText)}
               className="fiori-wiz__content-item"
             >
               <div className="fiori-wiz__content-item-wrapper">{step.children}</div>
@@ -392,7 +412,7 @@ function Wizard({
             virtualRef={{ current: tabRefs.current[stack.anchor] } as React.RefObject<HTMLElement>}
           />
         )}
-        <PopoverContent side="bottom" align="center" hideArrow aria-label={texts.steps} className="fiori-wiz-popover">
+        <PopoverContent side="bottom" align="center" hideArrow aria-label={textsProp?.steps ?? (hasProvider || textsProp ? texts.actionSheetSteps : texts.steps)} className="fiori-wiz-popover">
           <ul className="fiori-wiz-popover__list">
             {stack &&
               steps.slice(stack.from, stack.to + 1).map((s, k) => {
@@ -428,3 +448,17 @@ function Wizard({
 }
 
 export { Wizard, WizardStep, type WizardProps, type WizardStepProps, type WizardTexts, type WizardContentLayout }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTextsKeys = {
+  "wizard": "WIZARD_NAV_ARIA_ROLE_DESCRIPTION",
+  "navigation": "WIZARD_NAV_ARIA_LABEL",
+  "steps": "WIZARD_LIST_ARIA_LABEL",
+  "activateHint": "WIZARD_LIST_ARIA_DESCRIBEDBY",
+  "cancel": "WIZARD_CANCEL_BUTTON",
+  stepHeading: "WIZARD_NAV_STEP_DEFAULT_HEADING",
+  activeStep: "WIZARD_STEP_ACTIVE",
+  inactiveStep: "WIZARD_STEP_INACTIVE",
+  optionalStep: "WIZARD_OPTIONAL_STEP_ARIA_LABEL",
+  actionSheetSteps: "WIZARD_ACTIONSHEET_STEPS_ARIA_LABEL"
+} as const

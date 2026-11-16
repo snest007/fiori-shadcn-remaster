@@ -22,14 +22,14 @@ const four: StepSpec[] = [
 
 export default defineFixtures<Props>({
   name: "wizard",
-  cases: [
+  cases: ([
     { id: "wizard-icons-first", props: { steps: four, selected: 0 } },
     { id: "wizard-icons-second", props: { steps: four, selected: 1 } },
     { id: "wizard-numbers", props: { steps: [{ title: "Step 1" }, { title: "Step 2", branching: true }, { title: "Step 3", disabled: true }], selected: 1 } },
     { id: "wizard-all-enabled", props: { steps: four.map((s) => ({ ...s, disabled: false })), selected: 3 } },
     // 520px header → room for 2 expanded tabs; the others collapse into stacks.
     { id: "wizard-narrow", props: { steps: [...four, { title: "Review" }].map((s) => ({ ...s, disabled: false })), selected: 2, width: "520px" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "wizard-rtl" }] : [fixture]),
   react: ({ steps, selected, width = "48rem" }) => (
     <div style={{ width, height: WIZ_HEIGHT }}>
       <Wizard defaultSelectedStep={String(selected)} accessibleName={`Wizard fixture ${steps.length} ${selected} ${width}`}>
