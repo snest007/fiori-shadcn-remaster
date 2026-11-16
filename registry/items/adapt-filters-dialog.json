@@ -14,7 +14,8 @@
     "@fiori/popover",
     "@fiori/segmented-button",
     "@fiori/select",
-    "@fiori/toggle-button"
+    "@fiori/toggle-button",
+    "@fiori/locale"
   ],
   "usage": {
     "summary": "Personalize filter fields, their order and values in a staged dialog before applying changes.",

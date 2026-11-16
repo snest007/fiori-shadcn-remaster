@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
@@ -132,7 +133,9 @@ function AdaptFiltersSession({
   p13nMode = ["item", "value"], texts, id, className, style, contentWidth = "40rem", contentHeight = "55rem",
   defaultView = "list", defaultMode = "edit", defaultSearch = "", defaultResetConfirmation = false, portal = true, modal = true,
 }: AdaptFiltersDialogProps) {
-  const t = { ...defaultTexts, ...texts }
+  const { locale } = useFioriLocale()
+  const compare = new Intl.Collator(locale, { sensitivity: "base" }).compare
+  const t = useFioriTexts(defaultTexts, defaultTextsKeys, texts)
   const autoId = React.useId()
   const baseId = id ?? `adapt-filters-dialog-${autoId}`
   const [draftValues, setDraftValues] = React.useState(() => cloneValues(values))
@@ -182,11 +185,11 @@ function AdaptFiltersSession({
     return true
   }
   const searchedRows = rowCandidates.filter((key) => matchesRow(key, query))
-  const available = filters.filter((field) => !shown(field.key) && !field.required && !hasConditions(draftValues, field.key)).sort((a, b) => a.label.localeCompare(b.label))
+  const available = filters.filter((field) => !shown(field.key) && !field.required && !hasConditions(draftValues, field.key)).sort((a, b) => compare(a.label, b.label))
   const groups = [...new Set(searchedRows.map((key) => fieldFor(key).group ?? "basic"))].sort((a, b) => {
     if (a === "basic" || a === "__$INTERNAL$") return -1
     if (b === "basic" || b === "__$INTERNAL$") return 1
-    return (filters.find((field) => field.group === a)?.groupLabel ?? a).localeCompare(filters.find((field) => field.group === b)?.groupLabel ?? b)
+    return compare(filters.find((field) => field.group === a)?.groupLabel ?? a, filters.find((field) => field.group === b)?.groupLabel ?? b)
   })
 
   React.useLayoutEffect(() => {
@@ -464,3 +467,59 @@ function ResetConfirmation({ portal, standalone, title, message, ok, cancel, onC
 }
 
 export { AdaptFiltersDialog, type AdaptFiltersDialogProps, type AdaptFiltersTexts, type AdaptFiltersState, type FilterDefinition, type FilterCondition, type FilterValues, type FilterRenderProps }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTextsKeys = {
+  title: "filterbar.ADAPT_TITLE",
+  reset: "p13nDialog.RESET",
+  ok: "p13nDialog.OK",
+  cancel: "p13nDialog.CANCEL",
+  warning: "MSGBOX_TITLE_WARNING",
+  group: "adaptFiltersPanel.GROUP",
+  edit: "adaptFiltersPanel.VIEW_MODE_EDIT",
+  sort: "adaptFiltersPanel.VIEW_MODE_SORT",
+  addFilter: "adaptFiltersPanel.ADD_FILTER_LABEL",
+  moveTop: "p13nDialog.MOVE_TO_TOP",
+  moveUp: "p13nDialog.MOVE_UP",
+  moveDown: "p13nDialog.MOVE_DOWN",
+  moveBottom: "p13nDialog.MOVE_TO_BOTTOM",
+  filter: "adaptFiltersPanel.FILTER_BUTTON",
+  active: "p13nDialog.GROUPMODE_ACTIVE",
+  all: "p13nDialog.GROUPMODE_ALL",
+  basic: "adaptFiltersPanel.GROUP_DEFAULT",
+  selectAll: "TABLE_SELECT_ALL_TOOLTIP",
+  added: "p13nDialog.ADAPT_FILTER_ADD_ANNOUNCE",
+  handleRoleDescription: "DIALOG_HANDLE_ARIA_ROLEDESCRIPTION",
+
+  "resetWarning": "filterbar.ADAPT_RESET_WARNING",
+  "list": "adaptFiltersPanel.LIST",
+  "listView": "filterbar.ADAPT_LIST_VIEW",
+  "groupView": "filterbar.ADAPT_GROUP_VIEW",
+  "toolbarTitle": "adaptFiltersPanel.TOOLBAR_TITLE",
+  "search": "p13nDialog.ADAPT_FILTER_SEARCH",
+  "interactionModes": "p13nDialog.ADAPT_FILTER_MODE_BUTTON_LABEL",
+  "addPlaceholder": "adaptFiltersPanel.ADD_FILTER_PLACEHOLDER",
+  "selectOptions": "SELECT_OPTIONS",
+  "noResults": "LIST_NO_DATA",
+  "dragToReorder": "adaptFiltersPanel.ACTION_SORT",
+  "reorderHint": "adaptFiltersPanel.REORDERING_SHORTCUT_WINDOWS",
+  "visible": "p13nDialog.GROUPMODE_VISIBLE",
+  "visibleActive": "p13nDialog.GROUPMODE_VISIBLE_ACTIVE",
+  "mandatory": "p13nDialog.GROUPMODE_MANDATORY",
+  "showValues": "filterbar.ADAPT_SHOW_VALUE",
+  "hideValues": "filterbar.ADAPT_HIDE_VALUE",
+  "required": "filterbar.REQUIRED_FILTER_VALUE_MISSING",
+  "invalidFilter": "adaptFiltersPanel.COMBOBOX_VALUE_NOT_EXIST",
+  "removed": "p13nDialog.ADAPT_FILTER_REMOVE_ANNOUNCE",
+  "shown": "p13nDialog.ADAPT_FILTER_VISIBLE_ANNOUNCE",
+  "hidden": "p13nDialog.ADAPT_FILTER_INVISIBLE_ANNOUNCE",
+  "reordered": "p13n.REORDER_ANNOUNCEMENT",
+  "movedTop": "p13n.REORDER_ANNOUNCEMENT_TOP",
+  "movedUp": "p13n.REORDER_ANNOUNCEMENT_UP",
+  "movedDown": "p13n.REORDER_ANNOUNCEMENT_DOWN",
+  "movedBottom": "p13n.REORDER_ANNOUNCEMENT_BOTTOM",
+  "resetAnnouncement": "p13n.POPUP_ANNOUNCEMENT_RESET",
+  "resize": "DIALOG_DRAG_AND_RESIZE_HANDLE_ARIA_LABEL",
+  "dragResizeHint": "DIALOG_HEADER_ARIA_DESCRIBEDBY_DRAGGABLE_RESIZABLE",
+  "hiddenWithValue": "adaptFiltersPanel.INFO_INVISIBLE_WITH_VALUE"
+} as const
