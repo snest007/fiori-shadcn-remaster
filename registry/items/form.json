@@ -1,7 +1,10 @@
 {
   "title": "Form",
   "description": "Fiori form (ui5-form): responsive label/field layout with columns per size range, labelSpan / emptySpan, groups, display (definition list) and edit modes.",
-  "registryDependencies": ["@fiori/title"],
+  "registryDependencies": [
+    "@fiori/title",
+    "@fiori/locale"
+  ],
   "usage": {
     "summary": "Arrange related labels and fields for one record in responsive groups.",
     "useWhen": [
@@ -18,7 +21,7 @@
         ]
       },
       {
-        "when": "Guide users through 3–8 steps: use Wizard within an existing page or Wizard Page for a complete creation page.",
+        "when": "Guide users through 3\u20138 steps: use Wizard within an existing page or Wizard Page for a complete creation page.",
         "use": [
           "wizard",
           "wizard-page"

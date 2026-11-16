@@ -26,14 +26,14 @@ export const formData: { group: string; items: [string, string][] }[] = [
 
 export default defineFixtures<Props>({
   name: "form",
-  cases: [
+  cases: ([
     { id: "form-one-column", props: { width: FORM_WIDTH_M, header: true } },
     { id: "form-two-columns", props: { width: FORM_WIDTH_M, layout: "S1 M2 L2 XL3", groups: true, header: true } },
     { id: "form-label-span-top", props: { width: FORM_WIDTH_M, labelSpan: "S12 M12 L12 XL12", groups: true } },
     { id: "form-small", props: { width: FORM_WIDTH_S, groups: true } },
     { id: "form-edit", props: { width: FORM_WIDTH_M, layout: "S1 M2 L2 XL3", groups: true, edit: true, header: true } },
     { id: "form-label-span-6", props: { width: FORM_WIDTH_M, labelSpan: "S12 M6 L6 XL6", itemSpacing: "large" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "form-rtl" }] : [fixture]),
   react: ({ width, layout, labelSpan, groups, edit, header, itemSpacing }) => {
     const item = ([label, value]: [string, string], key: string) => (
       <FormItem key={key} label={<Label showColon htmlFor={edit ? key : undefined}>{label}</Label>}>

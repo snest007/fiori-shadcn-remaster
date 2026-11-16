@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 import { Title, type TitleLevel } from "@/components/ui/title"
@@ -93,6 +94,7 @@ function Form({
   children,
   ...props
 }: FormProps) {
+  const { t } = useFioriLocale()
   const id = React.useId()
   const columns = parseSpans(layout, { S: 1, M: 1, L: 2, XL: 3 })
   const labels = parseSpans(labelSpan, { S: 12, M: 4, L: 4, XL: 4 })
@@ -137,7 +139,7 @@ function Form({
         <div
           className="fiori-form__root"
           role={hasGroups ? "region" : "form"}
-          aria-label={hasHeader && !accessibleName ? undefined : (accessibleName ?? "Form")}
+          aria-label={hasHeader && !accessibleName ? undefined : (accessibleName ?? t("FORM_ACCESSIBLE_NAME", "Form"))}
           aria-labelledby={!accessibleName && headerText && !header ? `${id}-header` : undefined}
         >
           {hasHeader && (
@@ -154,7 +156,7 @@ function Form({
               groups.map((g, index) => {
                 const { headerText: groupHeader, headerLevel: groupLevel = "H3", accessibleName: groupName, children: groupItems, className: groupClass, columnSpan: _c, colSpan: _s, ...groupProps } = g.props
                 const headerId = `${id}-group-${index}`
-                const name = groupName ?? (groupHeader ? undefined : `Group ${index + 1}`)
+                const name = groupName ?? (groupHeader ? undefined : t("FORM_GROUP_ACCESSIBLE_NAME", `Group ${index + 1}`, index + 1))
                 const labelledBy = !groupName && groupHeader ? headerId : undefined
                 const edit = accessibleMode === "edit"
                 return (
