@@ -1,0 +1,42 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Layout/Phone Detection" />
+
+# Phone detection
+
+`useIsPhone` provides reactive UI5-style touch/phone detection. It has no visual component or stories.
+
+## Install
+
+```sh
+npx shadcn add @fiori/use-is-phone
+```
+
+## Use
+
+```tsx
+import { useIsPhone } from "@/lib/use-is-phone"
+
+export function SearchHelp() {
+  const phone = useIsPhone()
+  return <p>{phone ? "Search opens in a dialog." : "Search suggestions open beside the field."}</p>
+}
+```
+
+The hook mirrors installed UI5 2.28 `Device.js` phone detection: touch is required, tablets remain tablets, and the fallback uses a viewport edge at or below 599px. It reacts to media-query and device-override changes. Server rendering returns false; client subscribers receive the detected device after hydration.
+
+## Explicit host override
+
+For an embedded preview or host-controlled device mode, set an attribute on `html`:
+
+```html
+<html data-fiori-device="phone">
+```
+
+Supported overrides are `phone`, `tablet`, and `desktop`. Remove the attribute to restore detection. A narrow desktop browser alone does not become a phone. Avoid using this hook as a general layout-breakpoint test; use responsive CSS for ordinary widths.
+
+## Accessibility and localization
+
+The hook creates no DOM, labels or announcements. A consuming control must retain its named trigger, dialog title, initial focus and focus return when changing surfaces. Translate explanatory application text like the sample above. Direction is independent of device detection.
+
+Source: `registry/lib/use-is-phone.ts` and installed UI5 2.28 `Device.js/internals._isPhone`.
