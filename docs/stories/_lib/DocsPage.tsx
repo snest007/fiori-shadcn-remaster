@@ -1,5 +1,5 @@
 import * as React from "react"
-import { ArgTypes, Controls, Markdown, Primary, Stories, Title, useOf } from "@storybook/addon-docs/blocks"
+import { ArgTypes, Controls, DocsContext, DocsStory, Markdown, Primary, Title, useOf } from "@storybook/addon-docs/blocks"
 import documentation from "virtual:fiori-demo-metadata"
 import { Button } from "@/components/ui/button"
 import { docsLink } from "./meta"
@@ -14,6 +14,8 @@ const items = import.meta.glob<Item>("../../../registry/items/*.json", { eager: 
 
 export function DocsPage() {
   const { preparedMeta } = useOf("meta", ["meta"])
+  const context = React.useContext(DocsContext)
+  const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs") && !story.usesMount).slice(1)
   const name = preparedMeta.parameters.fiori?.name as string | undefined
   const item = name ? items[`../../../registry/items/${name}.json`] : undefined
   const [copied, setCopied] = React.useState(false)
@@ -47,6 +49,9 @@ export function DocsPage() {
     </section>
     <h2>Playground</h2><div data-fiori-primary><Primary /></div><div data-fiori-controls><Controls /></div>
     <h2>Props</h2><ArgTypes />
-    <Stories includePrimary={false} title="Variants and examples" />
+    <h2>Variants and examples</h2>
+    {/* StoriesImpl forces initial args, which prevents controlled variants from
+        updating. Each DocsStory retains its own args and live useArgs callbacks. */}
+    {variants.map((story) => <DocsStory key={story.id} of={story.moduleExport} __forceInitialArgs={false} />)}
   </main>
 }

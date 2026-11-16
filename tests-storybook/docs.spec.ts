@@ -30,3 +30,25 @@ for (const name of ["button", "input", "select", "calendar", "data-table", "dial
     }
   })
 }
+
+test("inline RTL docs examples stay controlled without changing toolbar globals", async ({ page }) => {
+  await page.goto("/iframe.html?viewMode=docs&id=forms-input--docs")
+  const canvas = page.locator('[data-fiori-story="forms-input--rtl"]')
+  const input = canvas.getByRole("textbox", { name: "Company", exact: true })
+  await expect(canvas).toHaveAttribute("dir", "rtl")
+  await input.fill("Northwind Traders")
+  await expect(input).toHaveValue("Northwind Traders")
+  await expect.poll(async () => JSON.parse(await canvas.getAttribute("data-fiori-args") ?? "{}").value).toBe("Northwind Traders")
+  await expect(page.locator("html")).toHaveAttribute("dir", "ltr")
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "sap_horizon")
+})
+
+for (const id of ["overlays-dialog--docs", "introduction--docs"]) {
+  test(`${id} applies toolbar globals without an inline primary canvas`, async ({ page }) => {
+    await page.goto(`/iframe.html?viewMode=docs&id=${id}&globals=theme:sap_horizon_dark;density:compact;dir:rtl`)
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "sap_horizon_dark")
+    await expect(page.locator("html")).toHaveAttribute("data-density", "compact")
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl")
+    await expect(page.locator(".sbdocs-content")).toBeVisible()
+  })
+}
