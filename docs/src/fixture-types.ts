@@ -22,6 +22,16 @@ export type FixtureSet<P = any> = {
   tolerance?: number
   /** Opt out of comparing specific case ids against UI5 (keep them in the docs grid). Explain why. */
   skipCompare?: string[]
+  /** Narrow absolute comparison paths; only documented UI5 bugs or inert DOM wrappers may differ. */
+  a11yDiff?: Record<string, {
+    ignore: string[]
+    reason: string
+    /** S0's TableTemplate.js loading-grid defect only. Move the complete native
+     * overlay after its grid; preserve and compare every channel and descendant.
+     * Paths are exact after strictly inert wrappers are removed.
+     */
+    tableLoadingOverlay?: { gridName: string; progressbarName: string; ax: string; snapshot: string }
+  }>
 }
 
 export const defineFixtures = <P,>(set: FixtureSet<P>) => set
