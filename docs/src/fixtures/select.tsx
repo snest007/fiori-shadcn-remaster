@@ -8,11 +8,11 @@ const states = ["negative", "critical", "positive", "information"] as const
 
 export default defineFixtures<Props>({
   name: "select",
-  cases: [
+  cases: ([
     { id: "select", props: { options: ["Germany", "France", "China"], selected: "Germany" } },
     ...states.map((valueState) => ({ id: `select-${valueState}`, props: { options: ["Germany", "France"], selected: "Germany", valueState } })),
     { id: "select-disabled", props: { options: ["Germany", "France"], selected: "Germany", disabled: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "select-rtl" }] : [fixture]),
   react: ({ options, selected, valueState, disabled }) => (
     <Select defaultValue={selected} disabled={disabled}>
       <SelectTrigger wrapperClassName="w-(--w)" valueState={valueState} valueStateMessage={null} disabled={disabled} aria-label="Select">

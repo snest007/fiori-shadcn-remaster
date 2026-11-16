@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, collatorIncludes } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Select as SelectPrimitive, Slot } from "radix-ui"
 
@@ -13,11 +14,12 @@ import { ResponsivePopover, ResponsivePopoverContent } from "@/components/ui/res
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 
 // Fiori keyboard model for a closed Select (ui5-select): Up/Down/Home/End change the selection
 // in place without opening; Alt+Down, Alt+Up, F4, Space and Enter open the list.
 type SelectContextValue = {
+  search: (current: string | undefined, text: string) => string | undefined
   register: (value: string, node: HTMLElement | null, disabled: boolean) => void
   step: (current: string | undefined, key: "ArrowUp" | "ArrowDown" | "Home" | "End") => string | undefined
 }
@@ -65,9 +67,10 @@ function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, expli
   return explicit ?? direction
 }
 
-type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root>
+type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root> & { locale?: string }
 
-function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, ...props }: SelectProps) {
+function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, locale: localeProp, ...props }: SelectProps) {
+  const { locale, localized } = useFioriLocale(localeProp)
   const phone = useIsPhone()
   const phoneListId = React.useId()
   const [phoneState, setPhoneState] = React.useState<{ valueState: ValueState; message: React.ReactNode; accessibleName?: string }>({ valueState: "none", message: null })
@@ -98,6 +101,12 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
   const items = React.useRef(new Map<string, { node: HTMLElement; disabled: boolean }>())
   const ctx = React.useMemo<SelectContextValue>(
     () => ({
+      search(current, text) {
+        const ordered = [...items.current.entries()].filter(([, item]) => !item.disabled)
+          .sort(([, a], [, b]) => a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
+        const index = ordered.findIndex(([value]) => value === current)
+        return [...ordered.slice(index + 1), ...ordered.slice(0, index + 1)].find(([, item]) => collatorIncludes(item.node.dataset.textValue ?? item.node.textContent ?? "", text, locale, true))?.[0]
+      },
       register(v, node, disabled) {
         if (node) items.current.set(v, { node, disabled })
         else items.current.delete(v)
@@ -115,12 +124,12 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
         return i <= 0 ? ordered[0] : ordered[i - 1]
       },
     }),
-    []
+    [locale]
   )
 
   return (
     <SelectContext.Provider value={ctx}>
-      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction }}>
+      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction, locale, localized }}>
         <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={!phone && open} onOpenChange={setOpen} {...props} />
       </SelectOpenContext.Provider>
     </SelectContext.Provider>
@@ -128,6 +137,8 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
 }
 
 const SelectOpenContext = React.createContext<{
+  locale: string
+  localized: boolean
   open: boolean
   setOpen: (o: boolean) => void
   value: string | undefined
@@ -178,11 +189,16 @@ function SelectTrigger({
   asChild,
   ...props
 }: SelectTriggerProps) {
+  const valueStateTexts = useValueStateTexts()
+
   const items = React.useContext(SelectContext)
   const state = React.useContext(SelectOpenContext)
+  const typed = React.useRef("")
+  const typingTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  React.useEffect(() => () => clearTimeout(typingTimer.current), [])
   const messageId = React.useId()
   const hasState = valueState !== "none"
-  const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
+  const message = valueStateMessage === undefined && hasState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
 
   React.useLayoutEffect(() => { state?.setPhoneState({ valueState, accessibleName: props["aria-label"], message: showMessage ? (valueStateMessage === undefined && hasState ? `${valueStateTypeText?.[valueState] ?? ({ negative: "Value State Error", critical: "Value State Warning", positive: "Value State Success", information: "Value State Information" }[valueState])} ${message}` : message) : null }) }, [valueState, message, showMessage, valueStateTypeText, props["aria-label"]])
@@ -215,6 +231,17 @@ function SelectTrigger({
         onKeyDown={(e) => {
           onKeyDown?.(e)
           if (e.defaultPrevented || !items || !state || state.open) return
+          if (e.key.length === 1 && e.key !== " " && !e.altKey && !e.ctrlKey && !e.metaKey && state.localized) {
+            // UI5 Select._searchNextItemByText: repeated letters cycle; use the resolved locale's collation.
+            e.preventDefault()
+            typed.current += e.key
+            const query = Array.from(typed.current).every(char => char === e.key) ? e.key : typed.current
+            clearTimeout(typingTimer.current)
+            typingTimer.current = setTimeout(() => { typed.current = "" }, 1000)
+            const next = items.search(state.value, query)
+            if (next !== undefined) state.setValue(next)
+            return
+          }
           // Select.js/_onkeydown/_onkeyup: phone Space opens only on release;
           // Keys.js/isEnter/isSpace/isShow reject every extra modifier.
           if (state.phone) {
@@ -296,6 +323,7 @@ function SelectTrigger({
  * @accessibility aria-label / aria-labelledby name the desktop listbox content. On phones, dialogTitle labels the listbox; dialogLabel or dialogNamePrefix plus the trigger's aria-label name the modal dialog. The fallback does not resolve Label.htmlFor / aria-labelledby; provide dialogLabel for those naming paths. cancelText names its closing action.
  */
 type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content> & {
+  noDataText?: string
   onOpenAutoFocus?: (event: Event) => void
   dialogTitle?: string
   cancelText?: string
@@ -315,13 +343,20 @@ function SelectContent({
   onEscapeKeyDown,
   ref,
   asChild,
-  dialogTitle = "All Items",
-  cancelText = "Cancel",
+  dialogTitle: dialogTitleProp,
+  cancelText: cancelTextProp,
   dialogLabel,
-  dialogNamePrefix = "Select",
+  dialogNamePrefix: dialogNamePrefixProp,
+  noDataText,
   ...props
 }: SelectContentProps) {
   const state = React.useContext(SelectOpenContext)
+  const { t, locale } = useFioriLocale(state?.locale)
+  const dialogTitle = dialogTitleProp ?? t("SELECT_LISTBOX_LABEL", "All Items") // UI5 SELECT_LISTBOX_LABEL
+  const dialogNamePrefix = dialogNamePrefixProp ?? t("SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX", "Select") // UI5 SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX
+  const emptyText = noDataText ?? (state?.localized ? t("LIST_NO_DATA", "No data") : undefined) // OpenUI5 sap/m LIST_NO_DATA; E5 opt-in empty-list extension.
+  const cancelText = cancelTextProp ?? t("SELECT_DIALOG_CANCEL_BUTTON", "Cancel") // UI5 SELECT_DIALOG_CANCEL_BUTTON
+
   const [draft, setDraft] = React.useState(state?.value)
   const phoneList = React.useRef<HTMLDivElement>(null)
   const typedChars = React.useRef("")
@@ -352,7 +387,7 @@ function SelectContent({
         <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} className="rotate-180" />
         </SelectPrimitive.ScrollUpButton>
-        <SelectPrimitive.Viewport data-sap-ui-fastnavgroup="true">{children}</SelectPrimitive.Viewport>
+        <SelectPrimitive.Viewport data-sap-ui-fastnavgroup="true">{React.Children.count(children) === 0 && emptyText ? <div data-slot="select-no-data">{emptyText}</div> : children}</SelectPrimitive.Viewport>
         <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} />
         </SelectPrimitive.ScrollDownButton>
@@ -393,7 +428,7 @@ function SelectContent({
           typingTimer.current = setTimeout(() => { typedChars.current = "" }, 1000)
           const selected = allOptions.findIndex((option) => option.dataset.value === draft)
           const ordered = [...allOptions.slice(selected + 1), ...allOptions.slice(0, Math.max(selected, 0))]
-          const next = ordered.find((option) => (option.dataset.textValue ?? option.textContent ?? "").toLowerCase().startsWith(text))
+          const next = ordered.find((option) => collatorIncludes(option.dataset.textValue ?? option.textContent ?? "", text, locale, true))
           // _changeSelectedItem changes selected/focused properties, but does
           // not move DOM focus. List's own ItemNavigation owns actual focus.
           if (next) { setDraft(next.dataset.value); next.scrollIntoView({ block: "nearest" }) }

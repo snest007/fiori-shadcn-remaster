@@ -9,20 +9,21 @@
     "@fiori/f6-navigation",
     "@fiori/use-is-phone",
     "@fiori/responsive-popover",
-    "@fiori/button"
+    "@fiori/button",
+    "@fiori/locale"
   ],
-  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open).",
+  "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+\u2193 open).",
   "usage": {
     "summary": "Choose one value from a short predefined list without entering free text.",
     "useWhen": [
-      "Let users choose one predefined value from 2–12 options without entering free text.",
+      "Let users choose one predefined value from 2\u201312 options without entering free text.",
       "Keep options collapsed when users do not need to compare every answer at once.",
       "Order options meaningfully; sort alphabetically when there are more than 8 options.",
       "Offer a useful initial choice with defaultValue, or control value with onValueChange."
     ],
     "avoidWhen": [
       {
-        "when": "Narrow one choice by typing, typically across 20–200 options, or accept free text with suggestions; use Input when no suggestions or choice list is needed.",
+        "when": "Narrow one choice by typing, typically across 20\u2013200 options, or accept free text with suggestions; use Input when no suggestions or choice list is needed.",
         "use": [
           "combobox",
           "input"
