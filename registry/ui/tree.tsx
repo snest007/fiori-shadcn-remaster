@@ -234,6 +234,7 @@ function TreeItemRoot({
   // The subtree sits next to the treeitem (not inside it) and is linked with aria-owns, as in UI5, so the
   // item's name and visible text stay its own row.
   const groupId = React.useId()
+  const contentId = React.useId()
   const showGroup = expanded && childCount > 0
   return (
     <li role="none" className="fiori-tree-item__wrapper">
@@ -252,6 +253,9 @@ function TreeItemRoot({
         aria-expanded={showToggle ? expanded : undefined}
         aria-selected={ariaSelected}
         aria-disabled={disabled || undefined}
+        // ListItemTemplate.js uses ListItem.js:_accessibleNameRef for row content,
+        // excluding the separately named selection checkbox/radio before it.
+        aria-labelledby={props["aria-label"] ? undefined : contentId}
         aria-owns={showGroup ? groupId : undefined}
         className={cn("fiori-tree-item", className)}
         {...handlers}
@@ -288,7 +292,7 @@ function TreeItemRoot({
           </div>
           {before && sel}
           {highlight !== "none" && <div className="fiori-li__highlight" />}
-          <div className="fiori-li__content">
+          <div id={contentId} className="fiori-li__content">
             {icon && <Icon icon={icon} className="fiori-li__icon" />}
             {content}
           </div>

@@ -110,3 +110,21 @@ test("tree: RTL retains UI5's physical expand, step-in, collapse and step-out ke
     await expect(parent).toBeFocused()
   }
 })
+
+test("Tree row label references retain only owned content through expansion", async ({ page }) => {
+  const row = node(page, "Documents")
+  const referenceText = () => row.evaluate((element) => element.getAttribute("aria-labelledby")?.split(/\s+/).map((id) => {
+    const target = document.getElementById(id)
+    return target?.isConnected ? target.textContent?.trim() : null
+  }))
+  await expect.poll(referenceText).toEqual(["Documents"])
+  await row.focus()
+  await expect(row).toBeFocused()
+  await page.keyboard.press("ArrowLeft")
+  await expect(row).toHaveAttribute("aria-expanded", "false")
+  await expect(row).toHaveAccessibleName("Documents")
+  await page.keyboard.press("ArrowRight")
+  await expect(row).toHaveAttribute("aria-expanded", "true")
+  await expect.poll(referenceText).toEqual(["Documents"])
+  await expect(row).toHaveAccessibleName("Documents")
+})
