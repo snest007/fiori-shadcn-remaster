@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriTexts, useFioriLocale, collatorIncludes } from "@/lib/fiori-locale"
 import { useIsPhone } from "@/lib/use-is-phone"
 
 import { decline, search as searchIcon } from "@/lib/fiori-icons"
@@ -135,6 +136,7 @@ type ValueHelpDialogProps = {
   onSearch?: (query: { search: string; filters: Record<string, string> }) => void
   onConfirm?: (result: ValueHelpResult) => void
   onCancel?: () => void
+  locale?: string
   texts?: Partial<ValueHelpTexts>
   operatorTexts?: Partial<Record<ConditionOperator, string>>
   /** Render in place instead of in a portal (no overlay). */
@@ -165,13 +167,15 @@ function ValueHelpDialog({
   onConfirm,
   onCancel,
   texts,
+  locale: localeProp,
   operatorTexts,
   portal = true,
   className,
   children,
 }: ValueHelpDialogProps) {
   const phone = useIsPhone()
-  const t = { ...defaultTexts, ...texts }
+  const { locale } = useFioriLocale(localeProp)
+  const t = useFioriTexts(defaultTexts, defaultTextsKeys, texts, localeProp)
   const opLabel = { ...operatorLabels, ...operatorTexts }
   const multi = selectionMode === "multiple"
   const withConditions = multi && supportConditions
@@ -205,13 +209,13 @@ function ValueHelpDialog({
 
   const rows = React.useMemo(() => {
     if (onSearch) return items
-    const s = applied.search.trim().toLowerCase()
+    const s = applied.search.trim()
     return items.filter(
       (it) =>
-        (!s || columns.some((c) => (it[c.key] ?? "").toLowerCase().includes(s))) &&
-        Object.entries(applied.filters).every(([k, v]) => !v.trim() || (it[k] ?? "").toLowerCase().includes(v.trim().toLowerCase()))
+        (!s || columns.some((c) => collatorIncludes(it[c.key] ?? "", s, locale))) &&
+        Object.entries(applied.filters).every(([k, v]) => !v.trim() || collatorIncludes(it[k] ?? "", v.trim(), locale))
     )
-  }, [items, applied, columns, onSearch])
+  }, [items, applied, columns, onSearch, locale])
 
   const go = () => {
     const q = { search: searchText, filters: filterValues }
@@ -577,3 +581,27 @@ export {
   type ValueHelpResult,
   type ConditionOperator,
 }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTextsKeys = {
+  defineConditions: "valuehelp.DEFINECONDITIONSNONUMBER",
+  search: "filterbar.SEARCH",
+  go: "filterbar.GO",
+  items: "valuehelp.TABLETITLENONUMBER",
+  ok: "valuehelp.OK",
+  cancel: "valuehelp.CANCEL",
+  add: "p13n.ADD_FILTER_CRITERIA",
+  removeToken: "TOKEN_ARIA_DELETE",
+  selectAll: "TABLE_SELECT_ALL_TOOLTIP",
+  value: "valuehelp.DEFINECONDITIONS_VALUE",
+  from: "valuehelp.DEFINECONDITIONS_FROM",
+  to: "valuehelp.DEFINECONDITIONS_TO",
+
+  "searchAndSelect": "valuehelp.SELECTFROMLISTNONUMBER",
+  "showFilters": "valuehelp.SHOWADVSEARCH",
+  "hideFilters": "valuehelp.HIDEADVSEARCH",
+  "removeCondition": "CONDITIONPANEL_REMOVE_CONDITION_TOOLTIP",
+  "removeAll": "CONDITIONPANEL_REMOVE_ALL",
+  "operator": "valuehelp.DEFINECONDITIONS_OPERATORLABEL",
+  "noData": "LIST_NO_DATA"
+} as const

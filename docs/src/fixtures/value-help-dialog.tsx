@@ -11,10 +11,10 @@ type Props = { single?: boolean }
 // tabs, single selection without), see tests/value-help-dialog.spec.ts.
 export default defineFixtures<Props>({
   name: "value-help-dialog",
-  cases: [
+  cases: ([
     { id: "value-help-dialog-multi", props: {} },
     { id: "value-help-dialog-single", props: { single: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "value-help-dialog-rtl" }] : [fixture]),
   react: ({ single }) => (
     <div className="overflow-hidden p-3">
       <ValueHelpDialog
