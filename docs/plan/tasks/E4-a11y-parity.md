@@ -55,10 +55,14 @@ Inventory every `aria-live` region and every place UI5 calls `announce()` for ou
 we port). For each: our equivalent exists, it uses the same politeness (`polite`/`assertive`), and a test asserts the
 announced text after the triggering action (value-state change, token deleted, items loaded, selection count, …).
 
-## 5. Defects found by S0 — `docs/plan/handoff/S0-a11y-candidates/`
+## 5. Defects handed off by the Storybook cards — `docs/plan/handoff/*-a11y-candidates/`
 
-**Run E4 after S0 is merged** and check that this directory exists on main (it holds `CANDIDATE-REPORT.md` and five
-candidate patches). If it's missing, stop and report — don't recreate the candidates from memory.
+**Run E4 after S0 is merged.** At the start, list every `docs/plan/handoff/*-a11y-candidates/` directory on main
+(S0's is always there; S1–S4 add their own when they find component defects — see "Component defects you find" in
+their cards). Each holds a report and candidate patches. If S0's directory is missing, stop and report — don't recreate
+the candidates from memory. Handle every directory present when you start; directories that arrive while E4 is in
+flight: rebase/merge main before finishing and handle them too, or, if that would make E4 too large, leave them for S5
+and say so in your final message.
 
 S0's strict Storybook checks found five component defects. S0 kept its scope (docs only) and marked them as narrow
 known issues in `tests-storybook/`; the owner decided they are fixed here. The patches were validated in an isolated
@@ -73,10 +77,12 @@ E4's tree comparison: treat them as starting points, re-verify everything.
 | `input-pointer-focus-indicator.patch` | Focus ring painted on pointer focus | UI5 paints it on pointer too (`Input.css.js`) | Fix — **AGENTS.md rule 5 (keyboard-only focus ring) wins over UI5 here.** Touches shared `registry/styles/components/field.css`: run `tests/visual.spec.ts` for every field-based component (input, textarea, select, combobox, multi-*, pickers, step-input, search) and record any interaction-fixture change. No `a11yDiff` (focus paint isn't in the tree). |
 | `table-keyboard-focus-reentry.patch` | Pointer marker survives keyboard re-entry, so no focus ring on Tab-in after a click | correct (`TableNavigation.js:_focusElement`) | Fix — plain bug, no deviation. |
 
-For each: apply (or rewrite) the change in the component's own files, add/keep the fixture and behaviour test the
-report describes, run the pixel suite and the tree comparison, then **delete the matching known-issue marker S0 left in
-`tests-storybook/`** in the same commit (search for `fixed by E4`). When all five are done, delete
-`docs/plan/handoff/S0-a11y-candidates/` and confirm no `fixed by E4` marker remains.
+For each defect (the five above and any from S1–S4 handoffs — decide those the same way: fix; `a11yDiff` entry with a
+concrete reason when the fix deviates from UI5; AGENTS.md rules 5/9 win over UI5 where they conflict): apply (or
+rewrite) the change in the component's own files, add/keep the fixture and behaviour test the report describes, run the
+pixel suite and the tree comparison, then **delete the matching known-issue marker in `tests-storybook/`** in the same
+commit (search for `fixed by E4 —`). When a directory's defects are all done, delete that handoff directory. At the end
+`grep -r "fixed by E4 —" tests-storybook` must be empty (markers saying `fixed by E4-followup` belong to S5).
 
 The report also lists four inherited failures — `SelectTrigger` / `SelectContent` with `asChild` and several children
 throw Radix's "Slot … expected a single React element child". That is an API-shape issue, not ARIA: list it in your
@@ -87,8 +93,8 @@ final message as a follow-up, don't fix it here.
 Shared (allowed): `tests/a11y-tree*.spec.ts` (new), `tests/a11y-tree-normalize.ts` (new),
 `scripts/a11y-audit.mjs` (new), `docs/plan/a11y-audit.md` (new), `docs/src/fixture-types.ts` (`a11yDiff` only),
 `AGENTS.md` (only to adjust rule 9's wording to what was built), `registry/styles/components/field.css` (section 5,
-Input focus ring only), `tests-storybook/**` (remove `fixed by E4` markers only), `docs/plan/handoff/S0-a11y-candidates/`
-(delete when done), and for gap fixes each affected component's own files (rule 3). Commit gap fixes per component (`E4: <component> — <gap>`), so integration can review them one by one.
+Input focus ring only), `tests-storybook/**` (remove `fixed by E4` markers only), `docs/plan/handoff/*-a11y-candidates/`
+(delete each when done), and for gap fixes each affected component's own files (rule 3). Commit gap fixes per component (`E4: <component> — <gap>`), so integration can review them one by one.
 
 ## Acceptance
 
@@ -96,7 +102,8 @@ Input focus ring only), `tests-storybook/**` (remove `fixed by E4` markers only)
 - `tests/a11y-tree.spec.ts` (and the phone/SAPUI5 variants) pass for every fixture; every `a11yDiff` entry has a
   concrete reason and a narrow `ignore` path.
 - `docs/plan/a11y-audit.md` has no `gap` rows.
-- Section 5: all five S0 defects fixed with tests; `grep -r "fixed by E4" tests-storybook` is empty;
-  `pnpm storybook:build && pnpm test:storybook` passes twice; `docs/plan/handoff/S0-a11y-candidates/` is deleted.
+- Section 5: every handed-off defect fixed with tests (or explicitly left for S5 with a reason);
+  `grep -r "fixed by E4 —" tests-storybook` is empty; `pnpm storybook:build && pnpm test:storybook` passes twice;
+  every handled `docs/plan/handoff/*-a11y-candidates/` directory is deleted.
 - Final message: number of fixtures compared, the `a11yDiff` entries with reasons, the gaps fixed (one line each), and
   the announcement inventory.
