@@ -81,7 +81,7 @@ const fixtureLink = (it: ItemSpec, row: React.ReactElement) => it.href && !it.di
 
 export default defineFixtures<Props>({
   name: "side-navigation",
-  cases: [
+  cases: ([
     { id: "side-navigation-expanded", props: { entries: main, fixed, selected: "team" } },
     { id: "side-navigation-collapsed", props: { entries: main, fixed, collapsed: true, selected: "team" } },
     { id: "side-navigation-flat", props: { entries: flat, selected: "products", height: "22rem" }, interact: { selector: '[data-slot="side-navigation-item"][aria-current="page"]', ui5Selector: 'ui5-side-navigation-item[selected]' } },
@@ -100,7 +100,7 @@ export default defineFixtures<Props>({
       { text: "Disabled", icon: "product", disabled: true },
       { text: "External", icon: "chainLink", href: "#external", target: "_blank" },
     ], overflowMenu: true, overflowAnchorFocus: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "side-navigation-rtl" }] : [fixture]),
   react: ({ entries, fixed, collapsed, selected, height = SN_HEIGHT, overflowMenu, overflowAnchorFocus }) => {
     // The overflow surface is shown in place like menu.tsx; actual measurement, opening,
     // selection and submenus are exercised through the real navigation in its behaviour spec.

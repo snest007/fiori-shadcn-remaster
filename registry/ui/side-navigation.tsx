@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 
 // UI5 2.28 SideNavigation fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
@@ -819,7 +820,7 @@ function SideNavigation({
   const selected = valueProp !== undefined ? valueProp : inner
   const [popoverKey, setPopoverKey] = React.useState<string | null>(null)
   const collapsedItems = React.useRef(new WeakMap<HTMLElement, SideNavigationItemProps>())
-  const texts = React.useMemo(() => ({ ...defaultTexts, ...textsProp }), [textsProp])
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp)
 
   // Collapsing / expanding animates the width (UI5 .ui5-sn-animating keeps the lists at full width meanwhile).
   const [animating, setAnimating] = React.useState(false)
@@ -1557,3 +1558,19 @@ export {
   type SideNavigationTexts,
   type SideNavigationLayoutBridge,
 }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTextsKeys = {
+  "primaryListLabel": "SIDE_NAVIGATION_FLEXIBLE_LIST_LABEL",
+  "fixedListLabel": "SIDE_NAVIGATION_FIXED_LIST_LABEL",
+  "listRoleDescription": "SIDE_NAVIGATION_LIST_ARIA_ROLE_DESC",
+  "collapsedListRoleDescription": "SIDE_NAVIGATION_COLLAPSED_LIST_ARIA_ROLE_DESC",
+  "expandText": "SIDE_NAVIGATION_ICON_EXPAND",
+  "collapseText": "SIDE_NAVIGATION_ICON_COLLAPSE",
+  "popoverLabel": "SIDE_NAVIGATION_POPOVER_HIDDEN_TEXT",
+  "overflowText": "SIDE_NAVIGATION_OVERFLOW_ACCESSIBLE_NAME",
+  "overflowDescription": "SIDE_NAVIGATION_OVERFLOW_ITEM_LABEL",
+  "overflowMenuLabel": "NAVIGATION_MENU_POPOVER_HIDDEN_TEXT",
+  "overflowParentDescription": "NAVIGATION_MENU_SELECTABLE_ITEM_HIDDEN_TEXT",
+  "parentItemDescription": "SIDE_NAVIGATION_PARENT_ITEM_SELECTABLE_DESCRIPTION"
+} as const
