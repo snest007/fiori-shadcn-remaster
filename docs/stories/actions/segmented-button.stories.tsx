@@ -41,3 +41,7 @@ export const IconAndText: Story = { args: { icons: true, value: "center" } }
 export const TwoItems: Story = { args: { twoItems: true } }
 export const ItemsFitContent: Story = { args: { itemsFitContent: true } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+
+export const CustomSelectionAnnouncement: Story = { args: { texts: { selected: "Map layer selected", itemDescription: "Choose the active map layer" } } }
+export const RTLCustomSelectionAnnouncement: Story = { ...CustomSelectionAnnouncement, globals: { dir: "rtl" } }
+export const CustomHost: Story = { render: () => <SegmentedButton aria-label="Custom map layers" defaultValue="map"><SegmentedButtonItem value="map" asChild><button role="menuitem" aria-selected={false}>Map</button></SegmentedButtonItem><SegmentedButtonItem value="satellite" asChild><button>Satellite</button></SegmentedButtonItem></SegmentedButton> }

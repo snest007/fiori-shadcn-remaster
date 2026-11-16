@@ -1,7 +1,8 @@
 {
   "title": "SegmentedButton",
   "dependencies": [
-    "radix-ui"
+    "radix-ui",
+    "react-dom"
   ],
   "description": "Fiori segmented button (single or multiple selection) with arrow-key navigation and one tab stop.",
   "usage": {
@@ -20,7 +21,7 @@
         ]
       },
       {
-        "when": "Collapse 2–12 predefined options whose labels do not fit a horizontal group; sort alphabetically above 8.",
+        "when": "Collapse 2\u201312 predefined options whose labels do not fit a horizontal group; sort alphabetically above 8.",
         "use": [
           "select"
         ]
