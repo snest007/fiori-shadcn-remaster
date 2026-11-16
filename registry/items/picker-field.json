@@ -11,7 +11,8 @@
     "@fiori/button",
     "@fiori/responsive-popover",
     "@fiori/use-is-phone",
-    "@fiori/f6-navigation"
+    "@fiori/f6-navigation",
+    "@fiori/locale"
   ],
   "usage": {
     "summary": "Compose a custom text field and picker with caller-owned value rules.",

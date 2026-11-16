@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
@@ -7,7 +8,7 @@ import { isF6NavigationKey } from "@/lib/fiori-f6"
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 import { useIsPhone } from "@/lib/use-is-phone"
 import { Button } from "@/components/ui/button"
 import { ResponsivePopover, ResponsivePopoverAnchor, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
@@ -89,7 +90,7 @@ function PickerField({
   phoneFooter,
   phoneInputFocus,
   phonePreventInitialFocus,
-  cancelLabel = "Cancel",
+  cancelLabel: cancelLabelProp,
   disabled,
   readOnly,
   id,
@@ -100,6 +101,11 @@ function PickerField({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: PickerFieldProps) {
+  const valueStateTexts = useValueStateTexts()
+
+  const { t } = useFioriLocale()
+  const cancelLabel = cancelLabelProp ?? t("INPUT_SUGGESTIONS_CANCEL_BUTTON", "Cancel") // UI5 INPUT_SUGGESTIONS_CANCEL_BUTTON
+
   const phone = useIsPhone()
   const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
   const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
@@ -113,7 +119,7 @@ function PickerField({
   const messageId = `${baseId}-vsm`
 
   const hasState = valueState !== "none"
-  const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
+  const message = valueStateMessage === undefined && hasState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
   const showHeader = showMessage && valueState !== "positive"
 
@@ -311,6 +317,8 @@ type PickerPopoverBodyProps = {
 
 /** What the picker popover shows: value state header, content, footer. */
 function PickerPopoverBody({ valueState = "none", message, footer, children }: PickerPopoverBodyProps) {
+  const valueStateTexts = useValueStateTexts()
+
   // The footer's side padding follows the popup's media range (S / M-L / XL), like every UI5 popup.
   const [footerRef, range] = usePopupMediaRange<HTMLDivElement>()
   const header = valueState !== "none" && valueState !== "positive"
@@ -319,7 +327,7 @@ function PickerPopoverBody({ valueState = "none", message, footer, children }: P
       {header && (
         <div data-value-state={valueState} className="fiori-value-state-message fiori-picker-popover__header">
           <Icon icon={valueStateIcons[valueState]} />
-          {message ?? valueStateDefaultText[valueState]}
+          {message ?? valueStateTexts[valueState]}
         </div>
       )}
       <div className="fiori-picker-popover__content">{children}</div>
