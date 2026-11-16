@@ -76,6 +76,20 @@ F1 and F2 can run in parallel after F0.
 - [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
 - [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/fiori-shadcn-remaster, Pages; push only, no gh; run in the main checkout, not via RUN.md)
 
+## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
+
+Source: SAP's design guidance as packaged in `SAP/ai-skills-library` (`sap-fiori-guidelines`, Apache-2.0), rewritten
+for this registry's components. One `usage` object per item JSON feeds the registry output, the docs pages and a
+generated agent skill `skills/shadcn-fiori/`. G0 first (pipeline + pilot); G1–G4 are content-only and run in parallel
+(each touches different item JSONs; regenerate `skills/` after merge); G5 last.
+
+- [ ] [G0 Schema, pipeline, docs, skill generator + pilot](tasks/G0-usage-guidance-pipeline.md) — M
+- [ ] [G1 Forms and dates](tasks/G1-usage-forms-dates.md) — M (after G0)
+- [ ] [G2 Data and display](tasks/G2-usage-data-display.md) — M (after G0)
+- [ ] [G3 Overlays and navigation](tasks/G3-usage-overlays-navigation.md) — M (after G0)
+- [ ] [G4 Layouts and floorplans](tasks/G4-usage-layout-floorplans.md) — M (after G0)
+- [ ] [G5 Coverage gate + agent eval](tasks/G5-usage-coverage-eval.md) — S (after G1–G4)
+
 ## Out of scope (owner's decision)
 
 - Non-Gregorian calendars: won't be built. Calendar/DatePicker stay Gregorian-only (documented in README).
