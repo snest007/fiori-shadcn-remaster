@@ -18,7 +18,8 @@ const meta = {
 } satisfies Meta<typeof Page>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+// Inline is required for live Controls; the full-page variants retain isolated previews.
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const FloatingFooter: Story = {}
 export const FixedFooter: Story = { args: { fixedFooter: true } }
 export const ListBackground: Story = { args: { backgroundDesign: "list" } }

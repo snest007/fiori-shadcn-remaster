@@ -28,7 +28,7 @@ export const ShellCollapsed: Story = { render: () => <ShellBarSearch accessibleN
 export const Open: Story = { args: { open: true, value: "Lap", noTypeahead: true }, parameters: { docs: { story: { inline: false, height: "380px" } } } }
 export const FieldLoading: Story = { args: { fieldLoading: true } }
 export const SuggestionsLoading: Story = { args: { open: true, value: "Lap", loading: true }, parameters: { docs: { story: { inline: false, height: "380px" } } } }
-export const DeletableSuggestion: Story = { args: { open: true, value: "Lap" }, render: (args) => <Search {...args}><SearchItem text="Laptop" deletable onDelete={fn()} /></Search>, parameters: { docs: { story: { inline: false, height: "380px" } } } }
+export const DeletableSuggestion: Story = { args: { open: true, value: "Lap" }, render: function RecentProductSearch(args) { const [, updateArgs] = useArgs<SearchProps>(); const [removed, setRemoved] = React.useState(false); const deleted = React.useMemo(() => fn(), []); return <Search {...args} onValueChange={(value) => { args.onValueChange?.(value); updateArgs({ value }) }} onOpenChange={(open) => { args.onOpenChange?.(open); updateArgs({ open }) }}>{!removed && <SearchItem text="Laptop" deletable onDelete={() => { deleted(); setRemoved(true) }} />}</Search> }, parameters: { docs: { story: { inline: false, height: "380px" } } } }
 export const CustomTexts: Story = { args: { texts: { search: "Find products", clear: "Clear product search", suggestions: "Suggested products", open: "Find in portal", collapse: "Close portal search", searchIn: (scope) => `Find products in ${scope}` } } }
 export const RTL: Story = { globals: { dir: "rtl" } }
 

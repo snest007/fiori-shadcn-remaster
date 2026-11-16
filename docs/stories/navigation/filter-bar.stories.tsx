@@ -30,7 +30,7 @@ export const Expanded: Story = {}
 export const Collapsed: Story = { args: { expanded: false, activeFilters: ["Supplier", "Product"] } }
 export const LiveMode: Story = { args: { liveMode: true, showGoButton: false } }
 export const WithoutSearch: Story = { args: { search: false } }
-export const CustomFields: Story = { args: { filters: undefined }, render: (args) => <FilterBar {...args}><FilterBarItem label="Order number" fieldId="filter-bar-story-order"><Input id="filter-bar-story-order" defaultValue="1001" /></FilterBarItem></FilterBar> }
+export const CustomFields: Story = { args: { filters: undefined }, render: function CustomOrderFilters(args) { const [, updateArgs] = useArgs<FilterBarProps>(); return <FilterBar {...args} onSearchChange={(searchValue) => { args.onSearchChange?.(searchValue); updateArgs({ searchValue }) }} onExpandedChange={(expanded) => { args.onExpandedChange?.(expanded); updateArgs({ expanded }) }}><FilterBarItem label="Order number" fieldId="filter-bar-story-order"><Input id="filter-bar-story-order" defaultValue="1001" /></FilterBarItem></FilterBar> } }
 export const CustomTexts: Story = { args: { texts: { go: "Apply filters", adaptFilters: "Choose filters", search: "Find purchase orders", hideFilterBar: "Hide order filters", showFilterBar: "Show order filters", noFiltersActive: "All purchase orders" } } }
 export const RTL: Story = { globals: { dir: "rtl" } }
 
@@ -68,7 +68,7 @@ const textKeys = [
   ],
   [
     "texts.oneFilterActive",
-    "filterbar.ADAPT_FILTER_COLLAPSED",
+    "filterbar.ADAPT_FILTER_WITH_NON_HIDDEN",
     "1 filter active"
   ],
   [

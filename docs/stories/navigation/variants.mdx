@@ -67,7 +67,7 @@ A `VariantStorage` adapter exposes asynchronous `load(): Promise<Variant[]>` and
 
 ## Execute and manage
 
-`onExecute(state)` runs after applying a view with `executeOnSelect`, including the initial default. Coordinate it with a live-mode FilterBar to avoid executing the same search twice. Save/Save As and sparse Manage events update the model; stable keys identify entries. Deleting the selected view restores Standard.
+`onExecute(state)` runs after applying a view with `executeOnSelect`, including the initial default. Coordinate it with a live-mode FilterBar to avoid executing the same search twice. Save/Save As and sparse Manage events update the model; stable keys identify entries. Deleting the selected view restores the current default view, which is Standard unless the user chose another default.
 
 ## Accessibility and localization
 

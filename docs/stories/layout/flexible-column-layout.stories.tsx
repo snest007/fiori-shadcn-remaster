@@ -27,7 +27,8 @@ const meta = {
 } satisfies Meta<Args>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+// Inline is required for live Controls; the full-page variants retain isolated previews.
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const OneColumn: Story = { args: { layout: "OneColumn" } }
 export const TwoColumnsStartExpanded: Story = { args: { layout: "TwoColumnsStartExpanded" } }
 export const TwoColumnsMidExpanded: Story = { args: { layout: "TwoColumnsMidExpanded" } }

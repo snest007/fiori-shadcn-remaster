@@ -14,8 +14,8 @@ const meta = {
   ...base,
   parameters: { ...base.parameters, docs: { page: ItemDocs } },
   args: { accessibleName: "Business applications", count: 5, selectedIndex: 1, onActivate: fn() },
-  argTypes: { ...base.argTypes, accessibleName: { control: "text" }, count: { control: { type: "number", min: 0, max: 8 } }, selectedIndex: { control: { type: "number", min: -1, max: 7 } }, onActivate: { control: false } },
-  render: (args) => <ProductSwitch accessibleName={args.accessibleName}>{products.slice(0, args.count).map((item, index) => <ProductSwitchItem key={item.title} icon={item.icon} titleText={item.title} subtitleText={item.subtitle} selected={index === args.selectedIndex} onClick={() => args.onActivate(item.title)} />)}</ProductSwitch>,
+  argTypes: { ...base.argTypes, accessibleName: { control: "text" }, count: { control: { type: "number", min: 0, max: 8 } }, selectedIndex: { control: { type: "number", min: -1, max: 7 }, description: "Initial selection. Changing this Control resets the product list." }, onActivate: { control: false } },
+  render: (args) => <ProductSwitch key={`${args.count}-${args.selectedIndex}`} accessibleName={args.accessibleName}>{products.slice(0, args.count).map((item, index) => <ProductSwitchItem key={item.title} icon={item.icon} titleText={item.title} subtitleText={item.subtitle} selected={index === args.selectedIndex} onClick={() => args.onActivate(item.title)} />)}</ProductSwitch>,
 } satisfies Meta<Args>
 export default meta
 type Story = StoryObj<typeof meta>

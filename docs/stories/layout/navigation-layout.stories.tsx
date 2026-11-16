@@ -26,7 +26,8 @@ const meta = {
 } satisfies Meta<typeof NavigationLayout>
 export default meta
 type Story = StoryObj<typeof meta>
-export const Playground: Story = {}
+// Inline is required for live Controls; the full-page variants retain isolated previews.
+export const Playground: Story = { parameters: { docs: { story: { inline: true } } } }
 export const Automatic: Story = {}
 export const Expanded: Story = { args: { mode: "expanded" } }
 export const Collapsed: Story = { args: { mode: "collapsed" } }
