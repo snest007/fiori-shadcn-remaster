@@ -43,7 +43,7 @@ const item = (e: TimelineFixtureItem, key: number) => (
 
 export default defineFixtures<Props>({
   name: "timeline",
-  cases: [
+  cases: ([
     { id: "timeline-vertical", props: { width: "24rem", entries: [meeting, call, mail] } },
     { id: "timeline-vertical-no-icons", props: { width: "24rem", entries: [plain, plain2, plain] } },
     { id: "timeline-vertical-mixed", props: { width: "24rem", entries: [meeting, plain, call, plain2] } },
@@ -68,7 +68,7 @@ export default defineFixtures<Props>({
     { id: "timeline-horizontal-growing", props: { layout: "Horizontal", width: "50rem", entries: [meeting, call], growing: true } },
     { id: "timeline-horizontal-group", props: { layout: "Horizontal", width: "70rem", entries: [meeting, { group: "Last week", items: [call, mail] }] } },
     { id: "timeline-horizontal-group-collapsed", props: { layout: "Horizontal", width: "50rem", entries: [meeting, { group: "Last week", collapsed: true, items: [call, mail] }, plain] } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "timeline-rtl" }] : [fixture]),
   react: ({ layout = "Vertical", width, entries, growing }) => (
     <Timeline layout={layout} growing={growing ? "Button" : "None"} style={{ width }}>
       {entries.map((e, i) =>

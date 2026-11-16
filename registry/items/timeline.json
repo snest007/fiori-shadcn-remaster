@@ -6,7 +6,8 @@
     "@fiori/busy-indicator",
     "@fiori/button",
     "@fiori/link",
-    "@fiori/toggle-button"
+    "@fiori/toggle-button",
+    "@fiori/locale"
   ],
   "usage": {
     "summary": "Present object events and changes in chronological order.",
