@@ -56,3 +56,5 @@ export const Disabled: Story = { args: { disabled: true } }
 export const LongText: Story = { args: { text: "Northwind International Procurement Services" }, decorators: [(Story) => <div className="max-w-xs"><Story /></div>] }
 export const CustomTexts: Story = { args: { deleteLabel: "Remove delivery country", description: "Delivery country. Press Delete to remove it." } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+
+export const NativeTextOverrides: Story = { args: { texts: { token: "Attachment", deletable: "Can be removed", deleteLabel: "Remove attachment" } } }

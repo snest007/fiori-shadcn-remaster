@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 import { decline } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -25,6 +26,7 @@ type TokenProps = Omit<React.ComponentProps<"div">, "children" | "onSelect"> & {
   deleteLabel?: string
   /** Screen-reader description (UI5: "Token", plus "Deletable" when it can be deleted). */
   description?: string
+  texts?: Partial<TokenTexts>
 }
 
 // Mirrors ui5-token (Horizon). Host + .ui5-token--wrapper are merged into one focusable element with
@@ -39,13 +41,17 @@ function Token({
   onSelectedChange,
   readOnly,
   onDelete,
-  deleteLabel = "Delete",
+  deleteLabel: deleteLabelProp,
   description,
+  texts,
   tabIndex = -1,
   onClick,
   onKeyDown,
   ...props
 }: TokenProps) {
+  const { t } = useFioriLocale()
+  const resolvedTexts = useFioriTexts(defaultTokenTexts, defaultTokenTextsKeys, texts)
+  const deleteLabel = deleteLabelProp ?? resolvedTexts.deleteLabel
   const [uncontrolled, setUncontrolled] = React.useState(defaultSelected)
   const selected = selectedProp ?? uncontrolled
   const deleting = React.useRef(false)
@@ -58,7 +64,7 @@ function Token({
       data-slot="token"
       role="option"
       aria-selected={selected}
-      aria-description={description ?? (readOnly ? "Token" : "Token Deletable")}
+      aria-description={description ?? (readOnly ? resolvedTexts.token : `${resolvedTexts.token} ${resolvedTexts.deletable}`)}
       data-readonly={readOnly ? "" : undefined}
       tabIndex={tabIndex}
       className={cn("fiori-token", className)}
@@ -106,3 +112,8 @@ function Token({
 }
 
 export { Token, type TokenProps }
+
+type TokenTexts = { token: string; deletable: string; deleteLabel: string }
+const defaultTokenTexts: TokenTexts = { token: "Token", /* UI5 TOKEN_ARIA_LABEL */ deletable: "Deletable", /* UI5 TOKEN_ARIA_DELETABLE */ deleteLabel: "Delete" /* UI5 TOKEN_ARIA_DELETE */ }
+const defaultTokenTextsKeys = { token: "TOKEN_ARIA_LABEL", deletable: "TOKEN_ARIA_DELETABLE", deleteLabel: "TOKEN_ARIA_DELETE" } as const
+export type { TokenTexts }
