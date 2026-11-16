@@ -6,7 +6,8 @@
     "@fiori/popover",
     "@fiori/dialog",
     "@fiori/button",
-    "@fiori/icons"
+    "@fiori/icons",
+    "@fiori/locale"
   ],
   "dependencies": [
     "radix-ui"

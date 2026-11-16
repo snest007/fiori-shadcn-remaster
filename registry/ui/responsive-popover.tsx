@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 import { Slot } from "radix-ui"
 import { useIsPhone } from "@/lib/use-is-phone"
 import { decline } from "@/lib/fiori-icons"
@@ -54,10 +55,13 @@ type ResponsivePopoverContentProps = PopoverContentProps & {
   /** Keep a portalled phone surface in its field/trigger direction scope. */
   phoneOwnerRef?: React.RefObject<HTMLElement | null>
 }
-function ResponsivePopoverContent({ headerText = "", closeLabel = "Decline", phoneHeader, phoneFooter,
+function ResponsivePopoverContent({ headerText = "", closeLabel: closeLabelProp, phoneHeader, phoneFooter,
   phoneField, phoneClassName, preventFocusRestore, phoneOwnerRef, children, className, portal = true,
   onCloseAutoFocus, onOpenAutoFocus, onEscapeKeyDown, onInteractOutside, onPointerDownOutside,
   onFocusOutside, ref, style, ...props }: ResponsivePopoverContentProps) {
+  const { t } = useFioriLocale()
+  const closeLabel = closeLabelProp ?? t("RESPONSIVE_POPOVER_CLOSE_DIALOG_BUTTON", "Decline") // UI5 RESPONSIVE_POPOVER_CLOSE_DIALOG_BUTTON
+
   const { phone, close, dir, owner } = React.useContext(ResponsiveContext)
   const [ownerDirection, setOwnerDirection] = React.useState<"ltr" | "rtl">("ltr")
   React.useLayoutEffect(() => {
