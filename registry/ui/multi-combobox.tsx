@@ -48,6 +48,10 @@ function MultiComboBoxItemGroup(_props: MultiComboBoxItemGroupProps): React.Reac
   return null
 }
 
+/**
+ * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the input combobox. arrowLabel and listLabel name its picker controls; tokensCountText describes its selected tokens.
+ * @accessibility F4 or Alt+Up/Down opens options; Space toggles an option, Enter toggles and closes, and Ctrl+A changes all options. Tokens use roving focus and deletion. selectAllText, alreadySelectedText, invalidText, nMoreText and phone dialog strings override component text.
+ */
 type MultiComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
   /** <MultiComboBoxItem> and <MultiComboBoxItemGroup> elements (fragments and arrays are fine). */
   children?: React.ReactNode

@@ -99,6 +99,10 @@ function ManagedPaletteItem({ navigationRefs, navigationIndex, ref, ...props }: 
   return <ColorPaletteItem {...props} ref={composedRef} />
 }
 
+/**
+ * @accessibility accessibleName and accessibleNameRef name the inner color group together with containerLabel. colorLabel and item tooltip name each button; selection keeps the owned aria-pressed state.
+ * @accessibility Tab enters a swatch, arrows navigate, and Enter/Space choose. Default/More Colors buttons are named through defaultColorText and moreColorsText; dialog title/actions and nested colorPickerProps.texts are overridable.
+ */
 type ColorPaletteProps = React.ComponentProps<"div"> & {
   showDefaultColor?: boolean
   defaultColor?: string

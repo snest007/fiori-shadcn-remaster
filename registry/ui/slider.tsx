@@ -80,6 +80,10 @@ function useTicks(width: number, min: number, max: number, step: number, show: b
   return ticks
 }
 
+/**
+ * @accessibility Slider aria-label is combined with handleDescription on its slider handle. RangeSlider names the range and both handles with rangeDescription, startHandleDescription and endHandleDescription; rangeValueText describes both values.
+ * @accessibility Arrow keys and plus/minus step; PageUp/PageDown and Ctrl+arrows use a larger step; Home/End reach bounds and Escape restores the focus value. Horizontal arrows mirror in RTL. RangeSlider has separate range, start and end tab stops.
+ */
 type SliderBaseProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
   min?: number
   max?: number

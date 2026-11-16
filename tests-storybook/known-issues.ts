@@ -94,6 +94,32 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return [...grid.querySelectorAll("[role]")].filter((element) =>
             !element.closest('[role="row"]')).every((element) => element === progress)
         }
+        // S1
+        // component defect, fixed by E4 — see docs/plan/handoff/S1-a11y-candidates
+        // MultiComboBoxItem.js/checkBoxAccInfo uses role=presentation. The current
+        // React component instead nests its hidden button/checkbox in each option.
+        // Match only this exact indicator in the four authored open-list stories.
+        if (!context.primary && rule === "nested-interactive" && [
+          "forms-multi-combobox--open", "forms-multi-combobox--item-groups",
+          "forms-multi-combobox--select-all", "forms-multi-combobox--grouped-select-all",
+        ].includes(context.story)) {
+          const field = unique('[data-slot="multi-combobox"] input[role="combobox"][aria-label="Delivery countries"][aria-expanded="true"]')
+          const popup = unique('[data-slot="multi-combobox-popover"][role="dialog"][aria-label="Available Options"]', document)
+          const list = popup?.querySelector('[role="listbox"][aria-label="Available Options"]')
+          const options = list ? [...list.querySelectorAll(':scope > [role="option"], :scope > [data-slot="multi-combobox-item-group"] > [role="option"]')] : []
+          if (!field || !popup || !visible(popup) || !list || options.length !== 6
+            || options.map((option) => option.querySelector('.fiori-multi-combobox__item-text')?.textContent?.trim()).join("|") !== "Argentina|Brazil|Canada|Denmark|Estonia|France"
+            || !options.includes(actual)) return false
+          const indicator = actual.querySelector(':scope > button[data-slot="checkbox"][role="checkbox"][aria-hidden="true"][tabindex="-1"]')
+          const text = actual.querySelector(':scope > .fiori-multi-combobox__item-text')
+          const additional = actual.querySelector(':scope > .fiori-multi-combobox__item-additional')
+          if (!indicator || !text || !additional || (indicator as HTMLButtonElement).disabled
+            || actual.children.length !== 3 || actual.querySelectorAll('button,[role="checkbox"]').length !== 1
+            || indicator.getAttribute('aria-checked') !== actual.getAttribute('aria-selected')) return false
+          return indicator.classList.contains('fiori-multi-combobox__checkbox')
+            && actual.classList.contains('fiori-multi-combobox__item')
+            && [...actual.querySelectorAll('[tabindex]')].every((element) => element === indicator)
+        }
         return false
       }, { target: node.target, rule: violation.id, context })
       ;(approved ? knownNodes : unexpectedNodes).push(node)

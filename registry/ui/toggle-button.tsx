@@ -27,6 +27,10 @@ const pressedStyles: Record<NonNullable<ButtonProps["variant"]>, string> = {
   ].join(" "),
 }
 
+/**
+ * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the button; aria-pressed is owned by ToggleButton.
+ * @accessibility Space and Enter toggle the pressed state; disabled buttons are removed from keyboard navigation.
+ */
 type ToggleButtonProps = Omit<ButtonProps, "asChild"> &
   Pick<React.ComponentProps<typeof TogglePrimitive.Root>, "pressed" | "defaultPressed" | "onPressedChange">
 

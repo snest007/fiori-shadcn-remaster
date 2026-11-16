@@ -21,6 +21,10 @@ function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, expli
   return explicit ?? direction
 }
 
+/**
+ * @accessibility Name the root listbox with aria-label or aria-labelledby; each option uses its text or an icon-only aria-label.
+ * @accessibility Tab enters one enabled item. Arrows, Home and End move focus without wrapping; Space or Enter select. Horizontal arrows follow inherited RTL direction.
+ */
 type Common = Omit<React.ComponentProps<"div">, "defaultValue" | "dir"> & {
   dir?: "ltr" | "rtl"
   disabled?: boolean

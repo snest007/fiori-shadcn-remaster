@@ -4,6 +4,10 @@ import { ColorPalette, ColorPaletteStateContext, ColorPaletteStateProvider, type
 import { Popover, PopoverAnchor, PopoverContent, type PopoverContentProps } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
+/**
+ * @accessibility popoverLabel names the popup dialog. Palette accessibleName, containerLabel, colorLabel and item tooltips name the grouped swatches.
+ * @accessibility Opening focuses the selected, recent or first swatch; Escape closes and restores the previously focused element or opener. Placement Start/End mirrors with direction. The popup retains the palette keyboard model and overridable dialog action text.
+ */
 type ColorPalettePopoverProps = Omit<ColorPaletteProps, "ref" | "popupMode"> & {
   open?: boolean
   defaultOpen?: boolean

@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
 
+/**
+ * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the spinbutton input. decrementLabel and incrementLabel name the internal buttons; valueStateMessage supplies a linked validation description.
+ * @accessibility Up/Down step. Shift+PageUp/PageDown or Ctrl+Shift+Up/Down jump to bounds; Enter or blur commit and Escape restores the focus value. Internal buttons do not add tab stops.
+ */
 type StepInputProps = Omit<
   React.ComponentProps<"input">,
   "value" | "defaultValue" | "onChange" | "min" | "max" | "step" | "type" | "size"

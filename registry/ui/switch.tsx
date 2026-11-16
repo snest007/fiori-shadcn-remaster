@@ -23,6 +23,10 @@ function useHostDirection(owner: React.RefObject<HTMLElement | null>, explicit?:
   return explicit ?? direction
 }
 
+/**
+ * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the switch button. The component owns aria-checked; textOn and textOff are visual track text.
+ * @accessibility Space and Enter toggle. readOnly keeps a keyboard stop and adds the overridable readOnlyText description.
+ */
 type SwitchProps = Omit<React.ComponentProps<typeof SwitchPrimitive.Root>, "children"> & {
   /**
    * "textual" (default): shows `textOn`/`textOff`, or check/minus icons when neither is given.

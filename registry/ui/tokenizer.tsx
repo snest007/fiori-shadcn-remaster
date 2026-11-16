@@ -21,6 +21,10 @@ type TokenizerHandle = {
   element: HTMLDivElement | null
 }
 
+/**
+ * @accessibility aria-label names the inner listbox. Tokens retain role=option, aria-selected and one roving tab stop; nMoreText names the overflow indicator and deleteLabel names popup delete buttons.
+ * @accessibility Arrows and Home/End move between tokens; Space toggles, Shift+arrows extend and Ctrl+A toggles selection. Delete/Backspace request deletion and move to a neighbour. Ctrl+I opens all tokens; Escape closes and restores focus. Horizontal arrows mirror in RTL.
+ */
 type TokenizerProps = Omit<React.ComponentProps<"div">, "children"> & {
   /** <Token> elements (fragments and arrays are fine). */
   children?: React.ReactNode

@@ -50,6 +50,10 @@ function groupColSpan(cols: number, groups: number, index: number, group: { colu
 type FormContextValue = { mode: "display" | "edit"; itemSpacing: "normal" | "large" }
 const FormContext = React.createContext<FormContextValue>({ mode: "display", itemSpacing: "normal" })
 
+/**
+ * @accessibility accessibleName or native aria-label/aria-labelledby names the form root when headerText is absent. Headers name their own form or region; FormGroup accessibleName names groups.
+ * @accessibility Form does not add keyboard stops. Each edit FormItem keeps a Label htmlFor association or an explicitly named control; display mode uses definition-list semantics.
+ */
 type FormProps = Omit<React.ComponentProps<"div">, "title"> & {
   /** Columns per range, e.g. "S1 M1 L2 XL3" (default). */
   layout?: string
