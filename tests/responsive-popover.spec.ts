@@ -43,9 +43,9 @@ async function openField(page: Page, holder: Locator, kind: string, native: bool
   await expect(dialog(page, native)).toHaveCSS("width", "375px")
   await expect(dialog(page, native)).toHaveCSS("height", "667px")
   await awaitPhoneRender(holder, native)
-  // INTEGRATION cause 4: opening paints native header/footer fonts that were
-  // unused at page readiness. Await their loads before measuring popup geometry.
-  if (native) await page.evaluate(() => document.fonts.ready)
+  // INTEGRATION cause 4: opening paints React and native header/footer fonts that
+  // were unused at page readiness. Await their loads before measuring popup geometry.
+  await page.evaluate(() => document.fonts.ready)
 }
 
 const mcbRow = (page: Page, holder: Locator, native: boolean, text: string) => native
