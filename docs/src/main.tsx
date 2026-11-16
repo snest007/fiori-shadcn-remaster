@@ -165,6 +165,7 @@ function DocsShell({ mode, onModeChange }: { mode: NavigationLayoutMode; onModeC
         branding={<ShellBarBranding href="#/button">shadcn-fiori</ShellBarBranding>}
         content={<>
           <ShellBarSpacer />
+          <Button key="storybook" asChild><a href={import.meta.env.PROD ? "./storybook/" : "http://localhost:6006/"}>Storybook</a></Button>
           <div key="theme" className="flex items-center gap-2">
             <Label htmlFor="docs-theme" className="sr-only lg:not-sr-only">Theme</Label>
             <Select value={opts.theme} onValueChange={(v) => set("theme", v)}>

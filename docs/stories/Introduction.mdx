@@ -1,0 +1,37 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# shadcn-fiori
+
+SAP Fiori Horizon appearance and interaction for React 19, delivered as a shadcn registry. Theme values, fonts and icons come from SAP's open-source packages; the components are compared against UI5 Web Components 2.28.
+
+## Install the registry
+
+Start with a React 19 app using Tailwind CSS v4:
+
+```sh
+npx shadcn@latest init https://snest007.github.io/fiori-shadcn-remaster/r/fiori.json
+npx shadcn add @fiori/button
+```
+
+## Explore a component
+
+Select a component in the sidebar. Playground provides live Controls; each variant has its own story and **Show code**. The Docs page includes the install command, props, and usage guidance where available.
+
+Use **Theme** in the toolbar to choose Morning Horizon, Evening Horizon, High Contrast Black or High Contrast White. **Density** switches cozy and compact layouts. **Direction** switches LTR and RTL. The settings apply to both the canvas and docs examples.
+
+Set the same attributes on your application's `html` element:
+
+```html
+<html data-theme="sap_horizon_dark" data-density="compact" dir="rtl">
+```
+
+## References
+
+- [Component docs and floorplans](https://snest007.github.io/fiori-shadcn-remaster/)
+- [Pixel comparison fixtures](https://snest007.github.io/fiori-shadcn-remaster/?fixtures)
+- [UI5 reference fixtures](https://snest007.github.io/fiori-shadcn-remaster/ui5.html)
+- [GitHub repository](https://github.com/snest007/fiori-shadcn-remaster)
+
+This is not an SAP product. SAP and Fiori are trademarks of SAP SE.

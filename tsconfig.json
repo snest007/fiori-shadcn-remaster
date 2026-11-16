@@ -19,5 +19,5 @@
       "@/docs/*": ["docs/src/*"]
     }
   },
-  "include": ["registry", "docs/src", "tests", "vite.config.ts", "playwright.config.ts"]
+  "include": ["registry", "docs/src", "tests", "vite.config.ts", "playwright.config.ts", "vite.aliases.ts", ".storybook/**/*.ts", ".storybook/**/*.tsx", "docs/stories", "tests-storybook", "playwright.storybook.config.ts"]
 }

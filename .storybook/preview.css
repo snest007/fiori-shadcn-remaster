@@ -1,0 +1,32 @@
+/* Apply Horizon tokens to the page, inline canvases and Storybook's docs chrome. */
+html, body, .fiori-story-canvas, .sbdocs-wrapper, .sbdocs-content, .docs-story {
+  background-color: var(--sapBackgroundColor) !important;
+  color: var(--sapTextColor) !important;
+}
+.fiori-story-canvas { min-height: inherit; }
+.sbdocs-content { font-family: var(--sapFontFamily); }
+.sbdocs-content h1, .sbdocs-content h2, .sbdocs-content h3,
+.sbdocs-content p, .sbdocs-content li, .sbdocs-content td, .sbdocs-content th {
+  color: var(--sapTextColor);
+}
+.sbdocs-content a { color: var(--sapLinkColor); }
+.sbdocs-content pre { background: var(--sapGroup_ContentBackground); color: var(--sapTextColor); }
+
+.sbdocs-content table, .sbdocs-content tr, .sbdocs-content td, .sbdocs-content th {
+  background-color: var(--sapGroup_ContentBackground) !important;
+  color: var(--sapTextColor) !important;
+}
+.sbdocs-content input, .sbdocs-content select, .sbdocs-content textarea {
+  background-color: var(--sapField_Background);
+  color: var(--sapField_TextColor);
+  border-color: var(--sapField_BorderColor);
+}
+
+.sbdocs-content .sb-argstableBlock-code, .sbdocs-content .sb-argstableBlock-summary {
+  color: var(--sapContent_LabelColor) !important;
+}
+
+.sbdocs-content td:nth-child(2) span, .sbdocs-content td:nth-child(2) code,
+.sbdocs-content td:nth-child(3) span, .sbdocs-content td:nth-child(3) code {
+  color: var(--sapTextColor) !important;
+}

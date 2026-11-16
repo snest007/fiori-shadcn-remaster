@@ -29,6 +29,9 @@ PORT=4310 pnpm exec playwright test                      # full suite (builds + 
 PORT=4310 pnpm exec playwright test tests/<name>.spec.ts # one spec
 PORT=4310 pnpm exec playwright test tests/visual.spec.ts # pixel diff vs UI5, 4 themes × 2 densities
 pnpm check                         # everything above, in order
+pnpm storybook                     # component stories at http://localhost:6006
+pnpm storybook:build               # static Storybook → storybook-static/
+PORT=4320 pnpm test:storybook       # separate Storybook render, globals, Controls and axe checks
 pnpm dev                           # http://localhost:5173 (docs), /?fixtures, /ui5.html, /block.html?name=<block>
 node scripts/smoke-install.mjs     # fresh consumer app: shadcn init + add every block, build, render
 node scripts/integrate.mjs …       # merging card branches — see docs/plan/INTEGRATION.md
@@ -45,7 +48,7 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
    (`grep -- '--fiori-<component>' registry/styles/fiori.css | sort -u`). If a value has a parameter, use the parameter.
 3. **Component file ownership.** Each component owns `registry/ui/<name>.tsx`, `registry/items/<name>.json`,
    `registry/styles/components/<name>.css`, `docs/src/fixtures/<name>.tsx` + `<name>.ui5.ts`, `docs/src/demos/<name>.tsx`,
-   `tests/<name>.spec.ts` — including `registry/items/<name>.json` when you add imports (update its `dependencies` /
+   `tests/<name>.spec.ts`, `docs/stories/<category-lowercase>/<name>.stories.tsx` — including `registry/items/<name>.json` when you add imports (update its `dependencies` /
    `registryDependencies`). Edit other files only if the card lists them; call out any other shared edit in the commit message.
 4. **Pixel parity is the bar.** New visual states get fixtures on both sides. The visual test fails a cell above 2% differing
    pixels or on any size difference. Fix causes; don't raise `tolerance` or add `skipCompare` without a concrete reason
@@ -63,6 +66,7 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
 
 - `pnpm generate && pnpm typecheck && pnpm registry:build` succeed.
 - `PORT=4310 pnpm exec playwright test` passes with **0 failed and 0 flaky**; run it twice.
+- A new visual state or prop also gets a story in `docs/stories/<category-lowercase>/<name>.stories.tsx`.
 - The card's own acceptance checks all hold.
 - Git: work on a branch `codex/<card-id>`, small commits, messages in English, imperative mood. Don't push; don't merge.
   If you work in a separate worktree, leave the main checkout untouched (no edits, no branch switch) — an earlier run
