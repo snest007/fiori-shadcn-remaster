@@ -4,5 +4,34 @@
     "@fiori/icons",
     "@fiori/input"
   ],
-  "description": "Fiori multi-line text field with rows, growing, character counter and value states."
+  "description": "Fiori multi-line text field with rows, growing, character counter and value states.",
+  "usage": {
+    "summary": "Enter editable prose across multiple lines.",
+    "useWhen": [
+      "Let users write comments, descriptions or other text that needs multiple lines.",
+      "Keep a visible label and enough visible rows to understand the text being edited.",
+      "Use growing and growingMaxRows for expansion, or maxLength with counterMode when a character limit matters."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Enter a value that fits on one line.",
+        "use": [
+          "input"
+        ]
+      },
+      {
+        "when": "Read prose that is already fully visible and cannot be edited.",
+        "use": [
+          "text"
+        ]
+      },
+      {
+        "when": "Read prose with an in-place option to reveal more text.",
+        "use": [
+          "expandable-text"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

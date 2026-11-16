@@ -2,5 +2,28 @@
   "title": "ColorPicker",
   "description": "Fiori color picker with hue, alpha, hexadecimal and RGB/HSL channel inputs.",
   "registryDependencies": ["@fiori/button", "@fiori/input", "@fiori/label", "@fiori/slider", "@fiori/icons"],
-  "files": [{ "path": "registry/lib/fiori-color.ts", "type": "registry:lib" }]
+  "files": [{ "path": "registry/lib/fiori-color.ts", "type": "registry:lib" }],
+  "usage": {
+    "summary": "Choose an arbitrary color visually or enter its channel values.",
+    "useWhen": [
+      "Let users choose a color beyond a predefined set of swatches.",
+      "Support visual selection and direct hexadecimal, RGB or HSL channel entry.",
+      "Use simplified when users need only visual selection and hexadecimal entry."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Choose only predefined colors that stay visible in the page.",
+        "use": [
+          "color-palette"
+        ]
+      },
+      {
+        "when": "Choose predefined colors in an on-demand anchored chooser.",
+        "use": [
+          "color-palette-popover"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

@@ -50,45 +50,45 @@ Read [Floorplans](references/floorplans.md) for region nesting, alternatives and
 
 | Item | Summary |
 | --- | --- |
-| [button](references/actions.md#button) | Fiori button designs: default, emphasized, transparent, positive, negative, attention. |
-| [segmented-button](references/actions.md#segmented-button) | Fiori segmented button (single or multiple selection) with arrow-key navigation and one tab stop. |
-| [toggle-button](references/actions.md#toggle-button) | Fiori toggle button: a Button that keeps a pressed state, in every Fiori button design. |
+| [button](references/actions.md#button) | Trigger an explicit action with priority and semantic intent. |
+| [segmented-button](references/actions.md#segmented-button) | Switch related view or setting options in a connected group. |
+| [toggle-button](references/actions.md#toggle-button) | Keep a secondary toolbar action visibly on or off. |
 
 ### Forms
 
 | Item | Summary |
 | --- | --- |
-| [checkbox](references/forms.md#checkbox) | Fiori check box with indeterminate, read-only and value states; Space/Enter toggle. |
-| [color-palette](references/forms.md#color-palette) | Fiori predefined color palette with the UI5 five-column keyboard model, default color and local recent colors. |
-| [color-palette-popover](references/forms.md#color-palette-popover) | Fiori color palette popover with external opener, selection dismissal and persistent local palette history. |
-| [color-picker](references/forms.md#color-picker) | Fiori color picker with hue, alpha, hexadecimal and RGB/HSL channel inputs. |
+| [checkbox](references/forms.md#checkbox) | Select independent options, including choices reviewed before submission. |
+| [color-palette](references/forms.md#color-palette) | Choose a predefined color from swatches kept visible in the page. |
+| [color-palette-popover](references/forms.md#color-palette-popover) | Choose a predefined color in an on-demand anchored surface. |
+| [color-picker](references/forms.md#color-picker) | Choose an arbitrary color visually or enter its channel values. |
 | [combobox](references/forms.md#combobox) | Choose one suggested value by typing, with filtering and optional free-text entry. |
-| [file-uploader](references/forms.md#file-uploader) | Fiori file uploader: input-styled field with browse/clear icons, multiple files, accept, max size, drag & drop (ui5-file-uploader). Upload transport is up to the caller. |
-| [form](references/forms.md#form) | Fiori form (ui5-form): responsive label/field layout with columns per size range, labelSpan / emptySpan, groups, display (definition list) and edit modes. |
-| [input](references/forms.md#input) | Fiori input with value states and value state message. |
-| [label](references/forms.md#label) | Form label with required marker and colon. |
+| [file-uploader](references/forms.md#file-uploader) | Select local files for a caller-managed upload flow. |
+| [form](references/forms.md#form) | Arrange related labels and fields for one record in responsive groups. |
+| [input](references/forms.md#input) | Enter one line of text, a number or a formatted string. |
+| [label](references/forms.md#label) | Give a form field a persistent, accessible name. |
 | [multi-combobox](references/forms.md#multi-combobox) | Select several predefined options from a filterable list and display selections as tokens. |
 | [multi-input](references/forms.md#multi-input) | Collect several values as caller-managed tokens, with suggestions and optional value help. |
-| [radio-group](references/forms.md#radio-group) | Fiori radio buttons in a group with roving tabindex; arrow keys move selection, value and read-only states. |
-| [rating-indicator](references/forms.md#rating-indicator) | Fiori rating indicator: stars with half values, sizes S/M/L, read-only/display-only, UI5 keyboard model (ui5-rating-indicator). |
+| [radio-group](references/forms.md#radio-group) | Choose one mutually exclusive answer while keeping every option visible. |
+| [rating-indicator](references/forms.md#rating-indicator) | Collect an icon-based rating or display an aggregate rating. |
 | [select](references/forms.md#select) | Choose one value from a short predefined list without entering free text. |
-| [slider](references/forms.md#slider) | Fiori Slider and RangeSlider: tickmarks with labels, tooltips, UI5 keyboard model (ui5-slider, ui5-range-slider). |
-| [step-input](references/forms.md#step-input) | Fiori numeric field with decrement/increment buttons, min/max clamping, precision and the SAP keyboard model. |
-| [switch](references/forms.md#switch) | Fiori switch: icon, textual (on/off text) and graphical (semantic) designs, read-only state. |
-| [textarea](references/forms.md#textarea) | Fiori multi-line text field with rows, growing, character counter and value states. |
-| [token](references/forms.md#token) | Fiori token: a selectable, deletable value chip used by Tokenizer, MultiInput and MultiComboBox. |
-| [tokenizer](references/forms.md#tokenizer) | Fiori tokenizer: a keyboard-navigable token list that collapses into an "n more" link with a popover of all tokens. |
+| [slider](references/forms.md#slider) | Adjust one value or a numeric interval along a visual scale. |
+| [step-input](references/forms.md#step-input) | Enter an exact number or adjust it by a predefined step. |
+| [switch](references/forms.md#switch) | Turn a setting on or off with an immediate effect. |
+| [textarea](references/forms.md#textarea) | Enter editable prose across multiple lines. |
+| [token](references/forms.md#token) | Represent one previously selected value as a selectable, removable item. |
+| [tokenizer](references/forms.md#tokenizer) | Manage keyboard navigation, selection and overflow for existing tokens. |
 
 ### Dates
 
 | Item | Summary |
 | --- | --- |
-| [calendar](references/dates.md#calendar) | Fiori calendar: day / month / year / year-range pickers, single, multiple or range selection, week numbers, special days and legend, the SAP keyboard model. Gregorian, Intl-based. |
-| [date-picker](references/dates.md#date-picker) | Fiori date picker: a date field with lenient parsing, value states and a calendar value help. |
-| [date-range-picker](references/dates.md#date-range-picker) | Fiori date range picker: a start - end field with a range-selecting calendar. |
-| [date-time-picker](references/dates.md#date-time-picker) | Fiori date-time picker: calendar and clocks side by side with OK / Cancel. |
-| [picker-field](references/dates.md#picker-field) | Shared field + value-help popover of the Fiori date and time pickers (value states, F4 / Alt+Arrow keys). |
-| [time-picker](references/dates.md#time-picker) | Fiori time picker: a time field with the clock-dial time selection (hours, minutes, seconds, AM/PM). |
+| [calendar](references/dates.md#calendar) | Select Gregorian dates in a calendar that remains visible. |
+| [date-picker](references/dates.md#date-picker) | Enter or select one localized Gregorian date. |
+| [date-range-picker](references/dates.md#date-range-picker) | Enter a localized Gregorian start and end date as one interval. |
+| [date-time-picker](references/dates.md#date-time-picker) | Enter one localized Gregorian date and time together. |
+| [picker-field](references/dates.md#picker-field) | Compose a custom text field and picker with caller-owned value rules. |
+| [time-picker](references/dates.md#time-picker) | Enter or select a localized time without a date. |
 
 ### Data
 
@@ -130,7 +130,7 @@ Read [Floorplans](references/floorplans.md) for region nesting, alternatives and
 | [expandable-text](references/display.md#expandable-text) | Fiori expandable text: text cut at a character limit with Show More / Show Less, in place or in a popover (ui5-expandable-text). |
 | [hero-banner](references/display.md#hero-banner) | Fiori hero banner: overline, heading, actions and one or two content columns on the Horizon hero background (ui5-hero-banner). |
 | [illustrated-message](references/display.md#illustrated-message) | Fiori illustrated message: illustration + title + subtitle + actions in the Scene / Dialog / Spot / Dot / Base designs, auto-sized by the container (ui5-illustrated-message). Ships with @fiori/illustrations-core (NoData, NoSearchResults, UnableToLoad, Tent, …); add more with @fiori/illustration-<name> or @fiori/illustration-tnt-<name>. |
-| [link](references/display.md#link) | Fiori link: Default, Subtle and Emphasized designs, wrapping, Enter/Space activation. |
+| [link](references/display.md#link) | Navigate through meaningful text to a page, anchor or external URL. |
 | [media-gallery](references/display.md#media-gallery) | Fiori image and video gallery with measured thumbnail overflow, selectable items, keyboard navigation, responsive layouts, and a phone carousel (ui5-media-gallery). |
 | [message-strip](references/display.md#message-strip) | Fiori message strip: information/positive/negative/critical and color-set designs, closable. |
 | [panel](references/display.md#panel) | Fiori panel: expandable (animated) or fixed, header text or custom header. |

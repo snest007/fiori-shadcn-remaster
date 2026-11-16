@@ -1,5 +1,28 @@
 {
   "title": "FileUploader",
   "registryDependencies": ["@fiori/icons", "@fiori/input"],
-  "description": "Fiori file uploader: input-styled field with browse/clear icons, multiple files, accept, max size, drag & drop (ui5-file-uploader). Upload transport is up to the caller."
+  "description": "Fiori file uploader: input-styled field with browse/clear icons, multiple files, accept, max size, drag & drop (ui5-file-uploader). Upload transport is up to the caller.",
+  "usage": {
+    "summary": "Select local files for a caller-managed upload flow.",
+    "useWhen": [
+      "Let users choose a local file, or drop files into a field, for upload.",
+      "Prefer it for single-file selection; let the application perform the upload and report its outcome.",
+      "Set accept and maxFileSize to enforce allowed file types and per-file size limits."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Manage an existing collection with individual deletion, upload status and retry actions.",
+        "use": [
+          "upload-collection"
+        ]
+      },
+      {
+        "when": "Run an action unrelated to selecting files.",
+        "use": [
+          "button"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

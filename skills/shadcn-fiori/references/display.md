@@ -86,9 +86,19 @@ npx shadcn add @fiori/illustrated-message
 
 ## link
 
-Fiori link: Default, Subtle and Emphasized designs, wrapping, Enter/Space activation.
+Navigate through meaningful text to a page, anchor or external URL.
 
-Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+### Use when
+
+- Let users open another page, jump to an anchor or follow an external URL.
+- Describe the destination or outcome in the link text instead of using Click here.
+- Use at most one supporting icon so the navigation label remains clear.
+
+### Don't use when
+
+- Submit data or trigger an explicit action. → [button](actions.md#button)
+- Show non-interactive prose without a navigation target. → [text](display.md#text)
+- Present an object title together with a supporting identifier. → [object-identifier](data.md#object-identifier)
 
 Main exports: `Link`.
 

@@ -34,8 +34,8 @@ test("usage docs show pilot guidance above props and navigate to an alternative"
 })
 
 test("items without usage do not render an empty guidance section", async ({ page }) => {
-  await page.goto("/#/button")
-  const main = page.locator('main[data-docs-route="button"]')
+  await page.goto("/#/f6-navigation")
+  const main = page.locator('main[data-docs-route="f6-navigation"]')
   await expect(main.getByText("Main props", { exact: true })).toBeVisible()
   await expect(main.getByRole("heading", { name: "When to use", exact: true })).toHaveCount(0)
   await expect(main.locator("[data-usage-guidance]")).toHaveCount(0)

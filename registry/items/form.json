@@ -1,5 +1,32 @@
 {
   "title": "Form",
   "description": "Fiori form (ui5-form): responsive label/field layout with columns per size range, labelSpan / emptySpan, groups, display (definition list) and edit modes.",
-  "registryDependencies": ["@fiori/title"]
+  "registryDependencies": ["@fiori/title"],
+  "usage": {
+    "summary": "Arrange related labels and fields for one record in responsive groups.",
+    "useWhen": [
+      "Let users inspect or edit related fields of one record in a consistent layout.",
+      "Group fields by meaning and keep their labels aligned as available width changes.",
+      "Use accessibleMode=\"edit\" for editable fields; the default display mode presents label-value pairs."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Compare repeated records in rows rather than fields of one record.",
+        "use": [
+          "table",
+          "data-table"
+        ]
+      },
+      {
+        "when": "Guide users through 3–8 task steps instead of editing fields together.",
+        "use": [
+          "wizard"
+        ]
+      },
+      {
+        "when": "Submit or validate data automatically; provide caller-owned submission and validation."
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

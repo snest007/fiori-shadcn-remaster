@@ -7,5 +7,47 @@
     "@fiori/icons",
     "@fiori/input"
   ],
-  "description": "Fiori check box with indeterminate, read-only and value states; Space/Enter toggle."
+  "description": "Fiori check box with indeterminate, read-only and value states; Space/Enter toggle.",
+  "usage": {
+    "summary": "Select independent options, including choices reviewed before submission.",
+    "useWhen": [
+      "Let users select or deselect independent options or accept an unambiguous statement.",
+      "Keep all options visible when users need to compare them before choosing.",
+      "Collect changes that users review and confirm before submission.",
+      "Use checked=\"indeterminate\" for a parent option when only some child options are selected."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Apply an on/off setting immediately.",
+        "use": [
+          "switch"
+        ]
+      },
+      {
+        "when": "Choose exactly one answer from a visible set.",
+        "use": [
+          "radio-group"
+        ]
+      },
+      {
+        "when": "Activate or deactivate a secondary toolbar feature.",
+        "use": [
+          "toggle-button"
+        ]
+      },
+      {
+        "when": "Run an explicit action rather than select an option.",
+        "use": [
+          "button"
+        ]
+      },
+      {
+        "when": "Adjust a numeric value along a visual scale rather than choose categorical options.",
+        "use": [
+          "slider"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

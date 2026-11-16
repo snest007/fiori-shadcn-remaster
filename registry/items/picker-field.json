@@ -12,5 +12,31 @@
     "@fiori/responsive-popover",
     "@fiori/use-is-phone",
     "@fiori/f6-navigation"
-  ]
+  ],
+  "usage": {
+    "summary": "Compose a custom text field and picker with caller-owned value rules.",
+    "useWhen": [
+      "Let users type a custom value or choose it from a caller-supplied picker surface.",
+      "Provide the picker content, text parsing and commit rules in the application.",
+      "Supply value, open, onTextChange, onCommit and onOpenChange together with an icon and accessible picker labels."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Use built-in localized date, range, date-time or time parsing and selection.",
+        "use": [
+          "date-picker",
+          "date-range-picker",
+          "date-time-picker",
+          "time-picker"
+        ]
+      },
+      {
+        "when": "Enter a plain single-line value without opening a picker.",
+        "use": [
+          "input"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

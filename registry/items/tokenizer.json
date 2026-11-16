@@ -7,5 +7,34 @@
     "@fiori/button",
     "@fiori/f6-navigation"
   ],
-  "description": "Fiori tokenizer: a keyboard-navigable token list that collapses into an \"n more\" link with a popover of all tokens."
+  "description": "Fiori tokenizer: a keyboard-navigable token list that collapses into an \"n more\" link with a popover of all tokens.",
+  "usage": {
+    "summary": "Manage keyboard navigation, selection and overflow for existing tokens.",
+    "useWhen": [
+      "Let users inspect, select and remove a group of values already represented by tokens.",
+      "Keep overflowed values reachable through the more-items indicator.",
+      "Remove caller-owned tokens in onTokenDelete after users request deletion."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Enter new free-form or caller-validated values with optional suggestions.",
+        "use": [
+          "multi-input"
+        ]
+      },
+      {
+        "when": "Add values from a predefined filterable option list.",
+        "use": [
+          "multi-combobox"
+        ]
+      },
+      {
+        "when": "Show only one independently managed selected value.",
+        "use": [
+          "token"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

@@ -3,5 +3,28 @@
   "dependencies": [
     "radix-ui"
   ],
-  "description": "Form label with required marker and colon."
+  "description": "Form label with required marker and colon.",
+  "usage": {
+    "summary": "Give a form field a persistent, accessible name.",
+    "useWhen": [
+      "Let users identify a field before entering or selecting its value.",
+      "Keep the label visible while the field contains data; a placeholder does not replace it.",
+      "Connect htmlFor to the field id and use required to show a required-field marker."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Present prose that does not name a field.",
+        "use": [
+          "text"
+        ]
+      },
+      {
+        "when": "Introduce a page, section or group heading.",
+        "use": [
+          "title"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

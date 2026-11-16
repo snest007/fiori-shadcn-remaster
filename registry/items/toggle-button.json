@@ -6,5 +6,40 @@
   "registryDependencies": [
     "@fiori/button"
   ],
-  "description": "Fiori toggle button: a Button that keeps a pressed state, in every Fiori button design."
+  "description": "Fiori toggle button: a Button that keeps a pressed state, in every Fiori button design.",
+  "usage": {
+    "summary": "Keep a secondary toolbar action visibly on or off.",
+    "useWhen": [
+      "Let users activate or deactivate a toolbar feature such as bold formatting.",
+      "Keep the same label and icon in both states; the pressed state communicates activation.",
+      "Give icon-only toggles a tooltip and an accessible label."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Trigger an activity or process such as Create, Edit or Save.",
+        "use": [
+          "button"
+        ]
+      },
+      {
+        "when": "Apply an on/off form setting immediately.",
+        "use": [
+          "switch"
+        ]
+      },
+      {
+        "when": "Review an independent option before submitting it.",
+        "use": [
+          "checkbox"
+        ]
+      },
+      {
+        "when": "Choose related options within the same view or setting.",
+        "use": [
+          "segmented-button"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

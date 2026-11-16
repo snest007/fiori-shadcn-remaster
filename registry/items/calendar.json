@@ -2,5 +2,34 @@
   "title": "Calendar",
   "description": "Fiori calendar: day / month / year / year-range pickers, single, multiple or range selection, week numbers, special days and legend, the SAP keyboard model. Gregorian, Intl-based.",
   "registryDependencies": ["@fiori/icons"],
-  "files": [{ "path": "registry/lib/fiori-dates.ts", "type": "registry:lib" }]
+  "files": [{ "path": "registry/lib/fiori-dates.ts", "type": "registry:lib" }],
+  "usage": {
+    "summary": "Select Gregorian dates in a calendar that remains visible.",
+    "useWhen": [
+      "Let users select one or more dates while keeping a calendar visible.",
+      "Keep month and year navigation available when users need calendar context.",
+      "Use selectionMode=\"multiple\" for separate days or range for a contiguous interval; bound choices with minDate and maxDate."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Enter one localized date in a compact field with an on-demand calendar.",
+        "use": [
+          "date-picker"
+        ]
+      },
+      {
+        "when": "Enter a contiguous date range in a compact field.",
+        "use": [
+          "date-range-picker"
+        ]
+      },
+      {
+        "when": "Enter both a date and a time in one field.",
+        "use": [
+          "date-time-picker"
+        ]
+      }
+    ],
+    "source": "ui5-apidoc"
+  }
 }

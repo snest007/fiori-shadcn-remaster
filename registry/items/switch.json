@@ -6,5 +6,28 @@
   "registryDependencies": [
     "@fiori/icons"
   ],
-  "description": "Fiori switch: icon, textual (on/off text) and graphical (semantic) designs, read-only state."
+  "description": "Fiori switch: icon, textual (on/off text) and graphical (semantic) designs, read-only state.",
+  "usage": {
+    "summary": "Turn a setting on or off with an immediate effect.",
+    "useWhen": [
+      "Let users turn a setting on or off and see the change take effect immediately.",
+      "Place a descriptive label above or before the switch so both states have a clear meaning.",
+      "Prefer the default icons over text inside the track to avoid localization problems."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Review settings before submission, select independent options or express an ambiguous on/off statement.",
+        "use": [
+          "checkbox"
+        ]
+      },
+      {
+        "when": "Activate or deactivate a secondary toolbar feature.",
+        "use": [
+          "toggle-button"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }

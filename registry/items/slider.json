@@ -1,5 +1,42 @@
 {
   "title": "Slider",
   "registryDependencies": ["@fiori/icons"],
-  "description": "Fiori Slider and RangeSlider: tickmarks with labels, tooltips, UI5 keyboard model (ui5-slider, ui5-range-slider)."
+  "description": "Fiori Slider and RangeSlider: tickmarks with labels, tooltips, UI5 keyboard model (ui5-slider, ui5-range-slider).",
+  "usage": {
+    "summary": "Adjust one value or a numeric interval along a visual scale.",
+    "useWhen": [
+      "Let users adjust settings such as volume or brightness without typing an exact number.",
+      "Use Slider for one value and RangeSlider for lower and upper bounds.",
+      "Show the current value, unit and scale bounds so the adjustment has a clear meaning.",
+      "Set min, max and step to the valid range and required precision; use showTooltip for handle values."
+    ],
+    "avoidWhen": [
+      {
+        "when": "Enter an exact quantity using explicit increment and decrement controls.",
+        "use": [
+          "step-input"
+        ]
+      },
+      {
+        "when": "Enter a number without needing a visual scale.",
+        "use": [
+          "input"
+        ]
+      },
+      {
+        "when": "Choose categorical answers rather than a numeric value.",
+        "use": [
+          "radio-group",
+          "checkbox"
+        ]
+      },
+      {
+        "when": "Give an icon-based evaluation such as a star rating.",
+        "use": [
+          "rating-indicator"
+        ]
+      }
+    ],
+    "source": "sap-fiori-guidelines"
+  }
 }
