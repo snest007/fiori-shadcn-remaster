@@ -23,5 +23,6 @@ export function docsLink(name: string) {
   const item = data.metadata[name]
   if (!item) return undefined
   const id = toId(`${item.category}/${name}`)
-  return `?path=/docs/${id}--docs`
+  // Docs also render in iframe.html; target the sibling manager with _top links.
+  return `./?path=/docs/${id}--docs`
 }
