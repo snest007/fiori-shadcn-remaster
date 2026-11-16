@@ -65,7 +65,32 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
   const owner = React.useRef<HTMLDivElement>(null)
   React.useImperativeHandle(ref, () => owner.current!, [])
   const direction = useInheritedDirection(owner, dir)
-  const count = React.Children.toArray(children).filter(React.isValidElement).length
+  // SegmentedButton.js:onBeforeRendering/normalizeSelection operate on actual
+  // slotted items. Register rendered hosts so Fragments and function wrappers
+  // cannot become phantom options or remove a real option from navigation.
+  const registry = React.useRef(new Map<string, { value: string; node: HTMLElement; disabled: boolean }>())
+  const [items, setItems] = React.useState<Array<{ id: string; value: string; node: HTMLElement; disabled: boolean; hidden: boolean }>>([])
+  const synchronize = React.useCallback(() => {
+    const ordered = [...registry.current].filter(([, item]) => item.node.isConnected)
+      .sort(([, a], [, b]) => a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
+      .map(([id, item]) => ({ id, ...item, hidden: item.node.hidden }))
+    setItems((previous) => previous.length === ordered.length && previous.every((item, i) =>
+      item.id === ordered[i].id && item.value === ordered[i].value && item.node === ordered[i].node &&
+      item.disabled === ordered[i].disabled && item.hidden === ordered[i].hidden) ? previous : ordered)
+  }, [])
+  const register = React.useCallback((id: string, value: string, node: HTMLElement | null, disabled: boolean) => {
+    if (node) registry.current.set(id, { value, node, disabled })
+    else registry.current.delete(id)
+    synchronize()
+  }, [synchronize])
+  React.useLayoutEffect(() => {
+    synchronize()
+    const observer = new MutationObserver(synchronize)
+    if (owner.current) observer.observe(owner.current, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] })
+    return () => observer.disconnect()
+  }, [synchronize])
+  const visibleItems = items.filter((item) => !item.hidden)
+  const count = visibleItems.length
   const t = { ...defaultTexts, ...texts }
   const common = {
     ...props,
@@ -90,10 +115,17 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
 
   const [inner, setInner] = React.useState<string | string[]>(defaultValue ?? (selectionMode === "multiple" ? [] : ""))
   const current = value ?? inner
-  const selected = Array.isArray(current) ? current : current ? [current] : []
+  const selected = selectionMode === "multiple" ? (Array.isArray(current) ? current : [])
+    : [items.find((item) => item.value === current)?.value ?? items[0]?.value].filter((item): item is string => item !== undefined)
+  React.useLayoutEffect(() => {
+    // Native normalizeSelection selects the first actual item without emitting
+    // selection-change, including a hidden/disabled first item.
+    if (selectionMode === "single" && value === undefined && items.length && !items.some((item) => item.value === inner)) setInner(items[0].value)
+  }, [items, selectionMode, value, inner])
   const [lastFocusedValue, setLastFocusedValue] = React.useState<string>()
-  const itemProps = React.Children.toArray(children).filter(React.isValidElement).map((child) => child.props as SegmentedButtonItemProps)
-  const enabledValues = disabled ? [] : itemProps.filter((item) => !item.disabled).map((item) => item.value)
+  // Native navigatableItems excludes disabled items; hidden items remain in
+  // ItemNavigation's collection, although the browser cannot focus them.
+  const enabledValues = disabled ? [] : items.filter((item) => !item.disabled).map((item) => item.value)
   // SegmentedButton.js:_onfocusin enters the selected item on first focus and
   // subsequently preserves the last focused item through ItemNavigation.
   const tabStop = lastFocusedValue && enabledValues.includes(lastFocusedValue) ? lastFocusedValue
@@ -114,10 +146,10 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
     return () => clearTimeout(timer)
   }, [announcement])
   const announceSelection = () => setAnnouncement((previous) => ({ text: t.selected, sequence: previous.sequence + 1 }))
-  const itemValues = itemProps.map((item) => item.value)
+  const itemValues = visibleItems.map((item) => item.value)
 
   return (
-    <SegmentedButtonContext.Provider value={{ selected, itemValues, tabStop, setTabStop: setLastFocusedValue, texts: t, disabled: !!disabled, multiple: selectionMode === "multiple", announceSelection }}>
+    <SegmentedButtonContext.Provider value={{ selected, itemValues, register, tabStop, setTabStop: setLastFocusedValue, texts: t, disabled: !!disabled, multiple: selectionMode === "multiple", announceSelection }}>
       {selectionMode === "multiple" ? (
         <ToggleGroupPrimitive.Root type="multiple" value={selected} onValueChange={set} {...common} />
       ) : (
@@ -137,7 +169,7 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
   )
 }
 
-const SegmentedButtonContext = React.createContext({ selected: [] as string[], itemValues: [] as string[], tabStop: undefined as string | undefined, setTabStop: (_value: string) => {}, texts: defaultTexts, disabled: false, multiple: false, announceSelection: () => {} })
+const SegmentedButtonContext = React.createContext({ selected: [] as string[], itemValues: [] as string[], register: (_id: string, _value: string, _node: HTMLElement | null, _disabled: boolean) => {}, tabStop: undefined as string | undefined, setTabStop: (_value: string) => {}, texts: defaultTexts, disabled: false, multiple: false, announceSelection: () => {} })
 
 type SegmentedButtonItemProps = React.ComponentProps<typeof ToggleGroupPrimitive.Item> & {
   /** Leading icon (an <Icon />). With no text children the item becomes icon-only; give it an aria-label. */
@@ -147,18 +179,32 @@ type SegmentedButtonItemProps = React.ComponentProps<typeof ToggleGroupPrimitive
   texts?: Partial<Pick<SegmentedButtonTexts, "itemDescription">>
 }
 
-function SegmentedButtonItem({ className, icon, children, value, asChild, texts, disabled, id, "aria-description": description, "aria-describedby": descriptionRef, ...props }: SegmentedButtonItemProps) {
+function SegmentedButtonItem({ className, icon, children, value, asChild, texts, disabled, id, ref, "aria-description": description, "aria-describedby": descriptionRef, ...props }: SegmentedButtonItemProps) {
   const context = React.useContext(SegmentedButtonContext)
   const selected = context.selected.includes(value)
   const generatedId = React.useId()
   const itemId = id ?? generatedId
   const hintId = `${itemId}-hint`
   const effectiveDisabled = disabled || context.disabled
+  const register = context.register
+  const hostRef = React.useCallback((node: HTMLButtonElement | null) => {
+    register(generatedId, value, node, !!effectiveDisabled)
+    const cleanup = typeof ref === "function" ? ref(node) : undefined
+    if (ref && typeof ref !== "function") ref.current = node
+    return () => {
+      register(generatedId, value, null, !!effectiveDisabled)
+      if (typeof cleanup === "function") cleanup()
+      else if (typeof ref === "function") ref(null)
+      else if (ref) ref.current = null
+    }
+  }, [register, generatedId, value, effectiveDisabled, ref])
   const hint = texts?.itemDescription ?? context.texts.itemDescription
   const owned = {
+    "data-slot": "segmented-button-item", "data-value": value,
     id: itemId, role: "option", "aria-selected": selected, "aria-checked": undefined, "aria-pressed": undefined,
     tabIndex: !effectiveDisabled && context.tabStop === value ? 0 : -1,
-    "aria-posinset": context.itemValues.indexOf(value) + 1, "aria-setsize": context.itemValues.length,
+    "aria-posinset": context.itemValues.includes(value) ? context.itemValues.indexOf(value) + 1 : undefined,
+    "aria-setsize": context.itemValues.includes(value) ? context.itemValues.length : undefined,
     "aria-disabled": !!effectiveDisabled, "aria-description": [description, hint].filter(Boolean).join(" "),
     "aria-describedby": descriptionRef ? `${descriptionRef} ${hintId}` : undefined,
   }
@@ -182,9 +228,11 @@ function SegmentedButtonItem({ className, icon, children, value, asChild, texts,
     <ToggleGroupPrimitive.Item
       {...props}
       {...owned}
+      ref={hostRef}
       asChild={asChild}
       disabled={effectiveDisabled}
       data-slot="segmented-button-item"
+      data-value={value}
       data-icon-only={iconOnly ? "" : undefined}
       // SegmentedButtonItemTemplate.js owns option role, position, disabled,
       // selected and ariaDescriptionText regardless of custom content.
@@ -193,7 +241,12 @@ function SegmentedButtonItem({ className, icon, children, value, asChild, texts,
       onFocus={asChild ? undefined : handleFocus}
       onClick={(event) => {
         props.onClick?.(event)
-        if (!event.defaultPrevented && !effectiveDisabled && (!context.multiple || !selected)) context.announceSelection()
+        if (!event.defaultPrevented && !effectiveDisabled) {
+          // SegmentedButton.js:_selectItem restores ItemNavigation's current
+          // item even when reactivating the already selected item.
+          context.setTabStop(value)
+          if (!context.multiple || !selected) context.announceSelection()
+        }
       }}
       onKeyDown={(e) => {
         props.onKeyDown?.(e)
@@ -204,12 +257,17 @@ function SegmentedButtonItem({ className, icon, children, value, asChild, texts,
         const rtl = getComputedStyle(e.currentTarget).direction === "rtl"
         const steps: Record<string, number> = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1, ArrowDown: 1, ArrowUp: -1 }
         if (!(e.key in steps) && e.key !== "Home" && e.key !== "End") return
+        // ItemNavigation.js:_canNavigate requires its current item to be the
+        // actual active element. A hidden-item focus attempt changes tabindex
+        // but cannot move DOM focus; activation above restores navigation.
+        if (context.tabStop !== value) return
         e.preventDefault()
         const root = e.currentTarget.closest('[data-slot="segmented-button"]')
-        const items = [...(root?.querySelectorAll<HTMLButtonElement>('[data-slot="segmented-button-item"]') ?? [])].filter((i) => !i.disabled)
+        const items = [...(root?.querySelectorAll<HTMLButtonElement>('[data-slot="segmented-button-item"]') ?? [])].filter((i) => !i.disabled && i.getAttribute("aria-disabled") !== "true")
         const i = items.indexOf(e.currentTarget)
         const target =
           e.key === "Home" ? items[0] : e.key === "End" ? items[items.length - 1] : items[Math.min(Math.max(i + steps[e.key], 0), items.length - 1)]
+        if (target) context.setTabStop(target.getAttribute("data-value") ?? value)
         target?.focus()
       }}
     >

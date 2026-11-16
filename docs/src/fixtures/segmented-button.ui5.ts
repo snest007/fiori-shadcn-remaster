@@ -17,6 +17,6 @@ export default defineUi5(set, ({ items, multiple, channel, itemChannel }) => {
   }
   const rootAttributes = itemChannel || !channel ? {} : { ...attributes, "accessible-name": attributes["accessible-name"] ?? (channel === "name-ref" ? undefined : "Segmented") }
   const group = h("ui5-segmented-button", { "selection-mode": multiple ? "Multiple" : undefined, "accessible-name": "Segmented", ...rootAttributes },
-    ...items.map((it, i) => h("ui5-segmented-button-item", { icon: it.icon, selected: it.selected, disabled: it.disabled, "accessible-name": it.text ? undefined : it.icon, ...(itemChannel && i === 0 ? attributes : {}) }, ...(it.text ? [it.text] : []))))
+    ...items.map((it, i) => h("ui5-segmented-button-item", { icon: it.icon, selected: it.selected, disabled: it.disabled, hidden: it.hidden, "accessible-name": it.text ? undefined : it.icon, ...(itemChannel && i === 0 ? attributes : {}) }, ...(it.text ? [it.text] : []))))
   return channel ? h("span", {}, h("span", { hidden: true, id: targetId }, channel.startsWith("name") ? "Cartography" : "Choose a map layer"), group) : group
 })

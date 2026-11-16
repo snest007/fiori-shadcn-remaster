@@ -157,11 +157,14 @@ for (const [id, initial, next] of [
   ["segmented-button-middle", "Week", "Month"],
   ["segmented-button-disabled-item", "One", "Three"],
   ["segmented-button-custom", "Map", "Satellite"],
-] as const) test(`segmented-button: ${id} enters with Tab and remembers the enabled focused item`, async ({ page, browser }) => {
+  ["segmented-button-fragment", "Map", "Satellite"],
+  ["segmented-button-wrapper", "Map", "Satellite"],
+  ["segmented-button-default", "Map", "Satellite"],
+] as const) for (const direction of ["ltr", "rtl"]) test(`segmented-button: ${id} enters with Tab and remembers the enabled focused item (${direction})`, async ({ page, browser }) => {
   const reference = await browser.newPage()
   try {
     for (const [current, native] of [[page, false], [reference, true]] as const) {
-      await current.goto(`/${native ? "ui5" : "index"}.html?${native ? "" : "fixtures&"}only=${id}`)
+      await current.goto(`/${native ? "ui5" : "index"}.html?${native ? "" : "fixtures&"}only=${id}&dir=${direction}`)
       await current.waitForSelector("html[data-ready=true]")
       const cell = current.locator(`[data-fixture="${id}"]`)
       await cell.evaluate((element) => {
@@ -171,7 +174,7 @@ for (const [id, initial, next] of [
       })
       await current.keyboard.press("Tab")
       await expect(cell.getByRole("option", { name: initial, exact: true })).toBeFocused()
-      await current.keyboard.press("ArrowRight")
+      await current.keyboard.press(direction === "rtl" ? "ArrowLeft" : "ArrowRight")
       const last = cell.getByRole("option", { name: next, exact: true })
       await expect(last).toBeFocused()
       await expect(last).toHaveAttribute("tabindex", "0")
@@ -180,6 +183,51 @@ for (const [id, initial, next] of [
       await current.keyboard.press("Shift+Tab")
       await expect(last).toBeFocused()
       await expect(cell.getByRole("option", { name: initial, exact: true })).toHaveAttribute("aria-selected", "true")
+    }
+  } finally { await reference.close() }
+})
+
+test("segmented-button: hidden items have no position and visible positions use actual hosts", async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?${native ? "" : "fixtures&"}only=segmented-button-hidden`)
+      await current.waitForSelector("html[data-ready=true]")
+      const cell = current.locator('[data-fixture="segmented-button-hidden"]')
+      for (const [name, position] of [["Map", "1"], ["Satellite", "2"]]) {
+        const item = cell.getByRole("option", { name, exact: true })
+        await expect(item).toHaveAttribute("aria-posinset", position)
+        await expect(item).toHaveAttribute("aria-setsize", "2")
+      }
+      const hidden = native ? cell.locator('ui5-segmented-button-item[hidden]').locator('[role="option"]') : cell.locator('[data-slot="segmented-button-item"][hidden]')
+      await expect(hidden).not.toHaveAttribute("aria-posinset")
+      await expect(hidden).not.toHaveAttribute("aria-setsize")
+      await expect(cell.getByRole("option", { name: "Map", exact: true })).toHaveAttribute("aria-selected", "true")
+    }
+  } finally { await reference.close() }
+})
+
+for (const direction of ["ltr", "rtl"]) test(`segmented-button: hidden navigation position follows native focus limits and activation restores it (${direction})`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?${native ? "" : "fixtures&"}only=segmented-button-hidden&dir=${direction}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const cell = current.locator('[data-fixture="segmented-button-hidden"]')
+      const map = cell.getByRole("option", { name: "Map", exact: true })
+      const hidden = native ? cell.locator('ui5-segmented-button-item[hidden]').locator('[role="option"]') : cell.locator('[data-slot="segmented-button-item"][hidden]')
+      await map.focus(); await expect(map).toBeFocused()
+      await current.keyboard.press(direction === "rtl" ? "ArrowLeft" : "ArrowRight")
+      await expect(hidden).toHaveAttribute("tabindex", "0")
+      await expect(map).toBeFocused()
+      await current.keyboard.press("End")
+      await expect(map).toBeFocused()
+      await expect(hidden).toHaveAttribute("tabindex", "0")
+      await current.keyboard.press("Enter")
+      await expect(map).toHaveAttribute("tabindex", "0")
+      await current.keyboard.press("End")
+      await expect(cell.getByRole("option", { name: "Satellite", exact: true })).toBeFocused()
+      await expect(map).toHaveAttribute("aria-selected", "true")
     }
   } finally { await reference.close() }
 })
