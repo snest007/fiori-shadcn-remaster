@@ -85,3 +85,4 @@ export const AllHidden: Story = { args: { tokenTexts: ["Northwind International 
 export const Expanded: Story = { args: { tokenTexts: initial, expanded: true }, decorators: [(Story) => <div className="max-w-xs"><Story /></div>] }
 export const CustomTexts: Story = { args: { tokenTexts: initial, nMoreText: (count, allHidden) => `${count} ${allHidden ? "delivery countries" : "more countries"}`, deleteLabel: "Remove delivery country" }, decorators: [(Story) => <div className="max-w-xs"><Story /></div>] }
 export const RTL: Story = { globals: { dir: "rtl" } }
+export const DeletionTexts: Story = { args: { texts: { tokenizer: "Destination tokens", tokenDeleted: count => `Removed ${count} destinations` } } }

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 
 // UI5 2.28 TokenizerPopoverTemplate.js renders an internal List (fastNavigation metadata).
@@ -40,6 +41,8 @@ type TokenizerProps = Omit<React.ComponentProps<"div">, "children"> & {
   "aria-label"?: string
   /** Tooltip of the delete buttons in the "n more" popover. */
   deleteLabel?: string
+  texts?: Partial<TokenizerTexts>
+  locale?: string
 
   // ---- Used by MultiInput / MultiComboBox ----
   /** Shows every token (scrollable) instead of collapsing into "n more", e.g. while the owning field is focused. */
@@ -73,6 +76,14 @@ function collectTokens(children: React.ReactNode, out: TokenData[] = []) {
 }
 
 const defaultNMoreText = (count: number, allHidden: boolean) => (allHidden ? `${count} Items` : `${count} more`)
+type TokenizerTexts = { tokenizer: string; deleteLabel: string; nMore: (count: number, allHidden: boolean) => string; tokenDeleted: (count: number) => string }
+const defaultTexts: TokenizerTexts = {
+  tokenizer: "Tokenizer", // UI5 TOKENIZER_ARIA_LABEL
+  deleteLabel: "Delete", // UI5 TOKEN_ARIA_DELETE
+  nMore: defaultNMoreText, // UI5 MULTIINPUT_SHOW_MORE_TOKENS / TOKENIZER_SHOW_ALL_ITEMS
+  tokenDeleted: count => count === 1 ? "1 token deleted" : `${count} tokens deleted`, // UI5 TOKENIZER_TOKEN_DELETED_SINGULAR / TOKENIZER_TOKEN_DELETED_PLURAL
+}
+const defaultTextsKeys = { tokenizer: "TOKENIZER_ARIA_LABEL", deleteLabel: "TOKEN_ARIA_DELETE" } as const
 const round = (n: number) => Number(n.toFixed(2))
 
 // Mirrors ui5-tokenizer (Horizon, desktop). Tokens form a listbox with roving focus: ←/→/↑/↓ move,
@@ -89,9 +100,11 @@ function Tokenizer({
   onSelectionChange,
   readOnly,
   disabled,
-  nMoreText = defaultNMoreText,
-  "aria-label": ariaLabel = "Tokenizer",
-  deleteLabel = "Delete",
+  nMoreText: nMoreTextProp,
+  "aria-label": ariaLabelProp,
+  deleteLabel: deleteLabelProp,
+  texts: textsProp,
+  locale: localeProp,
   expanded: expandedProp,
   preventInitialFocus,
   onShowAll,
@@ -102,6 +115,19 @@ function Tokenizer({
   handleRef,
   ...props
 }: TokenizerProps) {
+  const { t } = useFioriLocale(localeProp)
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp, localeProp)
+  const ariaLabel = ariaLabelProp ?? texts.tokenizer
+
+  const nMoreText = nMoreTextProp ?? textsProp?.nMore ?? ((count: number, allHidden: boolean) => t(allHidden ? "TOKENIZER_SHOW_ALL_ITEMS" : "MULTIINPUT_SHOW_MORE_TOKENS", () => defaultNMoreText(count, allHidden), count))
+  const deleteLabel = deleteLabelProp ?? texts.deleteLabel
+  const tokenDeleted = textsProp?.tokenDeleted ?? ((count: number) => t(count === 1 ? "TOKENIZER_TOKEN_DELETED_SINGULAR" : "TOKENIZER_TOKEN_DELETED_PLURAL", () => defaultTexts.tokenDeleted(count), count))
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const requestDelete = (values: string[]) => {
+    // Tokenizer.js/_announceTokenDeletion uses InvisibleMessageMode.Assertive for every deletion path.
+    setAnnouncement(old => ({ text: tokenDeleted(values.length), sequence: old.sequence + 1 }))
+    onTokenDelete?.(values)
+  }
   const tokens = collectTokens(children)
   const keys = tokens.map((t) => t.key)
   const keysSig = keys.join("\u0000")
@@ -256,7 +282,7 @@ function Tokenizer({
   const deleteByClick = (index: number) => {
     if (readOnly) return
     const next = tokens[index === tokens.length - 1 ? index - 1 : index + 1]
-    onTokenDelete?.([tokens[index].key])
+    requestDelete([tokens[index].key])
     afterDelete(next?.key)
     setPopoverOpen(false)
   }
@@ -276,7 +302,7 @@ function Tokenizer({
     } else next = notSelected[0]
     const toDelete = selected.size ? keys.filter((k) => selected.has(k)) : [tokens[index].key]
     if (next && toDelete.includes(next.key)) next = undefined
-    onTokenDelete?.(toDelete)
+    requestDelete(toDelete)
     afterDelete(next?.key)
   }
 
@@ -438,7 +464,7 @@ function Tokenizer({
           <div
             role="listbox"
             aria-label={ariaLabel}
-            aria-description={ariaLabel !== "Tokenizer" ? "Tokenizer" : undefined}
+            aria-description={ariaLabelProp !== undefined ? texts.tokenizer : undefined}
             aria-disabled={disabled || undefined}
             aria-readonly={readOnly || undefined}
             className="contents"
@@ -486,6 +512,7 @@ function Tokenizer({
             {nMoreText(nMore, allHidden)}
           </span>
         )}
+        <span className="sr-only" role="status" aria-live="assertive" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>
       </div>
       <PopoverAnchor virtualRef={(popoverAnchor ?? rootRef) as React.RefObject<HTMLElement>} />
       <PopoverContent
@@ -566,11 +593,11 @@ function Tokenizer({
     const items = [...(listRef.current?.querySelectorAll<HTMLElement>("li") ?? [])]
     if (tokens.length === 1) {
       setPopoverOpen(false)
-      onTokenDelete?.([tokens[i].key])
+      requestDelete([tokens[i].key])
       afterDelete(undefined)
       return
     }
-    onTokenDelete?.([tokens[i].key])
+    requestDelete([tokens[i].key])
     const focusIndex = i + 1 < items.length ? i : i - 1
     setTimeout(() => {
       const li = [...(listRef.current?.querySelectorAll<HTMLElement>("li") ?? [])]
@@ -579,4 +606,4 @@ function Tokenizer({
   }
 }
 
-export { Tokenizer, type TokenizerHandle, type TokenizerProps }
+export { Tokenizer, type TokenizerHandle, type TokenizerProps, type TokenizerTexts }
