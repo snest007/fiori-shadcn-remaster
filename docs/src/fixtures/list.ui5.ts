@@ -3,6 +3,7 @@ import "@ui5/webcomponents/dist/List.js"
 import "@ui5/webcomponents/dist/ListItemStandard.js"
 import "@ui5/webcomponents/dist/ListItemCustom.js"
 import "@ui5/webcomponents/dist/ListItemGroup.js"
+import "@ui5/webcomponents/dist/ListItemGroupHeader.js"
 import "@ui5/webcomponents/dist/Avatar.js"
 import "@ui5/webcomponents/dist/Button.js"
 import "@ui5/webcomponents-icons/dist/calendar.js"
@@ -26,6 +27,8 @@ const mode = (m?: string) => (m ? m[0].toUpperCase() + m.slice(1) : undefined)
 function item(it: ItemSpec) {
   const common = {
     type: cap(it.type),
+    "accessible-name": it.accessibleName,
+    "accessible-role": it.itemRole === "option" ? "Option" : it.itemRole === "menuitem" ? "MenuItem" : it.itemRole === "treeitem" ? "TreeItem" : it.itemRole === "listitem" ? "ListItem" : undefined,
     highlight: cap(it.highlight),
     selected: it.selected,
     disabled: it.disabled,
@@ -35,9 +38,11 @@ function item(it: ItemSpec) {
     "data-moving": it.moving,
   }
   if (it.custom) {
-    const row = h("div", {}, h("span", {}, it.text), h("ui5-button", {}, "Edit"))
+    const row = h("div", {}, h("span", {}, it.text), ...(it.noControl ? [] : [h("ui5-button", {}, "Edit")]))
     row.style.cssText = "display:flex;align-items:center;justify-content:space-between;width:100%"
-    return h("ui5-li-custom", common, row)
+    const custom = h("ui5-li-custom", common, row)
+    ;(custom as any).accessibilityAttributes = { ariaPosinset: it.position, ariaSetsize: it.setSize }
+    return custom
   }
   const li = h(
     "ui5-li",
@@ -52,15 +57,21 @@ function item(it: ItemSpec) {
     },
     it.text
   )
+  ;(li as any).accessibilityAttributes = { ariaPosinset: it.position, ariaSetsize: it.setSize }
   if (it.avatar) li.append(h("ui5-avatar", { slot: "image", initials: it.avatar, size: "S" }))
   return li
 }
 
-export default defineUi5(set, ({ items, mode: m, headerText, footerText, noDataText, separators, growing, dropPlacement }) => {
+export default defineUi5(set, ({ items, mode: m, headerText, footerText, noDataText, separators, growing, dropPlacement, focusFirst, channel, growingA11y, listbox, role, groupHeaderA11y, rtl }) => {
+  const targetId = `list-a11y-${channel}-target-ui5`
   const list = h(
     "ui5-list",
     {
-      "accessible-name": "List",
+      "accessible-name": channel === "name" ? "Produce" : channel === "name-ref" ? undefined : "List",
+      "accessible-name-ref": channel === "name-ref" ? targetId : undefined,
+      "accessible-description": channel === "description" ? "Fresh fruit" : undefined,
+      "accessible-description-ref": channel === "description-ref" ? targetId : undefined,
+      "accessible-role": role === "listbox" || listbox ? "ListBox" : role ? cap(role) : undefined,
       "selection-mode": mode(m),
       "header-text": headerText,
       "footer-text": footerText,
@@ -68,9 +79,18 @@ export default defineUi5(set, ({ items, mode: m, headerText, footerText, noDataT
       separators: separators && separators[0].toUpperCase() + separators.slice(1),
       growing: cap(growing),
     },
+    ...(groupHeaderA11y ? [h("ui5-li-group-header", { "accessible-name": "Produce categories" }, "Fruit group")] : []),
     ...items.map((x) => ("group" in x ? h("ui5-li-group", { "header-text": x.group }, ...x.items.map(item)) : item(x)))
   )
-  const wrap = h("div", {}, list)
+  if (growingA11y) (list as any).accessibilityAttributes = { growingButton: { name: "Load produce", description: "Fetch additional fruit" } }
+  const wrap = h("div", {}, ...(channel ? [h("span", { hidden: true, id: targetId }, channel.startsWith("name") ? "Produce" : "Fresh fruit")] : []), list)
+  if (focusFirst) (wrap as Ui5FixtureElement).fixtureReady = (async () => {
+    while (!list.isConnected || !list.shadowRoot?.querySelector("ul")) await new Promise(requestAnimationFrame)
+    await renderFinished()
+    ;(list.querySelector("ui5-li-custom") as HTMLElement)?.focus()
+    await renderFinished()
+  })()
+  if (rtl) wrap.dir = "rtl"
   wrap.style.width = LIST_WIDTH
   // Our docs body uses --sapFontSize; the UI5 page body keeps the browser's 16px. Text the list doesn't
   // size itself (custom content, the "More" button) inherits it, so give both sides the same page font size.

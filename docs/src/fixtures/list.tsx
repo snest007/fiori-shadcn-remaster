@@ -6,8 +6,10 @@ import {
   List,
   ListItemCustom,
   ListItemGroup,
+  ListItemGroupHeader,
   ListItemStandard,
   type ListAdditionalTextState,
+  type ListAccessibleRole,
   type ListGrowing,
   type ListItemHighlight,
   type ListItemType,
@@ -37,6 +39,11 @@ export type ItemSpec = {
   active?: boolean
   /** ListItemCustom with a text and a button. */
   custom?: boolean
+  accessibleName?: string
+  itemRole?: "listitem" | "option" | "treeitem" | "menuitem"
+  position?: number
+  setSize?: number
+  noControl?: boolean
 }
 export type GroupSpec = { group: string; items: ItemSpec[] }
 export type Props = {
@@ -48,6 +55,13 @@ export type Props = {
   separators?: ListSeparators
   growing?: ListGrowing
   dropPlacement?: "Before" | "After" | "On"
+  focusFirst?: boolean
+  channel?: "name" | "name-ref" | "description" | "description-ref"
+  growingA11y?: boolean
+  listbox?: boolean
+  role?: ListAccessibleRole
+  groupHeaderA11y?: boolean
+  rtl?: boolean
 }
 
 export const LIST_WIDTH = "20rem"
@@ -62,6 +76,16 @@ const states = ["none", "negative", "critical", "positive", "information"] as co
 const richMovable: ItemSpec = { text: "Laptop", description: "Dell XPS 15", icon: "product", additionalText: "In stock", selected: true, movable: true }
 
 const cases: FixtureCase<Props>[] = [
+  ...(["list", "listbox", "menu", "tree"] as const).map((role) => ({ id: `list-a11y-root-${role}`, props: { items: [{ text: "Apples", type: "inactive" as const }], role } })),
+  { id: "list-a11y-standard-name", props: { items: [{ text: "Apples", accessibleName: "Produce row" }] } },
+  { id: "list-a11y-custom-name", props: { items: [{ text: "Apples", custom: true, noControl: true, accessibleName: "Produce row", selected: true, position: 2, setSize: 7, itemRole: "option" }], role: "listbox", mode: "single" } },
+  { id: "list-a11y-group-header-name", props: { items: [{ text: "Apples", type: "inactive" }], groupHeaderA11y: true } },
+  { id: "list-a11y-selection-rtl", props: { items: three, mode: "multiple", rtl: true } },
+  { id: "list-groups-rtl", props: { items: [{ group: "Fruit", items: three }], rtl: true } },
+  ...(["name", "name-ref", "description", "description-ref"] as const).map((channel) => ({ id: `list-a11y-${channel}`, props: { items: [{ text: "Apples", type: "inactive" as const }], channel } })),
+  { id: "list-a11y-role", props: { items: [{ text: "Apples", type: "inactive" }], listbox: true } },
+  { id: "list-a11y-growing", props: { items: [{ text: "Apples", type: "inactive" }], growing: "button", growingA11y: true } },
+  { id: "list-custom-focused", props: { items: [{ text: "Custom item", custom: true }], focusFirst: true } },
   { id: "list-drop-indicator-before", props: { items: three, dropPlacement: "Before" } },
   { id: "list-drop-indicator-after", props: { items: three, dropPlacement: "After" } },
   { id: "list-drop-indicator-on", props: { items: three, dropPlacement: "On" } },
@@ -147,10 +171,10 @@ const cases: FixtureCase<Props>[] = [
 function renderItem(it: ItemSpec, i: number) {
   if (it.custom) {
     return (
-      <ListItemCustom key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled} movable={it.movable} data-moving={it.moving ? "" : undefined} {...(it.active === undefined ? {} : { "data-active": it.active ? "" : undefined })}>
+      <ListItemCustom aria-label={it.accessibleName} role={it.itemRole} aria-posinset={it.position} aria-setsize={it.setSize} key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled} movable={it.movable} data-moving={it.moving ? "" : undefined} {...(it.active === undefined ? {} : { "data-active": it.active ? "" : undefined })}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <span>{it.text}</span>
-          <Button>Edit</Button>
+          {!it.noControl && <Button>Edit</Button>}
         </div>
       </ListItemCustom>
     )
@@ -159,6 +183,10 @@ function renderItem(it: ItemSpec, i: number) {
     <ListItemStandard
       key={i}
       value={String(i)}
+      aria-label={it.accessibleName}
+      role={it.itemRole}
+      aria-posinset={it.position}
+      aria-setsize={it.setSize}
       text={it.text}
       description={it.description}
       icon={it.icon && listIcons[it.icon]}
@@ -195,15 +223,32 @@ function StaticListDrop({ children, placement }: { children: React.ReactNode; pl
   return <div ref={ref} style={{ width: LIST_WIDTH, position: "relative" }}>{children}{elements && <FioriDropIndicator ownerReference={elements.owner} targetReference={elements.target} placement={placement} />}</div>
 }
 
+function FocusedListFixture({ focused, children, rtl }: { focused?: boolean; children: React.ReactNode; rtl?: boolean }) {
+  const root = React.useRef<HTMLDivElement>(null)
+  React.useLayoutEffect(() => { if (focused) root.current?.querySelector<HTMLElement>('[data-slot="list-item"]')?.focus() }, [focused])
+  return <div ref={root} dir={rtl ? "rtl" : undefined}>{children}</div>
+}
+
 export default defineFixtures<Props>({
   name: "list",
   cases,
-  react: ({ items, mode, headerText, footerText, noDataText, separators, growing, dropPlacement }) => {
+  react: ({ items, mode, headerText, footerText, noDataText, separators, growing, dropPlacement, focusFirst, channel, growingA11y, listbox, role, groupHeaderA11y, rtl }) => {
     let n = 0
-    return (
+    const targetId = `list-a11y-${channel}-target`
+    const attributes = {
+      "aria-label": channel === "name" ? "Produce" : channel === "name-ref" ? undefined : "List",
+      "aria-labelledby": channel === "name-ref" ? targetId : undefined,
+      "aria-description": channel === "description" ? "Fresh fruit" : undefined,
+      "aria-describedby": channel === "description-ref" ? targetId : undefined,
+    }
+    return (<FocusedListFixture focused={focusFirst} rtl={rtl}>
+      {channel && <span hidden id={targetId}>{channel.startsWith("name") ? "Produce" : "Fresh fruit"}</span>}
       <StaticListDrop placement={dropPlacement}>
         <List
-          aria-label="List"
+          {...attributes}
+          accessibleRole={role ?? (listbox ? "listbox" : undefined)}
+          growingButtonName={growingA11y ? "Load produce" : undefined}
+          growingButtonDescription={growingA11y ? "Fetch additional fruit" : undefined}
           selectionMode={mode}
           defaultValue={selectedValues(items)}
           headerText={headerText}
@@ -212,6 +257,7 @@ export default defineFixtures<Props>({
           separators={separators}
           growing={growing}
         >
+          {groupHeaderA11y && <ListItemGroupHeader accessibleName="Produce categories">Fruit group</ListItemGroupHeader>}
           {items.map((x, gi) =>
             "group" in x ? (
               <ListItemGroup key={`g${gi}`} headerText={x.group}>
@@ -223,6 +269,6 @@ export default defineFixtures<Props>({
           )}
         </List>
       </StaticListDrop>
-    )
+      </FocusedListFixture>)
   },
 })

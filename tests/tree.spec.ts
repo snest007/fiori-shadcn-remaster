@@ -111,6 +111,44 @@ test("tree: RTL retains UI5's physical expand, step-in, collapse and step-out ke
   }
 })
 
+for (const mode of ["multiple", "single-start"] as const) test(`Tree ${mode} selection indicators preserve native Chromium roles, labels and states`, async ({ page, browser }) => {
+  // TreeItemBaseTemplate.js uses ListItemTemplate.js:selectionElement unchanged;
+  // TreeItemBase.js:_accInfo adjusts the row, not its checkbox/radio semantics.
+  const id = `tree-mode-${mode}`
+  const reference = await browser.newPage()
+  const capture = async (current: Page) => {
+    const session = await current.context().newCDPSession(current)
+    try {
+      await session.send("Accessibility.enable")
+      const { nodes } = await session.send("Accessibility.getFullAXTree")
+      return nodes.filter((entry) => !entry.ignored && ["checkbox", "radio"].includes(String(entry.role?.value))).map((entry) => ({
+        role: entry.role?.value, name: entry.name?.value, description: entry.description?.value,
+        states: Object.fromEntries((entry.properties ?? []).filter((property) => ["checked", "disabled", "required", "readonly", "focusable"].includes(property.name)).map((property) => [property.name, property.value.value])),
+      }))
+    } finally { await session.detach() }
+  }
+  try {
+    await page.goto(`/index.html?fixtures&only=${id}`)
+    await reference.goto(`/ui5.html?only=${id}`)
+    await page.waitForSelector("html[data-ready=true]")
+    await reference.waitForSelector("html[data-ready=true]")
+    const role = mode === "multiple" ? "checkbox" : "radio"
+    const initial = await capture(reference)
+    expect(initial.length).toBeGreaterThan(0)
+    expect(initial.every((entry) => entry.role === role && entry.name === (role === "checkbox" ? "Multiple Selection Mode" : "Item Selection."))).toBe(true)
+    expect(await capture(page)).toEqual(initial)
+    for (const current of [page, reference]) {
+      const indicator = current.locator(`[data-fixture="${id}"]`).getByRole(role).first()
+      await expect(indicator).toHaveAttribute("tabindex", "-1")
+      await indicator.focus()
+      await expect(indicator).toBeFocused()
+      await current.keyboard.press("Enter")
+      await expect(indicator).toHaveAttribute("aria-checked", "true")
+    }
+    expect(await capture(page)).toEqual(await capture(reference))
+  } finally { await reference.close() }
+})
+
 test("Tree row label references retain only owned content through expansion", async ({ page }) => {
   const row = node(page, "Documents")
   const referenceText = () => row.evaluate((element) => element.getAttribute("aria-labelledby")?.split(/\s+/).map((id) => {

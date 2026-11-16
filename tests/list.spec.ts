@@ -143,7 +143,7 @@ test("list: dragTo accepts Before and the application reorders its items", async
   const source = list.locator('[data-nav-key="Apples"]')
   await source.dragTo(list.locator('[data-nav-key="Cherries"]'), { targetPosition: { x: 40, y: 2 } })
   await expect(page.locator("#list-demo #list-move-log")).toHaveText("Apples Before Cherries")
-  await expect(list.getByRole("listitem").first()).toHaveText("Bananas")
+  await expect(list.getByRole("listitem").first().locator(".fiori-li__title")).toHaveText("Bananas")
   await expect(source).toBeFocused()
   await expect(source).not.toHaveAttribute("data-moving")
 })
@@ -153,7 +153,7 @@ test("list: On is tried before its nearest edge and can be accepted without reor
   await page.locator("#list-demo #list-move-on").click()
   await list.locator('[data-nav-key="Apples"]').dragTo(list.locator('[data-nav-key="Bananas"]'))
   await expect(page.locator("#list-demo #list-move-log")).toHaveText("Apples On Bananas")
-  await expect(list.getByRole("listitem").first()).toHaveText("Apples")
+  await expect(list.getByRole("listitem").first().locator(".fiori-li__title")).toHaveText("Apples")
 })
 
 test("list: rejected drops and fixed items never emit move", async ({ page }) => {
@@ -178,11 +178,11 @@ test("list: Ctrl and Cmd arrows reorder the focused item while retaining focus",
   await page.keyboard.press("Control+ArrowUp")
   await expect(page.locator("#list-demo #list-move-log")).toHaveText("Bananas Before Apples")
   await expect(source).toBeFocused()
-  await expect(list.getByRole("listitem").first()).toHaveText("Bananas")
+  await expect(list.getByRole("listitem").first().locator(".fiori-li__title")).toHaveText("Bananas")
   await page.keyboard.press("Meta+ArrowDown")
   await expect(page.locator("#list-demo #list-move-log")).toHaveText("Bananas After Apples")
   await expect(source).toBeFocused()
-  await expect(list.getByRole("listitem").nth(1)).toHaveText("Bananas")
+  await expect(list.getByRole("listitem").nth(1).locator(".fiori-li__title")).toHaveText("Bananas")
 })
 
 test("list: disabled movable items retain native programmatic Ctrl/Cmd moves and disabled activation/navigation", async ({ page, browser }) => {
@@ -269,7 +269,7 @@ test("list: Ctrl Home/End try farthest accepted destinations, including rejected
   await page.keyboard.press("Control+End")
   await expect(page.locator("#list-demo #list-move-log")).toHaveText("Cherries After Dates")
   await expect(source).toBeFocused()
-  await expect(list.getByRole("listitem").last()).toHaveText("Cherries")
+  await expect(list.getByRole("listitem").last().locator(".fiori-li__title")).toHaveText("Cherries")
 })
 
 test("list: accepted keyboard moves require caller data updates; boundary and rejected requests do nothing", async ({ page }) => {
@@ -281,7 +281,7 @@ test("list: accepted keyboard moves require caller data updates; boundary and re
   await expect(page.locator("#list-demo #list-move-log")).toHaveText("")
   await page.keyboard.press("Control+ArrowDown")
   await expect(page.locator("#list-demo #list-move-log")).toHaveText("Apples After Bananas")
-  await expect(list.getByRole("listitem").first()).toHaveText("Apples")
+  await expect(list.getByRole("listitem").first().locator(".fiori-li__title")).toHaveText("Apples")
   await page.locator("#list-demo #list-move-allow").click()
   await source.focus()
   await page.keyboard.press("Control+End")
@@ -396,4 +396,184 @@ test("list: natural active drags retain native rich foreground and selected text
   expect(states[1]).toEqual(states[0])
   await test.info().attach("native-active-moving-styles", { body: JSON.stringify(states, null, 2), contentType: "application/json" })
   await nativePage.close()
+})
+
+
+for (const channel of ["name", "name-ref", "description", "description-ref", "role", "growing"]) test(`List ${channel} reaches the native owning element`, async ({ page, browser }) => {
+  const id = `list-a11y-${channel}`
+  await page.goto(`/index.html?fixtures&only=${id}`)
+  await page.waitForSelector("html[data-ready=true]")
+  const reference = await browser.newPage()
+  try {
+    await reference.goto(`/ui5.html?only=${id}`)
+    await reference.waitForSelector("html[data-ready=true]")
+    const ours = page.locator(`[data-fixture="${id}"]`), native = reference.locator(`[data-fixture="${id}"]`)
+    for (const holder of [ours, native]) {
+      if (channel === "role") await expect(holder.getByRole("listbox", { name: "List" })).toHaveCount(1)
+      else if (channel === "growing") {
+        await expect(holder.getByRole("button", { name: "Load produce" })).toHaveAccessibleDescription("Fetch additional fruit")
+      } else if (channel.startsWith("name")) await expect(holder.getByRole("list")).toHaveAccessibleName("Produce")
+      else await expect(holder.getByRole("list")).toHaveAccessibleDescription("Fresh fruit")
+    }
+  } finally { await reference.close() }
+})
+
+test("List custom focus description matches UI5 content and controls and clears on blur", async ({ page, browser }) => {
+  await page.goto("/index.html?fixtures&only=list-custom")
+  await page.waitForSelector("html[data-ready=true]")
+  const ours = page.locator('[data-fixture="list-custom"]').getByRole("listitem").first()
+  const reference = await browser.newPage()
+  try {
+    await reference.goto("/ui5.html?only=list-custom")
+    await reference.waitForSelector("html[data-ready=true]")
+    const native = reference.locator('[data-fixture="list-custom"]').getByRole("listitem").first()
+    await expect(ours).toHaveAccessibleName("Is Active")
+    await expect(native).toHaveAccessibleName("Is Active")
+    await ours.focus()
+    await expect(ours).toBeFocused()
+    await native.focus()
+    await expect(native).toBeFocused()
+    const expected = "List Item Custom item Button Edit . Includes element Is Active"
+    await expect(ours).toHaveAccessibleName(expected)
+    // UI5 CustomAnnouncement.js uses ariaLabelledByElements; Playwright's DOM
+    // name algorithm omits element-reference ARIA. Verify Chromium's real AX name.
+    const session = await reference.context().newCDPSession(reference)
+    try {
+      await session.send("Accessibility.enable")
+      await native.evaluate((element) => { (window as any).__listA11yItem = element })
+      const { result } = await session.send("Runtime.evaluate", { expression: "window.__listA11yItem" })
+      await expect.poll(async () => {
+        const { nodes } = await session.send("Accessibility.getPartialAXTree", { objectId: result.objectId! })
+        return nodes[0].name?.value
+      }).toBe(expected)
+      await test.info().attach("list-custom-raw-ax", { body: JSON.stringify(await session.send("Accessibility.getFullAXTree")), contentType: "application/json" })
+      await expect.poll(() => native.evaluate((element) => element.ariaLabelledByElements?.every((target) => target.isConnected && !!target.textContent))).toBe(true)
+      await reference.locator('[data-fixture="list-custom"] ui5-li-custom').first().getByRole("button", { name: "Edit" }).focus()
+      await expect.poll(async () => {
+        const { nodes } = await session.send("Accessibility.getPartialAXTree", { objectId: result.objectId! })
+        return nodes[0].name?.value
+      }).toBe(expected)
+      await reference.locator('[data-fixture="list-custom"]').evaluate((cell) => { const next = document.createElement("button"); next.textContent = "After list"; cell.after(next); next.focus() })
+      await expect(reference.getByRole("button", { name: "After list" })).toBeFocused()
+      await expect.poll(async () => {
+        const { nodes } = await session.send("Accessibility.getPartialAXTree", { objectId: result.objectId! })
+        return nodes[0].name?.value
+      }).toBe("Is Active")
+    } finally { await session.detach() }
+    await ours.getByRole("button", { name: "Edit" }).focus()
+    await ours.evaluate((element) => { const next = document.createElement("button"); next.textContent = "After list"; element.closest('[data-fixture]')?.after(next); next.focus() })
+    await expect(ours).toHaveAccessibleName("Is Active")
+  } finally { await reference.close() }
+})
+
+test("List selection changes announce politely with the same selected/not-selected text", async ({ page }) => {
+  const apples = item(page, "Apples")
+  const live = page.locator('[data-slot="list-announcement"][data-owner="list-demo-selection"]')
+  await apples.focus()
+  await expect(apples).toBeFocused()
+  await page.keyboard.press("Space")
+  await expect(apples).toHaveAccessibleDescription("Selected")
+  await expect(live).toHaveAttribute("aria-live", "polite")
+  await expect(live).toHaveText("Selected")
+  await page.keyboard.press("Space")
+  await expect(apples).toHaveAccessibleDescription("Not Selected")
+  await expect(live).toHaveText("Not Selected")
+})
+
+for (const role of ["list", "listbox", "menu", "tree"] as const) test(`List ${role} inherits the UI5 item role`, async ({ page, browser }) => {
+  const id = `list-a11y-root-${role}`
+  await page.goto(`/index.html?fixtures&only=${id}`)
+  await page.waitForSelector("html[data-ready=true]")
+  const reference = await browser.newPage()
+  try {
+    await reference.goto(`/ui5.html?only=${id}`)
+    await reference.waitForSelector("html[data-ready=true]")
+    for (const holder of [page.locator(`[data-fixture="${id}"]`), reference.locator(`[data-fixture="${id}"]`)]) {
+      await expect(holder.getByRole(role, { name: "List", exact: true })).toHaveCount(1)
+      await expect(holder.getByRole(role === "list" ? "listitem" : role === "listbox" ? "option" : role === "menu" ? "menuitem" : "treeitem")).toHaveAccessibleName("Apples Inactive")
+    }
+  } finally { await reference.close() }
+})
+
+for (const mode of ["multiple", "single-start"] as const) test(`List ${mode} selection control keeps its UI5 role, state, label and keyboard activation`, async ({ page, browser }) => {
+  const id = `list-mode-${mode}`
+  const reference = await browser.newPage()
+  try {
+    await page.goto(`/index.html?fixtures&only=${id}`)
+    await reference.goto(`/ui5.html?only=${id}`)
+    for (const current of [page, reference]) {
+      await current.waitForSelector("html[data-ready=true]")
+      const control = current.locator(`[data-fixture="${id}"]`).getByRole(mode === "multiple" ? "checkbox" : "radio").first()
+      await expect(control).toHaveAccessibleName(mode === "multiple" ? "Multiple Selection Mode" : "Item Selection.")
+      await expect(control).toHaveAttribute("tabindex", "-1")
+      await expect(control).toHaveAttribute("aria-checked", "false")
+      await control.focus()
+      await expect(control).toBeFocused()
+      await current.keyboard.press("Enter")
+      await expect(control).toHaveAttribute("aria-checked", "true")
+      if (mode === "multiple") {
+        await current.keyboard.press("Space")
+        await expect(control).toHaveAttribute("aria-checked", "false")
+      }
+    }
+  } finally { await reference.close() }
+})
+
+for (const id of ["list-custom", "list-groups", "list-types", "list-a11y-group-header-name", "list-a11y-standard-name", "list-a11y-custom-name"]) test(`List ${id} preserves UI5 descriptions and custom content semantics`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    await page.goto(`/index.html?fixtures&only=${id}`)
+    await reference.goto(`/ui5.html?only=${id}`)
+    for (const current of [page, reference]) {
+      await current.waitForSelector("html[data-ready=true]")
+      const holder = current.locator(`[data-fixture="${id}"]`)
+      if (id === "list-custom" || id === "list-types") await expect(holder.getByRole("list", { name: "List", exact: true })).toHaveAccessibleDescription("List with interactive items. To move to the content, press F2.")
+      if (id === "list-groups") {
+        await expect(holder.getByRole("list", { name: "List", exact: true })).toHaveAccessibleDescription("contains 2 sub groups with 3 items")
+        const childList = holder.getByRole("list", { name: "Fruits", exact: true })
+        await expect(childList).toHaveAttribute("aria-owns", /.+/)
+        await expect.poll(() => childList.evaluate((element) => (() => {
+          const id = element.getAttribute("aria-owns")!
+          const find = (root: ParentNode): boolean => [...root.querySelectorAll("*")].some((candidate) => candidate.id === id && candidate.isConnected || !!candidate.shadowRoot && find(candidate.shadowRoot))
+          return find(document)
+        })())).toBe(true)
+      }
+      if (id === "list-a11y-group-header-name") await expect(holder.getByRole("listitem", { name: "Fruit group Produce categories", exact: true })).toHaveAttribute("aria-roledescription", "Group Header")
+      if (id === "list-a11y-standard-name") await expect(holder.getByRole("listitem")).toHaveAccessibleName("Produce row Is Active")
+      if (id === "list-a11y-custom-name") {
+        const custom = holder.getByRole("option")
+        await expect(custom).toHaveAccessibleName("Produce row Is Active")
+        await expect(custom).toHaveAttribute("aria-posinset", "2")
+        await expect(custom).toHaveAttribute("aria-setsize", "7")
+        await expect(custom).toHaveAttribute("aria-selected", "true")
+        await expect(custom).toHaveAttribute("tabindex", "0")
+        await expect(custom).toHaveAccessibleDescription("Selected")
+      }
+    }
+  } finally { await reference.close() }
+})
+
+test("List RTL preserves vertical roving focus and selection announcements", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=list-a11y-selection-rtl")
+  await page.waitForSelector("html[data-ready=true]")
+  const rows = page.locator('[data-fixture="list-a11y-selection-rtl"]').getByRole("listitem")
+  await rows.first().focus()
+  await expect(rows.first()).toBeFocused()
+  await page.keyboard.press("ArrowDown")
+  await expect(rows.nth(1)).toBeFocused()
+  await page.keyboard.press("Space")
+  await expect(rows.nth(1)).toHaveAccessibleDescription("Selected")
+  await expect(page.locator('[data-slot="list-announcement"]')).toHaveText("Selected")
+})
+
+test("List texts overrides keep owned selection, group and focus descriptions", async ({ page }) => {
+  const list = page.locator("#list-demo #list-text-overrides")
+  await expect(list.getByRole("list", { name: "Produce choices Produce", exact: true })).toHaveAccessibleDescription("Grouped produce. Edit from a row. 1 categories, 2 produce rows")
+  const apple = list.getByRole("listitem", { name: "Apples Available", exact: true })
+  await apple.focus()
+  await expect(apple).toBeFocused()
+  await page.keyboard.press("Space")
+  await expect(apple).toHaveAccessibleDescription("Produce selected")
+  await expect(list.getByRole("checkbox").first()).toHaveAccessibleName("Select produce")
+  await expect(page.locator('[data-slot="list-announcement"][data-owner="list-text-overrides"]')).toHaveText("Produce selected")
 })
