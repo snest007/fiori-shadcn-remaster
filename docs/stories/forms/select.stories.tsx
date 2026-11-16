@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { fioriMeta } from "../_lib/meta"
 import { fioriArgTypes } from "../_lib/argTypes"
 
-type Args = React.ComponentProps<typeof Select> & Pick<React.ComponentProps<typeof SelectTrigger>, "readOnly" | "valueState" | "valueStateMessage" | "valueStateTypeText"> & Pick<React.ComponentProps<typeof SelectContent>, "dialogTitle" | "cancelText" | "dialogNamePrefix"> & { placeholder?: string }
+type Args = React.ComponentProps<typeof Select> & Pick<React.ComponentProps<typeof SelectTrigger>, "readOnly" | "valueState" | "valueStateMessage" | "valueStateTypeText" | "texts"> & Pick<React.ComponentProps<typeof SelectContent>, "dialogTitle" | "cancelText" | "dialogNamePrefix"> & { placeholder?: string }
 const base = fioriMeta({ name: "select", component: Select })
 const triggerProps = fioriArgTypes("select", "SelectTrigger")
 const meta = {
@@ -26,9 +26,9 @@ const meta = {
   },
   render: function CountrySelect(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const { readOnly, valueState, valueStateMessage, valueStateTypeText, placeholder, dialogTitle, cancelText, dialogNamePrefix, ...props } = args
+    const { readOnly, valueState, valueStateMessage, valueStateTypeText, texts, placeholder, dialogTitle, cancelText, dialogNamePrefix, ...props } = args
     return <Select {...props} open={args.open ?? false} onValueChange={(value) => { args.onValueChange?.(value); updateArgs({ value }) }} onOpenChange={(open) => { args.onOpenChange?.(open); updateArgs({ open }) }}>
-      <SelectTrigger aria-label="Country" readOnly={readOnly} disabled={props.disabled} valueState={valueState} valueStateMessage={valueStateMessage} valueStateTypeText={valueStateTypeText}><SelectValue placeholder={placeholder} /></SelectTrigger>
+      <SelectTrigger aria-label="Country" readOnly={readOnly} disabled={props.disabled} valueState={valueState} valueStateMessage={valueStateMessage} valueStateTypeText={valueStateTypeText} texts={texts}><SelectValue placeholder={placeholder} /></SelectTrigger>
       <SelectContent aria-label="Country choices" dialogTitle={dialogTitle} cancelText={cancelText} dialogNamePrefix={dialogNamePrefix}><SelectGroup><SelectItem value="de">Germany</SelectItem><SelectItem value="fr">France</SelectItem><SelectItem value="cn">China</SelectItem><SelectItem value="us" disabled>United States (unavailable)</SelectItem></SelectGroup></SelectContent>
     </Select>
   },
@@ -48,6 +48,7 @@ export const Required: Story = { args: { required: true } }
 export const Empty: Story = { args: { value: "" } }
 export const Open: Story = { args: { open: true }, parameters: { docs: { story: { inline: false, height: "360px" } } } }
 export const CustomTexts: Story = { args: { valueState: "negative", valueStateMessage: "Choose an available delivery country.", valueStateTypeText: { negative: "Country error" }, dialogTitle: "Delivery countries", cancelText: "Use this country", dialogNamePrefix: "Choose" } }
+export const PhoneStateTexts: Story = { args: { valueState: "negative", texts: { negativeType: "Required country", criticalType: "Country warning", informationType: "Country information" } } }
 export const RTL: Story = { globals: { dir: "rtl" } }
 export const LabelledField: Story = { render: function CountryField() {
   const [country, setCountry] = React.useState("de")

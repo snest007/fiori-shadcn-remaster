@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useFioriLocale, collatorIncludes } from "@/lib/fiori-locale"
+import { useFioriLocale, useFioriTexts, collatorIncludes } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Select as SelectPrimitive, Slot } from "radix-ui"
 
@@ -105,7 +105,7 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
         const ordered = [...items.current.entries()].filter(([, item]) => !item.disabled)
           .sort(([, a], [, b]) => a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
         const index = ordered.findIndex(([value]) => value === current)
-        return [...ordered.slice(index + 1), ...ordered.slice(0, index + 1)].find(([, item]) => collatorIncludes(item.node.dataset.textValue ?? item.node.textContent ?? "", text, locale, true))?.[0]
+        return [...ordered.slice(index + 1), ...ordered.slice(0, index + 1)].find(([, item]) => collatorIncludes(item.node.dataset.textValue ?? item.node.textContent ?? "", text, localized ? locale : undefined, true))?.[0]
       },
       register(v, node, disabled) {
         if (node) items.current.set(v, { node, disabled })
@@ -169,6 +169,8 @@ type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger> &
   valueStateMessage?: React.ReactNode | null
   /** UI5 Select.js/valueStateTypeMappings; prefix of the phone state message. */
   valueStateTypeText?: Partial<Record<Exclude<ValueState, "none">, string>>
+  /** UI5 phone value-state prefixes; the existing valueStateTypeText map wins. */
+  texts?: Partial<SelectTexts>
   readOnly?: boolean
   wrapperClassName?: string
 }
@@ -180,6 +182,7 @@ function SelectTrigger({
   valueState = "none",
   valueStateMessage,
   valueStateTypeText,
+  texts,
   readOnly,
   disabled,
   onKeyDown,
@@ -190,6 +193,11 @@ function SelectTrigger({
   ...props
 }: SelectTriggerProps) {
   const valueStateTexts = useValueStateTexts()
+  const typeTexts = useFioriTexts(defaultSelectTexts, defaultSelectTextsKeys, texts)
+  // Select.hasValueStateText excludes Positive from the popup; its unused
+  // VALUE_STATE_TYPE_SUCCESS native getter remains a documented audit gap.
+  const stateTypes = { negative: typeTexts.negativeType, critical: typeTexts.criticalType, positive: "Value State Success", information: typeTexts.informationType }
+  const stateType = valueState === "none" ? "" : valueStateTypeText?.[valueState] ?? stateTypes[valueState]
 
   const items = React.useContext(SelectContext)
   const state = React.useContext(SelectOpenContext)
@@ -201,7 +209,9 @@ function SelectTrigger({
   const message = valueStateMessage === undefined && hasState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
 
-  React.useLayoutEffect(() => { state?.setPhoneState({ valueState, accessibleName: props["aria-label"], message: showMessage ? (valueStateMessage === undefined && hasState ? `${valueStateTypeText?.[valueState] ?? ({ negative: "Value State Error", critical: "Value State Warning", positive: "Value State Success", information: "Value State Information" }[valueState])} ${message}` : message) : null }) }, [valueState, message, showMessage, valueStateTypeText, props["aria-label"]])
+  // Select.js/valueStateText composes translated type and default body. Preserve
+  // the existing explicit-message behavior and valueStateTypeText overrides.
+  React.useLayoutEffect(() => { state?.setPhoneState({ valueState, accessibleName: props["aria-label"], message: showMessage ? (valueStateMessage === undefined && hasState ? `${stateType} ${message}` : message) : null }) }, [valueState, message, showMessage, stateType, props["aria-label"]])
 
   return (
     <div
@@ -351,10 +361,10 @@ function SelectContent({
   ...props
 }: SelectContentProps) {
   const state = React.useContext(SelectOpenContext)
-  const { t, locale } = useFioriLocale(state?.locale)
+  const { t, locale, hasProvider } = useFioriLocale(state?.locale)
   const dialogTitle = dialogTitleProp ?? t("SELECT_LISTBOX_LABEL", "All Items") // UI5 SELECT_LISTBOX_LABEL
   const dialogNamePrefix = dialogNamePrefixProp ?? t("SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX", "Select") // UI5 SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX
-  const emptyText = noDataText ?? (state?.localized ? t("LIST_NO_DATA", "No data") : undefined) // OpenUI5 sap/m LIST_NO_DATA; E5 opt-in empty-list extension.
+  const emptyText = noDataText ?? (state?.localized || hasProvider ? t("LIST_NO_DATA", "No data") : undefined) // OpenUI5 sap/m LIST_NO_DATA; E5 opt-in empty-list extension.
   const cancelText = cancelTextProp ?? t("SELECT_DIALOG_CANCEL_BUTTON", "Cancel") // UI5 SELECT_DIALOG_CANCEL_BUTTON
 
   const [draft, setDraft] = React.useState(state?.value)
@@ -428,7 +438,7 @@ function SelectContent({
           typingTimer.current = setTimeout(() => { typedChars.current = "" }, 1000)
           const selected = allOptions.findIndex((option) => option.dataset.value === draft)
           const ordered = [...allOptions.slice(selected + 1), ...allOptions.slice(0, Math.max(selected, 0))]
-          const next = ordered.find((option) => collatorIncludes(option.dataset.textValue ?? option.textContent ?? "", text, locale, true))
+          const next = ordered.find((option) => collatorIncludes(option.dataset.textValue ?? option.textContent ?? "", text, state?.localized ? locale : undefined, true))
           // _changeSelectedItem changes selected/focused properties, but does
           // not move DOM focus. List's own ItemNavigation owns actual focus.
           if (next) { setDraft(next.dataset.value); next.scrollIntoView({ block: "nearest" }) }
@@ -450,7 +460,7 @@ function SelectContent({
         }
       }}>
       <PhoneSelectItems.Provider value={{ value: draft, select: (value, close = true) => { setDraft(value); if (close) closePhone(false, value) } }}>
-        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true">{children}</div>
+        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true">{React.Children.count(children) === 0 && emptyText ? <div data-slot="select-no-data">{emptyText}</div> : children}</div>
       </PhoneSelectItems.Provider>
     </ResponsivePopoverContent>
   </ResponsivePopover></>
@@ -511,4 +521,12 @@ function SelectSeparator({ className, ...props }: React.ComponentProps<typeof Se
   return <SelectPrimitive.Separator data-slot="select-separator" className={cn("h-px bg-(--sapList_BorderColor)", className)} {...props} />
 }
 
-export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue }
+type SelectTexts = { negativeType: string; criticalType: string; informationType: string }
+const defaultSelectTexts: SelectTexts = {
+  negativeType: "Value State Error", // UI5 VALUE_STATE_TYPE_ERROR
+  criticalType: "Value State Warning", // UI5 VALUE_STATE_TYPE_WARNING
+  informationType: "Value State Information", // UI5 VALUE_STATE_TYPE_INFORMATION
+}
+const defaultSelectTextsKeys = { negativeType: "VALUE_STATE_TYPE_ERROR", criticalType: "VALUE_STATE_TYPE_WARNING", informationType: "VALUE_STATE_TYPE_INFORMATION" } as const
+
+export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue, type SelectTexts }
