@@ -15,10 +15,10 @@ export const NL_CONTENT = "Content area"
 
 export default defineFixtures<Props>({
   name: "navigation-layout",
-  cases: [
+  cases: ([
     { id: "navigation-layout-expanded", props: { mode: "expanded" } },
     { id: "navigation-layout-collapsed", props: { mode: "collapsed" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "navigation-layout-rtl" }] : [fixture]),
   react: ({ mode }) => (
     <div style={{ position: "relative", width: NL_WIDTH, height: NL_HEIGHT }}>
       <NavigationLayout
