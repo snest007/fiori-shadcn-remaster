@@ -20,7 +20,7 @@ const schemes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 export default defineFixtures<Props>({
   name: "tag",
-  cases: [
+  cases: ([
     ...semantic.map((design) => ({ id: `tag-${design}`, props: { design } })),
     ...semantic.map((design) => ({ id: `tag-${design}-no-icon`, props: { design, hideStateIcon: true } })),
     ...schemes.map((scheme) => ({ id: `tag-set1-${scheme}`, props: { design: "set1" as const, scheme } })),
@@ -32,7 +32,7 @@ export default defineFixtures<Props>({
     { id: "tag-interactive", props: { design: "negative", interactive: true } },
     { id: "tag-wrap", props: { design: "critical", text: "A long tag text that wraps", width: "6rem" } },
     { id: "tag-nowrap", props: { design: "critical", text: "A long tag text that truncates", width: "6rem", nowrap: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "tag-rtl" }] : [fixture]),
   react: ({ design, scheme, hideStateIcon, icon, text, size, interactive, width, nowrap }) => (
     <Tag
       design={design}

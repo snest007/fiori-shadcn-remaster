@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 import { alert, error, information, sysEnter2, sysHelp2 } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -45,15 +46,20 @@ function Tag({
   wrappingType = "normal",
   interactive,
   tagText,
-  roleDescription = "Tag button",
+  roleDescription: roleDescriptionProp,
   className,
   children,
   ...props
 }: TagProps) {
+  const defaultStateTextLocalized = useFioriTexts(defaultStateText, defaultStateTextKeys)
+
+  const { t } = useFioriLocale()
+  const roleDescription = roleDescriptionProp ?? t("TAG_ROLE_DESCRIPTION", "Tag button") // UI5 TAG_ROLE_DESCRIPTION
+
   const stateIcon = !hideStateIcon && !icon && design in stateIcons ? stateIcons[design as keyof typeof stateIcons] : undefined
   const hasText = children != null && children !== false && children !== ""
   const hasIcon = !!icon || !!stateIcon
-  const state = defaultStateText[design]
+  const state = defaultStateTextLocalized[design]
   const common = {
     "data-slot": "tag",
     "data-design": design,
@@ -101,3 +107,10 @@ function Tag({
 }
 
 export { Tag, type TagProps, type TagDesign }
+
+const defaultStateTextKeys = {
+  "negative": "TAG_ERROR",
+  "critical": "TAG_WARNING",
+  "positive": "TAG_SUCCESS",
+  "information": "TAG_INFORMATION"
+} as const
