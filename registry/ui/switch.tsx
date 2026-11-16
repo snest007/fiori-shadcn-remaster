@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 import { Switch as SwitchPrimitive } from "radix-ui"
 
 import { accept, decline, less } from "@/lib/fiori-icons"
@@ -50,13 +51,16 @@ function Switch({
   textOn,
   textOff,
   readOnly,
-  readOnlyText = "Read Only",
+  readOnlyText: readOnlyTextProp,
   onClick,
   onCheckedChange,
   ref,
   "aria-describedby": ariaDescribedBy,
   ...props
 }: SwitchProps) {
+  const { t } = useFioriLocale()
+  const readOnlyText = readOnlyTextProp ?? t("ACC_STATE_READONLY", "Read Only") // UI5 ACC_STATE_READONLY
+
   const changeTarget = React.useRef<HTMLButtonElement>(null)
   React.useImperativeHandle(ref, () => changeTarget.current!, [])
   const direction = useHostDirection(changeTarget)

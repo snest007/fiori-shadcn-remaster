@@ -12,7 +12,7 @@ const variants: [string, Props][] = [
 
 export default defineFixtures<Props>({
   name: "switch",
-  cases: [
+  cases: ([
     ...variants.flatMap(([suffix, p]) => [
       { id: `switch${suffix}`, props: p },
       { id: `switch${suffix}-checked`, props: { ...p, checked: true } },
@@ -24,7 +24,7 @@ export default defineFixtures<Props>({
     { id: "switch-readonly", props: { readOnly: true } },
     { id: "switch-readonly-checked", props: { readOnly: true, checked: true } },
     { id: "switch-text-readonly-checked", props: { textOn: "On", textOff: "Off", readOnly: true, checked: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "switch-rtl" }] : [fixture]),
   react: ({ checked, design, textOn, textOff, disabled, readOnly }) => (
     <Switch defaultChecked={checked} design={design} textOn={textOn} textOff={textOff} disabled={disabled} readOnly={readOnly} aria-label="Switch" />
   ),
