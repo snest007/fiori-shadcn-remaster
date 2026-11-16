@@ -418,6 +418,7 @@ function Table({
   }
   const onSelectionClick = (key: string | null, e: React.MouseEvent) => {
     e.preventDefault() // the control is driven by the table's state, not by Radix
+    if (busy) return
     if (key === null) {
       rangeRef.current = null
       toggleAll()
@@ -905,6 +906,7 @@ function Table({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     onPointerDown?.(e)
+    if (busy) return
     if (e.button !== 0) return
     const row = (e.target as HTMLElement).closest<HTMLElement>("[data-table-nav-row][data-interactive]")
     if (!row || !gridEl.current?.contains(row)) return
@@ -976,6 +978,14 @@ function Table({
         className={cn("fiori-table", className)}
         style={{ "--fiori-x-table-sticky-top": stickyTop, ...style } as React.CSSProperties}
         onKeyDown={handleKeyDown}
+        onKeyDownCapture={(event) => {
+          // TableNavigation.js:_onKeyDownCapture moves loading Tab navigation
+          // to the outer sentinel without removing body rows from the AX tree.
+          if (loading && event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey) {
+            focusElement(event.shiftKey ? beforeRef.current : afterRef.current)
+            event.stopPropagation()
+          }
+        }}
         onKeyUp={handleKeyUp}
         onClick={handleClick}
         onFocus={handleFocus}
@@ -1006,7 +1016,7 @@ function Table({
           aria-busy={busy || undefined}
         >
           {headerRow}
-          <div className="fiori-table__rows" style={virtualRows ? { height: virtualRows.count * virtualRows.rowHeight } : undefined} inert={busy || undefined}>
+          <div className="fiori-table__rows" style={virtualRows ? { height: virtualRows.count * virtualRows.rowHeight } : undefined}>
             <div
               className="fiori-table__spacer"
               style={virtualRows && virtualRows.offset > 0 ? { transform: `translateY(${virtualRows.offset}px)`, willChange: "transform" } : undefined}
