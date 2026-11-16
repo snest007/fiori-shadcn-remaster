@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { navigationDownArrow, navigationRightArrow, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -77,8 +78,8 @@ function Tree({
   footerText,
   noDataText,
   separators = "all",
-  expandText = "Expand Node",
-  collapseText = "Collapse Node",
+  expandText: expandTextProp,
+  collapseText: collapseTextProp,
   deleteText = "Delete",
   className,
   children,
@@ -86,6 +87,10 @@ function Tree({
   "aria-labelledby": ariaLabelledBy,
   ...props
 }: TreeProps) {
+  const { t } = useFioriLocale()
+  const expandText = expandTextProp ?? t("TREE_ITEM_EXPAND_NODE", "Expand Node") // UI5 TREE_ITEM_EXPAND_NODE
+  const collapseText = collapseTextProp ?? t("TREE_ITEM_COLLAPSE_NODE", "Collapse Node") // UI5 TREE_ITEM_COLLAPSE_NODE
+
   const id = React.useId()
   const { core, focusArea } = useListCoreValue({
     mode: selectionMode,

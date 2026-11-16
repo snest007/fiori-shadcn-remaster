@@ -2,9 +2,10 @@
   "title": "Tree",
   "registryDependencies": [
     "@fiori/icons",
-    "@fiori/list"
+    "@fiori/list",
+    "@fiori/locale"
   ],
-  "description": "Fiori tree: nested items with expand/collapse (→ / ←), indentation levels and the List selection modes.",
+  "description": "Fiori tree: nested items with expand/collapse (\u2192 / \u2190), indentation levels and the List selection modes.",
   "usage": {
     "summary": "Browse or select hierarchical items through expandable parent-child nodes.",
     "useWhen": [
@@ -20,7 +21,7 @@
         ]
       },
       {
-        "when": "Choose one nonhierarchical field value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), and ComboBox covers type-ahead across 20–200.",
+        "when": "Choose one nonhierarchical field value: Select covers 2\u201312 fixed options without typing (sort alphabetically above 8), and ComboBox covers type-ahead across 20\u2013200.",
         "use": [
           "select",
           "combobox"

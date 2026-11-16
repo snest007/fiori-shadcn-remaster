@@ -37,7 +37,7 @@ const sample = (sel = false): NodeSpec[] => [
 
 export default defineFixtures<Props>({
   name: "tree",
-  cases: [
+  cases: ([
     { id: "tree-basic", props: { nodes: sample() } },
     { id: "tree-collapsed", props: { nodes: [{ text: "Root A", children: [{ text: "A1" }] }, { text: "Root B", children: [{ text: "B1" }] }, { text: "Leaf" }] } },
     { id: "tree-header", props: { nodes: sample().slice(1), headerText: "Files" } },
@@ -45,7 +45,7 @@ export default defineFixtures<Props>({
     { id: "tree-mode-single-start", props: { nodes: sample().map((n, i) => ({ ...n, selected: i === 2 })), mode: "singleStart" } },
     { id: "tree-mode-single", props: { nodes: sample(true).slice(0, 1).map((n) => ({ ...n, children: n.children!.slice(0, 1) })), mode: "single" } },
     { id: "tree-mode-delete", props: { nodes: sample().slice(1), mode: "delete" } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "tree-rtl" }] : [fixture]),
   react: ({ nodes, mode, headerText }) => {
     let n = 0
     const selected: string[] = []
