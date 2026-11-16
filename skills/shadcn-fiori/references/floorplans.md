@@ -23,9 +23,12 @@ Frame application pages with shared shell actions, optional side navigation and 
 viewport frame
   header: ShellBar with ShellBarBranding, ShellBarSearch, SearchItem, Avatar and ShellBarItem
     menu trigger: Button with Icon when side navigation is a render function
-  shell surfaces: Popover with PopoverAnchor, PopoverContent, PopoverHeader, PopoverTitle and PopoverBody
-    notifications: NotificationList with NotificationListGroupItem and NotificationListItem
-    products: ProductSwitch with ProductSwitchItem
+  notification surface: Popover with PopoverAnchor and PopoverContent
+    header: PopoverHeader with PopoverTitle
+    body: PopoverBody with NotificationList
+      groups: NotificationListGroupItem with NotificationListItem
+  product surface: Popover with PopoverAnchor and PopoverContent
+    body: PopoverBody with ProductSwitch and ProductSwitchItem
   profile surface: UserMenu with UserMenuItem
   body: optional caller-supplied side navigation beside scrolling main content
     default content: Card with Title and Text; replaced by children
@@ -66,7 +69,8 @@ Start from a gallery of empty, no-results, failure and success messages with rec
 main gallery
   header: Title, then Label and SegmentedButton with SegmentedButtonItem size choices
   full-page section: Title, Card and IllustratedMessage with a create Button
-  search/filter section: Title and two Card surfaces with IllustratedMessage and clear Button actions
+  search/filter section: Title and two Card surfaces
+    each: IllustratedMessage with clear Button actions
   errors section: Title and two Card surfaces with IllustratedMessage and retry/home Button actions
   small-container section: Title and two Card surfaces with IllustratedMessage; success has a Button
   action feedback: native status text after filter clearing and retry attempts
@@ -234,8 +238,10 @@ viewport frame
     navigation: anchor bar supplied by ObjectPage
     general section: ObjectPageSection and ObjectPageSubSection with Form, FormGroup and FormItem
       fields: Label with Text in display mode or Input in edit mode
-    items section: ObjectPageSection and ObjectPageSubSection with Toolbar, Title, ToolbarSpacer and ToolbarButton, then Table
-      rows: TableHeaderRow, TableHeaderCell, TableRow and TableCell with ObjectIdentifier, ObjectStatus and ObjectNumber
+    items section: ObjectPageSection with ObjectPageSubSection
+      actions: Toolbar with Title, ToolbarSpacer and ToolbarButton
+      content: Table with TableHeaderRow, TableHeaderCell, TableRow and TableCell
+        cells: ObjectIdentifier, ObjectStatus and ObjectNumber
     notes section: ObjectPageSection and ObjectPageSubSection with Text or TextArea
     footer: Bar with save/cancel Button actions (shown in edit mode)
 ```
@@ -277,11 +283,19 @@ viewport frame
   Page
     header: Bar with Title
     edit content: Wizard with WizardStep sections
-      fields: Label, Select with SelectTrigger, SelectValue, SelectContent and SelectItem, Input, DatePicker and Checkbox
+      fields: Label, Input, DatePicker and Checkbox
+      selection fields: Select
+        trigger: SelectTrigger with SelectValue
+        popup: SelectContent with SelectItem
       step content: Title, Text and next-step Button actions
-    review content: native sections with Title, edit Link, Label and Text values
-    completion content: MessageStrip with a Link to create another object, followed by the reviewed sections
-    footer: Bar with review/cancel or submit/cancel Button actions; absent after completion
+    review content: native sections
+      headings: Title with edit Link
+      values: Label and Text
+    completion content: MessageStrip
+      action: Link to create another object
+      followed by the same reviewed sections
+    footer: Bar with Button actions
+      review/cancel or submit/cancel; absent after completion
 ```
 
 ### Variations

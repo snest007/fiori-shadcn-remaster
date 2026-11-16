@@ -41,7 +41,8 @@
       "main gallery",
       "  header: Title, then Label and SegmentedButton with SegmentedButtonItem size choices",
       "  full-page section: Title, Card and IllustratedMessage with a create Button",
-      "  search/filter section: Title and two Card surfaces with IllustratedMessage and clear Button actions",
+      "  search/filter section: Title and two Card surfaces",
+      "    each: IllustratedMessage with clear Button actions",
       "  errors section: Title and two Card surfaces with IllustratedMessage and retry/home Button actions",
       "  small-container section: Title and two Card surfaces with IllustratedMessage; success has a Button",
       "  action feedback: native status text after filter clearing and retry attempts"

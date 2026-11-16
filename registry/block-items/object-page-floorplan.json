@@ -71,8 +71,10 @@
       "    navigation: anchor bar supplied by ObjectPage",
       "    general section: ObjectPageSection and ObjectPageSubSection with Form, FormGroup and FormItem",
       "      fields: Label with Text in display mode or Input in edit mode",
-      "    items section: ObjectPageSection and ObjectPageSubSection with Toolbar, Title, ToolbarSpacer and ToolbarButton, then Table",
-      "      rows: TableHeaderRow, TableHeaderCell, TableRow and TableCell with ObjectIdentifier, ObjectStatus and ObjectNumber",
+      "    items section: ObjectPageSection with ObjectPageSubSection",
+      "      actions: Toolbar with Title, ToolbarSpacer and ToolbarButton",
+      "      content: Table with TableHeaderRow, TableHeaderCell, TableRow and TableCell",
+      "        cells: ObjectIdentifier, ObjectStatus and ObjectNumber",
       "    notes section: ObjectPageSection and ObjectPageSubSection with Text or TextArea",
       "    footer: Bar with save/cancel Button actions (shown in edit mode)"
     ],

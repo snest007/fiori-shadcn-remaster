@@ -50,11 +50,19 @@
       "  Page",
       "    header: Bar with Title",
       "    edit content: Wizard with WizardStep sections",
-      "      fields: Label, Select with SelectTrigger, SelectValue, SelectContent and SelectItem, Input, DatePicker and Checkbox",
+      "      fields: Label, Input, DatePicker and Checkbox",
+      "      selection fields: Select",
+      "        trigger: SelectTrigger with SelectValue",
+      "        popup: SelectContent with SelectItem",
       "      step content: Title, Text and next-step Button actions",
-      "    review content: native sections with Title, edit Link, Label and Text values",
-      "    completion content: MessageStrip with a Link to create another object, followed by the reviewed sections",
-      "    footer: Bar with review/cancel or submit/cancel Button actions; absent after completion"
+      "    review content: native sections",
+      "      headings: Title with edit Link",
+      "      values: Label and Text",
+      "    completion content: MessageStrip",
+      "      action: Link to create another object",
+      "      followed by the same reviewed sections",
+      "    footer: Bar with Button actions",
+      "      review/cancel or submit/cancel; absent after completion"
     ],
     "variations": [
       "Replace the four sample product steps and fields with 3–8 steps for the creation task; keep later steps unreachable while preceding required data is invalid.",
