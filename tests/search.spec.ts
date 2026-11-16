@@ -96,3 +96,45 @@ test("search: a scope select drives the placeholder", async ({ page }) => {
   await page.keyboard.press("ArrowDown")
   await expect(scoped.getByRole("searchbox")).toHaveAttribute("placeholder", "Search in: Apps")
 })
+
+
+test.describe("search: native phone scope selection state", () => {
+  test.use({ viewport: { width: 375, height: 667 }, hasTouch: true, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1" })
+  for (const native of [false, true]) for (const kind of ["search", "shellbar-search"]) test(`${native ? "UI5" : "React"} ${kind} uses None mode, keeps selected item state and emits the existing scope callback`, async ({ page }) => {
+    await page.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&interactive&only=${kind}-phone-scopes`)
+    await page.waitForSelector("html[data-ready=true]")
+    const holder = page.locator(`#${kind}-phone-demo`)
+    const settled = async () => { if (native) await holder.evaluate(async (element: any) => element.phoneRenderFinished()) }
+    const dialogs = page.locator(native ? "ui5-dialog[open]" : '[role="dialog"].fiori-responsive-popover')
+    if (kind === "shellbar-search") { await holder.getByRole("button", { name: "Open Search", exact: true }).click(); await settled() }
+    const buttonOwner = native || kind === "search" ? holder : dialogs
+    await buttonOwner.getByRole("button", { name: "Select Scope", exact: true }).click(); await settled()
+    const scope = native ? holder.locator('ui5-responsive-popover[id$="-scope-popover"]') : dialogs.last()
+    const list = scope.getByRole("list")
+    await expect(list).toHaveCount(1)
+    // Native slotted items are DOM children of ui5-list rather than its shadow ul.
+    const rows = scope.getByRole("listitem")
+    await expect(rows).toHaveCount(2)
+    await expect(rows.first()).not.toHaveAttribute("aria-selected", /.*/)
+    if (native) await expect(scope.locator("ui5-list")).toHaveJSProperty("selectionMode", "None")
+    else await expect(scope.locator('[data-slot="list-item"]').first()).toHaveAttribute("data-mode", "none")
+    const first = rows.first(), second = rows.nth(1)
+    await first.focus(); await expect(first).toBeFocused()
+    await page.keyboard.press("ArrowDown"); await expect(second).toBeFocused()
+    await page.keyboard.press("Enter"); await settled()
+    await expect(dialogs).toHaveCount(kind === "shellbar-search" ? 1 : 0)
+    await expect(holder.locator('[data-slot="phone-events"]')).toContainText("scope:products")
+    await buttonOwner.getByRole("button", { name: "Select Scope, Products", exact: true }).click(); await settled()
+    const selected = native ? scope.locator("ui5-li[selected]").getByRole("listitem") : scope.locator('[data-slot="list-item"][data-selected]')
+    await expect(selected).toHaveAccessibleName("Products Is Active")
+    await expect(selected).not.toHaveAttribute("aria-selected", /.*/)
+    // Native light DOM and React's visible title are the equivalent content
+    // channels; the root text also includes required hidden accessibility hints.
+    if (native) await expect(scope.locator("ui5-li[selected]")).toHaveJSProperty("textContent", "Products")
+    else await expect(selected.locator(".fiori-li__title")).toHaveText("Products")
+    await scope.getByRole("button", { name: "Decline", exact: true }).click(); await settled()
+    await expect(dialogs).toHaveCount(kind === "shellbar-search" ? 1 : 0)
+    if (kind === "shellbar-search") await (native ? holder : dialogs).getByRole("button", { name: "Cancel", exact: true }).click()
+    await expect(dialogs).toHaveCount(0)
+  })
+})
