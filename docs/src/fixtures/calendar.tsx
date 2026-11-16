@@ -1,9 +1,14 @@
+import { FioriLocaleProvider } from "@/lib/fiori-locale"
+import de from "../../../registry/i18n/de.json"
+import zh from "../../../registry/i18n/zh-CN.json"
+import ar from "../../../registry/i18n/ar.json"
 import { Calendar, CalendarLegend, CalendarLegendItem, type CalendarPicker, type CalendarSelectionMode, type SpecialDate } from "@/components/ui/calendar"
 
-import { defineFixtures } from "../fixture-types"
+import { defineFixtures, readPageOptions } from "../fixture-types"
 
 export type CalendarFixture = {
   /** yyyy-MM-dd */
+  locale?: string
   dates?: string[]
   mode?: CalendarSelectionMode
   min?: string
@@ -29,22 +34,11 @@ export const SPECIAL: { value: string; type: SpecialDate["type"] }[] = [
 // Today marker: every dated case shows March 2024, far from the real today, so neither side marks a
 // day as today. "calendar-today" has no selection: both sides show the current month (the same system
 // clock) with today marked, so the marker itself is compared too.
-export default defineFixtures<CalendarFixture>({
-  name: "calendar",
-  cases: [
-    { id: "calendar-single", props: { dates: ["2024-03-12"] } },
-    { id: "calendar-today", props: {} },
-    { id: "calendar-range", props: { mode: "range", dates: ["2024-03-05", "2024-03-14"] } },
-    { id: "calendar-multiple", props: { mode: "multiple", dates: ["2024-03-05", "2024-03-06", "2024-03-21"] } },
-    { id: "calendar-min-max", props: { dates: ["2024-03-12"], min: "2024-03-08", max: "2024-03-25" } },
-    { id: "calendar-no-week-numbers", props: { dates: ["2024-03-12"], hideWeekNumbers: true } },
-    { id: "calendar-special", props: { dates: ["2024-03-12"], special: true } },
-    { id: "calendar-month-picker", props: { dates: ["2024-03-12"], picker: "month" } },
-    { id: "calendar-year-picker", props: { dates: ["2024-03-12"], picker: "year" } },
-  ],
-  react: ({ dates = [], mode = "single", min, max, hideWeekNumbers, picker, special }) => (
+// Localized cases own their provider and filtering; shared fixture routing stays unchanged.
+const renderFixture: import("../fixture-types").FixtureSet<CalendarFixture>["react"] = ({ locale, dates = [], mode = "single", min, max, hideWeekNumbers, picker, special }) => (
     <Calendar
       aria-label="Calendar"
+      locale={locale}
       selectionMode={mode}
       defaultSelectedDates={dates.map(d)}
       minDate={min ? d(min) : undefined}
@@ -61,5 +55,21 @@ export default defineFixtures<CalendarFixture>({
         ) : undefined
       }
     />
-  ),
+  )
+
+export default defineFixtures<CalendarFixture>({
+  name: "calendar",
+  cases: ([
+    ...["de-DE", "zh-CN", "ar-EG"].map(locale => ({ id: `calendar-l10n-${locale}`, props: { locale, dates: ["2024-03-12"] } })),
+    { id: "calendar-single", props: { dates: ["2024-03-12"] } },
+    { id: "calendar-today", props: {} },
+    { id: "calendar-range", props: { mode: "range", dates: ["2024-03-05", "2024-03-14"] } },
+    { id: "calendar-multiple", props: { mode: "multiple", dates: ["2024-03-05", "2024-03-06", "2024-03-21"] } },
+    { id: "calendar-min-max", props: { dates: ["2024-03-12"], min: "2024-03-08", max: "2024-03-25" } },
+    { id: "calendar-no-week-numbers", props: { dates: ["2024-03-12"], hideWeekNumbers: true } },
+    { id: "calendar-special", props: { dates: ["2024-03-12"], special: true } },
+    { id: "calendar-month-picker", props: { dates: ["2024-03-12"], picker: "month" } },
+    { id: "calendar-year-picker", props: { dates: ["2024-03-12"], picker: "year" } },
+  ] satisfies import("../fixture-types").FixtureCase<CalendarFixture>[]).flatMap((fixture, index, fixtures) => index === 0 ? [fixture, { ...fixtures.find(c => !c.id.includes("-l10n-"))!, id: "calendar-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  react: (props) => props.locale ? <FioriLocaleProvider locale={props.locale} texts={props.locale === "de-DE" ? de : props.locale === "zh-CN" ? zh : ar}>{renderFixture(props)}</FioriLocaleProvider> : renderFixture(props),
 })
