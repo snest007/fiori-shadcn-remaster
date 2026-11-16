@@ -24,7 +24,7 @@
     "useWhen": [
       "Let users specify both a date and a time for one event in a single field.",
       "Allow manual entry as well as calendar and clock selection; provide timezone context separately when needed.",
-      "Set formatPattern, minDate and maxDate to match the required precision and valid date-time bounds."
+      "Set formatPattern for precision and minDate/maxDate for allowed dates; validate time restrictions in the caller."
     ],
     "avoidWhen": [
       {

@@ -119,7 +119,7 @@ Select local files for a caller-managed upload flow.
 
 - Let users choose a local file, or drop files into a field, for upload.
 - Prefer it for single-file selection; let the application perform the upload and report its outcome.
-- Set accept and maxFileSize to enforce allowed file types and per-file size limits.
+- Use accept to filter the native chooser and maxFileSize to reject oversized selections; validate file types, including dropped files, in the caller.
 
 ### Don't use when
 
