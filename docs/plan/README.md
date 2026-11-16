@@ -107,6 +107,36 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 - [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (after S0)
 - [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
 
+## Wave H — issue #1: AnalyticalTable, Calendar extension points, missing components
+
+From [issue #1](https://github.com/snest007/fiori-shadcn-remaster/issues/1) (reporter azhu716). Principle agreed with
+them: **parity with the reference, plus extension points** — consumers customise through render slots, state, styling
+hooks and the table instance; we don't build bespoke features. Accessibility (rule 9) and localization (rule 10) in
+full. Components UI5 Web Components lacks are ported from **UI5 Web Components for React 2.28.2** (WCR), which H0 turns
+into a pixel / accessibility-tree / locale reference.
+
+Order: E4 and E5 first. Then H0. H1–H5 (AnalyticalTable) edit the same files and run strictly in order; H6–H10 run in
+parallel with them and with each other, except cards that touch the same existing file (noted in each card).
+
+- [ ] [H0 WCR reference harness + WCR texts in the i18n pipeline](tasks/H0-wcr-reference-harness.md) — M (after E4, E5; adds devDependencies)
+- [ ] [H1 AnalyticalTable: extension contract, ARIA ownership, columns, keyboard](tasks/H1-analytical-table-foundation.md) — L (after H0)
+- [ ] [H2 AnalyticalTable: sorting and filtering](tasks/H2-analytical-table-sort-filter.md) — L (after H1)
+- [ ] [H3 AnalyticalTable: grouping and aggregation](tasks/H3-analytical-table-group-aggregate.md) — L (after H2)
+- [ ] [H4 AnalyticalTable: tree, selection, sub-components, row states](tasks/H4-analytical-table-tree-select-subcomponents.md) — L (after H3)
+- [ ] [H5 AnalyticalTable: virtualisation, infinite scroll, F2 editing, pop-in](tasks/H5-analytical-table-virtual-infinite-edit.md) — L (after H4)
+- [ ] [H6 Calendar extension points (+ date pickers)](tasks/H6-calendar-extension-points.md) — M (after E4, E5)
+- [ ] [H7 Input suggestions + MessageBox](tasks/H7-input-suggestions-messagebox.md) — L (after H0)
+- [ ] [H8 SplitButton, ButtonBadge, NumericInput](tasks/H8-split-button-badge-numeric.md) — M (after E4, E5)
+- [ ] [H9 SelectDialog, SplitterLayout, DynamicDateRange, CalendarLegend check](tasks/H9-select-dialog-splitter-dynamic-date-range.md) — L (after H0)
+- [ ] [H10 NavigationMenu, AnalyticalCardHeader, ActionSheet, UserSettingsDialog, TableHeaderCellActionAI](tasks/H10-remaining-low-priority.md) — L (after H0; may split)
+
+Not planned from issue #1 (proposed; owner to confirm): **FlexBox** and **Grid** (layout utilities WCR adds for apps
+without a CSS framework — Tailwind's `flex`/`grid` already cover them), **imperative Modals API** (H7's
+`useMessageBox()` covers the common case), **BarcodeScannerDialog** (camera + ZXing dependency, niche),
+**ThemeProvider** (themes switch with `data-theme`/`data-density`; revisit if users ask for a React hook).
+Already covered: ResponsiveGridLayout (`Form` `layout`/`labelSpan`), ObjectPage, ObjectStatus, FilterBar,
+VariantManagement.
+
 ## Out of scope (owner's decision)
 
 - Non-Gregorian calendars: won't be built. Calendar/DatePicker stay Gregorian-only (documented in README).
