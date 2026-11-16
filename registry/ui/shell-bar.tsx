@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import { bell, da, grid, overflow as overflowIcon, slimArrowDown, search as searchIcon, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -289,7 +290,7 @@ function ShellBar({
   onKeyDown,
   ...props
 }: ShellBarProps) {
-  const texts = { ...defaultTexts, ...textsProp }
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp)
   const hostRef = React.useRef<HTMLDivElement>(null)
   const outerRef = React.useRef<HTMLDivElement>(null)
   const innerRef = React.useRef<HTMLDivElement>(null)
@@ -725,3 +726,17 @@ export {
   type ShellBarSearchButtonEvent,
   type ShellBarTexts,
 }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTextsKeys = {
+  "label": "SHELLBAR_LABEL",
+  "notifications": "SHELLBAR_NOTIFICATIONS",
+  "notificationsNoCount": "SHELLBAR_NOTIFICATIONS_NO_COUNT",
+  "profile": "SHELLBAR_PROFILE",
+  "products": "SHELLBAR_PRODUCTS",
+  "overflow": "SHELLBAR_OVERFLOW",
+  "assistant": "SHELLBAR_ASSISTANT",
+  "search": "SHELLBAR_SEARCH",
+  "cancel": "SHELLBAR_CANCEL",
+  "additionalInfo": "SHELLBAR_ADDITIONAL_CONTEXT"
+} as const
