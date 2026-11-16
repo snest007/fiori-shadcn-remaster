@@ -35,8 +35,22 @@ function PickerPhone({ kind, valueState, timeView, noLabel }: D1bCase) {
   }, [])
   React.useEffect(() => {
     if (!timeView || query.has("interactive")) return
-    const observer = new MutationObserver(() => document.querySelector<HTMLButtonElement>('[data-slot="date-time-toggle"] button[data-phone-view="time"]')?.click())
+    let activated = false
+    const selectTime = () => {
+      if (!holder.current?.querySelector('[data-slot="picker-field"][data-open], .fiori-picker-field[data-open]')) return
+      // Phone fixtures are isolated; identify the sole DateTimePicker surface,
+      // never the first Time control belonging to an unrelated picker holder.
+      const buttons = [...document.querySelectorAll<HTMLButtonElement>('[data-slot="picker-popover"] [data-slot="date-time-toggle"] button[data-phone-view="time"]')]
+      if (buttons.length !== 1) return
+      const button = buttons[0]
+      if (button.getAttribute("aria-selected") === "true") { observer.disconnect(); return }
+      if (activated) return
+      activated = true
+      button.click()
+    }
+    const observer = new MutationObserver(selectTime)
     observer.observe(document.body, { childList: true, subtree: true })
+    selectTime()
     return () => observer.disconnect()
   }, [timeView])
   const common = { id: `${kind}-phone-field`, "aria-label": noLabel ? undefined : "Appointment", valueState, value, onValueChange: record }
