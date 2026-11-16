@@ -33,11 +33,11 @@ const kebab = (s: string) => s.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase()
 
 export default defineFixtures<Props>({
   name: "flexible-column-layout",
-  cases: [
+  cases: ([
     ...desktopLayouts.map((layout) => ({ id: `flexible-column-layout-${kebab(layout)}`, props: { layout, size: "desktop" as const } })),
     ...tabletLayouts.map((layout) => ({ id: `flexible-column-layout-tablet-${kebab(layout)}`, props: { layout, size: "tablet" as const } })),
     { id: "flexible-column-layout-disable-resizing", props: { layout: "ThreeColumnsMidExpanded", size: "desktop", disableResizing: true } },
-  ],
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "flexible-column-layout-rtl" }] : [fixture]),
   react: ({ layout, size, disableResizing }) => {
     const col = (i: number) => <div style={styleObject(FCL_CONTENT_STYLE)}>{FCL_COLUMNS[i]}</div>
     return (

@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 FlexibleColumnLayout fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -152,6 +153,7 @@ type FlexibleColumnLayoutProps = Omit<React.ComponentProps<"div">, "children"> &
   /** Fired on mount and whenever the width crosses a breakpoint. */
   onMediaChange?: (media: FCLMedia, maxColumnsCount: number) => void
   accessibilityAttributes?: FCLAccessibilityAttributes
+  texts?: Partial<typeof DEFAULT_TEXTS>
   /** Turns off the column width animation (UI5 AnimationMode "None"). */
   disableAnimation?: boolean
 }
@@ -326,10 +328,12 @@ function FlexibleColumnLayout({
   onLayoutConfigurationChange,
   onMediaChange,
   accessibilityAttributes = {},
+  texts,
   disableAnimation = false,
   className,
   ...props
 }: FlexibleColumnLayoutProps) {
+  const resolvedTexts = useFioriTexts(DEFAULT_TEXTS, DEFAULT_TEXTSKeys, texts)
   const [innerLayout, setInnerLayout] = React.useState(defaultLayout)
   const layout = layoutProp ?? innerLayout
   const rootRef = React.useRef<HTMLDivElement>(null)
@@ -580,9 +584,9 @@ function FlexibleColumnLayout({
       : SEPARATOR_DEFAULT_VALUES.END
 
   const areas = [
-    { key: "start", attrs: a.startColumn, text: DEFAULT_TEXTS.startColumn, content: startColumn },
-    { key: "mid", attrs: a.midColumn, text: DEFAULT_TEXTS.midColumn, content: midColumn },
-    { key: "end", attrs: a.endColumn, text: DEFAULT_TEXTS.endColumn, content: endColumn },
+    { key: "start", attrs: a.startColumn, text: resolvedTexts.startColumn, content: startColumn },
+    { key: "mid", attrs: a.midColumn, text: resolvedTexts.midColumn, content: midColumn },
+    { key: "end", attrs: a.endColumn, text: resolvedTexts.endColumn, content: endColumn },
   ] as const
 
   const column = (i: number) => {
@@ -623,7 +627,7 @@ function FlexibleColumnLayout({
 
   const separatorProps = (sep: "start" | "end", shown: boolean, gripShown: boolean, value: number) => {
     const attrs = sep === "start" ? a.startSeparator : a.endSeparator
-    const defaultName = sep === "start" ? DEFAULT_TEXTS.startSeparator : DEFAULT_TEXTS.endSeparator
+    const defaultName = sep === "start" ? resolvedTexts.startSeparator : resolvedTexts.endSeparator
     return {
       ref: separatorRefs[sep],
       "data-slot": `flexible-column-layout-${sep}-separator`,
@@ -644,7 +648,7 @@ function FlexibleColumnLayout({
     }
   }
 
-  const arrowText = a.startArrow?.name ?? a.startSeparator?.name ?? DEFAULT_TEXTS.startArrow
+  const arrowText = a.startArrow?.name ?? a.startSeparator?.name ?? resolvedTexts.startArrow
 
   return (
     <div
@@ -812,3 +816,6 @@ export {
   type FCLColumnActions,
   type UseFlexibleColumnLayoutOptions,
 }
+
+// UI5 FlexibleColumnLayout.js accessibleName* / separator* getters; explicit accessibilityAttributes win.
+const DEFAULT_TEXTSKeys = { startColumn: "FCL_START_COLUMN_TXT", midColumn: "FCL_MIDDLE_COLUMN_TXT", endColumn: "FCL_END_COLUMN_TXT", startSeparator: "FCL_START_SEPARATOR_TOOLTIP", endSeparator: "FCL_END_SEPARATOR_TOOLTIP", startArrow: "FCL_START_ARROW_TOOLTIP" } as const

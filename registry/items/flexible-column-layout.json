@@ -1,12 +1,16 @@
 {
   "title": "Flexible Column Layout",
   "description": "Fiori list-detail-detail layout with up to three columns, resizable separators, responsive column count and the useFlexibleColumnLayout navigation helper.",
-  "registryDependencies": ["@fiori/icons", "@fiori/button"],
+  "registryDependencies": [
+    "@fiori/icons",
+    "@fiori/button",
+    "@fiori/locale"
+  ],
   "usage": {
     "summary": "Show up to three related pages in responsive list, detail and sub-detail columns.",
     "useWhen": [
       "Browse a record list, its selected object and a related sub-object while retaining their relationship.",
-      "Keep related pages adjacent when space permits: one column at 599px or less, up to two at 600–1023px and up to three at 1024px or more; resized columns stay at least 248px wide.",
+      "Keep related pages adjacent when space permits: one column at 599px or less, up to two at 600\u20131023px and up to three at 1024px or more; resized columns stay at least 248px wide.",
       "Use useFlexibleColumnLayout to coordinate navigation levels and full-screen, exit-full-screen and close actions in a custom page composition."
     ],
     "avoidWhen": [
