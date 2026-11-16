@@ -15,6 +15,22 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
 
+// UI5 ComboBox.js _onfocusin / generated/themes/ComboBox.css.js paints pointer focus too.
+// AGENTS rule 5 requires keyboard origin, including focus in a newly mounted popup.
+const comboboxFocusModality = new WeakMap<Document, { keyboard: boolean }>()
+function getComboboxFocusModality(owner: Document) {
+  let state = comboboxFocusModality.get(owner)
+  if (!state) {
+    state = { keyboard: true }
+    const current = state
+    owner.addEventListener("keydown", () => { current.keyboard = true }, true)
+    owner.addEventListener("pointerdown", () => { current.keyboard = false }, true)
+    comboboxFocusModality.set(owner, current)
+  }
+  return state
+}
+if (typeof document !== "undefined") getComboboxFocusModality(document)
+
 type ComboBoxFilter = "startsWithPerTerm" | "startsWith" | "contains" | "none"
 
 type ComboBoxItemProps = {
@@ -490,6 +506,19 @@ function ComboBox({
     <Root open={open} onOpenChange={(o) => !o && setOpen(false)}>
       <Anchor asChild>
         <div
+          onPointerDownCapture={(event) => {
+            event.currentTarget.setAttribute("data-pointer-focus", "")
+          }}
+          onFocusCapture={(event) => {
+            if (getComboboxFocusModality(event.currentTarget.ownerDocument).keyboard) event.currentTarget.removeAttribute("data-pointer-focus")
+            else event.currentTarget.setAttribute("data-pointer-focus", "")
+          }}
+          onKeyDownCapture={(event) => {
+            event.currentTarget.removeAttribute("data-pointer-focus")
+          }}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute("data-pointer-focus")
+          }}
           data-slot="combobox"
           data-value-state={hasState ? valueState : undefined}
           data-disabled={disabled ? "" : undefined}

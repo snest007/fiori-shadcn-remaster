@@ -253,3 +253,60 @@ test.describe("ComboBox item groups", () => {
   })
 
 })
+
+
+test("combobox: sap_horizon pointer origin and canceled pointer preserve keyboard reentry", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=combobox-value&theme=sap_horizon")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="combobox-value"]')
+  const target = cell.locator('input').first()
+  const owner = cell.locator('[data-slot="combobox"]').first()
+  const painted = () => owner.evaluate((node) => {
+    const css = getComputedStyle(node, "::after")
+    return !["none", "normal"].includes(css.content) && css.display !== "none" && css.borderTopStyle !== "none" && Number.parseFloat(css.borderTopWidth) > 0
+  })
+  await target.click()
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "combobox-e4-before"; before.textContent = "Before field"
+    node.before(before); before.focus()
+  })
+  const before = page.locator("#combobox-e4-before")
+  await expect(before).toBeFocused()
+  // A canceled pointer action changes modality without moving focus. The next
+  // real Tab must independently restore keyboard origin before field reentry.
+  await before.hover()
+  await page.mouse.down(); await page.mouse.up()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})
+
+test("combobox: sap_horizon_hcb pointer origin and canceled pointer preserve keyboard reentry", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=combobox-value&theme=sap_horizon_hcb")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="combobox-value"]')
+  const target = cell.locator('input').first()
+  const owner = cell.locator('[data-slot="combobox"]').first()
+  const painted = () => owner.evaluate((node) => {
+    const css = getComputedStyle(node, "::after")
+    return !["none", "normal"].includes(css.content) && css.display !== "none" && css.borderTopStyle !== "none" && Number.parseFloat(css.borderTopWidth) > 0
+  })
+  await target.click()
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "combobox-e4-before"; before.textContent = "Before field"
+    node.before(before); before.focus()
+  })
+  const before = page.locator("#combobox-e4-before")
+  await expect(before).toBeFocused()
+  // A canceled pointer action changes modality without moving focus. The next
+  // real Tab must independently restore keyboard origin before field reentry.
+  await before.hover()
+  await page.mouse.down(); await page.mouse.up()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})
