@@ -8,6 +8,10 @@ import { cn } from "@/lib/utils"
 // `inverted` draws a filled badge, `large` the 1.5rem header/KPI size. `active` makes it a button.
 type ObjectNumberState = "none" | "negative" | "critical" | "positive" | "information"
 
+/**
+ * @accessibility number and unit name an active root button; native aria-label / aria-labelledby are passed to that root span. stateAnnouncementText supplies the hidden semantic announcement.
+ * @accessibility active makes the root reachable with Tab; Enter/Space invokes onClick. Numeric formatting belongs to the caller; provide Intl-formatted content for the current locale.
+ */
 type ObjectNumberProps = React.ComponentProps<"span"> & {
   number: React.ReactNode
   unit?: React.ReactNode

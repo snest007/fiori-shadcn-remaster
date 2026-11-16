@@ -262,6 +262,10 @@ function TimelineGroupItem({
   )
 }
 
+/**
+ * @accessibility accessibleName names the region and list/tree, preceded by timelineText. TimelineItem owns listitem/treeitem focus; iconTooltip names its icon, stateText announces the state, and group collapsedText/expandedText describe expansion.
+ * @accessibility Items form one Tab stop. Vertical Up/Down or horizontal Left/Right (mirrored in RTL) move events and groups; Home/PageUp and End/PageDown reach boundaries. F2 enters item controls and returns. The last forward key reaches Load More.
+ */
 type TimelineProps = React.ComponentProps<"div"> & {
   layout?: TimelineLayout
   /** Accessible name, announced after "Timeline". */
