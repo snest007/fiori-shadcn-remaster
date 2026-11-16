@@ -4,6 +4,10 @@ import { decline } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 
+/**
+ * @accessibility A token owns role=option and aria-selected and must be inside a named listbox or Tokenizer. text supplies its name; description overrides aria-description and deleteLabel overrides the icon tooltip.
+ * @accessibility Space toggles selection. Backspace/Delete request removal when editable; the caller removes the token. A Tokenizer owns roving focus, multi-selection and neighbour focus return.
+ */
 type TokenProps = Omit<React.ComponentProps<"div">, "children" | "onSelect"> & {
   /** The token's text. */
   text: string

@@ -6,6 +6,10 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, type ValueState } from "@/components/ui/input"
 
+/**
+ * @accessibility text supplies the checkbox name; native aria-label, aria-labelledby and aria-describedby reach the checkbox button.
+ * @accessibility Space or Enter toggle; an indeterminate checkbox becomes checked. readOnly remains focusable. valueStateText overrides the hidden validation description.
+ */
 type CheckboxProps = Omit<React.ComponentProps<typeof CheckboxPrimitive.Root>, "children"> & {
   /** Label text rendered inside the control (ui5-checkbox `text`); clicking it toggles the box. */
   text?: React.ReactNode
