@@ -41,3 +41,15 @@ test("popover: footer button closes it", async ({ page }) => {
   await popover.getByRole("button", { name: "OK" }).click()
   await expect(popover).toHaveCount(0)
 })
+
+test("popover: custom outer host keeps owned dialog role name refs tabindex and focus target", async ({ page }) => {
+  await page.goto('/index.html?fixtures&only=popover-custom-host')
+  await page.waitForSelector("html[data-ready=true]")
+  const host = page.locator('[data-fixture="popover-custom-host"] [data-custom-host="popover"]')
+  await expect(host).toHaveAttribute("role", "dialog")
+  await expect(host).toHaveAttribute("tabindex", "-1")
+  await expect(host).toHaveAccessibleName("Popover title")
+  const labelledby = await host.getAttribute("aria-labelledby")
+  await expect(page.locator(`[id="${labelledby}"]`)).toHaveText("Popover title")
+  await host.focus(); await expect(host).toBeFocused()
+})

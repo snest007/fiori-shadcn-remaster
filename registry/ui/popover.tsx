@@ -49,6 +49,7 @@ type PopoverContentProps = React.ComponentProps<typeof PopoverPrimitive.Content>
 function PopoverContent({
   className,
   children,
+  asChild,
   side = "right",
   align = "center",
   sideOffset = 0,
@@ -62,8 +63,18 @@ function PopoverContent({
   const [hasTitle, setHasTitle] = React.useState(false)
   const titleCtx = React.useMemo(() => ({ id: titleId, register: () => setHasTitle(true) }), [titleId])
 
+  const custom = asChild ? React.Children.only(children) as React.ReactElement<React.ComponentProps<"div">> : undefined
+  const content = custom ? custom.props.children : children
+  // PopupTemplate.js owns role, name references and focus on the outer section.
+  // Slot must receive the actual custom DOM host, never Arrow/Context.Provider.
+  const body = <>
+    {!hideArrow && <PopoverPrimitive.Arrow asChild width={16} height={8}><span className="fiori-popover-arrow" /></PopoverPrimitive.Arrow>}
+    <PopoverTitleContext.Provider value={titleCtx}><div ref={rangeRef} className="fiori-popup__root">{content}</div></PopoverTitleContext.Provider>
+  </>
+  const hostProps = custom ? { ...custom.props } : undefined
+  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-labelledby", "aria-describedby", "aria-modal"]) delete (hostProps as Record<string, unknown>)[key]
   const surface = (
-    <PopoverPrimitive.Content
+    <PopoverPrimitive.Content asChild={asChild}
       data-slot="popover-content"
       data-media-range={range}
       data-hide-arrow={hideArrow ? "" : undefined}
@@ -78,16 +89,7 @@ function PopoverContent({
       )}
       {...props} data-sap-ui-fastnavgroup-container="true"
     >
-      {!hideArrow && (
-        <PopoverPrimitive.Arrow asChild width={16} height={8}>
-          <span className="fiori-popover-arrow" />
-        </PopoverPrimitive.Arrow>
-      )}
-      <PopoverTitleContext.Provider value={titleCtx}>
-        <div ref={rangeRef} className="fiori-popup__root">
-          {children}
-        </div>
-      </PopoverTitleContext.Provider>
+      {custom ? React.createElement(custom.type, { ...hostProps, key: custom.key }, body) : body}
     </PopoverPrimitive.Content>
   )
   return portal ? <PopoverPrimitive.Portal>{surface}</PopoverPrimitive.Portal> : surface

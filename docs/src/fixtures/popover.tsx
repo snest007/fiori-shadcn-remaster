@@ -1,3 +1,4 @@
+import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverAnchor, PopoverBody, PopoverContent, PopoverFooter, PopoverHeader, PopoverTitle } from "@/components/ui/popover"
 
@@ -10,7 +11,7 @@ type Props = { title?: boolean; footer?: boolean; arrow?: boolean }
 
 // The popover surface is rendered open, in place (no portal); the Radix positioning wrapper is made
 // static so the surface sits inside the cell. UI5's side does the same (popover.ui5.ts).
-export default defineFixtures<Props>({
+const fixtureSet = defineFixtures<Props>({
   name: "popover",
   cases: [
     { id: "popover", props: {} },
@@ -56,3 +57,20 @@ export default defineFixtures<Props>({
     </div>
     ),
 })
+
+
+// E4: consumer host replacement changes the DOM host while the component keeps
+// the owning semantics. The native renderer uses the same underlying state.
+function customHost(node: React.ReactNode): React.ReactNode {
+  if (Array.isArray(node)) return node.map(customHost)
+  if (!React.isValidElement<{ children?: React.ReactNode }>(node)) return node
+  const children = customHost(node.props.children)
+  if (node.type === PopoverContent) return React.cloneElement(node, { asChild: true } as Partial<typeof node.props>, <div data-custom-host="popover" role="presentation" tabIndex={13} id="popover-caller-host">{children}</div>)
+  return node.props.children === undefined ? node : React.cloneElement(node, {}, children)
+}
+const baseCase = fixtureSet.cases.find((entry) => entry.id === "popover-header-footer")!
+export default {
+  ...fixtureSet,
+  cases: [...fixtureSet.cases, { id: "popover-custom-host", props: { ...baseCase.props, customHost: true } }],
+  react: (props: typeof baseCase.props & { customHost?: boolean }) => props.customHost ? customHost(fixtureSet.react(props)) : fixtureSet.react(props),
+}
