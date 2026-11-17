@@ -41,3 +41,6 @@ export const IconAndText: Story = { args: { icons: true, value: "center" } }
 export const TwoItems: Story = { args: { twoItems: true } }
 export const ItemsFitContent: Story = { args: { itemsFitContent: true } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+export const CustomTexts: Story = { args: { texts: { selected: "Alignment selected" } } }
+export const German: Story = { globals: { locale: "de" } }
+export const Arabic: Story = { globals: { locale: "ar", dir: "rtl" } }
