@@ -1,6 +1,6 @@
 {
   "title": "Link",
-  "registryDependencies": ["@fiori/icons"],
+  "registryDependencies": ["@petalo/icons"],
   "description": "Fiori link: Default, Subtle and Emphasized designs, wrapping, Enter/Space activation.",
   "usage": {
     "summary": "Navigate through meaningful text to a page, anchor or external URL.",

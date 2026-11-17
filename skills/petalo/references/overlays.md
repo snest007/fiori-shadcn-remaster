@@ -32,7 +32,7 @@ Personalize filter fields, their order and values in a staged dialog before appl
 Main exports: `AdaptFiltersDialog`.
 
 ```bash
-npx shadcn add @fiori/adapt-filters-dialog
+npx shadcn add @petalo/adapt-filters-dialog
 ```
 
 ## dialog
@@ -56,7 +56,7 @@ Pause the current task for a focused decision, confirmation or contained editing
 Main exports: `Dialog`, `DialogBody`, `DialogClose`, `DialogContent`, `DialogDescription`, `DialogFooter`, `DialogHeader`, `DialogOverlay`, `DialogTitle`, `DialogTrigger`.
 
 ```bash
-npx shadcn add @fiori/dialog
+npx shadcn add @petalo/dialog
 ```
 
 ## menu
@@ -79,7 +79,7 @@ Let users choose commands from an opened hierarchy of menu items.
 Main exports: `Menu`, `MenuContent`, `MenuGroup`, `MenuItem`, `MenuSeparator`, `MenuSub`, `MenuSubContent`, `MenuSubTrigger`, `MenuTrigger`.
 
 ```bash
-npx shadcn add @fiori/menu
+npx shadcn add @petalo/menu
 ```
 
 ## popover
@@ -102,7 +102,7 @@ Show information or actions tied to an opener without leaving the current page.
 Main exports: `Popover`, `PopoverAnchor`, `PopoverBody`, `PopoverClose`, `PopoverContent`, `PopoverFooter`, `PopoverHeader`, `PopoverTitle`, `PopoverTrigger`.
 
 ```bash
-npx shadcn add @fiori/popover
+npx shadcn add @petalo/popover
 ```
 
 ## responsive-popover
@@ -124,7 +124,7 @@ Keep contextual content anchored on desktop and tablet, then show it in a full-s
 Main exports: `ResponsivePopover`, `ResponsivePopoverAnchor`, `ResponsivePopoverContent`, `ResponsivePopoverTrigger`.
 
 ```bash
-npx shadcn add @fiori/responsive-popover
+npx shadcn add @petalo/responsive-popover
 ```
 
 ## toast
@@ -147,7 +147,7 @@ Confirm a completed action or provide information in a non-disruptive message th
 Main exports: `Toast`.
 
 ```bash
-npx shadcn add @fiori/toast
+npx shadcn add @petalo/toast
 ```
 
 ## use-is-phone
@@ -159,7 +159,7 @@ Usage guidance has not been authored for this item yet; inspect its installed AP
 Main exports: `useIsPhone`.
 
 ```bash
-npx shadcn add @fiori/use-is-phone
+npx shadcn add @petalo/use-is-phone
 ```
 
 ## user-menu
@@ -180,7 +180,7 @@ Expose signed-in user information, user-specific actions and sign out from the p
 Main exports: `UserMenu`, `UserMenuItem`.
 
 ```bash
-npx shadcn add @fiori/user-menu
+npx shadcn add @petalo/user-menu
 ```
 
 ## value-help-dialog
@@ -205,7 +205,7 @@ Find business values through a searchable result table or define filter conditio
 Main exports: `ValueHelpDialog`, `formatCondition`.
 
 ```bash
-npx shadcn add @fiori/value-help-dialog
+npx shadcn add @petalo/value-help-dialog
 ```
 
 ## view-settings-dialog
@@ -227,5 +227,5 @@ Adjust a list or table view through sorting, grouping and predefined filter choi
 Main exports: `ViewSettingsDialog`.
 
 ```bash
-npx shadcn add @fiori/view-settings-dialog
+npx shadcn add @petalo/view-settings-dialog
 ```

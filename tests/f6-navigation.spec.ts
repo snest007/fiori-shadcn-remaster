@@ -219,7 +219,7 @@ test("f6: registry library and five blocks distribute the opt-in dependency", ()
   expect(item.dependencies).toEqual([])
   expect(item.files[0].content).not.toMatch(/(?:import|require).*@ui5/)
   for (const name of ["app-shell", "launchpad", "list-report", "object-page-floorplan", "master-detail"]) {
-    expect(JSON.parse(readFileSync(`public/r/${name}.json`, "utf8")).registryDependencies).toContain("@fiori/f6-navigation")
+    expect(JSON.parse(readFileSync(`public/r/${name}.json`, "utf8")).registryDependencies).toContain("@petalo/f6-navigation")
   }
 })
 

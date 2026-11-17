@@ -26,7 +26,7 @@ const OUT = "registry/lib/fiori-illustrations"
 const SIZES = ["scene", "dialog", "spot", "dot"]
 const Cap = (s) => s[0].toUpperCase() + s.slice(1)
 
-// The common empty/error/success states; shipped together as @fiori/illustrations-core.
+// The common empty/error/success states; shipped together as @petalo/illustrations-core.
 const CORE = [
   "NoData", "NoEntries", "NoSearchResults", "NoFilterResults", "BeforeSearch", "EmptyList",
   "UnableToLoad", "UnableToUpload", "Tent", "Connection", "PageNotFound", "ErrorScreen",
@@ -213,8 +213,8 @@ items.push({
   name: "illustrations-core",
   type: "registry:lib",
   title: "SAP illustrations (common)",
-  description: `The common Fiori empty/error/success illustrations in all four sizes: ${CORE.join(", ")}. Others: @fiori/illustration-<name>.`,
-  registryDependencies: ["@fiori/fiori-theme"],
+  description: `The common Fiori empty/error/success illustrations in all four sizes: ${CORE.join(", ")}. Others: @petalo/illustration-<name>.`,
+  registryDependencies: ["@petalo/fiori-theme"],
   files: [...base, lib(`${OUT}/index.ts`), ...fioriNames.filter((n) => CORE.includes(n.name)).flatMap((n) => n.files.map(lib))],
 })
 for (const n of fioriNames) {
@@ -223,7 +223,7 @@ for (const n of fioriNames) {
     type: "registry:lib",
     title: `SAP illustration ${n.name}`,
     description: `Fiori illustration "${n.name}" (Scene, Dialog, Spot, Dot) for IllustratedMessage.`,
-    registryDependencies: ["@fiori/fiori-theme"],
+    registryDependencies: ["@petalo/fiori-theme"],
     files: [...base, ...n.files.map(lib)],
   })
 }
@@ -233,7 +233,7 @@ for (const n of tntNames) {
     type: "registry:lib",
     title: `SAP TNT illustration ${n.name}`,
     description: `TNT illustration "${n.name}" (Scene, Dialog, Spot, Dot; normal and high contrast) for IllustratedMessage.`,
-    registryDependencies: ["@fiori/fiori-theme"],
+    registryDependencies: ["@petalo/fiori-theme"],
     files: [...base, ...n.files.map(lib)],
   })
 }

@@ -36,7 +36,7 @@ Represent people or business entities with recognizable images, initials or plac
 Main exports: `Avatar`, `AvatarGroup`.
 
 ```bash
-npx shadcn add @fiori/avatar
+npx shadcn add @petalo/avatar
 ```
 
 ## busy-indicator
@@ -57,7 +57,7 @@ Show that work is running when its completion percentage is unknown.
 Main exports: `BusyIndicator`.
 
 ```bash
-npx shadcn add @fiori/busy-indicator
+npx shadcn add @petalo/busy-indicator
 ```
 
 ## card
@@ -78,7 +78,7 @@ Preview focused business content and offer access to its underlying page or task
 Main exports: `Card`, `CardContent`, `CardHeader`.
 
 ```bash
-npx shadcn add @fiori/card
+npx shadcn add @petalo/card
 ```
 
 ## carousel
@@ -98,7 +98,7 @@ Let users browse a sequence of images or other content pages.
 Main exports: `Carousel`.
 
 ```bash
-npx shadcn add @fiori/carousel
+npx shadcn add @petalo/carousel
 ```
 
 ## expandable-text
@@ -118,7 +118,7 @@ Keep prose within a character limit while letting users reveal the full text.
 Main exports: `ExpandableText`.
 
 ```bash
-npx shadcn add @fiori/expandable-text
+npx shadcn add @petalo/expandable-text
 ```
 
 ## hero-banner
@@ -139,7 +139,7 @@ Introduce a product home page with a greeting, context and task shortcuts.
 Main exports: `HeroBanner`.
 
 ```bash
-npx shadcn add @fiori/hero-banner
+npx shadcn add @petalo/hero-banner
 ```
 
 ## illustrated-message
@@ -162,7 +162,7 @@ Explain an empty, unavailable or completed state with an illustration and a usef
 Main exports: `IllustratedMessage`.
 
 ```bash
-npx shadcn add @fiori/illustrated-message
+npx shadcn add @petalo/illustrated-message
 ```
 
 ## link
@@ -184,7 +184,7 @@ Navigate through meaningful text to a page, anchor or external URL.
 Main exports: `Link`.
 
 ```bash
-npx shadcn add @fiori/link
+npx shadcn add @petalo/link
 ```
 
 ## media-gallery
@@ -206,7 +206,7 @@ Browse images and videos by selecting thumbnails and inspecting the selected med
 Main exports: `MediaGallery`, `MediaGalleryItem`.
 
 ```bash
-npx shadcn add @fiori/media-gallery
+npx shadcn add @petalo/media-gallery
 ```
 
 ## message-strip
@@ -229,7 +229,7 @@ Explain application messages in context within a page or section.
 Main exports: `MessageStrip`.
 
 ```bash
-npx shadcn add @fiori/message-strip
+npx shadcn add @petalo/message-strip
 ```
 
 ## panel
@@ -249,7 +249,7 @@ Group information within a page in a section that can collapse to save space.
 Main exports: `Panel`.
 
 ```bash
-npx shadcn add @fiori/panel
+npx shadcn add @petalo/panel
 ```
 
 ## progress-indicator
@@ -269,7 +269,7 @@ Show a measured completion percentage for a running process.
 Main exports: `ProgressIndicator`.
 
 ```bash
-npx shadcn add @fiori/progress-indicator
+npx shadcn add @petalo/progress-indicator
 ```
 
 ## tag
@@ -289,7 +289,7 @@ Draw attention to a category, condition or quantity with a compact enclosed mark
 Main exports: `Tag`.
 
 ```bash
-npx shadcn add @fiori/tag
+npx shadcn add @petalo/tag
 ```
 
 ## text
@@ -312,7 +312,7 @@ Display read-only body text in an application content area.
 Main exports: `Text`.
 
 ```bash
-npx shadcn add @fiori/text
+npx shadcn add @petalo/text
 ```
 
 ## title
@@ -333,5 +333,5 @@ Name pages and sections with explicit heading semantics.
 Main exports: `Title`.
 
 ```bash
-npx shadcn add @fiori/title
+npx shadcn add @petalo/title
 ```

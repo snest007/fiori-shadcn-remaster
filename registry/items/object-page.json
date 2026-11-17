@@ -1,7 +1,7 @@
 {
   "title": "ObjectPage",
   "description": "Fiori object page floorplan layout: DynamicPage with object header (avatar, facets), sticky navigation bar with anchor (scroll spy) or tabs mode, sections and subsections on cards.",
-  "registryDependencies": ["@fiori/dynamic-page", "@fiori/tabs", "@fiori/title"],
+  "registryDependencies": ["@petalo/dynamic-page", "@petalo/tabs", "@petalo/title"],
   "usage": {
     "summary": "Compose one object’s categorized details with a dynamic header and anchor or tab navigation.",
     "useWhen": [

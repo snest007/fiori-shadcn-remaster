@@ -20,7 +20,7 @@ export function DocsPage() {
   const item = name ? items[`../../../registry/items/${name}.json`] : undefined
   const [copied, setCopied] = React.useState(false)
   if (!item || !name) return null
-  const command = `npx shadcn add @fiori/${name}`
+  const command = `npx shadcn add @petalo/${name}`
   const guide = documentation.documentation[name]
   return <main>
     <Title />

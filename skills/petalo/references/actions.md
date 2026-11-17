@@ -29,7 +29,7 @@ Trigger an explicit action with priority and semantic intent.
 Main exports: `Button`.
 
 ```bash
-npx shadcn add @fiori/button
+npx shadcn add @petalo/button
 ```
 
 ## segmented-button
@@ -54,7 +54,7 @@ Switch related view or setting options in a connected group.
 Main exports: `SegmentedButton`, `SegmentedButtonItem`.
 
 ```bash
-npx shadcn add @fiori/segmented-button
+npx shadcn add @petalo/segmented-button
 ```
 
 ## toggle-button
@@ -77,5 +77,5 @@ Keep a secondary toolbar action visibly on or off.
 Main exports: `ToggleButton`.
 
 ```bash
-npx shadcn add @fiori/toggle-button
+npx shadcn add @petalo/toggle-button
 ```

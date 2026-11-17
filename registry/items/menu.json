@@ -4,11 +4,11 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/f6-navigation",
-    "@fiori/responsive-popover",
-    "@fiori/button",
-    "@fiori/use-is-phone"
+    "@petalo/icons",
+    "@petalo/f6-navigation",
+    "@petalo/responsive-popover",
+    "@petalo/button",
+    "@petalo/use-is-phone"
   ],
   "description": "Fiori menu with single/multiple checkable groups, icons, additional text, submenus, separators and disabled items (ui5-menu).",
   "usage": {
