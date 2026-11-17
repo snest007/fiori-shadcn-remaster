@@ -42,7 +42,10 @@ export function createConsumerHarness(root = resolve(".")) {
 
   function setupConsumer(dir) {
     writeFileSync(join(dir, "package.json"), JSON.stringify({ name: "fiori-smoke", private: true, type: "module", scripts: { build: "tsc --noEmit && vite build" } }))
-    writeFileSync(join(dir, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", lib: ["ES2022", "DOM", "DOM.Iterable"], module: "ESNext", moduleResolution: "bundler", jsx: "react-jsx", strict: true, noEmit: true, skipLibCheck: true, baseUrl: ".", paths: { "@/*": ["./src/*"] } }, include: ["src"] }))
+    // The strict flags of Vite's react-ts template (create-vite tsconfig.app.json): consumers who start from it run
+    // `tsc -b` before `vite build`, so installed registry code must compile under them (an unused parameter in
+    // calendar.tsx once broke a fresh consumer's first build while our own, looser tsconfig passed).
+    writeFileSync(join(dir, "tsconfig.json"), JSON.stringify({ compilerOptions: { target: "ES2022", lib: ["ES2022", "DOM", "DOM.Iterable"], module: "ESNext", moduleResolution: "bundler", jsx: "react-jsx", strict: true, noEmit: true, skipLibCheck: true, noUnusedLocals: true, noUnusedParameters: true, noFallthroughCasesInSwitch: true, noUncheckedSideEffectImports: true, verbatimModuleSyntax: true, types: ["vite/client"], baseUrl: ".", paths: { "@/*": ["./src/*"] } }, include: ["src"] }))
     writeFileSync(join(dir, "vite.config.ts"), `import path from "node:path"\nimport react from "@vitejs/plugin-react"\nimport tailwindcss from "@tailwindcss/vite"\nimport { defineConfig } from "vite"\nexport default defineConfig({ plugins: [react(), tailwindcss()], resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } } })\n`)
     writeFileSync(join(dir, "index.html"), `<!doctype html><html lang="en"><head><meta charset="UTF-8" /></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>\n`)
     mkdirSync(join(dir, "src"))

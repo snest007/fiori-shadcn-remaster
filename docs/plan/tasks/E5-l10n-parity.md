@@ -1,5 +1,38 @@
 # E5 — Localization parity: locale provider, UI5 texts audit, number formats, language packs
 
+> **Rescoped on 2026-11-17 (owner's decision, after two returns).** E5 is the **provider, number formats, packs,
+> audit + ratchet and the named defects**, not "the audit has no gap rows". The remaining audit backlog (81 owners,
+> 2,510 rows, 1,365 gaps) moves to the per-group cards **P1–P6**. Continue on the retained branch `codex/E5`
+> (`603aeec`) in `.worktrees/E5`: don't start over; keep every verified repair listed in `docs/plan/returns/E5.md`.
+> Where this addendum and the sections below conflict, **the addendum wins**.
+>
+> **Ratchet (replaces "no `gap` rows").** Add `tests/i18n-audit-baseline.json`: per component, the number of `gap` rows
+> and the list of keys that are `ok` / `fixed in E5`, with `owner` = the component group's P card (table in
+> `docs/plan/README.md`, wave P). `tests/i18n.spec.ts` fails when a component's gap count rises, when an `ok` key
+> becomes `gap`, and when a count falls without the baseline being lowered in the same commit. Keep the triage in the
+> audit (`absent-feature`, `delegation`, `owner-review`, …) — it's what the P cards start from. Fix the audit's
+> default-provenance collision for `LIST_ITEM_POSITION` (WC vs OpenUI5 bundle) so English defaults resolve per owning
+> counterpart.
+>
+> **Must fix in E5 (from the return note):**
+> 1. Select: translated `SELECT_ROLE_DESCRIPTION`, the grouped option-count description (`SELECT_OPTIONS_IN_GROUPS`)
+>    and the selected-item `LIST_ITEM_POSITION` announcement (`SelectTemplate.js:12,31`, `Select.js:210–212,805–817`).
+> 2. Tag: the hidden description uses `TAG_DESCRIPTION_TAG` instead of a literal `Tag`, keeping the `tagText`
+>    override (`Tag.js:149–158`, `TagTemplate.js:11`).
+> 3. SegmentedButton: the native assertive `LIST_ITEM_SELECTED` announcement on selection, none on deselection
+>    (`SegmentedButton.js:128–129`).
+> 4. ComboBox position announcements are **owned by E4** (its must-fix 2). If E4 is merged first, verify its texts
+>    resolve through the provider; otherwise leave the provider key ready and say so. Don't implement it twice.
+> 5. Re-run the fresh German consumer proof (`smoke-install.mjs` with one pack) on the final tip.
+>
+> **Moves to P1–P6:** custom-content announcements (`CustomAnnouncement.js`, `ListItemCustom`, the Table custom
+> announcement) and every other gap row.
+>
+> **Acceptance (replaces the list at the end):** AGENTS.md definition of done; existing fixtures unchanged without a
+> locale; the ratchet test passes; the must-fix items in E5's scope have tests; localized fixtures match UI5 in
+> `de-DE`, `zh-CN`, `ar-EG`; the German consumer proof passes; final message: gap counts per owner, packs generated,
+> components wired to the provider.
+
 **Goal:** make "localization is ported in full" (AGENTS.md rule 10) real and checkable: one place to set locale and
 translations, every UI5 i18n text present and overridable, numbers formatted and parsed per locale like UI5, SAP's
 own translations installable as optional language packs, and tests that compare localized fixtures with UI5. Requested
@@ -100,7 +133,7 @@ same component in both branches at the same time: finish one component, commit, 
 ## Acceptance
 
 - AGENTS.md definition of done; existing fixtures unchanged (no pixel diff without a locale).
-- `docs/plan/i18n-audit.md` has no `gap` rows; every component with texts reads from the provider.
+- ~~`docs/plan/i18n-audit.md` has no `gap` rows;~~ *(superseded by the 2026-11-17 addendum: ratchet)* every component with texts reads from the provider.
 - `npx shadcn add @fiori/i18n-de` works in `node scripts/smoke-install.mjs` (add one pack to the smoke app and render a
   German StepInput).
 - Localized fixtures match UI5 in `de-DE`, `zh-CN`, `ar-EG`.

@@ -74,9 +74,14 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
      ARIA: the component, not the consumer's render output, owns roles, `aria-selected`/`aria-expanded`/`aria-checked`
      /`aria-sort`/`aria-rowindex`…, ids and `tabindex`. Each customisation point gets a test that a custom render
      keeps them.
-   - The accessibility tree must match UI5's for every fixture (`tests/a11y-tree.spec.ts`, added by card E4); deviations need an entry in
-     the fixture set's `a11yDiff` with a concrete reason (e.g. "UI5 bug: role=listitem inside role=grid, filed as …"),
-     never to make a failing test pass.
+   - The accessibility tree is compared with UI5's for every fixture (`tests/a11y-tree.spec.ts`, added by card E4).
+     Known differences live in the **ratchet baseline** `tests/a11y-tree-baseline.json` (one entry per case + node path,
+     each with an owning card id). The test fails on any difference **not** in the baseline, and on any baseline entry
+     that no longer differs (so a fix must delete its entry — the baseline only shrinks). Only a card listed as the
+     entry's owner may delete entries; nobody adds entries except E4 (which creates the baseline) — new code must match
+     UI5 or use `a11yDiff`. `a11yDiff` is for permanent, justified deviations (documented UI5 bug, inert wrapper, rule 5
+     over UI5) with a concrete reason (e.g. "UI5 bug: role=listitem inside role=grid, TableTemplate.js:…"), never to
+     make a failing test pass.
    - Don't remove or weaken an existing ARIA attribute, keyboard shortcut or announcement without the card saying so
      (rule 7 applies to accessibility behaviour too).
 10. **Localization is ported in full, never trimmed.** Everything UI5 makes locale-dependent is locale-dependent here.
@@ -91,6 +96,10 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
       hard-coded separators, digit grouping, week start, AM/PM, month names or `toFixed` for display. Where UI5 formats
       with its CLDR data, the result must match UI5's for the same locale (fixtures in `de-DE`, `zh-CN`, `ar-EG`).
       Parsing user input is locale-aware wherever formatting is.
+    - **Audit ratchet:** `docs/plan/i18n-audit.md` (E5) lists every UI5 key per component with a status. The number of
+      `gap` rows per component is recorded in `tests/i18n-audit-baseline.json`; `tests/i18n.spec.ts` fails when a
+      component's gap count rises or when a key that was `ok` becomes `gap`, and when the count falls without the
+      baseline being lowered in the same commit. Same ownership rule as the accessibility baseline.
     - **Direction:** every component works in RTL (logical CSS properties, mirrored icons where UI5 mirrors them, arrow
       keys swapped where UI5 swaps them). New components and new visual states get an RTL fixture and an RTL behaviour
       test for direction-dependent keys.
@@ -105,9 +114,10 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
 - A new visual state or prop also gets a story in `docs/stories/<category-lowercase>/<name>.stories.tsx`.
 - The card's own acceptance checks all hold.
 - Accessibility (rule 9): new or changed states have fixtures on both sides so `tests/a11y-tree.spec.ts` compares them;
-  axe stays clean; new keyboard paths and announcements have behaviour tests.
+  axe stays clean; new keyboard paths and announcements have behaviour tests; the accessibility baseline doesn't grow
+  (and shrinks by exactly the entries your card fixed).
 - Localization (rule 10): every new user-visible or announced string is in `texts` with its UI5 key named; new formatted
-  values use `Intl` with the resolved locale; new states have an RTL fixture.
+  values use `Intl` with the resolved locale; new states have an RTL fixture; the i18n audit baseline doesn't grow.
 - Git: work on a branch `codex/<card-id>`, small commits, messages in English, imperative mood. Don't push; don't merge.
   If you work in a separate worktree, leave the main checkout untouched (no edits, no branch switch) — an earlier run
   left an uncommitted draft and a stray branch there.

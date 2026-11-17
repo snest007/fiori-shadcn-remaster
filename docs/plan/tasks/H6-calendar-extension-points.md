@@ -1,5 +1,10 @@
 # H6 — Calendar extension points (and the date pickers that embed it)
 
+> **On hold until X0 is approved (owner's decision, 2026-11-17).** The library follows one extension contract
+> (`docs/plan/tasks/X0-extension-architecture.md` → `docs/extension-contract.md`), including a structural tier
+> (`components` replacement + a context hook with prop getters). X0 rewrites this card to implement the approved
+> Calendar design; the points below are the starting list, not the final API. Don't run H6 before that rewrite.
+
 **Goal:** `Calendar` already has feature parity with ui5-calendar 2.28 (single/multiple/range, special dates,
 `CalendarLegend`, month/year/year-range pickers, full keyboard model). What it lacks is **room to customise** — the
 issue #1 reporter's point: consumers will want their own day content (prices, dots, badges, availability), styling per
