@@ -138,7 +138,7 @@ function S2DocsPage() {
   {
     "prop": "detailText",
     "text": "Edit",
-    "key": "UPLOADCOLLECTIONITEM_EDIT_BUTTON_TEXT"
+    "key": "API extension; UI5 ListItemTemplate detail button has no text key"
   }
 ]
   return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>Override these props to translate built-in labels and announcements. English defaults below describe the current component API.</p><table><thead><tr><th>Text prop / key</th><th>UI5 reference key</th><th>English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.prop}><td><code>{text.prop}</code></td><td>{text.key}</td><td>{text.text}</td></tr>)}</tbody></table></section></>

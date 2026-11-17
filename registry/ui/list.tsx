@@ -710,7 +710,7 @@ type ListItemBaseProps = Omit<React.ComponentProps<"li">, "value" | "type" | "co
   movable?: boolean
   /** Fired by the edit button of `type="detail"` items. */
   onDetailClick?: () => void
-  /** Tooltip / accessible description of the detail button (default "Edit"). */
+  /** Accessible name of the internal detail-action button; defaults to "Edit". API extension: UI5 ListItemTemplate renders an icon-only detail button without an i18n text key. */
   detailText?: string
 }
 

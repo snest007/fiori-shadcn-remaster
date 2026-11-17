@@ -62,12 +62,12 @@ function S2DocsPage() {
   {
     "prop": "openIconLabel",
     "text": "Open Picker",
-    "key": "TIMEPICKER_OPEN_ICON_TITLE"
+    "key": "DATEPICKER_OPEN_ICON_TITLE (inherited DatePicker.openIconTitle)"
   },
   {
     "prop": "closeIconLabel",
     "text": "Close Picker",
-    "key": "TIMEPICKER_OPEN_ICON_TITLE_OPENED"
+    "key": "DATEPICKER_OPEN_ICON_TITLE_OPENED (inherited DatePicker.openIconTitle)"
   },
   {
     "prop": "cancelLabel",

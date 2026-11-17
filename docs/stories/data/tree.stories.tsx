@@ -28,7 +28,7 @@ const meta = {
       {!empty && <>
         {!removed.includes("docs") && <TreeItem value="docs" text="Documents" icon={folder} type={itemType} defaultExpanded={!collapsed}>
           {!removed.includes("reports") && <TreeItem value="reports" text="Reports" icon={folder} defaultExpanded={!collapsed}>{!removed.includes("q1") && <TreeItem value="q1" text="Q1.pdf" icon={documentIcon} />}{!removed.includes("q2") && <TreeItem value="q2" text="Q2.pdf" icon={documentIcon} />}</TreeItem>}
-          {!removed.includes("invoices") && <TreeItem value="invoices" text="Invoices" icon={folder}><TreeItem value="jan" text="January.pdf" icon={documentIcon} /></TreeItem>}
+          {!removed.includes("invoices") && <TreeItem value="invoices" text="Invoices" icon={folder}>{!removed.includes("jan") && <TreeItem value="jan" text="January.pdf" icon={documentIcon} />}</TreeItem>}
         </TreeItem>}
         {!removed.includes("pictures") && <TreeItem value="pictures" text="Pictures" icon={folder} hasChildren disabled={disabledItem} type={itemType} />}
         {!removed.includes("notes") && (customItem ? <TreeItemCustom value="notes" content={<div className="flex items-center gap-2"><span>Notes.txt</span><Button aria-label="Open Notes.txt" onClick={() => args.onItemClick?.("notes")}>Open</Button></div>} /> : <TreeItem value="notes" text="Notes.txt" icon={documentIcon} additionalText="2 KB" type={itemType} />)}
