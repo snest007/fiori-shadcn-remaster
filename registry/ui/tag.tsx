@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import { alert, error, information, sysEnter2, sysHelp2 } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -9,11 +9,14 @@ type TagDesign = "neutral" | "positive" | "negative" | "critical" | "information
 type ColorScheme = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
 
 const stateIcons = { neutral: sysHelp2, positive: sysEnter2, negative: error, critical: alert, information }
-const defaultStateText: Partial<Record<TagDesign, string>> = {
-  positive: "Success",
-  negative: "Error",
-  critical: "Warning",
-  information: "Information",
+type TagTexts = { tag: string; roleDescription: string; positive: string; negative: string; critical: string; information: string }
+const defaultTagTexts: TagTexts = {
+  tag: "Tag", // UI5 TAG_DESCRIPTION_TAG
+  roleDescription: "Tag button", // UI5 TAG_ROLE_DESCRIPTION
+  positive: "Success", // UI5 TAG_SUCCESS
+  negative: "Error", // UI5 TAG_ERROR
+  critical: "Warning", // UI5 TAG_WARNING
+  information: "Information", // UI5 TAG_INFORMATION
 }
 
 type TagProps = Omit<React.ComponentProps<"div">, "children"> & {
@@ -34,6 +37,8 @@ type TagProps = Omit<React.ComponentProps<"div">, "children"> & {
   tagText?: string
   /** aria-roledescription of interactive tags (default "Tag button"). */
   roleDescription?: string
+  /** Native hidden description, interactive role description and semantic state texts. */
+  texts?: Partial<TagTexts>
 }
 
 // Mirrors ui5-tag (Horizon).
@@ -47,19 +52,21 @@ function Tag({
   interactive,
   tagText,
   roleDescription: roleDescriptionProp,
+  texts,
   className,
   children,
   ...props
 }: TagProps) {
-  const defaultStateTextLocalized = useFioriTexts(defaultStateText, defaultStateTextKeys)
-
-  const { t } = useFioriLocale()
-  const roleDescription = roleDescriptionProp ?? t("TAG_ROLE_DESCRIPTION", "Tag button") // UI5 TAG_ROLE_DESCRIPTION
+  const resolvedTexts = useFioriTexts(defaultTagTexts, defaultTagTextsKeys, texts)
+  const roleDescription = roleDescriptionProp ?? resolvedTexts.roleDescription
 
   const stateIcon = !hideStateIcon && !icon && design in stateIcons ? stateIcons[design as keyof typeof stateIcons] : undefined
   const hasText = children != null && children !== false && children !== ""
   const hasIcon = !!icon || !!stateIcon
-  const state = defaultStateTextLocalized[design]
+  const state = ["positive", "negative", "critical", "information"].includes(design) ? resolvedTexts[design as "positive" | "negative" | "critical" | "information"] : undefined
+  // Tag.js/tagDescription composes TAG_DESCRIPTION_TAG with the semantic state.
+  // The existing tagText prop overrides the complete hidden description.
+  const description = tagText ?? [resolvedTexts.tag, state].filter(Boolean).join(" ")
   const common = {
     "data-slot": "tag",
     "data-design": design,
@@ -82,7 +89,7 @@ function Tag({
     <>
       {icon}
       {stateIcon && <Icon icon={stateIcon} />}
-      {!interactive && <span className="sr-only">{tagText ?? (state ? `Tag ${state}` : "Tag")}</span>}
+      {!interactive && <span className="sr-only">{description}</span>}
       {hasText && <span className="fiori-tag__text">{children}</span>}
     </>
   )
@@ -106,9 +113,11 @@ function Tag({
   )
 }
 
-export { Tag, type TagProps, type TagDesign }
+export { Tag, type TagProps, type TagDesign, type TagTexts }
 
-const defaultStateTextKeys = {
+const defaultTagTextsKeys = {
+  "tag": "TAG_DESCRIPTION_TAG",
+  "roleDescription": "TAG_ROLE_DESCRIPTION",
   "negative": "TAG_ERROR",
   "critical": "TAG_WARNING",
   "positive": "TAG_SUCCESS",

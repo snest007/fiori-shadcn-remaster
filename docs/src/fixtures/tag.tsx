@@ -1,10 +1,15 @@
 import { Icon } from "@/components/ui/icon"
 import { Tag, type TagDesign } from "@/components/ui/tag"
 import { favorite } from "@/lib/fiori-icons"
+import { FioriLocaleProvider } from "@/lib/fiori-locale"
+import de from "../../../registry/i18n/de.json"
+import zh from "../../../registry/i18n/zh-CN.json"
+import ar from "../../../registry/i18n/ar.json"
 
-import { defineFixtures } from "../fixture-types"
+import { defineFixtures, readPageOptions } from "../fixture-types"
 
 type Props = {
+  locale?: string
   design: TagDesign
   scheme?: number
   hideStateIcon?: boolean
@@ -22,6 +27,7 @@ export default defineFixtures<Props>({
   name: "tag",
   cases: ([
     ...semantic.map((design) => ({ id: `tag-${design}`, props: { design } })),
+    ...["de-DE", "zh-CN", "ar-EG"].map(locale => ({ id: `tag-l10n-${locale}`, props: { design: "negative" as const, locale } })),
     ...semantic.map((design) => ({ id: `tag-${design}-no-icon`, props: { design, hideStateIcon: true } })),
     ...schemes.map((scheme) => ({ id: `tag-set1-${scheme}`, props: { design: "set1" as const, scheme } })),
     ...schemes.map((scheme) => ({ id: `tag-set2-${scheme}`, props: { design: "set2" as const, scheme } })),
@@ -32,8 +38,9 @@ export default defineFixtures<Props>({
     { id: "tag-interactive", props: { design: "negative", interactive: true } },
     { id: "tag-wrap", props: { design: "critical", text: "A long tag text that wraps", width: "6rem" } },
     { id: "tag-nowrap", props: { design: "critical", text: "A long tag text that truncates", width: "6rem", nowrap: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "tag-rtl" }] : [fixture]),
-  react: ({ design, scheme, hideStateIcon, icon, text, size, interactive, width, nowrap }) => (
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "tag-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  react: ({ design, scheme, hideStateIcon, icon, text, size, interactive, width, nowrap, locale }) => {
+    const content = (
     <Tag
       design={design}
       colorScheme={scheme as 1}
@@ -46,5 +53,7 @@ export default defineFixtures<Props>({
     >
       {text === undefined ? "Tag" : text}
     </Tag>
-  ),
+    )
+    return locale ? <FioriLocaleProvider locale={locale} texts={locale === "de-DE" ? de : locale === "zh-CN" ? zh : ar}>{content}</FioriLocaleProvider> : content
+  },
 })
