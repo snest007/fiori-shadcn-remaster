@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState as useStoryState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { Timeline, TimelineGroupItem, TimelineItem, type TimelineProps, type TimelineItemState } from "@/components/ui/timeline"
 import { Title } from "@/components/ui/title"
@@ -22,7 +22,9 @@ const meta = {
   render: function OrderTimeline(args: Args) {
     const [, updateArgs] = useArgs<Args>()
     const { icons, grouped, collapsed, itemState, empty, onNameClick, onGroupToggle, ...props } = args
-    const [extra, setExtra] = React.useState(0)
+    // Storybook 10.6 preview-api applyHooks: growing rerenders the same active
+    // story hook context as useArgs, rather than invoking it as a React component.
+    const [extra, setExtra] = useStoryState(0)
     const eventDate = (day: number) => new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(new Date(2024, 2, day, 10))
     const call = <TimelineItem icon={icons !== "none" ? phone : undefined} iconTooltip="Supplier call" titleText="Called supplier" subtitleText={eventDate(10)} state={itemState}>Delivery confirmed.</TimelineItem>
     const message = <TimelineItem icon={icons === "all" ? email : undefined} iconTooltip="Email" name="Ann Lee" nameClickable onNameClick={onNameClick} titleText="Sent a message" subtitleText={eventDate(9)} />
