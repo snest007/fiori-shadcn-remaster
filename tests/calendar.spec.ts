@@ -218,6 +218,7 @@ for (const direction of ["ltr", "rtl"]) for (const mode of ["single", "range", "
       const day = holder.locator(native ? `[role="gridcell"][data-sap-timestamp="${Date.UTC(2024, 2, 13) / 1000}"]` : '[role="gridcell"][data-date="20240313"]')
       const region = current.locator(native ? '.ui5-invisiblemessage-assertive' : '[data-slot="calendar-announcement"]')
       await expect(region).toHaveAttribute("aria-live", "assertive")
+      await expect(region).toHaveAttribute("role", "alert")
       await day.focus(); await expect(day).toBeFocused()
       await current.keyboard.press("Enter")
       await expect(day).toHaveAttribute("aria-selected", "true")
