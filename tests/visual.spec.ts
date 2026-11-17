@@ -17,9 +17,9 @@ type CaseInfo = { id: string; tolerance: number }
 // cells one by one costs ~100ms each, which doesn't scale to hundreds of fixtures.
 async function shoot(page: Page, url: string, ids?: string[]) {
   await page.goto(url)
-  // The UI5 reference page needs ~10s of main-thread work on an idle machine (ui5-main.ts
-  // waits for every fixture's own readiness). With three workers on a 4-vCPU CI runner it
-  // reached 30s; allow 60s like tests/visual-sapui5.spec.ts. This only bounds the wait.
+  // The UI5 reference page is ~9s of main-thread work on an idle machine (ui5-main.ts waits
+  // for every fixture's own readiness); a CI runner core is slower. Same bound as
+  // tests/visual-sapui5.spec.ts. This only bounds the wait; see the describe mode below.
   await page.waitForSelector("html[data-ready=true]", { timeout: 60_000 })
   await page.mouse.move(0, 0)
   // Chromium captures an RTL document from its negative scroll origin when any fixture
@@ -51,6 +51,12 @@ async function shoot(page: Page, url: string, ids?: string[]) {
 }
 
 const report: Record<string, { ratio: number; size: string }> = {}
+
+// Each pass loads the full UI5 reference page, which is CPU-bound. Run in parallel on the
+// 4-vCPU CI runner, three of them at once took 58-97s and some missed the 60s readiness wait.
+// Run the passes in order in one worker. Unlike "serial", "default" mode keeps running
+// the remaining passes after a failure, so every theme still reports.
+test.describe.configure({ mode: "default" })
 
 const passes = THEMES.flatMap((theme) => DENSITIES.map((density) => ({ theme, density, direction: "ltr" })))
 passes.push({ theme: "sap_horizon", density: "cozy", direction: "rtl" })
