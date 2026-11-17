@@ -91,8 +91,9 @@ test("S3 name marker rejects a matching foreign dialog and foreign node", async 
   expect(await classifyS3UnnamedModeControl(foreign, context)).toBe(false)
 })
 
-test("S3 marker keeps strict names for unrelated controls and unnamed foreign listboxes", async ({ page }) => {
-  const context = { story: "overlays-view-settings-dialog--open", theme: "sap_horizon" }
+for (const story of ["overlays-view-settings-dialog--open", "overlays-view-settings-dialog--playground"]) {
+test(`S3 ${story} marker keeps strict names for unrelated controls and unnamed foreign listboxes`, async ({ page }) => {
+  const context = { story, theme: "sap_horizon" }
   await page.setContent(`<html data-theme="sap_horizon"><body><div id="storybook-root"><div data-fiori-story="${context.story}"><button id="s3-unnamed-button"></button><div id="s3-unnamed-list" role="listbox" tabindex="0"></div></div></div></body></html>`)
   expect(await classifyS3UnnamedModeControl(page.locator("#s3-unnamed-button"), context)).toBe(false)
   expect(await classifyS3UnnamedModeControl(page.locator("#s3-unnamed-list"), context)).toBe(false)
@@ -100,6 +101,7 @@ test("S3 marker keeps strict names for unrelated controls and unnamed foreign li
   await page.locator("#s3-unnamed-button").evaluate((node) => node.setAttribute("aria-label", "Named negative control"))
   await expect(expectNamedControls(page, context)).rejects.toThrow(/toHaveAccessibleName/)
 })
+}
 
 // S3 Playground is deliberately separate from the six existing mode stories.
 for (const primary of [false, true]) for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
@@ -120,7 +122,9 @@ for (const primary of [false, true]) for (const theme of ["sap_horizon", "sap_ho
     await waitForStoryFinished(page)
     expect(await classifyS3UnnamedModeControl(mode, context)).toBe(true)
     await expectNamedControls(page, context, testInfo)
-    const raw = await axeViolations(page, theme)
+    // Primary docs also contain independent story iframes. Audit this live
+    // component portal with every axe rule; their own story tests audit the frames.
+    const raw = await axeViolations(page, theme, primary ? '.fiori-vsd[role="dialog"]' : undefined)
     const audit = await classifyViolations(page, raw, context)
     await attachAudit(testInfo, "S3-live-playground-open", audit)
     expect(audit.known.find((rule) => rule.id === "aria-input-field-name")?.nodes).toHaveLength(1)
@@ -161,6 +165,6 @@ test("S3 Playground rejects a foreign primary canvas and an unrelated unnamed no
     foreignPrimary.append(node)
   })
   expect(await classifyS3UnnamedModeControl(mode, context)).toBe(false)
-  const audit = await classifyViolations(page, await axeViolations(page, "sap_horizon"), context)
+  const audit = await classifyViolations(page, await axeViolations(page, "sap_horizon", '.fiori-vsd[role="dialog"]'), context)
   expect(audit.known).toEqual([])
 })
