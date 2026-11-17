@@ -1,14 +1,15 @@
 # H6b — Calendar: activated day in selection events, custom week numbers
 
-> **On hold until X0 is approved (2026-11-17).** X0 decides whether these two points stay separate props or become
-> part of the Calendar context hook / `components` design. The UI5 analysis below stays valid either way.
+> **Approved with X0 on 2026-11-17.** The two policies remain a separate S card after H6 and P2a merge.
+> They conform to [the extension contract](../../extension-contract.md) and the Calendar composition design.
+> No fiscal props/components are added. Do not overlap H6/H6c/P2 on Calendar files.
 
 **Goal:** close the two gaps the fiscal-calendar spike found that H6 doesn't cover (G4 and G3 in
 `docs/spikes/fiscal-calendar/README.md`). With them, a consumer can build SAP fiscal-year-variant calendars on
 `Calendar` without editing its source. The use cases are "click a day → select its whole fiscal period" and "show
 fiscal weeks for a 4-4-5 variant". Default rendering, pixel fixtures, accessibility tree and keyboard model stay
-identical. Both additions are additive (rule 7). Depends on **H6 (merged)**: it reuses H6's info objects, its
-`getDayProps` filtering and its date-picker passthrough. Run it after H6, never at the same time: both edit
+identical. Both additions are additive (rule 7). Depends on **H6 (merged)**: it reuses H6's info objects, context select/action detail, protected
+parts/getters and its guarded calendarProps passthrough. Run it after H6, never at the same time: both edit
 `calendar.tsx`.
 
 ## 1. Activated day in `onSelectedDatesChange` (gap G4)
@@ -25,7 +26,8 @@ The event is cancelable; controlled `selectedDates` is our equivalent of `preven
   with `CalendarSelectionDetail = { date: Date; picker: CalendarPicker; source: "pointer" | "keyboard" }`.
   - `date` is the activated day, or the month/year when `selectionLevel` is `"month"` / `"year"`. For Shift+Space,
     which selects a whole week in multiple mode, it is the focused day.
-  - Quote the UI5 function in a code comment. Existing one-argument callbacks keep working, so this is not a breaking
+  - Route context `select(date, detail)` and default/replacement protected parts through the same action.
+    Quote the UI5 function in a code comment. Existing one-argument callbacks keep working, so this is not a breaking
     change.
 - Fire it from every selection path: click, Enter, Space (keyup), Shift+click / Shift+Enter range extension,
   Shift+Space week toggle, and the month/year pickers when they select.
@@ -40,6 +42,8 @@ the fiscal year's first day). Today the consumer can only hide the column.
 - Add `getWeekNumber?: (week: CalendarWeekInfo) => number`, with
   `CalendarWeekInfo = { days: Date[]; weekStart: Date; weekEnd: Date; defaultNumber: number; locale: string }`.
   - `defaultNumber` is what Calendar shows today.
+  - The numeric policy survives a `components.WeekNumber` replacement, which receives the resolved number/default
+    content but cannot replace the owned row-header name or state.
   - The returned number feeds both the visible `fiori-dp-weekname` text and the row header's
     `aria-label={labels.calendarWeek(n)}`, so sighted and screen-reader users get the same number.
   - It returns a **number**, not a string, on purpose: `labels.calendarWeek` keeps its `(week: number) => string`
@@ -63,6 +67,8 @@ the fiscal year's first day). Today the consumer can only hide the column.
   - `getWeekNumber` changes the visible number and the row header's accessible name.
   - `defaultNumber` equals today's number for de-DE and en-US around a year boundary (2026-12-28 … 2027-01-10).
   - RTL: the week column keeps its position and numbers.
+  - The same detail and week policy work with components overrides and content shorthands; installed consumer
+    imports only the Calendar item entry. The context facade contains no implementation-only factories.
 - Demo (React-only, not pixel-compared; say so in a comment): a "Fiscal weeks" toggle in the calendar demo, or a
   story, showing 4-4-5 fiscal weeks from a literal period table. If wave S is merged, add the story
   (`docs/stories/dates/calendar.stories.tsx`).
@@ -74,7 +80,8 @@ the fiscal year's first day). Today the consumer can only hide the column.
 ## Files
 
 Component-owned (rule 3) for `calendar` (and `date-picker`, `date-range-picker`, `date-time-picker` only if the
-forwarding needs a type change), plus `docs/spikes/fiscal-calendar/**`. Shared: none.
+forwarding needs a type change), plus `docs/spikes/fiscal-calendar/**` and `docs/spikes/calendar-composition/**` (run the composition consumers
+against the installed production item; preserve X0's default-parity proof). Shared: none.
 
 ## Out of scope (noted for a later card)
 
@@ -116,5 +123,7 @@ forwarding needs a type change), plus `docs/spikes/fiscal-calendar/**`. Shared: 
 
 - AGENTS.md definition of done (rules 9 and 10).
 - Zero pixel or tree changes in existing fixtures.
-- With both hooks, the spike's `GAP` comments for G3 and G4 are gone and its suite passes.
+- With both hooks, the original spike's `GAP` comments for G3 and G4 are gone and its suite passes.
+- The composition fiscal consumers use production public APIs for day content/name/period paging, fiscal week
+  labels, activated-date selection and distinct period items; their keyboard/name/axe suites pass in four themes.
 - The final message lists the two new APIs with one-line descriptions.

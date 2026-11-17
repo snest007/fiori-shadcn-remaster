@@ -1,0 +1,6 @@
+@import "../../src/index.css";
+@source "./";
+body { background: var(--sapBackgroundColor); color: var(--sapTextColor); font-family: var(--sapFontFamily); }
+.composition-period-label { font-size: var(--sapFontSmallSize); line-height: normal; }
+#fiscal-calendar .fiori-dp-item { flex-direction: column; }
+#fiscal-calendar .fiori-calheader-midcontainer { align-items: center; }
