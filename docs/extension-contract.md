@@ -139,7 +139,7 @@ on stories alone; telling agents that a getter allows arbitrary overrides.
 
 ## 6. Registry packaging: recommend the same item
 
-Replacing Calendar parts still installs `@fiori/calendar`. `Calendar`, its public protected parts, context hook and
+Replacing Calendar parts still installs `@petalo/calendar`. `Calendar`, its public protected parts, context hook and
 all public types are importable from the installed `components/ui/calendar` entry. Helpers may be separate files
 owned and registered by that **same item** (H1's analytical-table helpers follow this rule); no hidden dependency on
 repository aliases or docs. Custom parts belong to the consumer. Imports of other library components must be listed
