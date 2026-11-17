@@ -115,6 +115,12 @@ test.describe("FiscalCalendar on Calendar's public API", () => {
     await expectRange(page, "2026-03-01", "2026-03-31")
     await expect(page.locator("#fiscal-calendar-special-14")).toHaveAttribute("aria-pressed", "true")
     await expect(page.getByTestId("fiscal-calendar-event")).toContainText('"period":14')
+    // The calendar moves to the days the special period shares with P12, even from another month.
+    await page.locator("#fiscal-calendar-prev").click()
+    await expect(root(page).locator('[data-slot="calendar-month-button"]')).toHaveText("February")
+    await page.locator("#fiscal-calendar-special-15").click()
+    await expect(root(page).locator('[data-slot="calendar-month-button"]')).toHaveText("March")
+    await expect(cell(page, "2026-03-01")).toHaveAttribute("aria-selected", "true")
   })
 
   test("switching variant re-derives the period of the focused day", async ({ page }) => {

@@ -105,7 +105,10 @@ export function FiscalCalendar({ id = "fiscal-calendar", locale = "en-US", defau
   const chooseSpecial = (n: number) => {
     const fy = period?.fiscalYear ?? periodOf(variant, focused)?.fiscalYear
     if (fy === undefined) return
-    setPeriod(periodByNumber(variant, fy, n))
+    const p = periodByNumber(variant, fy, n)
+    setPeriod(p)
+    // A special period has no days of its own: show the last regular period it subdivides.
+    if (p) setFocused(p.start)
   }
   const fw = fiscalWeek(variant, focused)
   const label = period ? texts.period(String(period.fiscalYear), pad3(period.period)) : texts.noPeriod
