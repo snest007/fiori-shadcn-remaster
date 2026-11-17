@@ -5,7 +5,7 @@ Every component owns its own files. Nothing shared needs editing, so components 
 | File | Purpose |
 |---|---|
 | `registry/ui/<name>.tsx` | The component (distributed to users via shadcn) |
-| `registry/items/<name>.json` | Registry metadata: `{ title, description, dependencies?, registryDependencies? }`. Use `"@fiori/icons"` if you import icons, `"@fiori/<other>"` for other components |
+| `registry/items/<name>.json` | Registry metadata: `{ title, description, dependencies?, registryDependencies? }`. Use `"@petalo/icons"` if you import icons, `"@petalo/<other>"` for other components |
 | `registry/styles/components/<name>.css` | Optional. Plain CSS for stateful styling that utilities can't express well (no `@layer` wrapper; `pnpm css` wraps everything) |
 | `docs/src/fixtures/<name>.tsx` | `defineFixtures({ name, cases, react })`: static states to pixel-compare |
 | `docs/src/fixtures/<name>.ui5.ts` | `defineUi5(set, props => HTMLElement)`: the same cases rendered with UI5 Web Components. Import the UI5 modules **and every icon used** (`@ui5/webcomponents-icons/dist/<icon>.js`) at the top |
@@ -97,7 +97,7 @@ framework, themes and fonts locally. The `sapui5-button` Default and Emphasized 
 | File | Purpose |
 |---|---|
 | `registry/blocks/<name>.tsx` | Default-exports a full-page React component built only from `@/components/ui/*` (no fixed data fetching; sample data inline) |
-| `registry/block-items/<name>.json` | `{ title, description, registryDependencies: ["@fiori/…"] }` |
+| `registry/block-items/<name>.json` | `{ title, description, registryDependencies: ["@petalo/…"] }` |
 | `tests/<name>.spec.ts` | Behaviour tests against `block.html?name=<name>` |
 
 Preview at `http://localhost:5173/block.html?name=<name>`. Blocks are compared to SAP's guideline images by screenshot, not pixel-diffed.

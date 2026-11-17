@@ -1,19 +1,19 @@
 ---
-name: shadcn-fiori
-description: Build React enterprise pages with the shadcn-fiori registry. Use for SAP Fiori, Horizon or UI5 styling with shadcn, and for choosing its components and floorplan blocks.
+name: petalo
+description: Build React enterprise pages with the petalo registry. Use for SAP Fiori, Horizon or UI5 styling with shadcn, and for choosing its components and floorplan blocks.
 ---
 
-# Build with shadcn-fiori
+# Build with petalo
 
 Choose a floorplan for the page's task, then read the relevant category reference to choose its controls.
 
 ## Install
 
-Requires React 19 and Tailwind CSS v4. Configure the `@fiori` registry before adding items:
+Requires React 19 and Tailwind CSS v4. Configure the `@petalo` registry before adding items:
 
 ```bash
-npx shadcn@latest init https://snest007.github.io/fiori-shadcn-remaster/r/fiori.json
-npx shadcn add @fiori/<name>
+npx shadcn@latest init https://snest007.github.io/petalo/r/petalo.json
+npx shadcn add @petalo/<name>
 ```
 
 Components install into `@/components/ui/<name>`; floorplan blocks install into `@/components/<name>`.

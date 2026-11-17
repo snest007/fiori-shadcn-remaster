@@ -4,8 +4,8 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input"
+    "@petalo/icons",
+    "@petalo/input"
   ],
   "description": "Fiori check box with indeterminate, read-only and value states; Space/Enter toggle.",
   "usage": {

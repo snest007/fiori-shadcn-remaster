@@ -1,8 +1,8 @@
 {
   "title": "TextArea",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input"
+    "@petalo/icons",
+    "@petalo/input"
   ],
   "description": "Fiori multi-line text field with rows, growing, character counter and value states.",
   "usage": {

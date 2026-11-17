@@ -16,7 +16,7 @@ const out = `/*
  *
  * Portions derived from UI5 Web Components 2.28 component styles (dist/generated/themes/*.css.js),
  * © SAP SE or an SAP affiliate company and UI5 contributors, licensed under Apache-2.0.
- * Modified by shadcn-fiori: rewritten for React markup and --fiori-* parameters.
+ * Modified by petalo: rewritten for React markup and --fiori-* parameters.
  * SPDX-License-Identifier: Apache-2.0
  */
 @layer components {

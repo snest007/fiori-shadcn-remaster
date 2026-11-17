@@ -34,7 +34,7 @@ Render data-driven responsive tables with TanStack columns, sorting and optional
 Main exports: `DataTable`, `createDataTableColumnHelper`.
 
 ```bash
-npx shadcn add @fiori/data-table
+npx shadcn add @petalo/data-table
 ```
 
 ## list
@@ -59,7 +59,7 @@ Present a sequence of business items for browsing, navigation or selection witho
 Main exports: `List`, `ListItem`, `ListItemCustom`, `ListItemGroup`, `ListItemGroupHeader`, `ListItemStandard`.
 
 ```bash
-npx shadcn add @fiori/list
+npx shadcn add @petalo/list
 ```
 
 ## object-identifier
@@ -80,7 +80,7 @@ Identify a business object with a primary title and supporting identifier or att
 Main exports: `ObjectAttribute`, `ObjectIdentifier`.
 
 ```bash
-npx shadcn add @fiori/object-identifier
+npx shadcn add @petalo/object-identifier
 ```
 
 ## object-number
@@ -101,7 +101,7 @@ Display a business amount or quantity together with its unit and optional semant
 Main exports: `ObjectNumber`.
 
 ```bash
-npx shadcn add @fiori/object-number
+npx shadcn add @petalo/object-number
 ```
 
 ## object-status
@@ -123,7 +123,7 @@ Show the semantic state of a business object with status text and an optional ic
 Main exports: `ObjectStatus`.
 
 ```bash
-npx shadcn add @fiori/object-status
+npx shadcn add @petalo/object-status
 ```
 
 ## table
@@ -148,7 +148,7 @@ Compose responsive rows and cells when users compare and act on business items.
 Main exports: `Table`, `TableCell`, `TableGroupRow`, `TableHeaderCell`, `TableHeaderRow`, `TableRow`, `TableRowAction`, `TableRowActionNavigation`, `defaultTableTexts`.
 
 ```bash
-npx shadcn add @fiori/table
+npx shadcn add @petalo/table
 ```
 
 ## timeline
@@ -169,7 +169,7 @@ Present object events and changes in chronological order.
 Main exports: `Timeline`, `TimelineGroupItem`, `TimelineItem`.
 
 ```bash
-npx shadcn add @fiori/timeline
+npx shadcn add @petalo/timeline
 ```
 
 ## tree
@@ -191,7 +191,7 @@ Browse or select hierarchical items through expandable parent-child nodes.
 Main exports: `Tree`, `TreeItem`, `TreeItemCustom`.
 
 ```bash
-npx shadcn add @fiori/tree
+npx shadcn add @petalo/tree
 ```
 
 ## upload-collection
@@ -212,5 +212,5 @@ Manage prepared or uploaded files with per-file status and lifecycle actions.
 Main exports: `UploadCollection`, `UploadCollectionItem`.
 
 ```bash
-npx shadcn add @fiori/upload-collection
+npx shadcn add @petalo/upload-collection
 ```

@@ -73,7 +73,7 @@ for (const title of ["Actions/Button", "Data/DataTable"]) {
     await page.goto(iframe(docs!.id, undefined, undefined, "docs"))
     const name = title === "Actions/Button" ? "button" : "data-table"
     const item = JSON.parse(readFileSync(new URL(`../registry/items/${name}.json`, import.meta.url), "utf8"))
-    await expect(page.getByText(`npx shadcn add @fiori/${name}`, { exact: true })).toBeVisible()
+    await expect(page.getByText(`npx shadcn add @petalo/${name}`, { exact: true })).toBeVisible()
     await expect(page.getByRole("button", { name: "Copy install command" })).toBeVisible()
     // G1 now supplies Button usage; the card's old conditional example is stale.
     await expect(page.getByRole("heading", { name: "When to use", exact: true })).toHaveCount(item.usage ? 1 : 0)
@@ -90,7 +90,7 @@ for (const title of ["Actions/Button", "Data/DataTable"]) {
     await context.grantPermissions(["clipboard-read", "clipboard-write"])
     await page.getByRole("button", { name: "Copy install command" }).click()
     await expect(page.getByRole("button", { name: "Copy install command" })).toHaveText("Copied")
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`npx shadcn add @fiori/${name}`)
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(`npx shadcn add @petalo/${name}`)
     await page.getByRole("switch", { name: "Show code" }).first().click()
     await expect(page.locator(".sbdocs-content")).toContainText(name === "button" ? "<Button" : "<DataTable")
   })

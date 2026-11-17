@@ -74,7 +74,7 @@ F1 and F2 can run in parallel after F0.
 
 - [x] [E1 Interaction-state visual fixtures](tasks/E1-interaction-fixtures.md) — M
 - [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
-- [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/fiori-shadcn-remaster, Pages; push only, no gh; run in the main checkout, not via RUN.md)
+- [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/petalo, Pages; push only, no gh; run in the main checkout, not via RUN.md)
 - [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (rescoped 2026-11-17 after two returns: continue on `codex/E4`; see the card's addendum and `returns/E4.md`. After S0; before waves P and H)
 - [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (rescoped 2026-11-17 after two returns: continue on `codex/E5`; see the card's addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
 
@@ -82,7 +82,7 @@ F1 and F2 can run in parallel after F0.
 
 Source: SAP's design guidance as packaged in `SAP/ai-skills-library` (`sap-fiori-guidelines`, Apache-2.0), rewritten
 for this registry's components. One `usage` object per item JSON feeds the registry output, the docs pages and a
-generated agent skill `skills/shadcn-fiori/`. G0 first (pipeline + pilot); G1–G4 are content-only and run in parallel
+generated agent skill `skills/petalo/`. G0 first (pipeline + pilot); G1–G4 are content-only and run in parallel
 (each touches different item JSONs; regenerate `skills/` after merge); G5 last.
 
 - [x] [G0 Schema, pipeline, docs, skill generator + pilot](tasks/G0-usage-guidance-pipeline.md) — M
@@ -137,7 +137,7 @@ Components added later (wave H) join the group of their demo category; their car
 
 ## Wave H — issue #1: AnalyticalTable, Calendar extension points, missing components
 
-From [issue #1](https://github.com/snest007/fiori-shadcn-remaster/issues/1) (reporter azhu716). Principle agreed with
+From [issue #1](https://github.com/snest007/petalo/issues/1) (reporter azhu716). Principle agreed with
 them: **parity with the reference, plus extension points** — consumers customise through render slots, state, styling
 hooks and the table instance; we don't build bespoke features. Accessibility (rule 9) and localization (rule 10) in
 full. Components UI5 Web Components lacks are ported from **UI5 Web Components for React 2.28.2** (WCR), which H0 turns

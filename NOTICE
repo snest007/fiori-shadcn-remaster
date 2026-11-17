@@ -1,4 +1,4 @@
-shadcn-fiori
+petalo
 Copyright 2026 snest007
 
 This project includes theme values, icon paths, illustrations, and
@@ -32,5 +32,7 @@ fiori-font.css only references SAP's published npm package by URL.
 
 The SAP logo icon (sap-logo-shape) from @ui5/webcomponents-icons is excluded.
 
-SAP and Fiori are trademarks of SAP SE. This project is not an SAP product, and
-Apache-2.0 grants no rights to use SAP's trademarks.
+SAP and Fiori are trademarks of SAP SE. This project is independent, not
+affiliated with or endorsed by SAP SE, and not an SAP product; Apache-2.0 grants
+no rights to use SAP's trademarks. Names such as fiori-theme or fiori.css only
+describe the design language the files follow.

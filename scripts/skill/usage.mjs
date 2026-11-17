@@ -10,13 +10,13 @@ export const itemMetadata = (folder) => readdirSync(folder).filter((name) => nam
   .map((file) => ({ ...json(join(folder, file)), name: file.slice(0, -5) }))
 
 // The existing icons library also ships a React component. Share its actual file ownership with
-// both generators so layouts can name any parsed export, including Icon, via @fiori/icons.
+// both generators so layouts can name any parsed export, including Icon, via @petalo/icons.
 export const iconsItem = {
   name: "icons",
   type: "registry:lib",
   title: "SAP Horizon icons",
   description: "704 SAP Horizon icons (tree-shakeable) and the <Icon> component.",
-  registryDependencies: ["@fiori/fiori-theme"],
+  registryDependencies: ["@petalo/fiori-theme"],
   files: [
     { path: "registry/lib/fiori-icons.ts", type: "registry:lib" },
     { path: "registry/ui/icon.tsx", type: "registry:ui" },
@@ -147,7 +147,7 @@ export function validateUsage(items, owners, { requireUsage = false } = {}) {
     }
     if (item.type === "registry:block") {
       stringList(item, "layout", usage.layout, 1)
-      const dependencies = new Set((item.registryDependencies ?? []).map((name) => name.replace(/^@fiori\//, "")))
+      const dependencies = new Set((item.registryDependencies ?? []).map((name) => name.replace(/^@petalo\//, "")))
       // Layout prose/region labels stay lowercase; capitalized words must be actual React export names.
       for (const line of usage.layout) for (const name of line.match(/\b[A-Z][A-Za-z0-9]*\b/g) ?? []) {
         if (!owners.has(name)) throw new Error(`${item.name}: unknown layout export "${name}"`)

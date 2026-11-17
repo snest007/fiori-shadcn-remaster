@@ -1,6 +1,6 @@
 # AGENTS.md — rules for coding agents (Codex, Claude, …)
 
-shadcn-fiori: SAP Fiori (Horizon) look **and** interaction for React, shipped as a shadcn registry.
+petalo: SAP Fiori (Horizon) look **and** interaction for React, shipped as a shadcn registry.
 Every visual value comes from SAP's open-source theme packages; every component is pixel-compared against
 UI5 Web Components 2.28 (SAP's official implementation). Read `README.md` and `CONTRIBUTING.md` before any task.
 

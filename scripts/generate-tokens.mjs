@@ -182,7 +182,7 @@ writeFileSync("registry/styles/fiori.css", out.join("\n\n") + "\n")
 
 // The 72 font files ship inside the Apache-2.0 theming package, but each file's embedded license says
 // "Copyright SAP SE. All rights reserved" with Monotype terms that forbid copying or redistribution.
-// So the registry never bundles them, and the @font-face rules are an opt-in item (@fiori/fiori-font)
+// So the registry never bundles them, and the @font-face rules are an opt-in item (@petalo/fiori-font)
 // that only points at SAP's npm copy on jsDelivr, the same URLs UI5 Web Components load.
 // Without it, --sapFontFamily falls back to Arial / Helvetica / the CJK stack.
 writeFileSync("registry/styles/fiori-font.css", `/*

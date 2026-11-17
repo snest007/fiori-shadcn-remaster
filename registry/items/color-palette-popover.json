@@ -1,7 +1,7 @@
 {
   "title": "ColorPalettePopover",
   "description": "Fiori color palette popover with external opener, selection dismissal and persistent local palette history.",
-  "registryDependencies": ["@fiori/color-palette", "@fiori/popover"],
+  "registryDependencies": ["@petalo/color-palette", "@petalo/popover"],
   "usage": {
     "summary": "Choose a predefined color in an on-demand anchored surface.",
     "useWhen": [
