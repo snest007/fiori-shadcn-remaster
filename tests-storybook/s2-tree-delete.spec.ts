@@ -4,7 +4,8 @@ import { waitForStoryFinished } from "./accessibility"
 test("S2 Tree Delete removes a nested file and its parent without changing surviving identities or selection", async ({ page }, testInfo) => {
   // Exercise the shipped Delete story through its public args, not a test-only mount.
   // A preselected surviving sibling also proves delete mode does not alter selection.
-  await page.goto("/iframe.html?id=data-tree--delete&viewMode=story&args=value:!array(q2)")
+  // Storybook dist/router/index.js buildArgsParam serializes arrays as value[0]:q2.
+  await page.goto("/iframe.html?id=data-tree--delete&viewMode=story&args=value[0]:q2")
   const tree = page.getByRole("tree", { name: "Files", exact: true })
   await expect(tree).toBeVisible()
   await waitForStoryFinished(page)
