@@ -102,7 +102,7 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 
 - [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
 - [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
-- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (returned twice; third attempt approved on `codex/S2` — see `returns/S2.md`)
+- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (third attempt returned; retained on `codex/S2` — see `returns/S2.md`)
 - [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (returned twice; third attempt approved on `codex/S3` — see `returns/S3.md`)
 - [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (returned twice; third attempt approved on `codex/S4` **after SX** — see `returns/S4.md`)
 - [x] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/SX-storybook-landmarks.md) — S (unblocks S4)
