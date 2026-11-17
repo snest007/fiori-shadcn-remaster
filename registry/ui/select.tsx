@@ -22,6 +22,11 @@ type SelectContextValue = {
   search: (current: string | undefined, text: string) => string | undefined
   register: (value: string, node: HTMLElement | null, disabled: boolean) => void
   step: (current: string | undefined, key: "ArrowUp" | "ArrowDown" | "Home" | "End") => string | undefined
+  registerGroup: (id: string, mounted: boolean) => void
+  setItemPositionText: (text: SelectTexts["itemPosition"]) => void
+  prepareItemFocus: (event: React.KeyboardEvent) => void
+  onItemFocus: (value: string) => void
+  announce: (value: string, opened: boolean) => void
 }
 const SelectContext = React.createContext<SelectContextValue | null>(null)
 
@@ -78,27 +83,45 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
   const value = valueProp ?? uncontrolledValue
   const changeTarget = React.useRef<HTMLDivElement>(null)
   const direction = useInheritedDirection(changeTarget, dir)
+  const items = React.useRef(new Map<string, { node: HTMLElement; disabled: boolean }>())
+  const groups = React.useRef(new Set<string>())
+  const [collection, setCollection] = React.useState({ options: 0, groups: 0 })
+  const syncCollection = React.useCallback(() => setCollection(previous => previous.options === items.current.size && previous.groups === groups.current.size ? previous : { options: items.current.size, groups: groups.current.size }), [])
+  const itemPositionText = React.useRef(defaultSelectTexts.itemPosition)
+  const pendingItemAnnouncement = React.useRef(false)
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const announce = React.useCallback((selected: string, opened: boolean) => {
+    const ordered = [...items.current.entries()].sort(([, a], [, b]) => a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
+    const index = ordered.findIndex(([value]) => value === selected)
+    if (index < 0) return
+    // Select.js/itemSelectionAnnounce uses the flattened option order (including
+    // disabled options) and raw numeric {0}/{1} substitution, never NumberFormat.
+    const label = ordered[index][1].node.textContent ?? ""
+    const text = `${label} ${opened ? itemPositionText.current(index + 1, ordered.length) : ""}`.trim()
+    setAnnouncement(previous => ({ text, sequence: previous.sequence + 1 }))
+  }, [])
   const setValue = React.useCallback(
     (v: string) => {
       if (valueProp === undefined) setUncontrolledValue(v)
       onValueChange?.(v)
+      if (changeTarget.current?.contains(document.activeElement)) announce(v, false)
       // UI5 Select.js/_fireChangeEvent emits committed change independently of forms.
       // Bubble this semantic event so ToolbarItem can hear opaque function wrappers.
       changeTarget.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
     },
-    [valueProp, onValueChange]
+    [valueProp, onValueChange, announce]
   )
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen ?? false)
   const open = openProp ?? uncontrolledOpen
   const setOpen = React.useCallback(
     (o: boolean) => {
+      pendingItemAnnouncement.current = o
       if (openProp === undefined) setUncontrolledOpen(o)
       onOpenChange?.(o)
     },
     [openProp, onOpenChange]
   )
 
-  const items = React.useRef(new Map<string, { node: HTMLElement; disabled: boolean }>())
   const ctx = React.useMemo<SelectContextValue>(
     () => ({
       search(current, text) {
@@ -110,7 +133,17 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
       register(v, node, disabled) {
         if (node) items.current.set(v, { node, disabled })
         else items.current.delete(v)
+        syncCollection()
       },
+      registerGroup(id, mounted) { if (mounted) groups.current.add(id); else groups.current.delete(id); syncCollection() },
+      setItemPositionText(text) { itemPositionText.current = text },
+      prepareItemFocus(event) {
+        // Select._handleArrowNavigation and _selectTypedItem announce selection;
+        // Home/End/Page keys only move/select without this announcement channel.
+        pendingItemAnnouncement.current = !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && (["ArrowDown", "ArrowUp"].includes(event.key) || (event.key.length === 1 && event.key !== " "))
+      },
+      onItemFocus(value) { if (pendingItemAnnouncement.current) { pendingItemAnnouncement.current = false; announce(value, true) } },
+      announce,
       step(current, key) {
         const ordered = [...items.current.entries()]
           .filter(([, i]) => !i.disabled)
@@ -124,12 +157,12 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
         return i <= 0 ? ordered[0] : ordered[i - 1]
       },
     }),
-    [locale]
+    [locale, localized, syncCollection, announce]
   )
 
   return (
     <SelectContext.Provider value={ctx}>
-      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction, locale, localized }}>
+      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction, locale, localized, collection, announcement }}>
         <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={!phone && open} onOpenChange={setOpen} {...props} />
       </SelectOpenContext.Provider>
     </SelectContext.Provider>
@@ -139,6 +172,8 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
 const SelectOpenContext = React.createContext<{
   locale: string
   localized: boolean
+  collection: { options: number; groups: number }
+  announcement: { text: string; sequence: number }
   open: boolean
   setOpen: (o: boolean) => void
   value: string | undefined
@@ -152,6 +187,9 @@ const SelectOpenContext = React.createContext<{
 } | null>(null)
 
 function SelectGroup(props: React.ComponentProps<typeof SelectPrimitive.Group>) {
+  const context = React.useContext(SelectContext)
+  const id = React.useId()
+  React.useLayoutEffect(() => { context?.registerGroup(id, true); return () => context?.registerGroup(id, false) }, [context, id])
   return <SelectPrimitive.Group data-slot="select-group" {...props} />
 }
 
@@ -160,7 +198,7 @@ function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) 
 }
 
 /**
- * @accessibility Label.htmlFor / aria-label / aria-labelledby name SelectTrigger's combobox button. The component owns aria-expanded, aria-controls and aria-haspopup=listbox. Native aria-describedby reaches this trigger; a caller-supplied value currently replaces the built-in value-state message id rather than merging with it.
+ * @accessibility Label.htmlFor / aria-label / aria-labelledby name SelectTrigger's combobox button. The component owns aria-expanded, aria-controls and aria-haspopup=listbox. Native aria-describedby reaches this trigger and merges with the built-in value-state and grouped option-count descriptions.
  * @accessibility Closed Up/Down/Home/End change selection; Enter, Space, F4 and Alt+Up/Down open. Popup arrows move option focus; Enter selects, Escape closes and restores trigger focus. SelectItem owns role=option, aria-selected and roving tabindex.
  */
 type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger> & {
@@ -169,7 +207,7 @@ type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger> &
   valueStateMessage?: React.ReactNode | null
   /** UI5 Select.js/valueStateTypeMappings; prefix of the phone state message. */
   valueStateTypeText?: Partial<Record<Exclude<ValueState, "none">, string>>
-  /** UI5 phone value-state prefixes; the existing valueStateTypeText map wins. */
+  /** UI5 role/group/position texts and phone value-state prefixes; existing text props win. */
   texts?: Partial<SelectTexts>
   readOnly?: boolean
   wrapperClassName?: string
@@ -190,6 +228,7 @@ function SelectTrigger({
   onPointerDown,
   onClick,
   asChild,
+  "aria-describedby": describedBy,
   ...props
 }: SelectTriggerProps) {
   const valueStateTexts = useValueStateTexts()
@@ -205,9 +244,11 @@ function SelectTrigger({
   const typingTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   React.useEffect(() => () => clearTimeout(typingTimer.current), [])
   const messageId = React.useId()
+  const groupCountId = React.useId()
   const hasState = valueState !== "none"
   const message = valueStateMessage === undefined && hasState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
+  React.useLayoutEffect(() => { items?.setItemPositionText(typeTexts.itemPosition) }, [items, typeTexts.itemPosition])
 
   // Select.js/valueStateText composes translated type and default body. Preserve
   // the existing explicit-message behavior and valueStateTypeText overrides.
@@ -231,7 +272,10 @@ function SelectTrigger({
         disabled={disabled || readOnly}
         aria-readonly={readOnly || undefined}
         aria-invalid={valueState === "negative" || undefined}
-        aria-describedby={showMessage ? messageId : undefined}
+        // SelectTemplate.js links its hidden SELECT_OPTIONS_IN_GROUPS text on
+        // the same combobox element as the native SELECT_ROLE_DESCRIPTION.
+        aria-roledescription={typeTexts.roleDescription}
+        aria-describedby={[describedBy, showMessage ? messageId : undefined, state?.collection.groups ? groupCountId : undefined].filter(Boolean).join(" ") || undefined}
         className={cn(
           "flex min-w-0 flex-1 cursor-[inherit] items-stretch border-0 bg-transparent p-0 text-start text-inherit outline-none [font:inherit]",
           "rounded-(--fiori-input-border-radius) [background:var(--fiori-select-bottom-border-gradient)]",
@@ -312,6 +356,9 @@ function SelectTrigger({
         )}
         </SelectTriggerHost>
       </SelectPrimitive.Trigger>
+      {state?.collection.groups ? <span id={groupCountId} className="sr-only" data-slot="select-group-count">{typeTexts.optionsInGroups(state.collection.options, state.collection.groups)}</span> : null}
+      {/* Select.js/itemSelectionAnnounce uses InvisibleMessageMode.Polite. */}
+      <span data-slot="select-announcement" role="status" aria-live="polite" aria-atomic="true" className="sr-only"><span key={state?.announcement.sequence}>{state?.announcement.text}</span></span>
       {showMessage && (
         <div
           id={messageId}
@@ -361,6 +408,7 @@ function SelectContent({
   ...props
 }: SelectContentProps) {
   const state = React.useContext(SelectOpenContext)
+  const items = React.useContext(SelectContext)
   const { t, locale, hasProvider } = useFioriLocale(state?.locale)
   const dialogTitle = dialogTitleProp ?? t("SELECT_LISTBOX_LABEL", "All Items") // UI5 SELECT_LISTBOX_LABEL
   const dialogNamePrefix = dialogNamePrefixProp ?? t("SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX", "Select") // UI5 SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX
@@ -390,6 +438,7 @@ function SelectContent({
           className
         )}
         {...props} ref={state?.phone ? undefined : ref} onCloseAutoFocus={state?.phone ? undefined : onCloseAutoFocus} onEscapeKeyDown={state?.phone ? undefined : onEscapeKeyDown} data-sap-ui-fastnavgroup-container="true"
+        onKeyDownCapture={(event) => { props.onKeyDownCapture?.(event); if (!event.defaultPrevented) items?.prepareItemFocus(event) }}
         onKeyDown={onKeyDown}
         asChild
       >
@@ -410,6 +459,7 @@ function SelectContent({
   // closed keyboard navigation; the real phone list lives in a stretch Dialog.
   return <>{desktop}<ResponsivePopover dir={state.direction} open={state.open} onOpenChange={(open) => !open && closePhone(true)}>
     <ResponsivePopoverContent {...props} ref={ref} className={className} aria-label={props["aria-label"] ?? dialogLabel ?? (state.phoneState.accessibleName ? `${dialogNamePrefix} ${state.phoneState.accessibleName}` : undefined)} headerText={dialogTitle} phoneField phoneClassName="fiori-select-phone"
+      onKeyDownCapture={(event) => { props.onKeyDownCapture?.(event); if (!event.defaultPrevented) items?.prepareItemFocus(event) }}
       phoneHeader={<div className="fiori-responsive-popover__rows"><div className="fiori-responsive-popover__row"><h1>{dialogTitle}</h1></div>
         {state.phoneState.valueState !== "none" && state.phoneState.valueState !== "positive" && state.phoneState.message != null &&
           <div data-value-state={state.phoneState.valueState} className="fiori-value-state-message fiori-select-phone__message">{state.phoneState.message}</div>}
@@ -441,7 +491,7 @@ function SelectContent({
           const next = ordered.find((option) => collatorIncludes(option.dataset.textValue ?? option.textContent ?? "", text, state?.localized ? locale : undefined, true))
           // _changeSelectedItem changes selected/focused properties, but does
           // not move DOM focus. List's own ItemNavigation owns actual focus.
-          if (next) { setDraft(next.dataset.value); next.scrollIntoView({ block: "nearest" }) }
+          if (next) { setDraft(next.dataset.value); if (next.dataset.value) items?.announce(next.dataset.value, true); next.scrollIntoView({ block: "nearest" }) }
           return
         }
         if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
@@ -489,6 +539,7 @@ function SelectItem({ className, children, value, disabled = false, asChild, ...
   )
   const PhoneHost = asChild ? Slot.Root : "div"
   if (phoneItems) return <PhoneHost {...props} data-slot="select-item" data-value={value} data-text-value={props.textValue} role="option" aria-selected={phoneItems.value === value} aria-disabled={disabled || undefined}
+    onFocus={(event) => { props.onFocus?.(event); if (!event.defaultPrevented) ctx?.onItemFocus(value) }}
     tabIndex={!disabled && phoneItems.value === value ? 0 : -1} data-state={phoneItems.value === value ? "checked" : "unchecked"}
     className={cn("fiori-list-item", className)} onMouseDown={(event) => { props.onMouseDown?.(event); event.preventDefault() }}
     onClick={(event) => { props.onClick?.(event); if (!event.defaultPrevented && !disabled) phoneItems.select(value) }} onKeyDown={(event) => {
@@ -511,6 +562,7 @@ function SelectItem({ className, children, value, disabled = false, asChild, ...
       disabled={disabled}
       className={cn("fiori-list-item", className)}
       {...props}
+      onFocus={(event) => { props.onFocus?.(event); if (!event.defaultPrevented) ctx?.onItemFocus(value) }}
     >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
@@ -521,12 +573,15 @@ function SelectSeparator({ className, ...props }: React.ComponentProps<typeof Se
   return <SelectPrimitive.Separator data-slot="select-separator" className={cn("h-px bg-(--sapList_BorderColor)", className)} {...props} />
 }
 
-type SelectTexts = { negativeType: string; criticalType: string; informationType: string }
+type SelectTexts = { negativeType: string; criticalType: string; informationType: string; roleDescription: string; optionsInGroups: (options: number, groups: number) => string; itemPosition: (position: number, count: number) => string }
 const defaultSelectTexts: SelectTexts = {
   negativeType: "Value State Error", // UI5 VALUE_STATE_TYPE_ERROR
   criticalType: "Value State Warning", // UI5 VALUE_STATE_TYPE_WARNING
   informationType: "Value State Information", // UI5 VALUE_STATE_TYPE_INFORMATION
+  roleDescription: "Listbox", // UI5 SELECT_ROLE_DESCRIPTION
+  optionsInGroups: (options, groups) => `${options} results are available in ${groups} groups`, // UI5 SELECT_OPTIONS_IN_GROUPS {0}, {1}
+  itemPosition: (position, count) => `List item ${position} of ${count}`, // UI5 LIST_ITEM_POSITION {0}, {1}
 }
-const defaultSelectTextsKeys = { negativeType: "VALUE_STATE_TYPE_ERROR", criticalType: "VALUE_STATE_TYPE_WARNING", informationType: "VALUE_STATE_TYPE_INFORMATION" } as const
+const defaultSelectTextsKeys = { negativeType: "VALUE_STATE_TYPE_ERROR", criticalType: "VALUE_STATE_TYPE_WARNING", informationType: "VALUE_STATE_TYPE_INFORMATION", roleDescription: "SELECT_ROLE_DESCRIPTION", optionsInGroups: "SELECT_OPTIONS_IN_GROUPS", itemPosition: "LIST_ITEM_POSITION" } as const
 
 export { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue, type SelectTexts }

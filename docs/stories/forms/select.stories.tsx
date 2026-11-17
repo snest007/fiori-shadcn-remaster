@@ -50,6 +50,9 @@ export const Open: Story = { args: { open: true }, parameters: { docs: { story: 
 export const CustomTexts: Story = { args: { valueState: "negative", valueStateMessage: "Choose an available delivery country.", valueStateTypeText: { negative: "Country error" }, dialogTitle: "Delivery countries", cancelText: "Use this country", dialogNamePrefix: "Choose" } }
 export const PhoneStateTexts: Story = { args: { valueState: "negative", texts: { negativeType: "Required country", criticalType: "Country warning", informationType: "Country information" } } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+export const GroupedAnnouncementTexts: Story = { args: { texts: { roleDescription: "Country selector", optionsInGroups: (options, groups) => `Countries ${options}; regions ${groups}`, itemPosition: (position, count) => `Country ${position} among ${count}` } } }
+export const German: Story = { globals: { locale: "de" } }
+export const Arabic: Story = { globals: { locale: "ar", dir: "rtl" } }
 export const LabelledField: Story = { render: function CountryField() {
   const [country, setCountry] = React.useState("de")
   return <div className="grid max-w-md gap-2"><Label htmlFor="select-country" showColon>Country</Label><Select value={country} onValueChange={setCountry}><SelectTrigger id="select-country"><SelectValue /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="de">Germany</SelectItem><SelectItem value="fr">France</SelectItem><SelectItem value="cn">China</SelectItem></SelectGroup></SelectContent></Select></div>
