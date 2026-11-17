@@ -1,6 +1,6 @@
 // SPIKE (not a registry item): a fiscal-period calendar built ONLY on Calendar's public API, without
 // touching registry/ui/calendar.tsx. Each "GAP" comment marks something the consumer wanted but could not
-// do through today's props — the input for card H6 (and for a separate FiscalPeriodPicker card).
+// do through today's props — the input for cards H6 and X0 (extension architecture).
 import * as React from "react"
 
 import { Calendar, CalendarLegend, CalendarLegendItem, type SpecialDate } from "@/components/ui/calendar"
@@ -184,7 +184,7 @@ export function FiscalCalendar({ id = "fiscal-calendar", locale = "en-US", defau
         </div>
 
         {/* Special periods have no days of their own (they subdivide the last regular period), so they can't
-            live in a day grid at all. Out of scope for Calendar; a FiscalPeriodPicker would own them. */}
+            live in a day grid at all. GAP (X0): needs a generic grid picker with Calendar's keyboard model and ARIA. */}
         <div role="group" aria-label={texts.specialPeriod} className="flex flex-wrap gap-2">
           {Array.from({ length: variant.specialPeriods }, (_, i) => variant.regularPeriods + 1 + i).map((n) => (
             <Button

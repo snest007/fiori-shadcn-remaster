@@ -1,5 +1,8 @@
 # H6b — Calendar: activated day in selection events, custom week numbers
 
+> **On hold until X0 is approved (2026-11-17).** X0 decides whether these two points stay separate props or become
+> part of the Calendar context hook / `components` design. The UI5 analysis below stays valid either way.
+
 **Goal:** close the two gaps the fiscal-calendar spike found that H6 doesn't cover (G4 and G3 in
 `docs/spikes/fiscal-calendar/README.md`). With them, a consumer can build SAP fiscal-year-variant calendars on
 `Calendar` without editing its source. The use cases are "click a day → select its whole fiscal period" and "show
@@ -106,8 +109,8 @@ forwarding needs a type change), plus `docs/spikes/fiscal-calendar/**`. Shared: 
   `calendarWeekNumbering`. Add fixtures for zh-CN and for de-DE with an explicit first day, and add a year-boundary
   week-number test. All of this changes `defaultNumber` only, so the API in this card stays as it is. The comparison
   harness lived in a git-ignored scratch folder; rebuild it from this description if needed.
-- Fiscal paging in the header, special periods 13–16 and a period grid. These belong to a separate
-  `FiscalPeriodPicker`, not to `Calendar` (see the spike README).
+- Fiscal paging in the header, special periods 13–16 and a period grid: structural extension (replaceable header,
+  overridable paging, generic grid picker), designed in X0. Not a fiscal component in the library.
 
 ## Acceptance
 

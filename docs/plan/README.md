@@ -135,6 +135,17 @@ Components added later (wave H) join the group of their demo category; their car
 - [ ] [P5 Display](tasks/P5-parity-display.md) — L (after E4, E5)
 - [ ] [P6 Navigation and layout](tasks/P6-parity-navigation-layout.md) — L (after E4, E5)
 
+## Wave X — extension architecture (owner's decision, 2026-11-17)
+
+The library is public and is a **template**: it ships UI5 parity as the default plus extension points deep enough
+that consumers build their own features (a fiscal-period picker, a booking calendar…) without forking our files.
+We don't build those features. X0 defines one contract for every component (style/state, content, structure tiers),
+proves it on Calendar with a prototype, and proposes rollout cards. Calendar work in wave H (H6, H6b) waits for it;
+H1's AnalyticalTable contract must conform to it.
+
+- [ ] [X0 Extension architecture: library-wide contract + Calendar pilot design](tasks/X0-extension-architecture.md) — M (design only; no `registry/` edits; any time)
+- Rollout cards X1… — proposed by X0, written after owner approval.
+
 ## Wave H — issue #1: AnalyticalTable, Calendar extension points, missing components
 
 From [issue #1](https://github.com/snest007/fiori-shadcn-remaster/issues/1) (reporter azhu716). Principle agreed with
@@ -152,8 +163,8 @@ parallel with them and with each other, except cards that touch the same existin
 - [ ] [H3 AnalyticalTable: grouping and aggregation](tasks/H3-analytical-table-group-aggregate.md) — L (after H2)
 - [ ] [H4 AnalyticalTable: tree, selection, sub-components, row states](tasks/H4-analytical-table-tree-select-subcomponents.md) — L (after H3)
 - [ ] [H5 AnalyticalTable: virtualisation, infinite scroll, F2 editing, pop-in](tasks/H5-analytical-table-virtual-infinite-edit.md) — L (after H4)
-- [ ] [H6 Calendar extension points (+ date pickers)](tasks/H6-calendar-extension-points.md) — M (after E4, E5)
-- [ ] [H6b Calendar: activated day in selection events, custom week numbers](tasks/H6b-calendar-selection-detail-week-numbers.md) — S (after H6; same file, never in parallel with it)
+- [ ] [H6 Calendar extension points (+ date pickers)](tasks/H6-calendar-extension-points.md) — M (after E4, E5; **on hold: X0 rewrites it**)
+- [ ] [H6b Calendar: activated day in selection events, custom week numbers](tasks/H6b-calendar-selection-detail-week-numbers.md) — S (after H6; same file, never in parallel with it; **on hold until X0**)
 - [ ] [H6c Calendar week numbers: match UI5 2.28 + `calendarWeekNumbering`](tasks/H6c-calendar-week-numbering.md) — M (after E5, H6, H6b; same files, never in parallel with them)
 - [ ] [H7 Input suggestions + MessageBox](tasks/H7-input-suggestions-messagebox.md) — L (after H0)
 - [ ] [H8 SplitButton, ButtonBadge, NumericInput](tasks/H8-split-button-badge-numeric.md) — M (after E4, E5)
