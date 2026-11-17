@@ -39,9 +39,14 @@ const preview: Preview = {
     if (context.viewMode === "story") applyDocumentGlobals({ globals: context.globals })
     // DocsPage owns the docs landmark. Full-page stories own theirs too: axe-core's
     // landmark-main-is-top-level / landmark-no-duplicate-main also match [role=main].
-    const role = context.viewMode === "story" && !context.parameters.fiori?.ownsLandmarks ? "main" : undefined
+    const ownsLandmarks = context.parameters.fiori?.ownsLandmarks
+    const role = context.viewMode === "story" && !ownsLandmarks ? "main" : undefined
+    const headingId = ownsLandmarks ? `fiori-story-heading-${context.id}` : undefined
+    const heading = context.viewMode === "story" && <h1 id={headingId} className="sr-only">{context.title}: {context.name}</h1>
     const controlArgs = Object.fromEntries(Object.entries(context.args).filter(([, value]) => ["string", "number", "boolean"].includes(typeof value)))
-    return <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={context.globals.theme} data-density={context.globals.density} dir={context.globals.dir}>{context.viewMode === "story" && <h1 className="sr-only">{context.title}: {context.name}</h1>}<Story /></div>
+    // axe-core regionEvaluate/findRegionlessElms counts accessible hidden headings.
+    // Name a region around this heading alone; the story's main stays its sibling.
+    return <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={context.globals.theme} data-density={context.globals.density} dir={context.globals.dir}>{context.viewMode === "story" && ownsLandmarks ? <section aria-labelledby={headingId}>{heading}</section> : heading}<Story /></div>
   }],
   parameters: {
     docs: { page: DocsPage, source: { type: "code" } },

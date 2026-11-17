@@ -16,6 +16,7 @@ async function auditLandmarks(page: Page, testInfo: TestInfo, name: string) {
   const result = await new AxeBuilder({ page }).analyze()
   await testInfo.attach(`${name}-axe-raw.json`, { body: JSON.stringify(result, null, 2), contentType: "application/json" })
   expect(result.violations.filter((violation) => landmarkRules.includes(violation.id))).toEqual([])
+  return result
 }
 
 async function buildLandmarkFixture(worker: number) {
@@ -95,7 +96,7 @@ test("blocks and opted-out layouts own their main while fullscreen controls reta
     await expect(canvas).toHaveAttribute("dir", "rtl")
     const expectedArgs = kind === "control" ? { children: "Save", variant: "emphasized" } : kind === "layout" ? { role: "main", "aria-label": "Purchase orders" } : {}
     expect(JSON.parse(await canvas.getAttribute("data-fiori-args") ?? "null")).toEqual(expectedArgs)
-    await expect(canvas.locator(":scope > h1.sr-only")).toHaveCount(1)
+    await expect(canvas.locator("h1.sr-only")).toHaveCount(1)
     await expect(page.getByRole("main")).toHaveCount(1)
     if (kind === "control") {
       await expect(canvas).toHaveAttribute("role", "main")
@@ -105,13 +106,25 @@ test("blocks and opted-out layouts own their main while fullscreen controls reta
       await expect(canvas).not.toHaveAttribute("role")
       const owned = canvas.getByRole("main")
       await expect(owned).toHaveCount(1)
+      const heading = canvas.getByRole("heading", { level: 1 })
+      const headingRegion = canvas.getByRole("region", { name: await heading.innerText(), exact: true })
+      await expect(headingRegion.getByRole("heading", { level: 1 })).toHaveCount(1)
+      await expect(headingRegion.locator('main, [role="main"]')).toHaveCount(0)
       if (kind === "block") {
         await expect(owned).toHaveJSProperty("tagName", "MAIN")
-        await expect(canvas.locator(":scope > h1.sr-only")).toHaveText("Floorplans/App Shell: Playground")
+        await expect(heading).toHaveText("Floorplans/App Shell: Playground")
       }
       else await expect(owned).toHaveAccessibleName("Purchase orders")
     }
-    await auditLandmarks(page, testInfo, kind)
+    const raw = await auditLandmarks(page, testInfo, kind)
+    if (kind === "block") {
+      // AppShell's default Card uses Title level="H3" after the canvas H1
+      // (registry/blocks/app-shell.tsx). This single heading-order node existed
+      // before SX; keep the full raw scan and reject every new rule or node.
+      expect(raw.violations.map((violation) => violation.id)).toEqual(["heading-order"])
+      expect(raw.violations[0].nodes).toHaveLength(1)
+      await expect(canvas.locator('[data-slot="card"] h3[data-slot="title"]')).toHaveText("Welcome to the launchpad")
+    }
   }
 })
 
