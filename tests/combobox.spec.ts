@@ -324,6 +324,7 @@ for (const direction of ["ltr", "rtl"]) test(`ComboBox ${direction} keyboard ann
       await current.keyboard.press("F4")
       await expect(input).toHaveValue("Denmark")
       await expect(region).toHaveAttribute("aria-live", "polite")
+      await expect(region).toHaveAttribute("role", "alert")
       await expect(region).toHaveText("DK List item 1 of 4")
       await current.keyboard.press("ArrowUp")
       await expect(input).toHaveValue("")
