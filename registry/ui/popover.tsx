@@ -72,7 +72,14 @@ function PopoverContent({
     <PopoverTitleContext.Provider value={titleCtx}><div ref={rangeRef} className="fiori-popup__root">{content}</div></PopoverTitleContext.Provider>
   </>
   const hostProps = custom ? { ...custom.props } : undefined
-  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-labelledby", "aria-describedby", "aria-modal"]) delete (hostProps as Record<string, unknown>)[key]
+  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-labelledby", "aria-describedby", "aria-modal"]) {
+    if ((hostProps as Record<string, unknown>)[key] !== undefined && process.env.NODE_ENV !== "production") console.warn("Popover.Content: ignored custom host ownership prop", key)
+    delete (hostProps as Record<string, unknown>)[key]
+  }
+  if (hostProps && props["aria-label"] !== undefined) {
+    if (hostProps["aria-label"] !== undefined && process.env.NODE_ENV !== "production") console.warn("Popover.Content: ignored custom host ownership prop", "aria-label")
+    delete hostProps["aria-label"]
+  }
   const surface = (
     <PopoverPrimitive.Content asChild={asChild}
       data-slot="popover-content"
