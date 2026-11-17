@@ -75,14 +75,37 @@ forwarding needs a type change), plus `docs/spikes/fiscal-calendar/**`. Shared: 
 
 ## Out of scope (noted for a later card)
 
-- **Week-numbering rule.** Passing `firstDayOfWeek` explicitly also switches the first-week rule to "1 day minimum"
-  (`calendar.tsx`: `weekNumber(…, firstDayOfWeek === undefined ? weekInfo.minimalDays : 1)`). In de-DE, 2027-01-01 is
-  week 53 without the prop and week 1 with `firstDayOfWeek={1}`. The date pickers always pass it explicitly, so their
-  popover calendar may number year-boundary weeks differently from a standalone `Calendar`. Not yet compared with UI5.
-  UI5 2.28 instead has `calendarWeekNumbering` (`Default | ISO_8601 | MiddleEastern | WesternTraditional`), which sets
-  the first day and the first-week rule together. Verify against `/ui5.html` first. Then either port
-  `calendarWeekNumbering`, or document the current behaviour on `firstDayOfWeek`. Either way only `defaultNumber`
-  changes.
+- **Week-numbering rule (verified against ui5-calendar 2.28 on 2026-11-17; fix in a separate card).** Method:
+  UI5 and ours side by side, 11 year-boundary months (2020–2028), 66 week rows per configuration. A UI5 "first day
+  override" means the global `formatSettings.firstDayOfWeek` config; UI5 has no per-calendar prop for it.
+
+  | Configuration | Rows that differ from UI5 |
+  |---|---|
+  | de-DE, en-US, en-GB, ar-EG — no `firstDayOfWeek` | 0 |
+  | zh-CN — no `firstDayOfWeek` | 34 (e.g. week of 2020-12-28: UI5 1, ours 53) |
+  | de-DE `firstDayOfWeek={1}` (what the date pickers pass) | 34 (week of 2020-12-28: UI5 53, ours 1) |
+  | de-DE `firstDayOfWeek={0}` | 28 |
+  | en-US `firstDayOfWeek={1}` | 60 (off by one all year) |
+  | en-US `firstDayOfWeek={0}` | 0 |
+
+  How UI5 numbers weeks (`DayPicker.js:_calculateWeekNumber` → `DateFormat` pattern `"w"` → `UniversalDate.getWeekByDate`):
+  it takes the row's **last** day and applies the **locale's** CLDR rule (first day + minimal days, or
+  `calendarWeekNumbering`). The first-day override only moves the grid columns; it never changes the week rule.
+  en-US also uses a split week (`isSplitWeek`: week 1 always contains Jan 1). This model reproduces all 594 UI5 rows
+  except 3 en-US split-week rows.
+
+  So we have three defects, and none of them is the clean "ISO vs not" question first assumed:
+  1. `calendar.tsx`: passing `firstDayOfWeek` forces minimal days to 1. UI5 keeps the locale's minimal days. Every
+     DatePicker / DateRangePicker / DateTimePicker hits this, because they always pass the first day.
+  2. `fiori-dates.ts:getWeekInfo`: Chromium's `Intl.Locale#getWeekInfo` omits `minimalDays`, and the fallback guesses
+     4 for every Monday-first locale. UI5's CLDR says zh-CN is 1 (de 4, en_GB 4, en 1, ar_EG 6/1). Take minimal days
+     from CLDR data (E5's locale packs, or UI5's `generated/assets/cldr/*.json` values) instead of guessing.
+  3. en-US split week at year end: covered once 1 is fixed only if `weekNumber` also ports `isSplitWeek`.
+
+  Fix path for that card: port UI5's model (row's last day, locale rule, split week for en-US), then optionally add
+  `calendarWeekNumbering`. Add fixtures for zh-CN and for de-DE with an explicit first day, and add a year-boundary
+  week-number test. All of this changes `defaultNumber` only, so the API in this card stays as it is. The comparison
+  harness lived in a git-ignored scratch folder; rebuild it from this description if needed.
 - Fiscal paging in the header, special periods 13–16 and a period grid. These belong to a separate
   `FiscalPeriodPicker`, not to `Calendar` (see the spike README).
 
