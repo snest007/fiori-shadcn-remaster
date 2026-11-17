@@ -77,3 +77,28 @@ Complete logs, JSON results, the failed result directory, exact repair interacti
 refreshed Evening screenshots and the authoritative story inventory are in `.integration/S2-evidence/`.
 `final-acceptance.json` distinguishes reused main results from the fresh repaired Storybook result and missing run.
 Raw known findings remain attached to individual checks. Shared Docs globals/Controls limitations remain handed to S5.
+
+## Third-attempt candidate — 2026-11-17
+
+The owner approved a third attempt in `docs/plan/returns/S2.md`. Main through `df76cb0` was merged into the retained
+S2 branch at `7226c60`; this includes the S0 Dialog readiness repair and the strict-consumer Calendar change.
+The merged classifier is main's complete S0/S1 file, byte-for-byte, plus the separate retained `// S2` block.
+All six patches and this report were already tracked in this exact handoff directory. No physical relocation or
+component patch application was needed. Fresh inventory hashes and independent `git apply --check` results are
+recorded under `.integration/S2-evidence/third-20261117/`; the older validation above remains historical evidence.
+
+The `January.pdf` leaf now obeys the same caller-owned removed state as every other Tree item. The persistent
+`tests-storybook/s2-tree-delete.spec.ts` opens the actual compiled Delete story with a preselected surviving sibling,
+expands Invoices with the keyboard, deletes January, then deletes Invoices. It checks surviving DOM identities,
+parent expansion/position semantics, unchanged selection, roving re-entry through the real focus sentinel, and
+keyboard navigation after each deletion. This S2-specific shared test path is the minimal scope exception requested
+by the return note; it changes no setup/helper or component behavior. The List detail action's real `Edit` default
+is documented as an API accessibility extension without a native List i18n key. DateTimePicker's real open/close
+defaults are unchanged; their provenance now names inherited `DatePicker.openIconTitle` keys.
+
+Source is prepared before browser validation. Fresh acceptance must run on frozen source after the orchestrator
+grants the serialized validation token: generate/typecheck/registry, main twice, fresh Storybook build and full suite
+twice, Morning/HCB docs/Controls/keyboard/source/layout review, and three fresh Evening screenshots. The S0 Dialog
+pilot is an explicit stop condition if it fails again; S2 may not repair it. S2 remains unchecked until merged root
+acceptance. No candidate component patch, new baseline, skipped story, global rule disable, retry, sleep, or tolerance
+change is introduced by this attempt.
