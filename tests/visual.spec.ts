@@ -17,7 +17,10 @@ type CaseInfo = { id: string; tolerance: number }
 // cells one by one costs ~100ms each, which doesn't scale to hundreds of fixtures.
 async function shoot(page: Page, url: string, ids?: string[]) {
   await page.goto(url)
-  await page.waitForSelector("html[data-ready=true]", { timeout: 30_000 })
+  // The UI5 reference page needs ~10s of main-thread work on an idle machine (ui5-main.ts
+  // waits for every fixture's own readiness). With three workers on a 4-vCPU CI runner it
+  // reached 30s; allow 60s like tests/visual-sapui5.spec.ts. This only bounds the wait.
+  await page.waitForSelector("html[data-ready=true]", { timeout: 60_000 })
   await page.mouse.move(0, 0)
   // Chromium captures an RTL document from its negative scroll origin when any fixture
   // overflows horizontally. Cells have their own dir attribute, so normalize only the

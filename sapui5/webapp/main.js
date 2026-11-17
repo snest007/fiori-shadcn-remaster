@@ -49,6 +49,16 @@ sap.ui.define([
       }
       Rendering.renderPendingUIUpdates("sapui5-reference")
       await Promise.all(renders)
+      // core/Popup.js open() hands out z-indexes in the order popups finish opening. Fixtures
+      // render concurrently, so that order (and which surface's shadow paints over a
+      // neighbouring cell) depended on machine load: under CI load the Reset warning dialog
+      // out-stacked the variant-management-list-search popover below it and its glow covered
+      // that popover's header. Restack the in-place surfaces in document order, which is what
+      // an idle page produces and what the React page's stacking matches.
+      let zIndex = 10
+      for (const surface of root.querySelectorAll("[data-fixture] [style*='z-index']")) {
+        if (surface.style.zIndex) surface.style.zIndex = String(zIndex += 10)
+      }
     }
     Rendering.renderPendingUIUpdates("sapui5-reference")
     await document.fonts.ready
