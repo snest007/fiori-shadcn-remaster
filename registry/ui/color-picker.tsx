@@ -29,6 +29,10 @@ const defaultTexts: ColorPickerTexts = {
   redLabel: "R", greenLabel: "G", blueLabel: "B", hueLabel: "H", saturationLabel: "S", lightLabel: "L", alphaLabel: "A", percentage: "%",
   toggleMode: "Change Color Mode", invalidEntry: "Invalid entry", modeChanged: (mode, values) => `Color mode changed to ${mode}. Current values: ${values}.`,
 }
+/**
+ * @accessibility accessibleName is appended to the inner picker group name. texts names sliders, channel inputs, the mode toggle and the polite mode-change announcement; roles and values remain component-owned.
+ * @accessibility Tab reaches hue, alpha and color channel controls. Arrows, Home/End and PageUp/PageDown change sliders; Enter commits Hex. The mode button switches RGB/HSL channels and announces the resulting mode and values.
+ */
 type ColorPickerProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
   value?: string; defaultValue?: string; onValueChange?: (value: string) => void; simplified?: boolean
   accessibleName?: string; texts?: Partial<ColorPickerTexts>

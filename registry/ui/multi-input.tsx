@@ -33,6 +33,10 @@ function SuggestionItem(_props: SuggestionItemProps): React.ReactNode {
   return null
 }
 
+/**
+ * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the input combobox. roleDescription, tokensCountText and suggestionsLabel describe the field, tokens and suggestions; valueHelpLabel names the value-help icon.
+ * @accessibility Enter or blur commits text for the caller to create tokens. Arrow keys navigate suggestions; Backspace in an empty field, Left at its start or Home enters tokens. F4 or Alt+Up/Down invokes value help. nMoreText, tokenDeleteLabel and phone dialog strings override component text.
+ */
 type MultiInputProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
   /** <Token> elements shown before the text. The MultiInput doesn't create or remove tokens itself. */
   tokens?: React.ReactNode
