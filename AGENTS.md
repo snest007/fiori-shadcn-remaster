@@ -112,6 +112,11 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
     top. We don't build those features.
     - New and changed components implement the contract's T1 in full. T2/T3 points ship only with a realistic consumer
       example that would otherwise fork the file, plus invariant tests; inventory tiers are ceilings, not targets.
+      **Exception (owner's decision, 2026-11-17):** parity and documentation cards — E4, E5, P1–P6 (incl. P2a) and the
+      S story cards — don't owe T1 for the components they touch; T1 arrives with the component's rollout card
+      (X1–X13, after its P card, per `docs/plan/README.md`). They still must not remove or narrow an existing
+      extension point, `className`, `data-slot` or controlled prop (rule 7), and any customisation point they *add*
+      follows the ownership rules below.
     - Default UI5 pixels, accessibility tree and interaction stay unchanged unless the owning card explicitly fixes
       parity.
     - Customisation points use component-owned semantic hosts and protected getters (`getXProps(item, extra)` merges

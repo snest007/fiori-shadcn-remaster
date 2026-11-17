@@ -75,8 +75,8 @@ F1 and F2 can run in parallel after F0.
 - [x] [E1 Interaction-state visual fixtures](tasks/E1-interaction-fixtures.md) — M
 - [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
 - [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/petalo, Pages; push only, no gh; run in the main checkout, not via RUN.md)
-- [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (third attempt returned; retained on `codex/E4` — see the card's 2026-11-17 addendum and `returns/E4.md`. After S0; before waves P and H)
-- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (third attempt returned; retained on `codex/E5` — see the card's 2026-11-17 addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
+- [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (fourth attempt approved 2026-11-17: the five review findings + initial baselines, rule 11 exempt — `returns/E4.md` top section; retained on `codex/E4` — see the card's 2026-11-17 addendum and `returns/E4.md`. After S0; before waves P and H)
+- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt approved 2026-11-17: two Select/SegmentedButton findings + ratchet + acceptance, rule 11 exempt — `returns/E5.md` top section; retained on `codex/E5` — see the card's 2026-11-17 addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
@@ -102,9 +102,9 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 
 - [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
 - [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
-- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (third attempt returned; retained on `codex/S2` — see `returns/S2.md`)
-- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (third attempt returned; retained on `codex/S3` — see `returns/S3.md`)
-- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (third attempt returned; retained on `codex/S4` — see `returns/S4.md`)
+- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S2.md` top section; retained on `codex/S2`)
+- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S3.md` top section; retained on `codex/S3`)
+- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S4.md` top section; retained on `codex/S4`)
 - [x] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/SX-storybook-landmarks.md) — S (unblocks S4)
 - [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
 
