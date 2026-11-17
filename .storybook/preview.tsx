@@ -46,7 +46,12 @@ const preview: Preview = {
     const controlArgs = Object.fromEntries(Object.entries(context.args).filter(([, value]) => ["string", "number", "boolean"].includes(typeof value)))
     // axe-core regionEvaluate/findRegionlessElms counts accessible hidden headings.
     // Name a region around this heading alone; the story's main stays its sibling.
-    return <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={context.globals.theme} data-density={context.globals.density} dir={context.globals.dir}>{context.viewMode === "story" && ownsLandmarks ? <section aria-labelledby={headingId}>{heading}</section> : heading}<Story /></div>
+    // UI5 2.28 ListTemplate renders native header/footer (TreeList inherits List).
+    // axe-core landmarkHasBodyContextMatches excludes native headers/footers only
+    // beneath article/aside/main/nav/section. An unnamed section stays generic and keeps
+    // component roles intact; owned full-page landmarks and Docs stay unwrapped.
+    const story = role === "main" ? <section><Story /></section> : <Story />
+    return <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={context.globals.theme} data-density={context.globals.density} dir={context.globals.dir}>{context.viewMode === "story" && ownsLandmarks ? <section aria-labelledby={headingId}>{heading}</section> : heading}{story}</div>
   }],
   parameters: {
     docs: { page: DocsPage, source: { type: "code" } },
