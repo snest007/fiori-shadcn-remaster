@@ -86,6 +86,7 @@ function UserMenu({
   texts: textsProp,
   className,
   children,
+  asChild,
   side = "bottom",
   align = "end",
   onOpenAutoFocus,
@@ -147,57 +148,13 @@ function UserMenu({
     [onItemClick, onOpenChange]
   )
 
-  const hasItems = React.Children.toArray(children).length > 0
+  const custom = asChild ? React.Children.only(children) as React.ReactElement<React.ComponentProps<"div">> : undefined
+  const content = custom ? custom.props.children : children
+  const hasItems = React.Children.toArray(content).length > 0
   const defaultFooter = footer === undefined
-  return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverAnchor virtualRef={anchor} />
-      <PopoverContent
-        ref={surfaceRef}
-        data-slot="user-menu"
-        side={side}
-        align={align}
-        tabIndex={-1}
-        aria-label={`${texts.accessibleName} ${account.titleText ?? ""}`.trim()}
-        className={cn("fiori-user-menu", className)}
-        onOpenAutoFocus={(e) => {
-          onOpenAutoFocus?.(e)
-          if (e.defaultPrevented) return
-          const first = items()[0]
-          if (first) {
-            e.preventDefault()
-            first.focus()
-          }
-        }}
-        onCloseAutoFocus={(e) => {
-          onCloseAutoFocus?.(e)
-          if (e.defaultPrevented) return
-          e.preventDefault()
-          // Not when the user has moved on, e.g. by clicking another button of the shell bar.
-          if (restoreFocus.current && document.activeElement === document.body) lastOpener.current?.focus()
-        }}
-        onInteractOutside={(e) => {
-          onInteractOutside?.(e)
-          // The opener toggles on its own click.
-          if (lastOpener.current?.contains(e.target as Node)) e.preventDefault()
-        }}
-        onKeyDown={(e) => {
-          onKeyDown?.(e)
-          if (e.defaultPrevented || e.key !== "Tab") return
-          // Focus stays inside, as in UI5's popups.
-          const stops = [...e.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input, select, textarea, [tabindex="0"]')].filter((el) => el.offsetParent !== null)
-          const first = stops[0]
-          const last = stops.at(-1)
-          if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault()
-            last?.focus()
-          } else if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault()
-            first?.focus()
-          }
-        }}
-        {...props}
-      >
+  // UserMenuTemplate.js owns the popup, internal action menu and account groups.
+  // A custom outer host changes only the host element; retain all those children.
+  const body = <>
         <h1 className="sr-only">{texts.heading}</h1>
         <div role="group" aria-label={texts.currentInformation} className="fiori-user-menu__bar" data-sap-ui-fastnavgroup="true" data-scrolled={scrolled || titleInHeader ? "" : undefined}>
           {titleInHeader && <div className="fiori-user-menu__bar-title">{account.titleText}</div>}
@@ -259,7 +216,7 @@ function UserMenu({
                 }}
               >
                 <RovingIndex.Provider value={current}>
-                  {React.Children.toArray(children).map((child, i) => (
+                  {React.Children.toArray(content).map((child, i) => (
                     <ItemIndex.Provider key={React.isValidElement(child) ? (child.key ?? i) : i} value={i}>
                       {child}
                     </ItemIndex.Provider>
@@ -287,6 +244,57 @@ function UserMenu({
         ) : (
           footer && <div className="fiori-popup__footer fiori-user-menu__footer">{footer}</div>
         )}
+  </>
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverAnchor virtualRef={anchor} />
+      <PopoverContent asChild={asChild}
+        ref={surfaceRef}
+        data-slot="user-menu"
+        side={side}
+        align={align}
+        tabIndex={-1}
+        aria-label={`${texts.accessibleName} ${account.titleText ?? ""}`.trim()}
+        className={cn("fiori-user-menu", className)}
+        onOpenAutoFocus={(e) => {
+          onOpenAutoFocus?.(e)
+          if (e.defaultPrevented) return
+          const first = items()[0]
+          if (first) {
+            e.preventDefault()
+            first.focus()
+          }
+        }}
+        onCloseAutoFocus={(e) => {
+          onCloseAutoFocus?.(e)
+          if (e.defaultPrevented) return
+          e.preventDefault()
+          // Not when the user has moved on, e.g. by clicking another button of the shell bar.
+          if (restoreFocus.current && document.activeElement === document.body) lastOpener.current?.focus()
+        }}
+        onInteractOutside={(e) => {
+          onInteractOutside?.(e)
+          // The opener toggles on its own click.
+          if (lastOpener.current?.contains(e.target as Node)) e.preventDefault()
+        }}
+        onKeyDown={(e) => {
+          onKeyDown?.(e)
+          if (e.defaultPrevented || e.key !== "Tab") return
+          // Focus stays inside, as in UI5's popups.
+          const stops = [...e.currentTarget.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input, select, textarea, [tabindex="0"]')].filter((el) => el.offsetParent !== null)
+          const first = stops[0]
+          const last = stops.at(-1)
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault()
+            last?.focus()
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault()
+            first?.focus()
+          }
+        }}
+        {...props}
+      >
+        {custom ? React.cloneElement(custom, {}, body) : body}
       </PopoverContent>
     </Popover>
   )
