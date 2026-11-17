@@ -1,5 +1,36 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
+test.describe("ResponsivePopover paired phone custom host", () => {
+test.use({ viewport: { width: 375, height: 667 }, hasTouch: true })
+for (const rtl of [false, true]) test(`ResponsivePopover phone ${rtl ? "RTL" : "LTR"} custom host retains native dialog role title and keyboard focus`, async ({ page, browser }) => {
+  const reference = await browser.newPage({ viewport: { width: 375, height: 667 }, hasTouch: true })
+  try {
+    const id = `responsive-popover-host-phone${rtl ? "-rtl" : ""}`
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&only=${id}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const popup = current.getByRole("dialog", { name: "Country", exact: true })
+      await expect(popup).toBeVisible()
+      await expect(popup).toHaveAttribute("aria-modal", "true")
+      if (!native) {
+        await expect(popup).toHaveAttribute("data-custom-host", "responsive-popover-phone")
+        await expect(popup).toHaveAttribute("tabindex", "-1")
+        await expect(popup).toHaveAttribute("aria-label", "Country")
+      }
+      // UI5 projects buttons through Popup/ResponsivePopover slots; its AX
+      // dialog contains them, while their DOM remains under the fixture holder.
+      const controls = native ? current.locator("#responsive-popover-host-phone-demo") : popup
+      const done = controls.getByRole("button", { name: "Done", exact: true })
+      await done.focus(); await expect(done).toBeFocused()
+      await current.keyboard.press("Shift+Tab")
+      await expect(controls.getByRole("button", { name: "Decline", exact: true })).toBeFocused()
+      await current.keyboard.press("Escape")
+      await expect(popup).toHaveCount(0)
+    }
+  } finally { await reference.close() }
+})
+})
+
 async function visit(page: Page, kind: string, native = false, suffix = "") {
   await page.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&interactive&only=${kind}-phone${suffix}`)
   await page.waitForSelector("html[data-ready=true]")
