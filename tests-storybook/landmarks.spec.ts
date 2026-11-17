@@ -22,7 +22,7 @@ async function auditLandmarks(page: Page, testInfo: TestInfo, name: string) {
 async function buildLandmarkFixture(worker: number) {
   // S4's production block stories are not registered yet. Bundle the real helper,
   // decorator and components as a test-only portable story; never rewrite their DOM.
-  const source = resolve(root, `.integration/SX-evidence/landmark-fixture-${worker}`)
+  const source = resolve(root, `.integration/SX-html-context-evidence/landmark-fixture-${worker}`)
   const output = resolve(root, `storybook-static/sx-landmarks-${worker}`)
   await mkdir(source, { recursive: true })
   await writeFile(resolve(source, "index.html"), '<!doctype html><html lang="en"><head><title>Storybook landmark ownership</title></head><body><div id="storybook-root"></div><script type="module" src="virtual:sx-landmarks"></script></body></html>')
@@ -134,5 +134,6 @@ test("docs canvases remain divs within the docs-owned main", async ({ page }, te
   await expect(canvases.first().locator("[data-slot]").first()).toBeAttached()
   await expect(page.getByRole("main")).toHaveCount(1)
   expect(await canvases.evaluateAll((nodes) => nodes.every((node) => node.tagName === "DIV" && !node.hasAttribute("role")))).toBe(true)
+  await expect(canvases.locator(":scope > section")).toHaveCount(0)
   await auditLandmarks(page, testInfo, "docs")
 })
