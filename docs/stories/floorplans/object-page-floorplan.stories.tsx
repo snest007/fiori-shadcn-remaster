@@ -7,8 +7,9 @@ const meta = {
   title: "Floorplans/Object Page",
   component: ObjectPageFloorplan,
   tags: ["autodocs"],
-  parameters: { fiori: { name: "object-page-floorplan" }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  parameters: { fiori: { name: "object-page-floorplan", ownsLandmarks: true }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
   argTypes: { children: { control: false, table: { disable: true } }, sideNavigation: { control: false, table: { disable: true } } },
+  // The real default block owns its main landmark.
   render: () => <ObjectPageFloorplan />,
 } satisfies Meta<typeof ObjectPageFloorplan>
 export default meta

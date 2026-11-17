@@ -12,7 +12,10 @@ type Args = DynamicSideContentProps & { width: number }
 const base = fioriMeta({ name: "dynamic-side-content", component: DynamicSideContent })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "420px" } } },
+  parameters: { ...base.parameters, fiori: { ...base.parameters.fiori, ownsLandmarks: true }, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "420px" } } },
+  // This full-page composition owns a native main in story mode. Docs owns its
+  // main already, so inline Playground content keeps a neutral wrapper there.
+  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Supplier workspace"><Story /></main> : <div><Story /></div>],
   args: { width: 1100, sideContentPosition: "end", sideContentVisibility: "showAboveS", sideContentFallDown: "onMinimumWidth", equalSplit: false, hideMainContent: false, hideSideContent: false, toggled: false, onToggledChange: fn(), onLayoutChange: fn() },
   argTypes: { ...base.argTypes, width: { control: { type: "number", min: 400, max: 1600 } }, sideContentPosition: { control: "inline-radio", options: ["end", "start"] }, sideContentVisibility: { control: "select", options: ["alwaysShow", "showAboveL", "showAboveM", "showAboveS", "neverShow"] }, sideContentFallDown: { control: "select", options: ["belowXL", "belowL", "belowM", "onMinimumWidth"] }, equalSplit: { control: "boolean" }, hideMainContent: { control: "boolean" }, hideSideContent: { control: "boolean" }, toggled: { control: "boolean" }, sideContent: { control: false }, accessibilityAttributes: { control: false }, onToggledChange: { control: false }, onLayoutChange: { control: false } },
   render: function SupplierSideContent(args: Args) {

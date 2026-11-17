@@ -18,7 +18,10 @@ import { docsLink, fioriMeta } from "../_lib/meta"
 const base = fioriMeta({ name: "object-page", component: ObjectPage })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "600px" } } },
+  parameters: { ...base.parameters, fiori: { ...base.parameters.fiori, ownsLandmarks: true }, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "600px" } } },
+  // This full-page composition owns a native main in story mode. Docs owns its
+  // main already, so inline Playground content keeps a neutral wrapper there.
+  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Robot arm details"><Story /></main> : <div><Story /></div>],
   args: { mode: "anchor", selectedSection: "general", showAnchorBar: true, anchorBarLabel: "Object sections", headerSnapped: false, headerPinned: false, hidePinButton: false, showFooter: false, onSelectedSectionChange: fn(), onTitleToggle: fn(), onPinButtonToggle: fn() },
   argTypes: { ...base.argTypes, mode: { control: "inline-radio", options: ["anchor", "tabs"] }, selectedSection: { control: "select", options: ["general", "assembly", "contact"] }, showAnchorBar: { control: "boolean" }, anchorBarLabel: { control: "text" }, headerSnapped: { control: "boolean" }, headerPinned: { control: "boolean" }, hidePinButton: { control: "boolean" }, showFooter: { control: "boolean" }, title: { control: false }, header: { control: false }, footer: { control: false }, texts: { control: false }, accessibilityAttributes: { control: false }, defaultSelectedSection: { control: false }, defaultHeaderPinned: { control: false }, defaultHeaderSnapped: { control: false }, scrollContainerRef: { control: false }, contentClassName: { control: false, table: { disable: true } }, onSelectedSectionChange: { control: false }, onTitleToggle: { control: false }, onPinButtonToggle: { control: false } },
   render: function RobotDetails(args: ObjectPageProps) {

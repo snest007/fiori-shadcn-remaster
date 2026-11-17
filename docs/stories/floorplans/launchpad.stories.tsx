@@ -7,8 +7,9 @@ const meta = {
   title: "Floorplans/Launchpad",
   component: Launchpad,
   tags: ["autodocs"],
-  parameters: { fiori: { name: "launchpad" }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  parameters: { fiori: { name: "launchpad", ownsLandmarks: true }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
   argTypes: { children: { control: false, table: { disable: true } }, sideNavigation: { control: false, table: { disable: true } } },
+  // The real default block owns its main landmark.
   render: () => <Launchpad />,
 } satisfies Meta<typeof Launchpad>
 export default meta

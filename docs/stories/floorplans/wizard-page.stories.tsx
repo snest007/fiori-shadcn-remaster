@@ -7,7 +7,10 @@ const meta = {
   title: "Floorplans/Wizard Page",
   component: WizardPage,
   tags: ["autodocs"],
-  parameters: { fiori: { name: "wizard-page" }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  parameters: { fiori: { name: "wizard-page", ownsLandmarks: true }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  // The real default block has no main. Own the full-page composition here;
+  // keep its default data and descendant ARIA untouched, including native headers.
+  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Create Product"><Story /></main> : <div><Story /></div>],
   argTypes: { children: { control: false, table: { disable: true } }, sideNavigation: { control: false, table: { disable: true } } },
   render: () => <WizardPage />,
 } satisfies Meta<typeof WizardPage>

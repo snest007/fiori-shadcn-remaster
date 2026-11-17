@@ -7,8 +7,9 @@ const meta = {
   title: "Floorplans/List Report",
   component: ListReport,
   tags: ["autodocs"],
-  parameters: { fiori: { name: "list-report" }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  parameters: { fiori: { name: "list-report", ownsLandmarks: true }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
   argTypes: { children: { control: false, table: { disable: true } }, sideNavigation: { control: false, table: { disable: true } } },
+  // The real default block owns its main landmark.
   render: () => <ListReport />,
 } satisfies Meta<typeof ListReport>
 export default meta

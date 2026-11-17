@@ -14,7 +14,10 @@ type Args = FlexibleColumnLayoutProps & { width: number }
 const base = fioriMeta({ name: "flexible-column-layout", component: FlexibleColumnLayout })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "540px" } } },
+  parameters: { ...base.parameters, fiori: { ...base.parameters.fiori, ownsLandmarks: true }, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "540px" } } },
+  // This full-page composition owns a native main in story mode. Docs owns its
+  // main already, so inline Playground content keeps a neutral wrapper there.
+  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Order workspace"><Story /></main> : <div><Story /></div>],
   args: { layout: "ThreeColumnsMidExpanded", width: 1100, disableResizing: false, disableAnimation: false, onLayoutChange: fn(), onLayoutConfigurationChange: fn(), onMediaChange: fn() },
   argTypes: { ...base.argTypes, layout: { control: "select", options: layouts }, width: { control: { type: "number", min: 400, max: 1600 } }, disableResizing: { control: "boolean" }, disableAnimation: { control: "boolean" }, startColumn: { control: false }, midColumn: { control: false }, endColumn: { control: false }, defaultLayout: { control: false }, layoutsConfiguration: { control: "object" }, accessibilityAttributes: { control: false }, onLayoutChange: { control: false }, onLayoutConfigurationChange: { control: false }, onMediaChange: { control: false } },
   render: function OrderColumns(args: Args) {

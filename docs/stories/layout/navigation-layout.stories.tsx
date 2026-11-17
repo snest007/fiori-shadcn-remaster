@@ -14,7 +14,10 @@ import { docsLink, fioriMeta } from "../_lib/meta"
 const base = fioriMeta({ name: "navigation-layout", component: NavigationLayout })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "540px" } } },
+  parameters: { ...base.parameters, fiori: { ...base.parameters.fiori, ownsLandmarks: true }, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "540px" } } },
+  // This full-page composition owns a native main in story mode. Docs owns its
+  // main already, so inline Playground content keeps a neutral wrapper there.
+  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Purchasing application"><Story /></main> : <div><Story /></div>],
   args: { mode: "auto", onModeChange: fn() },
   argTypes: { ...base.argTypes, mode: { control: "inline-radio", options: ["auto", "collapsed", "expanded"] }, header: { control: false }, sideContent: { control: false }, onModeChange: { control: false } },
   render: function ApplicationLayout(args: NavigationLayoutProps) {

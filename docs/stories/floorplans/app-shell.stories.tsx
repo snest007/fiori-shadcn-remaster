@@ -7,8 +7,9 @@ const meta = {
   title: "Floorplans/App Shell",
   component: AppShell,
   tags: ["autodocs"],
-  parameters: { fiori: { name: "app-shell" }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  parameters: { fiori: { name: "app-shell", ownsLandmarks: true }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
   argTypes: { children: { control: false, table: { disable: true } }, sideNavigation: { control: false, table: { disable: true } } },
+  // The real default block owns its main landmark.
   render: () => <AppShell />,
 } satisfies Meta<typeof AppShell>
 export default meta

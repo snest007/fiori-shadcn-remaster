@@ -11,7 +11,10 @@ import { docsLink, fioriMeta } from "../_lib/meta"
 const base = fioriMeta({ name: "page", component: Page })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "500px" } } },
+  parameters: { ...base.parameters, fiori: { ...base.parameters.fiori, ownsLandmarks: true }, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "500px" } } },
+  // This full-page composition owns a native main in story mode. Docs owns its
+  // main already, so inline Playground content keeps a neutral wrapper there.
+  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Supplier details"><Story /></main> : <div><Story /></div>],
   args: { backgroundDesign: "solid", noScrolling: false, fixedFooter: false, hideFooter: false, onClick: fn() },
   argTypes: { ...base.argTypes, backgroundDesign: { control: "inline-radio", options: ["solid", "transparent", "list"] }, noScrolling: { control: "boolean" }, fixedFooter: { control: "boolean" }, hideFooter: { control: "boolean" }, header: { control: false }, footer: { control: false }, contentProps: { control: false }, onClick: { control: false } },
   render: (args) => <Page {...args} className="h-screen" header={<Bar design="header"><Title level="H1" size="H4">Supplier details</Title></Bar>} contentProps={{ tabIndex: 0, "aria-label": "Supplier information" }} footer={<Bar design={args.fixedFooter ? "footer" : "floating-footer"} endContent={<><Button variant="emphasized">Accept</Button><Button>Discard</Button></>} />}>{Array.from({ length: 12 }, (_, index) => <p key={index} className="my-3"><Text>Section {index + 1}: Review supplier contacts, delivery terms and purchasing details before accepting the changes.</Text></p>)}</Page>,

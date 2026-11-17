@@ -14,7 +14,10 @@ import { docsLink, fioriMeta } from "../_lib/meta"
 const base = fioriMeta({ name: "dynamic-page", component: DynamicPage })
 const meta = {
   ...base,
-  parameters: { ...base.parameters, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "560px" } } },
+  parameters: { ...base.parameters, fiori: { ...base.parameters.fiori, ownsLandmarks: true }, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "560px" } } },
+  // This full-page composition owns a native main in story mode. Docs owns its
+  // main already, so inline Playground content keeps a neutral wrapper there.
+  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Purchase order overview"><Story /></main> : <div><Story /></div>],
   args: { headerSnapped: false, headerPinned: false, hidePinButton: false, showFooter: false, onTitleToggle: fn(), onPinButtonToggle: fn() },
   argTypes: { ...base.argTypes, headerSnapped: { control: "boolean" }, headerPinned: { control: "boolean" }, hidePinButton: { control: "boolean" }, showFooter: { control: "boolean" }, title: { control: false }, header: { control: false }, footer: { control: false }, subheader: { control: false }, accessibilityAttributes: { control: false }, texts: { control: false }, defaultHeaderPinned: { control: false }, defaultHeaderSnapped: { control: false }, scrollContainerRef: { control: false }, contentClassName: { control: false, table: { disable: true } }, onTitleToggle: { control: false }, onPinButtonToggle: { control: false } },
   render: function OrderPage(args: DynamicPageProps) {

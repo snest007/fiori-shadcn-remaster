@@ -47,7 +47,14 @@ const meta = {
         const requestedDefault = event.def ?? state.defaultKey
         const defaultKey = items.find((item) => item.key === requestedDefault && item.visible !== false)?.key
           ?? items.find((item) => item.key === "standard")?.key ?? items.find((item) => item.visible !== false)?.key ?? ""
-        commit({ items, defaultKey, selectedKey: event.deleted?.includes(state.selectedKey ?? "") ? defaultKey : state.selectedKey })
+        const selectedWasDeleted = event.deleted?.includes(state.selectedKey ?? "") ?? false
+        // OpenUI5 VariantManagementState.js derives modified from the current view's
+        // own unsaved controlChanges. Like fiori-variants.ts#manageVariants, loading
+        // the fallback restores its saved state. This metadata-only example retains
+        // no per-view unsaved state, so that fallback is clean; a surviving selection
+        // keeps its current draft flag through unrelated Manage changes.
+        const modified = selectedWasDeleted ? false : state.modified
+        commit({ items, defaultKey, selectedKey: selectedWasDeleted ? defaultKey : state.selectedKey, modified })
       }} />
   },
 } satisfies Meta<typeof VariantManagement>

@@ -7,7 +7,10 @@ const meta = {
   title: "Floorplans/Master Detail",
   component: MasterDetail,
   tags: ["autodocs"],
-  parameters: { fiori: { name: "master-detail" }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  parameters: { fiori: { name: "master-detail", ownsLandmarks: true }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  // The real default block has no main. Own the full-page composition here;
+  // keep its default data and descendant ARIA untouched, including native headers.
+  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Manage Products"><Story /></main> : <div><Story /></div>],
   argTypes: { children: { control: false, table: { disable: true } }, sideNavigation: { control: false, table: { disable: true } } },
   render: () => <MasterDetail />,
 } satisfies Meta<typeof MasterDetail>

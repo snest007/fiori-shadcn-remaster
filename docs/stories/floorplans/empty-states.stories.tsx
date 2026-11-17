@@ -7,8 +7,9 @@ const meta = {
   title: "Floorplans/Empty States",
   component: EmptyStates,
   tags: ["autodocs"],
-  parameters: { fiori: { name: "empty-states" }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
+  parameters: { fiori: { name: "empty-states", ownsLandmarks: true }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
   argTypes: { children: { control: false, table: { disable: true } }, sideNavigation: { control: false, table: { disable: true } } },
+  // The real default block owns its main landmark.
   render: () => <EmptyStates />,
 } satisfies Meta<typeof EmptyStates>
 export default meta
