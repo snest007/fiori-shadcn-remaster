@@ -161,6 +161,28 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             && !!items[2].hasAttribute("data-disabled") && !!unique('[data-slot="menu-separator"]', menu)
             && !popper?.closest('[role="dialog"], main')
         }
+        // S3 Playground is a separate approved context; never relax the six
+        // existing stories' primary/foreign guards above or below this branch.
+        if (context.story === "overlays-view-settings-dialog--playground" && rule === "aria-input-field-name") {
+          const scopes = document.querySelectorAll(context.primary ? "#storybook-docs [data-fiori-primary]" : "#storybook-root")
+          if (scopes.length !== 1 || scopes[0] !== scope
+            || (context.primary ? canvas.closest("[data-fiori-primary]") !== scope : !!canvas.closest("[data-fiori-primary]"))
+            || JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}").open !== true) return false
+          const opener = unique('[data-slot="dialog-trigger"][aria-haspopup="dialog"][aria-expanded="true"][data-state="open"]')
+          const dialog = unique('.fiori-vsd[data-slot="dialog-content"][role="dialog"]', document)
+          const title = dialog ? unique('[data-slot="dialog-title"]', dialog) : null
+          if (!opener || opener.textContent?.trim() !== "Configure product view" || !visible(opener)
+            || !dialog || dialog.parentElement !== document.body || dialog.getAttribute("data-state") !== "open"
+            || !opener.getAttribute("aria-controls") || opener.getAttribute("aria-controls") !== dialog.id
+            || !title || !title.id || dialog.getAttribute("aria-labelledby") !== title.id || title.textContent?.trim() !== "View Settings") return false
+          const list = unique('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]', dialog)
+          const options = list ? [...list.querySelectorAll('[data-slot="segmented-button-item"][role="option"]')] : []
+          return visible(dialog) && actual === list && !!list && visible(list)
+            && !list.hasAttribute("aria-label") && !list.hasAttribute("aria-labelledby") && !list.hasAttribute("title")
+            && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
+            && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === "Sort|Filter|Group"
+            && options.length === 3 && options.every((option) => option.hasAttribute("aria-selected"))
+        }
         const s3ViewSettingsStories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]
         if (!context.primary && s3ViewSettingsStories.some((name) => context.story === `overlays-view-settings-dialog--${name}`) && rule === "aria-input-field-name") {
           // The owned Radix trigger links this canvas to its body portal by id.
@@ -253,6 +275,7 @@ export async function classifyS1PointerFocus(page: Page, context: { story: strin
 // unchanged; a Locator supplies the actual checked node, never a caller selector.
 export const s3ComponentDefect = "component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates"
 export async function classifyS3UnnamedModeControl(control: Locator, context: AuditContext) {
+  if (context.story === "overlays-view-settings-dialog--playground") return classifyS3UnnamedPlaygroundModeControl(control, context)
   return control.evaluate((actual, context) => {
     const stories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]
     if (context.primary || !stories.some((name) => context.story === `overlays-view-settings-dialog--${name}`)
@@ -282,5 +305,44 @@ export async function classifyS3UnnamedModeControl(control: Locator, context: Au
       && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
       && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === expected
       && options.length === expected.split("|").length && options.every((option) => option.hasAttribute("aria-selected"))
+  }, context)
+}
+
+// S3
+// component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
+// Playground gets its own exact open-state branch. Primary docs ownership does
+// not apply to the six pre-existing story markers or to any other component.
+async function classifyS3UnnamedPlaygroundModeControl(control: Locator, context: AuditContext) {
+  return control.evaluate((actual, context) => {
+    if (context.story !== "overlays-view-settings-dialog--playground"
+      || !["sap_horizon", "sap_horizon_hcb"].includes(context.theme)
+      || document.documentElement.dataset.theme !== context.theme) return false
+    const scopes = document.querySelectorAll(context.primary ? "#storybook-docs [data-fiori-primary]" : "#storybook-root")
+    if (scopes.length !== 1) return false
+    const scope = scopes[0]
+    const canvases = scope.querySelectorAll(`[data-fiori-story="${context.story}"]`)
+    if (canvases.length !== 1) return false
+    const canvas = canvases[0]
+    if ((context.primary ? canvas.closest("[data-fiori-primary]") !== scope : !!canvas.closest("[data-fiori-primary]"))
+      || JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}").open !== true) return false
+    const unique = (selector: string, root: ParentNode = canvas) => {
+      const nodes = root.querySelectorAll(selector)
+      return nodes.length === 1 ? nodes[0] : null
+    }
+    const visible = (element: Element) => (element as HTMLElement).checkVisibility()
+    const opener = unique('[data-slot="dialog-trigger"][aria-haspopup="dialog"][aria-expanded="true"][data-state="open"]')
+    const dialog = unique('.fiori-vsd[data-slot="dialog-content"][role="dialog"]', document)
+    const title = dialog ? unique('[data-slot="dialog-title"]', dialog) : null
+    if (!opener || opener.textContent?.trim() !== "Configure product view" || !visible(opener)
+      || !dialog || dialog.parentElement !== document.body || dialog.getAttribute("data-state") !== "open"
+      || !opener.getAttribute("aria-controls") || opener.getAttribute("aria-controls") !== dialog.id
+      || !title || !title.id || dialog.getAttribute("aria-labelledby") !== title.id || title.textContent?.trim() !== "View Settings") return false
+    const list = unique('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]', dialog)
+    const options = list ? [...list.querySelectorAll('[data-slot="segmented-button-item"][role="option"]')] : []
+    return visible(dialog) && actual === list && !!list && visible(list)
+      && !list.hasAttribute("aria-label") && !list.hasAttribute("aria-labelledby") && !list.hasAttribute("title")
+      && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
+      && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === "Sort|Filter|Group"
+      && options.length === 3 && options.every((option) => option.hasAttribute("aria-selected"))
   }, context)
 }
