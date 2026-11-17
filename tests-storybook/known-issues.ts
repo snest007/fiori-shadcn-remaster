@@ -185,7 +185,11 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
               && context.control?.prop === "state" && context.control.choice === "indication5")) {
           const standalone = context.story === "data-object-status--indication-5" && !context.primary
           const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
-          const status = unique(':scope > [data-slot="object-status"][data-state="indication5"]')
+          // SX keeps ordinary story header/footer semantics beneath an unnamed
+          // native SECTION. Docs primary stories retain their unwrapped canvas.
+          const owner = standalone ? unique(":scope > section") : canvas
+          if (!owner || standalone && (owner.attributes.length !== 0 || owner.children.length !== 1)) return false
+          const status = unique(':scope > [data-slot="object-status"][data-state="indication5"]', owner)
           const text = status ? unique(':scope > .fiori-object-status__wrapper > .fiori-object-status__text', status) : null
           if (!status || !text || actual !== text || !visible(text) || args.state !== "indication5"
             || status.hasAttribute("data-inverted") || status.hasAttribute("data-large") || status.hasAttribute("data-active")

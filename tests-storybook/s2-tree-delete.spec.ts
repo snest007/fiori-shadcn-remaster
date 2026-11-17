@@ -4,11 +4,32 @@ import { waitForStoryFinished } from "./accessibility"
 test("S2 Tree Delete removes a nested file and its parent without changing surviving identities or selection", async ({ page }, testInfo) => {
   // Exercise the shipped Delete story through its public args, not a test-only mount.
   // A preselected surviving sibling also proves delete mode does not alter selection.
-  // Storybook dist/router/index.js buildArgsParam serializes arrays as value[0]:q2.
-  await page.goto("/iframe.html?id=data-tree--delete&viewMode=story&args=value[0]:q2")
+  await page.goto("/iframe.html?id=data-tree--delete&viewMode=story")
   const tree = page.getByRole("tree", { name: "Files", exact: true })
   await expect(tree).toBeVisible()
   await waitForStoryFinished(page)
+  // Storybook 10.6 Preview.onUpdateArgs uses ArgsStore.update, the same channel as
+  // live Controls. URL arrays instead pass ArgsStore.updateFromPersisted's docgen
+  // type mapping and are discarded for this story's inferred value type.
+  const setup = await page.evaluate(() => {
+    const preview = (window as unknown as { __STORYBOOK_PREVIEW__: {
+      channel: { emit: (event: string, payload: unknown) => void }
+      currentRender: { story: { argTypes: { value?: unknown } } }
+      storyStoreValue: { args: { get: (id: string) => { value?: string[] } } }
+    } }).__STORYBOOK_PREVIEW__
+    const before = preview.storyStoreValue.args.get("data-tree--delete").value
+    const argType = preview.currentRender.story.argTypes.value
+    preview.channel.emit("updateStoryArgs", { storyId: "data-tree--delete", updatedArgs: { value: ["q2"] } })
+    return { before, argType, channel: "updateStoryArgs", requestedValue: ["q2"] }
+  })
+  await expect.poll(() => page.evaluate(() =>
+    (window as unknown as { __STORYBOOK_PREVIEW__: {
+      storyStoreValue: { args: { get: (id: string) => { value?: string[] } } }
+    } }).__STORYBOOK_PREVIEW__.storyStoreValue.args.get("data-tree--delete").value
+  )).toEqual(["q2"])
+  await expect(tree.locator('[role="treeitem"][data-nav-key="q2"]')).toHaveAttribute("data-selected", "")
+  await waitForStoryFinished(page)
+  await testInfo.attach("s2-tree-selection-setup.json", { body: JSON.stringify(setup, null, 2), contentType: "application/json" })
   const item = (value: string) => tree.locator(`[role="treeitem"][data-nav-key="${value}"]`)
   const surviving = ["docs", "reports", "q1", "q2", "pictures", "notes"]
   const identities = await Promise.all(surviving.map(async (value) => ({ value, node: await item(value).elementHandle() })))
