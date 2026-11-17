@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test"
 import { readFileSync } from "node:fs"
+import { mkdir, writeFile } from "node:fs/promises"
+import { resolve } from "node:path"
+import { fileURLToPath } from "node:url"
+import { build } from "vite"
+import AxeBuilder from "@axe-core/playwright"
 import { axeViolations, expectNamedControls, waitForStoryFinished } from "./accessibility"
 import { attachAudit, classifyViolations } from "./known-issues"
 
@@ -185,4 +190,126 @@ test("locale toolbar localizes StepInput and Calendar and Arabic direction", asy
   await render(page, storyId("Dates/Calendar"), "locale:ar")
   await expect(page.locator("html")).toHaveAttribute("dir", "rtl")
   await expect(page.locator(".fiori-story-canvas")).toHaveAttribute("dir", "rtl")
+})
+
+test("physical Locale toolbar updates German controls and the actual Arabic Direction global", async ({ page }) => {
+  const de = JSON.parse(readFileSync(new URL("../registry/i18n/de.json", import.meta.url), "utf8"))
+  const query = new URLSearchParams({ path: `/story/${storyId("Forms/StepInput")}`, args: "value:1.5;valuePrecision:1" })
+  await page.goto(`/?${query}`)
+  const locale = page.getByRole("button", { name: /^Locale and SAP translations / })
+  const direction = page.getByRole("button", { name: /^Text direction / })
+  const preview = page.frameLocator("#storybook-preview-iframe")
+  await expect(preview.locator('#storybook-root input')).toHaveValue("1.5")
+  await locale.click()
+  await page.getByText("Deutsch", { exact: true }).click()
+  await expect(locale).toHaveAccessibleName("Locale and SAP translations Deutsch")
+  await expect(preview.locator('#storybook-root input')).toHaveValue("1,5")
+  await expect(preview.locator('#storybook-root [data-dir="inc"]')).toHaveAttribute("title", de.NUMBERINPUT_INC_ICON_TITLE)
+  await locale.click()
+  await page.getByText("العربية", { exact: true }).click()
+  await expect(locale).toHaveAccessibleName("Locale and SAP translations العربية")
+  await expect(direction).toHaveAccessibleName("Text direction rtl")
+  await expect(preview.locator("html")).toHaveAttribute("dir", "rtl")
+  await expect(preview.locator(".fiori-story-canvas")).toHaveAttribute("dir", "rtl")
+  // Preview.emitGlobals/onUpdateGlobals expose the same userGlobals store that
+  // drives the Direction toolbar; this proves the stored global, beyond CSS.
+  await expect.poll(() => preview.locator("html").evaluate(() => (window as any).__STORYBOOK_PREVIEW__.storyStoreValue.userGlobals.get().dir)).toBe("rtl")
+})
+
+async function buildLocalizedLandmarkFixture(worker: number) {
+  // Reuse SX landmarks.spec.ts's portable-story approach: production floorplan
+  // stories are not registered yet, so bundle the actual preview/composeStory and
+  // owning Page/AppShell/List components without substituting their markup.
+  const root = fileURLToPath(new URL("../", import.meta.url))
+  const source = resolve(root, `.integration/E5-evidence/third-20261117/locale-landmarks-${worker}`)
+  const output = resolve(root, `storybook-static/e5-locale-landmarks-${worker}`)
+  await mkdir(source, { recursive: true })
+  await writeFile(resolve(source, "index.html"), '<!doctype html><html lang="en"><head><title>Localized Storybook landmarks</title></head><body><div id="storybook-root"></div><script type="module" src="virtual:e5-locale-landmarks"></script></body></html>')
+  await build({
+    root: source, configFile: resolve(root, ".storybook/vite.config.ts"), base: "./", logLevel: "warn",
+    plugins: [{ name: "e5-locale-landmarks", resolveId: id => id === "virtual:e5-locale-landmarks" ? "\0e5-locale-landmarks" : undefined,
+      load: id => id === "\0e5-locale-landmarks" ? `
+        import { createElement } from "react";
+        import { createRoot } from "react-dom/client";
+        import { composeStory } from "@storybook/react-vite";
+        import preview from ${JSON.stringify(resolve(root, ".storybook/preview.tsx"))};
+        import { fioriMeta } from ${JSON.stringify(resolve(root, "docs/stories/_lib/meta.ts"))};
+        import AppShell from ${JSON.stringify(resolve(root, "registry/blocks/app-shell.tsx"))};
+        import { Page } from ${JSON.stringify(resolve(root, "registry/ui/page.tsx"))};
+        import { List } from ${JSON.stringify(resolve(root, "registry/ui/list.tsx"))};
+        import { StepInput } from ${JSON.stringify(resolve(root, "registry/ui/step-input.tsx"))};
+        import { Calendar } from ${JSON.stringify(resolve(root, "registry/ui/calendar.tsx"))};
+        const query = new URLSearchParams(location.search), kind = query.get("kind"), locale = query.get("locale");
+        let meta, args;
+        if (kind === "block") { meta = fioriMeta({ name: "app-shell", component: AppShell }); args = {}; }
+        else if (kind === "layout") {
+          const base = fioriMeta({ name: "page", component: Page });
+          // An application-owned native main provides the valid sectioning
+          // context around Page's native header; keep Page's DOM unchanged.
+          meta = { ...base, render: args => createElement("main", { "aria-label": "Purchase orders" }, createElement(Page, args)), parameters: { ...base.parameters, fiori: { ...base.parameters.fiori, ownsLandmarks: true } } };
+          args = { header: createElement("h2", null, "Purchase orders"),
+            children: createElement("div", { id: "e5-locale-controls" },
+              createElement(StepInput, { value: 1.5, valuePrecision: 1, "aria-label": "Quantity" }),
+              createElement(Calendar, { selectedDates: [new Date(2024, 2, 12)], "aria-label": "Delivery date" })) };
+        } else { meta = fioriMeta({ name: "list", component: List }); args = { headerText: "Products", footer: "Available products" }; }
+        const Story = composeStory({ args, globals: { locale, theme: "sap_horizon", density: "cozy", dir: "ltr" } }, meta, preview, "Playground");
+        createRoot(document.getElementById("storybook-root")).render(createElement(Story));
+      ` : undefined }],
+    build: { outDir: output, emptyOutDir: true, rollupOptions: { input: resolve(source, "index.html") } },
+  })
+  return `/e5-locale-landmarks-${worker}/index.html`
+}
+
+test("Locale provider preserves SX ordinary and full-page landmark ownership", async ({ page }, testInfo) => {
+  const fixture = await buildLocalizedLandmarkFixture(testInfo.workerIndex)
+  const de = JSON.parse(readFileSync(new URL("../registry/i18n/de.json", import.meta.url), "utf8"))
+  for (const locale of ["de", "ar"]) for (const kind of ["ordinary", "layout", "block"]) {
+    await page.goto(`${fixture}?kind=${kind}&locale=${locale}`)
+    const canvas = page.locator("[data-fiori-story]")
+    await expect(canvas.locator("[data-slot]").first()).toBeAttached()
+    await expect(canvas).toHaveJSProperty("tagName", "DIV")
+    await expect(canvas).toHaveAttribute("dir", locale === "ar" ? "rtl" : "ltr")
+    await expect(page.getByRole("main")).toHaveCount(1)
+    await expect(canvas.getByRole("heading", { level: 1 })).toHaveCount(1)
+    if (kind === "ordinary") {
+      await expect(canvas).toHaveAttribute("role", "main")
+      const content = canvas.locator(":scope > section")
+      await expect(content).toHaveCount(1)
+      expect(await content.evaluate(node => node.attributes.length)).toBe(0)
+      await expect(canvas.getByRole("region")).toHaveCount(0)
+      await expect(content.locator("header")).toHaveText("Products")
+    } else {
+      await expect(canvas).not.toHaveAttribute("role")
+      const heading = canvas.getByRole("heading", { level: 1 })
+      const headingRegion = canvas.getByRole("region", { name: await heading.innerText(), exact: true })
+      await expect(headingRegion.getByRole("heading", { level: 1 })).toHaveCount(1)
+      await expect(headingRegion.locator('main, [role="main"]')).toHaveCount(0)
+      if (kind === "layout" && locale === "de") {
+        await expect(canvas.getByRole("main")).toHaveAccessibleName("Purchase orders")
+        await expect(canvas.locator('#e5-locale-controls input')).toHaveValue("1,5")
+        await expect(canvas.getByRole("button", { name: de.CALENDAR_HEADER_MONTH_NEXT_BUTTON_TITLE, exact: true })).toBeVisible()
+      }
+    }
+    await page.evaluate(() => document.fonts.ready)
+    const raw = await new AxeBuilder({ page }).analyze()
+    await testInfo.attach(`locale-${locale}-${kind}-axe-raw.json`, { body: JSON.stringify(raw, null, 2), contentType: "application/json" })
+    expect(raw.violations.filter(violation => ["landmark-main-is-top-level", "landmark-no-duplicate-main", "landmark-one-main", "landmark-banner-is-top-level", "landmark-contentinfo-is-top-level"].includes(violation.id))).toEqual([])
+  }
+})
+
+test("Locale provider keeps Docs canvases inside the Docs-owned main", async ({ page }, testInfo) => {
+  const id = storyId("Forms/StepInput").replace(/--playground$/, "--docs")
+  await page.goto(iframe(id, "locale:de", undefined, "docs"))
+  const german = page.locator('[data-fiori-story="forms-step-input--german"]')
+  await expect(german.locator("input")).toHaveValue("1,5")
+  const canvases = page.locator("[data-fiori-story]")
+  await expect(page.getByRole("main")).toHaveCount(1)
+  expect(await canvases.evaluateAll(nodes => nodes.every(node => node.tagName === "DIV" && !node.hasAttribute("role")))).toBe(true)
+  await expect(canvases.locator(":scope > section")).toHaveCount(0)
+  await expect(page.locator("html")).toHaveAttribute("dir", "ltr")
+  await expect(page.locator('[data-fiori-story="forms-step-input--arabic"]')).toHaveAttribute("dir", "rtl")
+  await waitForStoryFinished(page)
+  const raw = await new AxeBuilder({ page }).analyze()
+  await testInfo.attach("localized-docs-axe-raw.json", { body: JSON.stringify(raw, null, 2), contentType: "application/json" })
+  expect(raw.violations.filter(violation => ["landmark-main-is-top-level", "landmark-no-duplicate-main", "landmark-one-main"].includes(violation.id))).toEqual([])
 })

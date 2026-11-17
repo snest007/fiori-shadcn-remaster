@@ -5,17 +5,21 @@ import { createHash } from 'node:crypto'
 import ts from 'typescript'
 const packages = ['webcomponents', 'webcomponents-fiori']
 const defaults = {}, sourceHashes = {}, definitionSources = {}, componentSources = {}
+const defaultTables = {}, definitionTables = {}, componentDomains = {}
+export const auditEvidencePath = '.integration/E5-evidence/third-20261117/audit.json'
 const referenceCache = new Map()
 for (const pkg of packages) {
+  const domain = `@ui5/${pkg}`
+  const table = defaultTables[domain] = {}, definitions = definitionTables[domain] = {}
   const file = `node_modules/@ui5/${pkg}/dist/generated/i18n/i18n-defaults.js`
   const text = readFileSync(file, 'utf8')
   sourceHashes[file] = createHash('sha256').update(text).digest('hex')
-  for (const match of text.matchAll(/const (\w+) = \{ key: "([^"]+)", defaultText: ("(?:[^"\\]|\\.)*") \}/g)) { defaults[match[2]] = JSON.parse(match[3]); definitionSources[match[2]] = `${file}:${text.slice(0, match.index).split('\n').length} (English definition)` }
+  for (const match of text.matchAll(/const (\w+) = \{ key: "([^"]+)", defaultText: ("(?:[^"\\]|\\.)*") \}/g)) { table[match[2]] = defaults[match[2]] = JSON.parse(match[3]); definitions[match[2]] = definitionSources[match[2]] = `${file}:${text.slice(0, match.index).split('\n').length} (English definition)` }
   // A small number of pinned native getters use getText("KEY") instead of an imported constant.
   const bundleFile = `node_modules/@ui5/${pkg}/dist/generated/assets/i18n/messagebundle_en.json`
   const bundleText = readFileSync(bundleFile, 'utf8'), bundle = JSON.parse(bundleText)
   sourceHashes[bundleFile] = createHash('sha256').update(bundleText).digest('hex')
-  for (const [key, value] of Object.entries(bundle)) { defaults[key] ??= value; definitionSources[key] ??= `${bundleFile}:${bundleText.slice(0, bundleText.indexOf(JSON.stringify(key) + ':')).split('\n').length} (English definition)` }
+  for (const [key, value] of Object.entries(bundle)) { table[key] ??= value; defaults[key] ??= value; definitions[key] ??= `${bundleFile}:${bundleText.slice(0, bundleText.indexOf(JSON.stringify(key) + ':')).split('\n').length} (English definition)`; definitionSources[key] ??= definitions[key] }
 }
 export function properties(text) {
   const table = {}
@@ -33,8 +37,10 @@ for (const pkg of ['sap.m', 'sap.ui.mdc', 'sap.ui.core', 'sap.ui.layout', 'sap.u
   const text = readFileSync(file, 'utf8')
   sourceHashes[file] = createHash('sha256').update(text).digest('hex')
   openBundles[pkg] = properties(text)
+  defaultTables[`@openui5/${pkg}`] = openBundles[pkg]
+  const definitions = definitionTables[`@openui5/${pkg}`] = {}
   Object.assign(defaults, openBundles[pkg])
-  for (const [index, line] of text.split(/\r?\n/).entries()) { const key = line.match(/^([^#!\s][^=]*)=/)?.[1]; if (key) definitionSources[key] = `${file}:${index + 1} (library definition; channel still needs review)` }
+  for (const [index, line] of text.split(/\r?\n/).entries()) { const key = line.match(/^([^#!\s][^=]*)=/)?.[1]; if (key) definitions[key] = definitionSources[key] = `${file}:${index + 1} (library definition; channel still needs review)` }
 }
 // Source references do not prove render reachability. In particular accessibilityInfo
 // types can be consumed by CustomAnnouncement.getCustomAnnouncement in ListItemCustom
@@ -118,7 +124,19 @@ const nativeKeys = name => {
     }
   }
   componentSources[name] = [...seen].map(file => relative(process.cwd(), file))
+  componentDomains[name] = [...new Set(componentSources[name].map(sourceDomain))]
+  if (name === 'adapt-filters-dialog') componentDomains[name].push('@openui5/sap.ui.mdc', '@openui5/sap.m')
   return [...new Set(keys)].sort()
+}
+function sourceDomain(file) { return file.match(/node_modules\/(@(?:ui5|openui5)\/[^/]+)/)?.[1] }
+function englishDefinition(component, key, references, property) {
+  // Select/ComboBox own WC LIST_ITEM_POSITION ("List item {0} of {1}");
+  // sap.m's identically named key has a different contract ("{0} of {1}").
+  // Resolve the bundle from the native consuming counterpart, never the merged key table.
+  const owner = property.match(/(?:^|delegated )([^ :]+):/)?.[1]
+  const domains = [...references.map(sourceDomain), ...(componentDomains[component] ?? []), ...(componentDomains[owner] ?? []), ...Object.keys(defaultTables)]
+  const domain = domains.find(domain => domain && Object.hasOwn(defaultTables[domain], key))
+  return { english: defaultTables[domain]?.[key] ?? '', englishSource: definitionTables[domain]?.[key] }
 }
 const shipped = readdirSync('registry/ui').filter(file => file.endsWith('.tsx')).map(file => file.slice(0, -4)).sort()
 const resolutions = {}
@@ -187,18 +205,51 @@ function resolveKey(name, key, seen = new Set()) {
   const owner = resolutions[name]
   if (!owner) return undefined
   if (owner.rows[key]) return owner.rows[key]
+  // DateTimePicker renders both Calendar and TimePicker. Their native DayPicker
+  // and SegmentedButton each consume LIST_ITEM_SELECTED; implementing one must
+  // not hide the other outstanding announced channel under a shared key.
+  if (name === 'date-time-picker' && key === 'LIST_ITEM_SELECTED' && (!resolveKey('calendar', key, new Set(seen)) || !resolveKey('time-picker', key, new Set(seen)))) return undefined
   for (const next of owner.imports) { const result = resolveKey(next, key, seen); if (result) return `delegated ${result}` }
 }
-const audit = shipped.map(component => ({ component, rows: [...new Set([...nativeKeys(component), ...Object.keys(resolutions[component].rows).filter(key => key in defaults)])].sort().map(key => {
+const nativeByComponent = Object.fromEntries(shipped.map(component => [component, nativeKeys(component)]))
+const triage = new Map()
+const categories = { 'Needs owner review': 'owner-review', 'Unresolved delegation': 'delegation', 'Custom-content announcement prerequisite': 'custom-content', 'Confirmed absent feature': 'absent-feature', 'Native guarded channel': 'guarded-channel' }
+// Migrate retained author triage once; thereafter the committed audit is its owning
+// source, so fresh clones preserve every category without private evidence files.
+const retainedTriage = '.integration/E5-evidence/GAP-TRIAGE.md'
+if (existsSync(retainedTriage)) for (const line of readFileSync(retainedTriage, 'utf8').split('\n')) {
+  const cells = line.split(/(?<!\\)\|/).map(cell => cell.trim())
+  if (categories[cells[3]]) triage.set(`${cells[1]}/${cells[2]}`, { triage: categories[cells[3]], triageNote: cells[4] })
+}
+if (existsSync('docs/plan/i18n-audit.md')) {
+  let component
+  for (const line of readFileSync('docs/plan/i18n-audit.md', 'utf8').split('\n')) {
+    if (line.startsWith('## ')) component = line.slice(3)
+    const cells = line.split(/(?<!\\)\|/).map(cell => cell.trim())
+    if (component && cells[4] === 'gap' && Object.values(categories).includes(cells[5])) triage.set(`${component}/${cells[1]}`, { triage: cells[5], triageNote: cells[6] })
+  }
+}
+const ownerByComponent = Object.fromEntries([...readFileSync('docs/plan/README.md', 'utf8').matchAll(/^\| (P[1-6]) \| ([^|]+) \|$/gm)].flatMap(match => match[2].split(',').map(component => [component.trim(), match[1]])))
+// Icon has no i18n rows and is omitted from the wave-P table; keep the shared
+// display primitive's zero-count inventory under P5 rather than inventing gaps.
+ownerByComponent.icon = 'P5'
+const audit = shipped.map(component => ({ component, owner: ownerByComponent[component], rows: [...new Set([...nativeByComponent[component], ...Object.keys(resolutions[component].rows).filter(key => key in defaults)])].sort().map(key => {
+  const property = resolveKey(component, key) ?? 'No implemented provider/override text owner'
+  const status = resolveKey(component, key) ? 'fixed in E5' : 'gap'
   const nativeReferences = [...new Set(componentSources[component].flatMap(file => [...(referenceCache.get(file)?.[key] ?? [])]))].sort()
-  if (!nativeReferences.length && definitionSources[key]) nativeReferences.push(definitionSources[key])
-  return { key, english: defaults[key] ?? '', property: resolveKey(component, key) ?? 'No implemented provider/override text owner', status: resolveKey(component, key) ? 'fixed in E5' : 'gap', nativeReferences }
+  const definition = englishDefinition(component, key, nativeReferences, property)
+  if (!nativeReferences.length && definition.englishSource) nativeReferences.push(definition.englishSource)
+  return { key, ...definition, property, status, ...(status === 'gap' ? triage.get(`${component}/${key}`) ?? { triage: 'owner-review', triageNote: 'Newly inventoried native channel requires owning P-card review.' } : {}), nativeReferences }
 }) }))
 const escape = s => String(s).replaceAll('|', '\\|').replaceAll('\n', '<br>')
 const all = audit.flatMap(group => group.rows), keys = [...new Set(all.map(row => row.key))].sort()
-const markdown = '# UI5 localization audit\n\nGenerated by `node scripts/i18n-audit.mjs` from installed UI5 Web Components 2.28.1 and OpenUI5 1.154.0. Every native imported key is retained, including rendered subcomponents, function-only announcement helpers and the OpenUI5 library key families required by E5. `gap` means no actual translated render/announcement owner exists; it is never counted as fixed by an unused prop.\n\nNative source references identify key expressions, not automatic proof of render reachability. Library-definition-only rows still need owning-channel review. `accessibilityInfo.type` is metadata at its direct owner but CustomAnnouncement consumes it in custom List/Table content, so there is no global metadata exclusion. Full source references and hashes are preserved in `.integration/E5-evidence/audit.json`. No-gap acceptance remains unmet.\n\nPinned-source drift: StepInput delegates to NumericInput in 2.28.1 and uses `NUMBERINPUT_*`, rather than the card example’s earlier `STEPINPUT_*`.\n\n' + audit.map(group => `## ${group.component}\n\n| UI5 key | English text | React property / owner | Status | Native source / channel |\n| --- | --- | --- | --- | --- |\n` + group.rows.map(row => `| ${escape(row.key)} | ${escape(row.english)} | ${escape(row.property)} | ${row.status} | ${escape(row.nativeReferences.slice(0, 3).join('; '))}${row.nativeReferences.length > 3 ? `; +${row.nativeReferences.length - 3} more in audit.json` : ''} |`).join('\n') + '\n').join('\n')
+const markdown = '# UI5 localization audit\n\nGenerated by `node scripts/i18n-audit.mjs` from installed UI5 Web Components 2.28.1 and OpenUI5 1.154.0. Every native imported key is retained, including rendered subcomponents, function-only announcement helpers and the OpenUI5 library key families required by E5. `gap` means no actual translated render/announcement owner exists; it is never counted as fixed by an unused prop.\n\nThe 2026-11-17 E5 scope creates the ratchet in `tests/i18n-audit-baseline.json`; remaining gaps belong to P1–P6. Native source references identify key expressions, not automatic proof of render reachability. Library-definition-only rows still need owning-channel review. `accessibilityInfo.type` is metadata at its direct owner but CustomAnnouncement consumes it in custom List/Table content, so there is no global metadata exclusion. Retained triage categories and notes are carried forward below; they never waive a gap. Full source references, owning English definitions and hashes are preserved in `' + auditEvidencePath + '`. English defaults resolve from the native consuming counterpart, including identically named WC and OpenUI5 keys.\n\nPinned-source drift: StepInput delegates to NumericInput in 2.28.1 and uses `NUMBERINPUT_*`, rather than the card example’s earlier `STEPINPUT_*`. Icon has no i18n rows; its zero-count shared display inventory is assigned to P5.\n\n' + audit.map(group => `## ${group.component}\n\nOwner: ${group.owner}\n\n| UI5 key | English text | React property / owner | Status | Triage | Triage note | Native source / channel |\n| --- | --- | --- | --- | --- | --- | --- |\n` + group.rows.map(row => `| ${escape(row.key)} | ${escape(row.english)} | ${escape(row.property)} | ${row.status} | ${row.triage ?? ''} | ${escape(row.triageNote ?? '')} | ${escape(row.nativeReferences.slice(0, 3).join('; '))}${row.nativeReferences.length > 3 ? `; +${row.nativeReferences.length - 3} more in audit.json` : ''} |`).join('\n') + '\n').join('\n')
 writeFileSync('docs/plan/i18n-audit.md', markdown)
-mkdirSync('.integration/E5-evidence', { recursive: true })
-writeFileSync('.integration/E5-evidence/audit.json', JSON.stringify({ audit, keys, sourceHashes }, null, 2) + '\n')
-console.log(`i18n audit: ${shipped.length} components, ${keys.length} unique keys, ${all.length} rows, ${all.filter(row => row.status === 'gap').length} gaps`)
+mkdirSync(dirname(auditEvidencePath), { recursive: true })
+writeFileSync(auditEvidencePath, JSON.stringify({ audit, keys, sourceHashes }, null, 2) + '\n')
+if (process.argv.includes('--write-baseline')) {
+  if (audit.some(group => !group.owner)) throw new Error('Every baseline component needs its owning P card')
+  writeFileSync('tests/i18n-audit-baseline.json', JSON.stringify(Object.fromEntries(audit.map(group => [group.component, { owner: group.owner, gapCount: group.rows.filter(row => row.status === 'gap').length, okKeys: group.rows.filter(row => row.status !== 'gap').map(row => row.key) }])), null, 2) + '\n')
+}
+console.log(process.argv.includes('--json') ? JSON.stringify({ audit, keys, sourceHashes }) : `i18n audit: ${shipped.length} components, ${keys.length} unique keys, ${all.length} rows, ${all.filter(row => row.status === 'gap').length} gaps`)
 export { audit, keys, defaults }

@@ -15,6 +15,53 @@ import { Card, CardContent } from "../registry/ui/card"
 const de = JSON.parse(readFileSync("registry/i18n/de.json", "utf8"))
 const locales = ["de-DE", "zh-CN", "ar-EG"]
 const components = ["calendar", "date-picker", "date-time-picker", "time-picker", "step-input", "slider"]
+const e5Evidence = ".integration/E5-evidence/third-20261117"
+
+interface AuditGroup { component: string; owner: string; rows: { key: string; status: string; english: string; englishSource: string; triage?: string }[] }
+type AuditBaseline = Record<string, { owner: string; gapCount: number; okKeys: string[] }>
+function auditRatchetProblems(audit: AuditGroup[], baseline: AuditBaseline) {
+  const problems: string[] = []
+  for (const group of audit) {
+    const entry = baseline[group.component]
+    const gaps = group.rows.filter(row => row.status === "gap").length
+    const okKeys = group.rows.filter(row => row.status === "ok" || row.status === "fixed in E5").map(row => row.key).sort()
+    if (!entry) { if (gaps) problems.push(`${group.component}: new component has ${gaps} unowned gaps`); continue }
+    if (entry.owner !== group.owner) problems.push(`${group.component}: owner must remain ${group.owner}`)
+    if (gaps !== entry.gapCount) problems.push(`${group.component}: gap count ${gaps} differs from baseline ${entry.gapCount}; ${gaps < entry.gapCount ? "lower the owning baseline in the same commit" : "new gaps are forbidden"}`)
+    for (const key of entry.okKeys) if (!okKeys.includes(key)) problems.push(`${group.component}/${key}: previously implemented key became gap or disappeared`)
+    if (JSON.stringify(okKeys) !== JSON.stringify(entry.okKeys)) problems.push(`${group.component}: update the implemented key inventory with the owning baseline`)
+  }
+  for (const component of Object.keys(baseline)) if (!audit.some(group => group.component === component)) problems.push(`${component}: baseline component disappeared from audit`)
+  return problems
+}
+
+test("i18n audit ratchet guards owning gap counts and every implemented key", () => {
+  const { audit } = JSON.parse(execFileSync(process.execPath, ["scripts/i18n-audit.mjs", "--json"], { encoding: "utf8" })) as { audit: AuditGroup[] }
+  const baseline = JSON.parse(readFileSync("tests/i18n-audit-baseline.json", "utf8")) as AuditBaseline
+  expect(auditRatchetProblems(audit, baseline)).toEqual([])
+  for (const group of audit) {
+    expect(group.owner, group.component).toMatch(/^P[1-6]$/)
+    expect(group.rows.filter(row => row.status === "gap").every(row => row.triage), `${group.component}: preserve gap triage`).toBe(true)
+  }
+  // Exercise regressions against the real source inventory: a gap reduction needs
+  // a baseline reduction, and swapping one fixed/gap row cannot hide a lost key.
+  const component = audit.find(group => group.rows.some(row => row.status === "gap") && group.rows.some(row => row.status === "fixed in E5"))!
+  const changed = structuredClone(component)
+  changed.rows.find(row => row.status === "gap")!.status = "fixed in E5"
+  expect(auditRatchetProblems([changed], { [component.component]: baseline[component.component] })).toContainEqual(expect.stringContaining("lower the owning baseline in the same commit"))
+  const fixed = changed.rows.find((row, index) => component.rows[index].status === "fixed in E5")!
+  fixed.status = "gap"
+  expect(auditRatchetProblems([changed], { [component.component]: baseline[component.component] })).toContainEqual(expect.stringContaining(`${fixed.key}: previously implemented key became gap`))
+  const regressed = structuredClone(component)
+  regressed.rows.find(row => row.status === "fixed in E5")!.status = "gap"
+  expect(auditRatchetProblems([regressed], { [component.component]: baseline[component.component] })).toContainEqual(expect.stringContaining("new gaps are forbidden"))
+  // The native WC contract must survive the sap.m bundle's colliding key.
+  for (const name of ["combobox", "select"]) {
+    const position = audit.find(group => group.component === name)!.rows.find(row => row.key === "LIST_ITEM_POSITION")!
+    expect(position.english).toBe("List item {0} of {1}")
+    expect(position.englishSource).toContain("@ui5/webcomponents/dist/generated/i18n/i18n-defaults.js:132")
+  }
+})
 
 test("provider texts reach real controls and component overrides win", async ({ page }) => {
   await page.goto("/?locale=de-DE#/i18n")
@@ -101,6 +148,79 @@ test("text-only providers translate empty Select and ComboBox lists", async ({ p
   await combo.press("Escape")
   await page.locator("#i18n-text-only-select").getByRole("combobox").click()
   await expect(page.locator("[data-slot=select-no-data]")).toHaveText("Text-only empty")
+})
+
+for (const locale of ["de-DE", "ar-EG"]) test(`Select translates role, grouped counts and native item positions while text props win (${locale})`, async ({ page }) => {
+  const translations = JSON.parse(readFileSync(`registry/i18n/${locale === "de-DE" ? "de" : "ar"}.json`, "utf8"))
+  await page.goto(`/?locale=${locale}#/i18n`)
+  const owner = page.locator("#i18n-select-announcements")
+  const trigger = owner.getByRole("combobox")
+  await expect(trigger).toHaveAttribute("aria-roledescription", translations.SELECT_ROLE_DESCRIPTION)
+  const count = owner.locator('[data-slot="select-group-count"]')
+  await expect(count).toHaveText(formatSapText(translations.SELECT_OPTIONS_IN_GROUPS, [4, 2]))
+  await expect(trigger).toHaveAccessibleDescription(`Application description ${formatSapText(translations.SELECT_OPTIONS_IN_GROUPS, [4, 2])}`)
+  await trigger.focus()
+  await expect(trigger).toBeFocused()
+  await trigger.press("F4")
+  const choices = page.getByRole("listbox", { name: "Grouped choices", exact: true })
+  await expect(choices.getByRole("option", { name: "Standalone", exact: true })).toBeFocused()
+  const announcement = owner.locator('[data-slot="select-announcement"]')
+  await expect(announcement).toHaveAttribute("aria-live", "polite")
+  await expect(announcement).toHaveText(`Standalone ${formatSapText(translations.LIST_ITEM_POSITION, [1, 4])}`)
+  await page.keyboard.press("ArrowDown")
+  await expect(choices.getByRole("option", { name: "Alpha", exact: true })).toBeFocused()
+  await expect(announcement).toHaveText(`Alpha ${formatSapText(translations.LIST_ITEM_POSITION, [2, 4])}`)
+  await page.keyboard.press("Escape")
+  await expect(choices).toHaveCount(0)
+  const custom = page.locator("#i18n-select-announcements-override")
+  const customTrigger = custom.getByRole("combobox")
+  await expect(customTrigger).toHaveAttribute("aria-roledescription", "Choice selector")
+  await expect(customTrigger).toHaveAccessibleDescription("Choices 2; categories 1")
+  await customTrigger.press("F4")
+  await expect(page.getByRole("option", { name: "Alpha", exact: true })).toBeFocused()
+  await expect(custom.locator('[data-slot="select-announcement"]')).toHaveText("Alpha Entry 1 among 2")
+})
+
+test("Tag composes translated hidden descriptions and preserves complete legacy overrides", async ({ page }) => {
+  await page.goto("/?locale=de-DE#/i18n")
+  const descriptions = page.locator('#i18n-tag [data-slot="tag"] > .sr-only')
+  await expect(descriptions).toHaveText([`${de.TAG_DESCRIPTION_TAG} ${de.TAG_ERROR}`, de.TAG_DESCRIPTION_TAG, "Component marker Component error", "Legacy complete description"])
+})
+
+for (const locale of ["de-DE", "ar-EG"]) test(`SegmentedButton announces selection assertively and emits nothing on deselection (${locale})`, async ({ page }) => {
+  const translations = JSON.parse(readFileSync(`registry/i18n/${locale === "de-DE" ? "de" : "ar"}.json`, "utf8"))
+  await page.goto(`/?locale=${locale}#/i18n`)
+  const owner = page.locator("#i18n-segmented")
+  const beta = owner.getByRole("option", { name: "Beta", exact: true })
+  const announcement = owner.locator('[data-slot="segmented-button-announcement"]')
+  await expect(announcement).toHaveText("")
+  await beta.focus()
+  await expect(beta).toBeFocused()
+  await beta.press("Space")
+  await expect(beta).toHaveAttribute("aria-selected", "true")
+  await expect(announcement).toHaveAttribute("aria-live", "assertive")
+  await expect(announcement).toHaveText(translations.LIST_ITEM_SELECTED)
+  const message = await announcement.locator("span").elementHandle()
+  await beta.press("Enter")
+  await expect(beta).toHaveAttribute("aria-selected", "false")
+  expect(await message!.evaluate(node => node.isConnected), "deselection must not replace the live message").toBe(true)
+  const custom = page.locator("#i18n-segmented-override")
+  await custom.getByRole("option", { name: "Beta", exact: true }).click()
+  await expect(custom.locator('[data-slot="segmented-button-announcement"]')).toHaveText("Component selection")
+  const controlled = page.locator("#i18n-segmented-controlled")
+  await controlled.getByRole("option", { name: "Beta", exact: true }).click()
+  await expect(controlled.getByRole("option", { name: "Beta", exact: true })).toHaveAttribute("aria-selected", "true")
+  await expect(controlled.locator('[data-slot="segmented-button-announcement"]')).toHaveText(translations.LIST_ITEM_SELECTED)
+  await expect(controlled.getByTestId("i18n-segmented-callback")).toHaveText("")
+  const rejected = page.locator("#i18n-segmented-rejected")
+  await rejected.getByRole("option", { name: "Beta", exact: true }).click()
+  await expect(rejected.getByTestId("i18n-segmented-rejected-attempts")).toHaveText("1")
+  await expect(rejected.getByRole("option", { name: "Alpha", exact: true })).toHaveAttribute("aria-selected", "true")
+  await expect(rejected.getByRole("option", { name: "Beta", exact: true })).toHaveAttribute("aria-selected", "false")
+  await expect(rejected.locator('[data-slot="segmented-button-announcement"]')).toHaveText("")
+  await rejected.getByRole("option", { name: "Prevented", exact: true }).click()
+  await expect(rejected.getByTestId("i18n-segmented-rejected-attempts")).toHaveText("1")
+  await expect(rejected.locator('[data-slot="segmented-button-announcement"]')).toHaveText("")
 })
 
 test("ComboBox navigation announces translated groups and item positions with overridable texts", async ({ page }) => {
@@ -315,7 +435,7 @@ test("Card, FileUploader and ViewSettingsDialog translate their actual channels 
 
 test("editable RangeSlider open numeric tooltip matches its owning native fixture", async ({ browser }) => {
   const shots: Buffer[] = []
-  const evidence = ".integration/E5-evidence/range-open"
+  const evidence = `${e5Evidence}/range-open`
   mkdirSync(evidence, { recursive: true })
   for (const native of [false, true]) {
     const page = await browser.newPage()
@@ -377,7 +497,7 @@ test("editable tooltip number keys retain native spinbutton behavior in localize
   }
   expect(values.react).toEqual(values.ui5)
   expect(values.localized).toEqual(values.ui5)
-  writeFileSync(".integration/E5-evidence/oracles/tooltip-number-keys.json", JSON.stringify(values, null, 2))
+  writeFileSync(`${e5Evidence}/oracles/tooltip-number-keys.json`, JSON.stringify(values, null, 2))
 })
 
 test("real Tokenizer text chooses locale plural categories", async ({ page }) => {
@@ -434,7 +554,7 @@ test("packs regenerate deterministically and contain only audited rendered keys"
   const before = files()
   execFileSync(process.execPath, ["scripts/build-i18n-packs.mjs"])
   expect(files()).toEqual(before)
-  const audit = JSON.parse(readFileSync(".integration/E5-evidence/audit.json", "utf8"))
+  const audit = JSON.parse(readFileSync(`${e5Evidence}/audit.json`, "utf8"))
   const rendered = new Set(audit.audit.flatMap((group: any) => group.rows.filter((row: any) => row.status !== "gap").map((row: any) => row.key)))
   const packs = readdirSync("registry/i18n").filter(name => name.endsWith(".json") && name !== "registry-items.json")
   expect(packs).toHaveLength(48)
@@ -468,8 +588,8 @@ for (const locale of locales) {
       group: element.groupSeparator,
       typedArabic: ["٢٫٢٥", "١٬٢٣٤٫٥", "2.25", "1,234.5"].map(text => ({ text, value: element.formatter.parse(text) })),
     }) })
-    mkdirSync(".integration/E5-evidence/oracles", { recursive: true })
-    writeFileSync(`.integration/E5-evidence/oracles/${locale}-number.json`, JSON.stringify(oracle, null, 2))
+    mkdirSync(`${e5Evidence}/oracles`, { recursive: true })
+    writeFileSync(`${e5Evidence}/oracles/${locale}-number.json`, JSON.stringify(oracle, null, 2))
     expect(oracle.parsed).toBe(1234.5)
     expect(oracle.display).toBe(formatNumber(1.5, locale, { minFractionDigits: 1, maxFractionDigits: 1 }))
     const parserCases = ["50%", "50 %", "1.23", "0.123", "1.234e2", "2e309"]
@@ -478,7 +598,7 @@ for (const locale of locales) {
     await page.goto(`/ui5.html?locale=${locale}&only=date-picker-empty`)
     await page.waitForSelector("html[data-ready=true]")
     const date = await page.locator("ui5-date-picker").evaluate((element: any) => element.formatValue(new Date(2024, 2, 12)))
-    writeFileSync(`.integration/E5-evidence/oracles/${locale}-date.json`, JSON.stringify({ locale, formatPattern: "MMM d, y", date }, null, 2))
+    writeFileSync(`${e5Evidence}/oracles/${locale}-date.json`, JSON.stringify({ locale, formatPattern: "MMM d, y", date }, null, 2))
     const dateLocale = new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()
     expect(date).toBe(formatPickerDate(new Date(2024, 2, 12), "MMM d, y", dateLocale))
   })
@@ -505,8 +625,8 @@ test("Calendar RTL arrows preserve the pinned native chronological day model", a
     await page.close()
   }
   expect(results.react).toEqual(results.ui5)
-  mkdirSync(".integration/E5-evidence/oracles", { recursive: true })
-  writeFileSync(".integration/E5-evidence/oracles/calendar-rtl-keys.json", JSON.stringify(results, null, 2))
+  mkdirSync(`${e5Evidence}/oracles`, { recursive: true })
+  writeFileSync(`${e5Evidence}/oracles/calendar-rtl-keys.json`, JSON.stringify(results, null, 2))
 })
 
 async function rtlShots(page: Page, url: string) {
@@ -530,7 +650,7 @@ test("every explicit RTL component fixture matches its native UI5 cell", async (
   const a = await browser.newPage(), b = await browser.newPage()
   const ours = await rtlShots(a, "/index.html?dir=rtl&fixtures")
   const ui5 = await rtlShots(b, "/ui5.html?dir=rtl")
-  const evidence = ".integration/E5-evidence/rtl"
+  const evidence = `${e5Evidence}/rtl`
   mkdirSync(evidence, { recursive: true })
   const failures: string[] = [], report: Record<string, string | number> = {}
   expect(ui5.size).toBeGreaterThan(60)
@@ -555,7 +675,7 @@ for (const locale of locales) for (const theme of ["sap_horizon", "sap_horizon_d
     const dir = locale === "ar-EG" ? "rtl" : "ltr"
     const a = await browser.newPage(), b = await browser.newPage()
     const failures: string[] = [], ratios: Record<string, number | string> = {}
-    const evidence = `.integration/E5-evidence/localized/${locale}-${theme}-${density}`
+    const evidence = `${e5Evidence}/localized/${locale}-${theme}-${density}`
     mkdirSync(evidence, { recursive: true })
     for (const component of components) {
       const id = `${component}-l10n-${locale}`
@@ -684,5 +804,5 @@ test("editable RangeSlider swaps endpoints and input focus like native UI5, and 
     await context.close()
   }
   expect(results.react).toEqual(results.ui5)
-  writeFileSync(".integration/E5-evidence/oracles/range-tooltip.json", JSON.stringify(results, null, 2))
+  writeFileSync(`${e5Evidence}/oracles/range-tooltip.json`, JSON.stringify(results, null, 2))
 })

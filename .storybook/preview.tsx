@@ -1,7 +1,7 @@
 import * as React from "react"
 import type { Preview } from "@storybook/react-vite"
 import { addons } from "storybook/preview-api"
-import { GLOBALS_UPDATED, SET_GLOBALS } from "storybook/internal/core-events"
+import { GLOBALS_UPDATED, SET_GLOBALS, UPDATE_GLOBALS } from "storybook/internal/core-events"
 import "../docs/src/index.css"
 import "./preview.css"
 import { DocsPage } from "../docs/stories/_lib/DocsPage"
@@ -15,6 +15,11 @@ const pack = (locale: string) => packs[`../registry/i18n/${locale}.json`] ?? {}
 // docs; an individual inline RTL example must only change its own canvas.
 const channel = addons.getChannel()
 const applyDocumentGlobals = ({ globals }: { globals: Record<string, string> }) => {
+  // Storybook Preview.onUpdateGlobals consumes UPDATE_GLOBALS and broadcasts
+  // GLOBALS_UPDATED. Change the actual toolbar global for Arabic, rather than
+  // merely displaying RTL while Direction still says ltr. This listener receives
+  // project/toolbar globals; inline Arabic Docs stories retain local-only direction.
+  if (globals.locale === "ar" && globals.dir !== "rtl") channel.emit(UPDATE_GLOBALS, { globals: { dir: "rtl" } })
   document.documentElement.dataset.theme = globals.theme ?? "sap_horizon"
   document.documentElement.dataset.density = globals.density ?? "cozy"
   document.documentElement.dir = globals.locale === "ar" ? "rtl" : globals.dir ?? "ltr"
