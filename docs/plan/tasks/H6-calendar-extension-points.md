@@ -1,59 +1,79 @@
-# H6 — Calendar extension points (and the date pickers that embed it)
+# H6 — Calendar composition and content extension points
 
-> **On hold until X0 is approved (owner's decision, 2026-11-17).** The library follows one extension contract
-> (`docs/plan/tasks/X0-extension-architecture.md` → `docs/extension-contract.md`), including a structural tier
-> (`components` replacement + a context hook with prop getters). X0 rewrites this card to implement the approved
-> Calendar design; the points below are the starting list, not the final API. Don't run H6 before that rewrite.
+> **Draft for approval from X0; do not start before owner approval.** Implement
+> [docs/extension-contract.md](../../extension-contract.md) and
+> [the Calendar design](../../spikes/calendar-composition/README.md). This is the rewritten X0 proposal, not an
+> approval record. Depends on E4, E5 and **P2 merged**, and does not run alongside P2 or H6b/H6c.
 
-**Goal:** `Calendar` already has feature parity with ui5-calendar 2.28 (single/multiple/range, special dates,
-`CalendarLegend`, month/year/year-range pickers, full keyboard model). What it lacks is **room to customise** — the
-issue #1 reporter's point: consumers will want their own day content (prices, dots, badges, availability), styling per
-state, and their own legend content, without forking the file. Add extension points following H1's extension
-contract, without changing default rendering (pixel fixtures must stay identical) and without letting customisation
-drop ARIA (rule 9) or locale behaviour (rule 10). Depends on E4 and E5 (merged); independent of H1–H5 (different files),
-but reuse H1's contract wording — if H1 isn't merged yet, the contract text is in `docs/plan/tasks/H1-*.md`.
+**Goal:** implement Calendar's T1/T2/T3 contract without changing no-override UI5 pixels, tree or interaction.
+Consumers can replace reusable layouts and item models without forking Calendar. Fiscal components remain consumer
+examples, not registry features. Keep all existing exports/props and planned content shorthands (rule 7).
 
-## Extension points
+## Source and prototype
 
-1. **Day content slot** — `renderDay?: (day: CalendarDayInfo) => React.ReactNode` rendering **inside** the
-   component-owned day cell. `CalendarDayInfo`: `{ date, isToday, isSelected, isRangeStart, isRangeEnd, isInRange,
-   isOtherMonth, isWeekend, isDisabled, isFocused, specialDate?, locale, defaultContent }` (`defaultContent` is the
-   default number element so consumers can wrap it). The cell keeps `role="gridcell"`, `aria-selected`,
-   `aria-disabled`, `aria-label` (formatted long date + special-day text, as today), `data-date`, and the roving
-   `tabindex`; `renderDay` can't override them. Add `getDayLabel?: (day) => string` to append consumer text to the
-   accessible name (e.g. "3 slots free") — content a sighted user sees must be in the name too.
-2. **Same for the other pickers** — `renderMonth?`, `renderYear?` with matching info objects.
-3. **Styling hooks** — stable `data-slot` on every part (`calendar-header`, `-day-picker`, `-week-number`,
-   `-day-name`, `-day`, `-month`, `-year`, `-legend`, …; keep existing ones), state as `data-*` on day cells
-   (`data-today`, `data-selected`, `data-range-start`, `data-range-end`, `data-in-range`, `data-other-month`,
-   `data-weekend`, `data-disabled`, `data-special-type`), `classNames?: Partial<Record<CalendarSlot, string>>`, and
-   `getDayProps?: (day) => React.HTMLAttributes<HTMLElement>` merged like H1's `getCellProps` (owned ARIA/tabindex
-   filtered out with a dev warning).
-4. **Legend** — `CalendarLegendItem` accepts `children` to replace its text and an `icon`/`marker` render slot; legend
-   items keep their current ARIA.
-5. **Texts and locale** — audit with E5's `i18n-audit.md` that every ui5-calendar / DayPicker / MonthPicker /
-   YearPicker key has a `labels` entry (the existing prop stays the API; add `texts` as an alias only if E5 made that
-   the convention); `locale` already exists — make sure `renderDay` info and `getDayLabel` receive it.
-6. **Pickers** — `DatePicker`, `DateRangePicker`, `DateTimePicker` forward `renderDay`, `getDayLabel`, `getDayProps`,
-   `classNames.calendar*` to their embedded Calendar (one `calendarProps?: Partial<CalendarProps>` passthrough is
-   enough if that's simpler — pick one and document it).
+Read UI5 2.28 `Calendar.js/CalendarTemplate.js/CalendarHeaderTemplate.js`, `DayPicker`, `MonthPicker`, `YearPicker`,
+`YearRangePicker` and `CalendarLegend*` JavaScript/templates/generated CSS before porting behaviour. Quote non-obvious
+ARIA and keyboard functions. Read X0's prototype and exact default comparison; **implement state-derived selectors**,
+not its throwaway React-element model collector. No dependencies added.
 
-## Fixtures and tests
+## Implement
 
-- Fixtures stay identical by default. Add React-only demo examples (not pixel-compared — UI5 has no equivalent; say so
-  in a comment) for: price per day, availability dots + custom legend, styled weekends via `classNames`.
-- `tests/calendar.spec.ts`: `renderDay` content renders in every cell; owned attributes survive a `getDayProps` that
-  tries to set `role`/`aria-selected`/`tabindex` (+ warning); `getDayLabel` text is in the accessible name;
-  keyboard model unchanged with custom content (focusable children inside a day don't break roving focus —
-  they get `tabindex=-1`); `data-*` states correct for range selection; DatePicker forwards the props; RTL and `de-DE`.
-- Accessibility tree (E4) unchanged for all existing calendar fixtures.
+1. **T1:** root/part className, typed `classNames`, stable existing data-slot names and missing part slots. Day states
+   include today, selected, range-start/end/between, other-month, weekend, disabled and special type. Preserve default
+   classes/sizes. `picker/onPickerChange` adds controlled current view; existing `initialPicker` stays initial state.
+   `texts` resolves via provider; legacy `labels` wins over texts/provider and remains public. Locale in all info.
+2. **T2:** `renderDay(CalendarDayInfo)` inside owned DayCell; `getDayLabel` appends consumer meaning to the complete
+   UI5 name; `getDayProps` merges decorative native props, classes/styles and observational handlers while filtering
+   owned roles/ARIA/id/tabindex/identity/ref with dev warnings. `renderMonth`/`renderYear` use generic item info and
+   `defaultContent`. Preserve roving focus with custom focusable content; do not introduce nested tab stops. Legend
+   item `children` and `marker` are content slots, preserving list semantics and legend focus/highlighting.
+3. **T3:** partial typed map: Header, NavButton, HeaderButton, DayGrid, Grid, Row, WeekNumber, DayCell, GridPicker,
+   Cell, Legend, LegendItem. Boundary hosts remain component-owned; replacements arrange protected public parts,
+   including CalendarGrid/Row/Cell/NavButton/HeaderButton, exported from the same installed item entry. Replacement
+   gets shorthand output as `defaultContent` and relevant day/week/item/header info. No unrestricted semantic asChild.
+4. **Context:** read-only focused date, selection, picker, labels, resolved locale/week config, components/class maps;
+   focus/select/showPicker/page actions and typed grid/row/row-header/cell/header-button getters. Internal factories
+   never appear in public facade. Getters merge extras as arguments and are used by default/protected parts alike.
+5. **Policies:** `getPage(date, dir, picker): Date | null`, defaulting to UI5 paging, shared by header and plain
+   PageUp/Down. Controlled focusedDate remains a supported external page source. Unify month/year/yearrange and
+   custom keyed item models under the generic GridPicker; items have stable keys independent of optional dates,
+   consumer-defined text/disabled state, count and positive rowSize; controlled/uncontrolled focus and selection.
+   Partial rows and disabled focus recovery need deterministic tests. For arbitrary item grids, F4 must not silently
+   switch invisible Gregorian views; use the design's explicit scope and document it.
+6. **Date fields:** one guarded `calendarProps` passthrough on DatePicker/DateRangePicker/DateTimePicker. Forward
+   supported components/shorthands/texts/paging. Exclude field-owned selection/focus/locale/bounds/open/autoFocus and
+   arbitrary itemPicker; field parser/selection/validation/close/focus wins. Observational selection callback chains
+   after field action; existing onValueChange stays. Document exact owning native targets and prop precedence.
+
+H6b implements activated-date callback details and the numeric custom-week policy next. Design `select` and
+WeekNumber to accommodate those additive policies; do not infer activated dates from selected arrays. H6c stays a
+separate week-number algorithm fix. H6 must not change the default calculation or owned P2 baselines.
+
+## Checks
+
+- All existing Calendar/date-field fixtures remain pixel/tree identical; paired neutral structural overrides prove
+  the same UI5 tree. No tolerance, skip or baseline growth.
+- Custom day/month/year/legend content; merged class/style and handler checks; hostile role/aria-selected/tabindex/
+  id/ref props warn and cannot change semantics; focusable custom children cannot break roving focus. Test replaced
+  Header, DayGrid, GridPicker and cells using exported wrappers/getters, including a negative control missing them.
+- Generic item tests: 16 distinct keys with shared dates, 10 items / rowSize=3 partial row, disabled item recovery,
+  zero items, controlled/uncontrolled focus/selection, pointer/Enter/Space/Home/End/Ctrl edges, PageUp/Down, RTL.
+- Date-field forwarding retains controlled field value, parser/validation, bounds, locale, open/close/focus return;
+  conflicting passthrough values cannot override them. Calendar content receives resolved de-DE/zh-CN/ar-EG locale.
+- Customise docs, one story per supported tier, UI5 key comments/text audit and React-only domain examples with a
+  concrete reason. Full axe in four themes and RTL keyboard; a real installed consumer replaces a part using only
+  the Calendar item entry. `node scripts/smoke-install.mjs` and AGENTS.md definition of done.
 
 ## Files
 
-Component-owned (rule 3) for `calendar`, `date-picker`, `date-range-picker`, `date-time-picker`: their
-`registry/ui/*.tsx`, styles, demos, specs. Shared: none.
+Component-owned (rule 3) for calendar, date-picker, date-range-picker, date-time-picker: ui, items (including helper
+file registration), styles, fixtures on both sides, demos, specs, stories. New `registry/lib/calendar/**` helper files, if necessary,
+are registered by the Calendar item and public imports remain through its entry. `docs/spikes/calendar-composition/**`
+may be updated for production consumer validation. Shared: `docs/extension-contract.md` only for approved API
+signatures/target documentation; mention it in the commit. No AGENTS.md edits or other P-owned baseline changes.
 
 ## Acceptance
 
-AGENTS.md definition of done (rules 9 and 10); zero pixel or tree changes in existing calendar/picker fixtures; the
-three demo examples work in all 4 themes and RTL; final message lists the new props with one-line descriptions.
+AGENTS.md definition of done; exact default parity; the new Customise examples work in four themes and RTL; neutral
+replacement trees match UI5; adversarial ownership and installed-consumer tests pass. Final lists public props,
+components/context and passthrough precedence, test summaries and shared edits. H6b follows this card serially.

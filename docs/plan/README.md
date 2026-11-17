@@ -144,7 +144,87 @@ proves it on Calendar with a prototype, and proposes rollout cards. Calendar wor
 H1's AnalyticalTable contract must conform to it.
 
 - [ ] [X0 Extension architecture: library-wide contract + Calendar pilot design](tasks/X0-extension-architecture.md) — M (design only; no `registry/` edits; any time)
-- Rollout cards X1… — proposed by X0, written after owner approval.
+Draft rollout (full cards after owner approval). Every card is S or M and implements only its stated component scope; candidate keys are in [the inventory](../extension-contract.md). A group's P card merges **before** its extension cards; no concurrent edits of the same files. First prove the pattern with P2 → H6 → H6b → H6c; then P3 → X12 → X13. Other groups follow their P card and may run independently. H0 → H1–H5 remains serial.
+
+- [ ] **X1 Action buttons** — M, after P1; apply the inventory tiers to `button`, `toggle-button`, `segmented-button`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X2 Text fields and label** — M, after P1; apply the inventory tiers to `input`, `textarea`, `label`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X3 Choice controls** — M, after P1; apply the inventory tiers to `checkbox`, `radio-group`, `switch`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X4 Numeric controls** — M, after P1; apply the inventory tiers to `slider`, `step-input`, `rating-indicator`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X5 Select** — M, after P1; apply the inventory tiers to `select`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X6 Form** — S, after P1; apply the inventory tiers to `form`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X7 Comboboxes** — M, after P2; apply the inventory tiers to `combobox`, `multi-combobox`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X8 Token input** — M, after P2; apply the inventory tiers to `multi-input`, `token`, `tokenizer`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X9 File uploader** — S, after P2; apply the inventory tiers to `file-uploader`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X10 Colour pickers** — M, after P2; apply the inventory tiers to `color-palette`, `color-palette-popover`, `color-picker`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X11 Time and picker field** — M, after P2; apply the inventory tiers to `time-picker`, `picker-field`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X12 List** — M, after P3; apply the inventory tiers to `list`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X13 Tree** — M, after P3; apply the inventory tiers to `tree`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X14 Table** — M, after P3; apply the inventory tiers to `table`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X15 Data table** — M, after P3; apply the inventory tiers to `data-table`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X16 Timeline and uploads** — M, after P3; apply the inventory tiers to `timeline`, `upload-collection`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X17 Object display** — S, after P3; apply the inventory tiers to `object-status`, `object-number`, `object-identifier`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X18 Dialog** — M, after P4; apply the inventory tiers to `dialog`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X19 Popover surfaces** — M, after P4; apply the inventory tiers to `popover`, `responsive-popover`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X20 Menus** — M, after P4; apply the inventory tiers to `menu`, `user-menu`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X21 Toast** — S, after P4; apply the inventory tiers to `toast`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X22 Value help** — M, after P4; apply the inventory tiers to `value-help-dialog`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X23 Settings/filter dialogs** — M, after P4; apply the inventory tiers to `view-settings-dialog`, `adapt-filters-dialog`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X24 Identity and progress** — S, after P5; apply the inventory tiers to `avatar`, `busy-indicator`, `progress-indicator`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X25 Cards and panels** — M, after P5; apply the inventory tiers to `card`, `panel`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X26 Media** — M, after P5; apply the inventory tiers to `carousel`, `media-gallery`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X27 Hero and illustration** — S, after P5; apply the inventory tiers to `hero-banner`, `illustrated-message`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X28 Text display** — S, after P5; apply the inventory tiers to `expandable-text`, `link`, `text`, `title`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X29 Status and icons** — S, after P5; apply the inventory tiers to `message-strip`, `tag`, `icon`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X30 Bars and breadcrumbs** — M, after P6; apply the inventory tiers to `bar`, `toolbar`, `breadcrumbs`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X31 Tabs and wizard** — M, after P6; apply the inventory tiers to `tabs`, `wizard`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X32 Filtering and variants** — M, after P6; apply the inventory tiers to `filter-bar`, `variant-management`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X33 Notifications and products** — M, after P6; apply the inventory tiers to `notification-list`, `product-switch`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X34 Search and shell** — M, after P6; apply the inventory tiers to `search`, `shell-bar`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X35 Side navigation** — M, after P6; apply the inventory tiers to `side-navigation`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X36 Dynamic page** — M, after P6; apply the inventory tiers to `dynamic-page`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X37 Object page** — M, after P6; apply the inventory tiers to `object-page`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X38 Column layouts** — M, after P6; apply the inventory tiers to `dynamic-side-content`, `flexible-column-layout`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X39 Page/navigation layout** — M, after P6; apply the inventory tiers to `navigation-layout`, `page`, preserving defaults and validating owned parts, locale and installed consumers.
+
+- [ ] **X40 Extension usage metadata** — S, after H6/H6b and X12; add a validated optional extension block to the G-wave schema, docs and generated skill, with public API/ownership links.
 
 ## Wave H — issue #1: AnalyticalTable, Calendar extension points, missing components
 
@@ -158,12 +238,12 @@ Order: E4 and E5 first (wave P may run alongside H). Then H0. H1–H5 (Analytica
 parallel with them and with each other, except cards that touch the same existing file (noted in each card).
 
 - [ ] [H0 WCR reference harness + WCR texts in the i18n pipeline](tasks/H0-wcr-reference-harness.md) — M (after E4, E5; adds devDependencies)
-- [ ] [H1 AnalyticalTable: extension contract, ARIA ownership, columns, keyboard](tasks/H1-analytical-table-foundation.md) — L (after H0; **on hold until X0 is approved** — its contract must conform to `docs/extension-contract.md`)
+- [ ] [H1 AnalyticalTable: extension contract, ARIA ownership, columns, keyboard](tasks/H1-analytical-table-foundation.md) — L (after H0, P3; **on hold until X0 is approved** — its contract must conform to `docs/extension-contract.md`)
 - [ ] [H2 AnalyticalTable: sorting and filtering](tasks/H2-analytical-table-sort-filter.md) — L (after H1)
 - [ ] [H3 AnalyticalTable: grouping and aggregation](tasks/H3-analytical-table-group-aggregate.md) — L (after H2)
 - [ ] [H4 AnalyticalTable: tree, selection, sub-components, row states](tasks/H4-analytical-table-tree-select-subcomponents.md) — L (after H3)
 - [ ] [H5 AnalyticalTable: virtualisation, infinite scroll, F2 editing, pop-in](tasks/H5-analytical-table-virtual-infinite-edit.md) — L (after H4)
-- [ ] [H6 Calendar extension points (+ date pickers)](tasks/H6-calendar-extension-points.md) — M (after E4, E5; **on hold: X0 rewrites it**)
+- [ ] [H6 Calendar extension points (+ date pickers)](tasks/H6-calendar-extension-points.md) — M (after E4, E5, P2; **X0 draft, awaits approval**)
 - [ ] [H6b Calendar: activated day in selection events, custom week numbers](tasks/H6b-calendar-selection-detail-week-numbers.md) — S (after H6; same file, never in parallel with it; **on hold until X0**)
 - [ ] [H6c Calendar week numbers: match UI5 2.28 + `calendarWeekNumbering`](tasks/H6c-calendar-week-numbering.md) — M (after E5, H6, H6b; same files, never in parallel with them)
 - [ ] [H7 Input suggestions + MessageBox](tasks/H7-input-suggestions-messagebox.md) — L (after H0)
