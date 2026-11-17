@@ -104,7 +104,7 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 - [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
 - [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (third attempt returned; retained on `codex/S2` — see `returns/S2.md`)
 - [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (third attempt returned; retained on `codex/S3` — see `returns/S3.md`)
-- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (returned twice; third attempt approved on `codex/S4` **after SX** — see `returns/S4.md`)
+- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (third attempt returned; retained on `codex/S4` — see `returns/S4.md`)
 - [x] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/SX-storybook-landmarks.md) — S (unblocks S4)
 - [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
 
