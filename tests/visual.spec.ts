@@ -65,11 +65,16 @@ for (const { theme, density, direction } of passes) {
     test(`${theme} ${density}${direction === "rtl" ? " RTL" : ""} matches UI5`, async ({ browser }) => {
       test.setTimeout(120_000)
       const q = `?theme=${theme}&density=${density}&dir=${direction}`
+      // Close each page (and its context) as soon as it has been captured: the reference
+      // pages keep UI5 timers and observers running, and leaving them open made every later
+      // pass in this worker slower until one missed its readiness wait on CI.
       const ui5Page = await browser.newPage()
-      const ref = await shoot(ui5Page, `/ui5.html${q}`)
+      const ref = await shoot(ui5Page, `/ui5.html${q}`).finally(() => ui5Page.context().close())
       const oursPage = await browser.newPage()
+      let cases: CaseInfo[] = []
       const ours = await shoot(oursPage, `/index.html${q}&fixtures`, [...ref.keys()])
-      const cases: CaseInfo[] = await oursPage.evaluate(() => (window as any).__fixtures)
+        .then(async (shots) => { cases = await oursPage.evaluate(() => (window as any).__fixtures); return shots })
+        .finally(() => oursPage.context().close())
       const dir = `test-results/visual/${theme}-${density}${direction === "rtl" ? "-rtl" : ""}`
       mkdirSync(dir, { recursive: true })
       const failures: string[] = []
