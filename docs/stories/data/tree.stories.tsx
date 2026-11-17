@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState as useStoryState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { Tree, TreeItem, TreeItemCustom, type TreeProps, type TreeItemType } from "@/components/ui/tree"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,9 @@ const meta = {
   render: function FilesTree(args: Args) {
     const [, updateArgs] = useArgs<Args>()
     const { collapsed, itemType, disabledItem, customItem, empty, ...props } = args
-    const [removed, setRemoved] = React.useState<string[]>([])
+    // Storybook 10.6 preview-api applyHooks: state in the same story render as
+    // useArgs must use Storybook hooks so deletion rerenders its active context.
+    const [removed, setRemoved] = useStoryState<string[]>([])
     return <Tree key={String(collapsed)} {...props} onValueChange={(value, detail) => { args.onValueChange?.(value, detail); updateArgs({ value }) }} onItemDelete={(value) => { args.onItemDelete?.(value); setRemoved((current) => [...current, value]) }}>
       {!empty && <>
         {!removed.includes("docs") && <TreeItem value="docs" text="Documents" icon={folder} type={itemType} defaultExpanded={!collapsed}>
