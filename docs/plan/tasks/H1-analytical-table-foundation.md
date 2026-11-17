@@ -1,5 +1,10 @@
 # H1 — AnalyticalTable foundation: extension contract, ARIA ownership, columns
 
+> **On hold until X0 is approved (owner's decision, 2026-11-17).** The library follows one extension contract
+> (`docs/plan/tasks/X0-extension-architecture.md` → `docs/extension-contract.md`). The "Extension contract" section
+> below is X0's starting input; once X0 is approved, it conforms to the library contract (X0 adds a note listing any
+> differences). Don't start H1 before that, so AnalyticalTable doesn't ship an API that rule 7 would then freeze.
+
 **Goal:** start `AnalyticalTable` — the React port of WCR 2.28.2's `AnalyticalTable` — with the architecture every later
 card (H2–H5) builds on, and the column features: sizing, resizing, reordering, hiding, freezing (sticky). Ported from
 `node_modules/@ui5/webcomponents-react/dist/components/AnalyticalTable/**` (H0 makes it the source of truth).

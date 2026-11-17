@@ -1,5 +1,46 @@
 # E4 — Accessibility parity: tree comparison vs UI5 + accessible* props audit
 
+> **Rescoped on 2026-11-17 (owner's decision, after two returns).** E4 is the **infrastructure + ratchet + the
+> handed-off and named defects**, not "every fixture matches UI5". The whole-library comparison found 794 of 957 paired
+> records with differences and the audit found hundreds of gap rows — that backlog moves to the per-group cards
+> **P1–P6** (`docs/plan/tasks/P*-parity-*.md`). Continue on the retained branch `codex/E4` (`ff09820`) in
+> `.worktrees/E4`: don't start over; keep every verified repair listed in `docs/plan/returns/E4.md`. Where this
+> addendum and the sections below conflict, **the addendum wins**.
+>
+> **Ratchet (replaces "pass for every fixture").** Add `tests/a11y-tree-baseline.json`, generated from the current
+> comparison output of all four matrices (Web LTR, Web RTL, phone, OpenUI5): one entry per
+> `{ matrix, caseId, path, kind }` difference, each with `owner` = the P card of the case's component group (table in
+> `docs/plan/README.md`, wave P) and a short machine-readable `kind` (`role`, `name`, `description`, `state:<x>`,
+> `missing-node`, `extra-node`, …). The tree specs then fail on (a) any difference not in the baseline and (b) any
+> baseline entry that no longer reproduces ("stale — delete it"). Add `scripts/a11y-baseline.mjs` with `--write`
+> (E4 only, creates the file), `--list <owner>` (prints that owner's entries) and `--prune <owner>` (removes that
+> owner's stale entries; used by P cards). Print
+> per-owner and per-matrix counts in the report. Same for the audit: `docs/plan/a11y-audit.md` keeps its statuses;
+> record per-component gap/unverified counts in `tests/a11y-audit-baseline.json` and fail when any count rises.
+> Section 2's "no `gap` rows" becomes "no count rises, and every row E4 itself touched is `ok` or `fixed in E4`".
+>
+> **Must fix in E4 (from the return note):**
+> 1. Calendar: the native assertive `Selected` announcement on date selection (`DayPicker.js:_updateSelectedDates`
+>    :364, `_toggleTimestampInSelection` :407, `LIST_ITEM_SELECTED`), with its conditions, politeness and text override.
+> 2. ComboBox: the native polite item-position announcement on keyboard navigation (`ComboBox.js:_announceSelectedItem`
+>    :1123–1135, incl. the group-header and additional-text branches), counting **displayed** items (E5 found the same
+>    position bug from the localization side — implement it once, here). Use the `LIST_ITEM_POSITION` text from E5's
+>    provider if E5 is merged, else a `texts` default; say in your final message which side owns the key.
+> 3. List stories `Selected Custom Option` / `RTL Selected Custom Option` (`docs/stories/data/list.stories.tsx:20–21`):
+>    fix the example's parent/child composition so `role=option` sits in a `role=listbox` (use the List selection mode
+>    that renders a listbox); keep both strict axe rules and the component's option/selected ownership.
+> 4. All nine handed-off defects (S0, S1) — already repaired on the branch; keep them, delete each matching
+>    `fixed by E4 —` marker and the handled handoff directories (section 5).
+> 5. Section 3 (customisation points keep ARIA) for the customisation points that exist today.
+>
+> **Moves to P1–P6:** every other baseline entry; audit rows E4 didn't touch; announcement-inventory entries other
+> than the two above (section 4 still produces the inventory, marking each `ok` or `owner: P<n>`).
+>
+> **Acceptance (replaces the list at the end):** AGENTS.md definition of done; the tree specs pass with the baseline
+> (0 unlisted differences, 0 stale entries) in all four matrices, twice; axe/behaviour/pixel suites green as before;
+> Storybook suite green twice (the four List failures gone); the five must-fix items have tests; no `fixed by E4 —`
+> marker remains for handled handoffs; final message: baseline counts per owner and per matrix, and audit counts.
+
 **Goal:** make "accessibility is ported in full" (AGENTS.md rule 9) checkable the same way pixel parity is. Compare the
 accessibility tree of every fixture with UI5's, audit every UI5 `accessible*` property against our API, and close the
 gaps found. Requested by the owner: accessibility must be preserved completely, and it must stay preserved through the
@@ -99,9 +140,9 @@ Input focus ring only), `tests-storybook/**` (remove `fixed by E4` markers only)
 ## Acceptance
 
 - AGENTS.md definition of done.
-- `tests/a11y-tree.spec.ts` (and the phone/SAPUI5 variants) pass for every fixture; every `a11yDiff` entry has a
+- ~~`tests/a11y-tree.spec.ts` (and the phone/SAPUI5 variants) pass for every fixture~~ *(superseded by the 2026-11-17 addendum: ratchet)*; every `a11yDiff` entry has a
   concrete reason and a narrow `ignore` path.
-- `docs/plan/a11y-audit.md` has no `gap` rows.
+- ~~`docs/plan/a11y-audit.md` has no `gap` rows.~~ *(superseded by the 2026-11-17 addendum: ratchet)*
 - Section 5: every handed-off defect fixed with tests (or explicitly left for S5 with a reason);
   `grep -r "fixed by E4 —" tests-storybook` is empty; `pnpm storybook:build && pnpm test:storybook` passes twice;
   every handled `docs/plan/handoff/*-a11y-candidates/` directory is deleted.

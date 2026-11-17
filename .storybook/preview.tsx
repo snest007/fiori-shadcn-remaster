@@ -37,9 +37,21 @@ const preview: Preview = {
   decorators: [(Story, context) => {
     // Match docs/src/main.tsx: tokens and portaled overlays inherit the root attributes.
     if (context.viewMode === "story") applyDocumentGlobals({ globals: context.globals })
-    const Canvas = context.viewMode === "story" ? "main" : "div"
+    // DocsPage owns the docs landmark. Full-page stories own theirs too: axe-core's
+    // landmark-main-is-top-level / landmark-no-duplicate-main also match [role=main].
+    const ownsLandmarks = context.parameters.fiori?.ownsLandmarks
+    const role = context.viewMode === "story" && !ownsLandmarks ? "main" : undefined
+    const headingId = ownsLandmarks ? `fiori-story-heading-${context.id}` : undefined
+    const heading = context.viewMode === "story" && <h1 id={headingId} className="sr-only">{context.title}: {context.name}</h1>
     const controlArgs = Object.fromEntries(Object.entries(context.args).filter(([, value]) => ["string", "number", "boolean"].includes(typeof value)))
-    return <Canvas className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={context.globals.theme} data-density={context.globals.density} dir={context.globals.dir}>{context.viewMode === "story" && <h1 className="sr-only">{context.title}: {context.name}</h1>}<Story /></Canvas>
+    // axe-core regionEvaluate/findRegionlessElms counts accessible hidden headings.
+    // Name a region around this heading alone; the story's main stays its sibling.
+    // UI5 2.28 ListTemplate renders native header/footer (TreeList inherits List).
+    // axe-core landmarkHasBodyContextMatches excludes native headers/footers only
+    // beneath article/aside/main/nav/section. An unnamed section stays generic and keeps
+    // component roles intact; owned full-page landmarks and Docs stay unwrapped.
+    const story = role === "main" ? <section><Story /></section> : <Story />
+    return <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={context.globals.theme} data-density={context.globals.density} dir={context.globals.dir}>{context.viewMode === "story" && ownsLandmarks ? <section aria-labelledby={headingId}>{heading}</section> : heading}{story}</div>
   }],
   parameters: {
     docs: { page: DocsPage, source: { type: "code" } },

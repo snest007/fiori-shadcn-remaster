@@ -36,7 +36,9 @@ unnamed control, focus ring on pointer, wrong role — not a mistake in your sto
 2. Don't change the component. Write a candidate fix as a patch plus a short report (defect, UI5 behaviour, proposed
    change, which test proves it) into `docs/plan/handoff/<card-id>-a11y-candidates/` — same layout as
    `docs/plan/handoff/S0-a11y-candidates/`.
-3. In `tests-storybook/`, mark the failing check as narrowly as S0 did (`tests-storybook/known-issues.ts`: specific
+3. In `tests-storybook/`, mark the failing check as narrowly as S0 did — this applies to **every** strict check, not
+   only axe: an unnamed component-owned control (`expectNamedControls`), a focus assertion or a role check may be
+   marked the same way, by story + selector of the component-owned node (`tests-storybook/known-issues.ts`: specific
    story, axe rule, node selector or focus assertion) with the comment
    `component defect, fixed by E4 — see docs/plan/handoff/<card-id>-a11y-candidates`. No global rule disabling, no
    baselines, no skipped stories.
@@ -46,7 +48,10 @@ S1–S4 run in parallel and may all touch `tests-storybook/known-issues.ts`: add
 headed `// <card-id>` (no edits to other cards' blocks or to S0's), so merges stay mechanical.
 
 If E4 is already merged when you find a defect, do the same, but write `fixed by E4-followup` instead of `fixed by E4`;
-S5 collects those into a follow-up card.
+the component's P card (wave P, by component group) fixes it and removes the marker.
+
+A defect in **shared Storybook setup** (`.storybook/**`, `tests-storybook/*.ts` helpers — e.g. the story canvas
+wrapper) is not a component defect: don't mark it. Stop and report it; the owner fixes shared setup in its own card.
 
 ## Files
 
