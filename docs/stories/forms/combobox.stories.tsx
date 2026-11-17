@@ -97,4 +97,4 @@ export const NoFiltering: Story = { args: { filter: "none", noTypeahead: true } 
 export const NoTypeahead: Story = { args: { noTypeahead: true } }
 export const RTL: Story = { globals: { dir: "rtl" } }
 export const FreeText: Story = { args: { value: "Custom delivery destination" } }
-export const CustomTexts: Story = { args: { arrowLabel: "Choose a delivery country", listLabel: "Delivery destinations", valueState: "critical", valueStateMessage: "Confirm this country is served by your carrier.", dialogTitle: "Delivery destinations", okText: "Use country", cancelText: "Keep previous country" } }
+export const CustomTexts: Story = { args: { texts: { itemPosition: (position, count) => `Destination ${position} of ${count}`, groupHeader: "Destination region" }, arrowLabel: "Choose a delivery country", listLabel: "Delivery destinations", valueState: "critical", valueStateMessage: "Confirm this country is served by your carrier.", dialogTitle: "Delivery destinations", okText: "Use country", cancelText: "Keep previous country" } }

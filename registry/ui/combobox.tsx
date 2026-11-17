@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
 // UI5 2.28 ComboBoxPopoverTemplate.js renders an internal List (fastNavigation metadata).
@@ -32,6 +33,17 @@ function getComboboxFocusModality(owner: Document) {
 if (typeof document !== "undefined") getComboboxFocusModality(document)
 
 type ComboBoxFilter = "startsWithPerTerm" | "startsWith" | "contains" | "none"
+
+type ComboBoxTexts = {
+  itemPosition: (position: number, count: number) => string
+  groupHeader: string
+}
+const defaultTexts: ComboBoxTexts = {
+  // ComboBox.js:_announceSelectedItem passes raw numeric placeholders to
+  // I18nBundle.js:getText / formatMessage; this key does not format/group digits.
+  itemPosition: (position, count) => `List item ${position} of ${count}`, // UI5 LIST_ITEM_POSITION ({0}, {1})
+  groupHeader: "Group Header", // UI5 LIST_ITEM_GROUP_HEADER
+}
 
 type ComboBoxItemProps = {
   /** The text shown in the list and put into the field when the item is chosen. */
@@ -94,6 +106,8 @@ type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue
   dialogTitle?: string
   okText?: string
   cancelText?: string
+  /** Override the polite keyboard-navigation announcement (displayed item position or group header). */
+  texts?: Partial<ComboBoxTexts>
 }
 
 const SKIP_ITEMS = 10
@@ -174,6 +188,7 @@ function ComboBox({
   dialogTitle = "All Items",
   okText = "OK",
   cancelText = "Cancel",
+  texts: textsProp,
   disabled,
   readOnly,
   id,
@@ -186,6 +201,7 @@ function ComboBox({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: ComboBoxProps) {
+  const texts = { ...defaultTexts, ...textsProp }
   const phone = useIsPhone()
   const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
   const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
@@ -203,6 +219,15 @@ function ComboBox({
   const [phoneFocused, setPhoneFocused] = React.useState(0)
 
   const inputRef = React.useRef<HTMLInputElement>(null)
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
+  React.useEffect(() => setAnnouncementTarget(inputRef.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? document.body), [])
+  React.useEffect(() => {
+    if (!announcement.text) return
+    // InvisibleMessage.js clears its current text after 3000 ms.
+    const timer = setTimeout(() => setAnnouncement((old) => old.sequence === announcement.sequence ? { ...old, text: "" } : old), 3000)
+    return () => clearTimeout(timer)
+  }, [announcement])
   React.useImperativeHandle(ref, () => inputRef.current!, [])
   const listRef = React.useRef<HTMLDivElement>(null)
   const lastValue = React.useRef(value)
@@ -224,6 +249,17 @@ function ComboBox({
     return groupItems.length ? [...(entry.headerText ? [entry] : []), ...groupItems] : []
   })
   const visible = rowsFor(visibleItems)
+  const announceItem = (index: number, rows = visible, isOpen = open) => {
+    const item = rows[index]
+    if (!item) return
+    const displayedItems = rows.filter((entry) => !isGroup(entry))
+    // ComboBox.js:_announceSelectedItem uses _getItems(), whose open-state
+    // group children are filtered to displayed rows. Headers never count as
+    // options. The closed header branch still announces the header itself.
+    const text = isGroup(item) ? `${texts.groupHeader} ${item.headerText}`
+      : `${item.additionalText ?? ""} ${isOpen ? texts.itemPosition(displayedItems.indexOf(item) + 1, displayedItems.length) : ""}`.trim()
+    setAnnouncement((old) => ({ text, sequence: old.sequence + 1 }))
+  }
   const selected = visible.findIndex((i) => !isGroup(i) && i.text.toLowerCase() === value.toLowerCase())
 
   const setValue = (v: string) => {
@@ -285,6 +321,7 @@ function ComboBox({
     // and selection, returns before autocomplete/input, and leaves Enter open.
     if (isGroup(item)) {
       if (open) {
+        announceItem(index)
         setActive(index)
         pendingSelection.current = [0, 0]
         setValue("")
@@ -293,6 +330,7 @@ function ComboBox({
       item = visible[index + (forward ? 1 : -1)]
       if (!item || isGroup(item)) return
     }
+    announceItem(index)
     setActive(open ? index : -1)
     applyText(item.text, open ? userTyped.current : "")
   }
@@ -340,6 +378,7 @@ function ComboBox({
       // item after _filterItems has moved groups ahead of standalone items.
       const first = allRows.find((item): item is ComboBoxItemProps => !isGroup(item))
       if (first) {
+        announceItem(allRows.indexOf(first), allRows, true)
         setActive(allRows.indexOf(first))
         applyText(first.text, "")
       }
@@ -652,8 +691,9 @@ function ComboBox({
         </div>
       </Anchor>
       {!phone && portal ? <PopoverPrimitive.Portal>{listContent}</PopoverPrimitive.Portal> : listContent}
+      {announcementTarget && createPortal(<span data-slot="combobox-announcement" data-owner={baseId} className="sr-only" role="alert" aria-live="polite" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>, announcementTarget)}
     </Root>
   )
 }
 
-export { ComboBox, ComboBoxItem, ComboBoxItemGroup, type ComboBoxItemGroupProps, type ComboBoxFilter, type ComboBoxItemProps, type ComboBoxProps }
+export { ComboBox, ComboBoxItem, ComboBoxItemGroup, type ComboBoxItemGroupProps, type ComboBoxFilter, type ComboBoxItemProps, type ComboBoxProps, type ComboBoxTexts }
