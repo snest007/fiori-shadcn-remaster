@@ -342,7 +342,10 @@ function MenuItem({ className, icon, additionalText, children, asChild, checked:
   const hostProps = custom ? { ...custom.props } : undefined
   // MenuItem.js:_accInfo and ListItemBaseTemplate.js own the row role, checked
   // state, popup relations and roving tabindex. The custom host cannot replace them.
-  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-checked", "aria-disabled", "aria-haspopup", "aria-expanded"]) delete (hostProps as Record<string, unknown>)[key]
+  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-checked", "aria-disabled", "aria-haspopup", "aria-expanded", "aria-controls"]) {
+    if ((hostProps as Record<string, unknown>)[key] !== undefined && process.env.NODE_ENV !== "production") console.warn("Menu.Item: ignored custom host ownership prop", key)
+    delete (hostProps as Record<string, unknown>)[key]
+  }
   const body = <ItemContent icon={icon} checked={checkable && !!checked} end={additionalText != null && <span className="fiori-menu-item__additional-text">{additionalText}</span>}>{custom ? custom.props.children : children}</ItemContent>
   return <MenuPrimitive.Item asChild={asChild} data-slot="menu-item" className={cn("fiori-list-item fiori-menu-item", className)}
     {...props} disabled={checkable ? false : disabled} data-disabled={disabled ? "" : (props as Record<string, unknown>)["data-disabled"] as string | undefined} aria-disabled={disabled || props["aria-disabled"]}
@@ -406,7 +409,10 @@ function MenuSubTrigger({ className, icon, children, asChild, ref, checked: _che
   // focuses a row; consume the opener's keyup just as MenuItem does.
   const custom = asChild ? React.Children.only(children) as React.ReactElement<React.ComponentProps<"div">> : undefined
   const hostProps = custom ? { ...custom.props } : undefined
-  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-checked", "aria-disabled", "aria-haspopup", "aria-expanded"]) delete (hostProps as Record<string, unknown>)[key]
+  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-checked", "aria-disabled", "aria-haspopup", "aria-expanded", "aria-controls"]) {
+    if ((hostProps as Record<string, unknown>)[key] !== undefined && process.env.NODE_ENV !== "production") console.warn("Menu.SubTrigger: ignored custom host ownership prop", key)
+    delete (hostProps as Record<string, unknown>)[key]
+  }
   const body = <ItemContent icon={icon} end={<div className="fiori-menu-item__submenu"><Icon icon={slimArrowRight} /></div>}>{custom ? custom.props.children : children}</ItemContent>
   return <MenuPrimitive.SubTrigger asChild={asChild} {...props} ref={mergedRef} data-slot="menu-sub-trigger" className={cn("fiori-list-item fiori-menu-item", className)} disabled={checkable ? false : disabled}
     data-disabled={disabled ? "" : (props as Record<string, unknown>)["data-disabled"] as string | undefined} aria-disabled={disabled || props["aria-disabled"]} data-menu-checkable={checkable ? "" : undefined}
