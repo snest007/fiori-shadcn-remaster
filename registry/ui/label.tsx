@@ -20,9 +20,18 @@ type LabelProps = React.ComponentProps<typeof LabelPrimitive.Root> & {
 function Label({ className, children, asChild, required, showColon, truncate, ...props }: LabelProps) {
   const custom = asChild ? React.Children.only(children) as React.ReactElement<{ children?: React.ReactNode }> : undefined
   const hostProps = custom ? { ...custom.props } as React.ComponentProps<"label"> : undefined
-  if (hostProps) delete hostProps.tabIndex
-  if (hostProps && props.htmlFor !== undefined) delete hostProps.htmlFor
-  if (hostProps && props.id !== undefined) delete hostProps.id
+  if (hostProps && hostProps.tabIndex !== undefined) {
+    if (process.env.NODE_ENV !== "production") console.warn("Label: ignored custom host ownership prop", "tabIndex")
+    delete hostProps.tabIndex
+  }
+  if (hostProps && props.htmlFor !== undefined && hostProps.htmlFor !== undefined) {
+    if (process.env.NODE_ENV !== "production") console.warn("Label: ignored custom host ownership prop", "htmlFor")
+    delete hostProps.htmlFor
+  }
+  if (hostProps && props.id !== undefined && hostProps.id !== undefined) {
+    if (process.env.NODE_ENV !== "production") console.warn("Label: ignored custom host ownership prop", "id")
+    delete hostProps.id
+  }
   // LabelTemplate.js keeps custom content, the hidden colon and required marker
   // inside one owning label. Pass that real host to Slot, not sibling spans.
   const body = <>
