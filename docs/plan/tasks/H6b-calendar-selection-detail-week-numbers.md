@@ -75,7 +75,7 @@ forwarding needs a type change), plus `docs/spikes/fiscal-calendar/**`. Shared: 
 
 ## Out of scope (noted for a later card)
 
-- **Week-numbering rule (verified against ui5-calendar 2.28 on 2026-11-17; fix in a separate card).** Method:
+- **Week-numbering rule (verified against ui5-calendar 2.28 on 2026-11-17; fixed by card H6c).** Method:
   UI5 and ours side by side, 11 year-boundary months (2020–2028), 66 week rows per configuration. A UI5 "first day
   override" means the global `formatSettings.firstDayOfWeek` config; UI5 has no per-calendar prop for it.
 
