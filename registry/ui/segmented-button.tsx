@@ -114,8 +114,9 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
         />
       )}
       {/* SegmentedButton.js/_selectItem announces LIST_ITEM_SELECTED assertively
-          whenever the activated item is selected; deselection emits nothing. */}
-      <span data-slot="segmented-button-announcement" role="status" aria-live="assertive" aria-atomic="true" className="sr-only"><span key={announcement.sequence}>{announcement.text}</span></span>
+          whenever the activated item is selected; deselection emits nothing.
+          InvisibleMessage.js/createAnnouncementSpans supplies role=alert. */}
+      <span data-slot="segmented-button-announcement" role="alert" aria-live="assertive" aria-atomic="true" className="sr-only"><span key={announcement.sequence}>{announcement.text}</span></span>
     </SegmentedButtonContext.Provider>
   )
 }

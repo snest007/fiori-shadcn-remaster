@@ -140,7 +140,7 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
       prepareItemFocus(event) {
         // Select._handleArrowNavigation and _selectTypedItem announce selection;
         // Home/End/Page keys only move/select without this announcement channel.
-        pendingItemAnnouncement.current = !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && (["ArrowDown", "ArrowUp"].includes(event.key) || (event.key.length === 1 && event.key !== " "))
+        pendingItemAnnouncement.current = !event.altKey && !event.ctrlKey && !event.metaKey && ((["ArrowDown", "ArrowUp"].includes(event.key) && !event.shiftKey) || (event.key.length === 1 && event.key !== " "))
       },
       onItemFocus(value) { if (pendingItemAnnouncement.current) { pendingItemAnnouncement.current = false; announce(value, true) } },
       announce,
@@ -357,8 +357,9 @@ function SelectTrigger({
         </SelectTriggerHost>
       </SelectPrimitive.Trigger>
       {state?.collection.groups ? <span id={groupCountId} className="sr-only" data-slot="select-group-count">{typeTexts.optionsInGroups(state.collection.options, state.collection.groups)}</span> : null}
-      {/* Select.js/itemSelectionAnnounce uses InvisibleMessageMode.Polite. */}
-      <span data-slot="select-announcement" role="status" aria-live="polite" aria-atomic="true" className="sr-only"><span key={state?.announcement.sequence}>{state?.announcement.text}</span></span>
+      {/* Select.js/itemSelectionAnnounce uses InvisibleMessageMode.Polite;
+          InvisibleMessage.js/createAnnouncementSpans retains role=alert. */}
+      <span data-slot="select-announcement" role="alert" aria-live="polite" aria-atomic="true" className="sr-only"><span key={state?.announcement.sequence}>{state?.announcement.text}</span></span>
       {showMessage && (
         <div
           id={messageId}
