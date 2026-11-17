@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
-import { axeViolations } from "./accessibility"
-import { attachAudit, classifyViolations } from "./known-issues"
+import { axeViolations, expectNamedControls, waitForStoryFinished } from "./accessibility"
+import { attachAudit, classifyS3UnnamedModeControl, classifyViolations } from "./known-issues"
 
 test("Loading's E4 record does not hide a new invalid grid node or an unapproved story", async ({ page }, testInfo) => {
   await page.goto("/iframe.html?id=data-data-table--loading&viewMode=story")
@@ -38,4 +38,65 @@ test("Loading's E4 record does not hide a new invalid grid node or an unapproved
   await attachAudit(testInfo, "changed-owned-grid-guard", changed)
   expect(changed.known).toEqual([])
   expect(changed.unexpected.find((rule) => rule.id === "aria-required-children")?.nodes.map((node) => node.target)).toContainEqual([".fiori-table__grid"])
+})
+
+// S3
+// component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
+const s3ModeStories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]
+for (const variant of s3ModeStories) for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
+  test(`S3 ${variant} mode-name marker accepts only its linked component node (${theme})`, async ({ page }, testInfo) => {
+    const story = `overlays-view-settings-dialog--${variant}`
+    await page.goto(`/iframe.html?id=${story}&viewMode=story&globals=theme:${theme}`)
+    const mode = page.locator('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]')
+    await expect(mode).toBeVisible()
+    await waitForStoryFinished(page)
+    await expect(mode).toHaveAccessibleName("")
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(true)
+    await expectNamedControls(page, { story, theme }, testInfo)
+    expect(await classifyS3UnnamedModeControl(mode, { story: "overlays-view-settings-dialog--playground", theme })).toBe(false)
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme, primary: true })).toBe(false)
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme: "sap_horizon_dark" })).toBe(false)
+    const opener = page.locator(`#storybook-root [data-fiori-story="${story}"] [data-slot="dialog-trigger"]`)
+    await opener.evaluate((node) => node.setAttribute("aria-controls", "foreign-dialog-id"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(false)
+  })
+}
+
+test("S3 name marker rejects a matching foreign dialog and foreign node", async ({ page }) => {
+  const context = { story: "overlays-view-settings-dialog--open", theme: "sap_horizon" }
+  await page.goto(`/iframe.html?id=${context.story}&viewMode=story`)
+  const mode = page.locator('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]')
+  await expect(mode).toBeVisible()
+  await waitForStoryFinished(page)
+  const ownedId = await page.locator('.fiori-vsd[role="dialog"]').getAttribute("id")
+  await mode.evaluate((node) => {
+    const foreign = node.cloneNode(true) as HTMLElement
+    foreign.id = "s3-foreign-mode"
+    node.closest('[role="dialog"]')!.append(foreign)
+  })
+  expect(await classifyS3UnnamedModeControl(page.locator("#s3-foreign-mode"), context)).toBe(false)
+  await page.locator("#s3-foreign-mode").evaluate((node) => node.remove())
+  await page.locator('.fiori-vsd[role="dialog"]').evaluate((node) => {
+    const foreign = node.cloneNode(true) as HTMLElement
+    foreign.id = "s3-foreign-dialog"
+    foreign.querySelector('[data-slot="dialog-title"]')!.id = "s3-foreign-title"
+    foreign.setAttribute("aria-labelledby", "s3-foreign-title")
+    node.parentElement!.append(foreign)
+  })
+  const foreign = page.locator('#s3-foreign-dialog .fiori-vsd__sub-header [role="listbox"]')
+  expect(await classifyS3UnnamedModeControl(foreign, context)).toBe(false)
+  await page.locator(`[id="${ownedId}"]`).evaluate((node) => node.remove())
+  // Only one identical foreign portal remains, but the owned trigger still
+  // points at the removed portal. Matching markup never proves ownership.
+  expect(await classifyS3UnnamedModeControl(foreign, context)).toBe(false)
+})
+
+test("S3 marker keeps strict names for unrelated controls and unnamed foreign listboxes", async ({ page }) => {
+  const context = { story: "overlays-view-settings-dialog--open", theme: "sap_horizon" }
+  await page.setContent(`<html data-theme="sap_horizon"><body><div id="storybook-root"><div data-fiori-story="${context.story}"><button id="s3-unnamed-button"></button><div id="s3-unnamed-list" role="listbox" tabindex="0"></div></div></div></body></html>`)
+  expect(await classifyS3UnnamedModeControl(page.locator("#s3-unnamed-button"), context)).toBe(false)
+  expect(await classifyS3UnnamedModeControl(page.locator("#s3-unnamed-list"), context)).toBe(false)
+  await expect(expectNamedControls(page, context)).rejects.toThrow(/toHaveAccessibleName/)
+  await page.locator("#s3-unnamed-button").evaluate((node) => node.setAttribute("aria-label", "Named negative control"))
+  await expect(expectNamedControls(page, context)).rejects.toThrow(/toHaveAccessibleName/)
 })

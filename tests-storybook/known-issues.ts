@@ -1,4 +1,4 @@
-import { type Page, type TestInfo } from "@playwright/test"
+import { type Locator, type Page, type TestInfo } from "@playwright/test"
 import { type axeViolations } from "./accessibility"
 
 type Violations = Awaited<ReturnType<typeof axeViolations>>
@@ -243,5 +243,44 @@ export async function classifyS1PointerFocus(page: Page, context: { story: strin
     return (css.outlineStyle !== "none" && Number.parseFloat(css.outlineWidth) > 0)
       || (!["none", "normal"].includes(after.content) && after.display !== "none" && after.visibility !== "hidden"
         && after.borderTopStyle !== "none" && Number.parseFloat(after.borderTopWidth) > 0)
+  }, context)
+}
+
+// S3
+// component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
+// Owner: P4. The owner-approved third attempt extends this exact component-node
+// marker to the independent name assertion. Keep S0/S1 and the axe classifier
+// unchanged; a Locator supplies the actual checked node, never a caller selector.
+export const s3ComponentDefect = "component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates"
+export async function classifyS3UnnamedModeControl(control: Locator, context: AuditContext) {
+  return control.evaluate((actual, context) => {
+    const stories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]
+    if (context.primary || !stories.some((name) => context.story === `overlays-view-settings-dialog--${name}`)
+      || !["sap_horizon", "sap_horizon_hcb"].includes(context.theme)
+      || document.documentElement.dataset.theme !== context.theme) return false
+    const canvases = document.querySelectorAll(`#storybook-root [data-fiori-story="${context.story}"]`)
+    if (canvases.length !== 1) return false
+    const canvas = canvases[0]
+    const unique = (selector: string, root: ParentNode = canvas) => {
+      const nodes = root.querySelectorAll(selector)
+      return nodes.length === 1 ? nodes[0] : null
+    }
+    const visible = (element: Element) => (element as HTMLElement).checkVisibility()
+    const opener = unique('[data-slot="dialog-trigger"][aria-haspopup="dialog"][aria-expanded="true"][data-state="open"]')
+    const dialog = unique('.fiori-vsd[data-slot="dialog-content"][role="dialog"]', document)
+    const title = dialog ? unique('[data-slot="dialog-title"]', dialog) : null
+    const expectedTitle = context.story.endsWith("--custom-texts") ? "Product view" : "View Settings"
+    if (!opener || opener.textContent?.trim() !== "Configure product view" || !visible(opener)
+      || !dialog || dialog.parentElement !== document.body || dialog.getAttribute("data-state") !== "open"
+      || !opener.getAttribute("aria-controls") || opener.getAttribute("aria-controls") !== dialog.id
+      || !title || !title.id || dialog.getAttribute("aria-labelledby") !== title.id || title.textContent?.trim() !== expectedTitle) return false
+    const list = unique('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]', dialog)
+    const options = list ? [...list.querySelectorAll('[data-slot="segmented-button-item"][role="option"]')] : []
+    const expected = context.story.endsWith("--descending") ? "Sort|Group" : "Sort|Filter|Group"
+    return visible(dialog) && actual === list && !!list && visible(list)
+      && !list.hasAttribute("aria-label") && !list.hasAttribute("aria-labelledby") && !list.hasAttribute("title")
+      && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
+      && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === expected
+      && options.length === expected.split("|").length && options.every((option) => option.hasAttribute("aria-selected"))
   }, context)
 }
