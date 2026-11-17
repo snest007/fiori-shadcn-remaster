@@ -7,6 +7,10 @@ import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/compo
 
 type FileSizeExceed = { fileName: string; fileSize: number }
 
+/**
+ * @accessibility aria-label names the native file input. The component adds aria-haspopup=dialog and roleDescription; inputTitle, browseTitle and clearTitle override tooltips, and valueStateMessage supplies a linked validation description.
+ * @accessibility Enter, Space, F4 or Alt+Up/Down opens the native file picker; Delete clears the selection. hideInput composes a visible Button while the native input remains the keyboard target.
+ */
 type FileUploaderProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   /** Form field name of the native file input. */
   name?: string

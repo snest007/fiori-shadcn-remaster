@@ -25,6 +25,10 @@ function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, expli
 type GroupContextValue = { readOnly?: boolean; valueState: ValueState }
 const RadioGroupContext = React.createContext<GroupContextValue>({ valueState: "none" })
 
+/**
+ * @accessibility Name the radiogroup with aria-label or aria-labelledby; each RadioGroupItem is named by text or its native aria-label.
+ * @accessibility Tab enters the selected radio. Arrows move and select, with horizontal arrows mirrored in RTL. readOnly allows focus movement without selection. Item valueStateText overrides its hidden validation description.
+ */
 type RadioGroupProps = React.ComponentProps<typeof RadioGroupPrimitive.Root> & {
   /** Every item is focusable (arrow keys still move focus) but the value can't be changed. */
   readOnly?: boolean

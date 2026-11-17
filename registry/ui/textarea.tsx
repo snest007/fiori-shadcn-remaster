@@ -8,6 +8,10 @@ import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/compo
 
 type CounterMode = "none" | "always" | "auto"
 
+/**
+ * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the textarea. Its value-state message and character counter are linked descriptions.
+ * @accessibility Typing edits the field; Escape restores the value from focus. counterText and valueStateMessage override the counter and validation descriptions.
+ */
 type TextAreaProps = Omit<React.ComponentProps<"textarea">, "rows"> & {
   valueState?: ValueState
   /**

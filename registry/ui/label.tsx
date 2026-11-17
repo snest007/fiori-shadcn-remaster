@@ -3,6 +3,10 @@ import { Label as LabelPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * @accessibility htmlFor identifies the native input or button being labelled. The colon and required marker are hidden from the accessible name.
+ * @accessibility Use the field required prop together with the visual required marker. Label has no keyboard stop.
+ */
 type LabelProps = React.ComponentProps<typeof LabelPrimitive.Root> & {
   /** Adds the Fiori required marker (a magenta asterisk). */
   required?: boolean
