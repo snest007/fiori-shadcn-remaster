@@ -1,7 +1,7 @@
 # shadcn-fiori
 
 SAP Fiori (Horizon) look **and** interaction for React, distributed as a [shadcn/ui](https://ui.shadcn.com) registry.
-The colors, sizes, shadows, fonts and icons are not hand-tuned. They are generated from SAP's open-source theme
+The colors, sizes, shadows and icons are not hand-tuned. They are generated from SAP's open-source theme
 packages, and each component is screenshot-compared against [UI5 Web Components](https://github.com/UI5/webcomponents),
 SAP's official implementation.
 
@@ -18,7 +18,7 @@ Browse the [component docs and floorplans](https://snest007.github.io/fiori-shad
 | Themes | Morning Horizon, Evening Horizon, High Contrast Black, High Contrast White (`data-theme`) |
 | Density | cozy (default), compact (`data-density="compact"`, works on any subtree) |
 | Tokens | 1479 `--sap*` variables per theme + 1477 component parameters from UI5 (main + fiori packages) |
-| Icons | 705 SAP Horizon icons, tree-shakeable |
+| Icons | 704 SAP Horizon icons, tree-shakeable |
 | Components (73) | **Actions** Button, ToggleButton, SegmentedButton · **Forms** Label, Input, TextArea, Select, ComboBox, MultiComboBox, MultiInput (+Token, Tokenizer), StepInput, CheckBox, RadioGroup, Switch, Slider/RangeSlider, RatingIndicator, FileUploader, Form · **Dates** Calendar, DatePicker, DateRangePicker, TimePicker, DateTimePicker · **Data** Table, DataTable (TanStack, virtualized), List, Tree, Timeline, UploadCollection, ObjectStatus, ObjectNumber, ObjectIdentifier · **Overlays** Dialog, Popover, Menu, Toast, ViewSettingsDialog, ValueHelpDialog, UserMenu · **Display** MessageStrip, Tag, Avatar/AvatarGroup, Card, Panel, BusyIndicator, ProgressIndicator, Link, Title, Text, ExpandableText, Carousel, HeroBanner, IllustratedMessage · **Navigation** Tabs (IconTabBar), Breadcrumbs, Toolbar, Bar, FilterBar, ShellBar, Search, ProductSwitch, NotificationList, SideNavigation, Wizard · **Layout** Page, DynamicPage, ObjectPage, FlexibleColumnLayout (+`useFlexibleColumnLayout`), DynamicSideContent, NavigationLayout |
 | Floorplans (blocks) | `app-shell`, `launchpad` (shell + side navigation), `list-report`, `object-page-floorplan`, `master-detail` (flexible column layout), `wizard-page`, `empty-states` — preview at `/block.html?name=<block>`, install with `npx shadcn add @fiori/<block>` |
 | Illustrations | 118 SAP illustrations (72 Fiori + 46 TNT) in Scene/Dialog/Spot/Dot sizes; `illustrations-core` (14 common states) ships with IllustratedMessage, the rest as `@fiori/illustration-<name>` |
@@ -40,6 +40,12 @@ This writes the theme to `src/styles/fiori/`, adds the imports to your Tailwind 
 `--primary` / `--border` / … to Fiori tokens, and installs the components. Add components individually with
 `npx shadcn add @fiori/button`.
 
+The SAP 72 font is a separate, optional item (see [License](#license) before you add it):
+
+```bash
+npx shadcn@latest add https://snest007.github.io/fiori-shadcn-remaster/r/fiori-font.json
+```
+
 To switch themes and density, set attributes on `<html>` (or any element):
 
 ```html
@@ -47,7 +53,7 @@ To switch themes and density, set attributes on `<html>` (or any element):
 ```
 
 Next.js: the CLI writes the theme files to `src/styles/fiori/`. If your CSS entry is `app/globals.css`,
-move the folder next to it, or fix the three `@import` paths.
+move the folder next to it, or fix the `@import` paths.
 
 ## Usage
 
@@ -131,5 +137,15 @@ Collected from all phases; none blocks using the library.
 
 ## License
 
-Apache-2.0. Generated theme values, fonts, icon paths and illustrations are © SAP SE, used under Apache-2.0
-(`@sap-theming/theming-base-content`, `@ui5/webcomponents`, `@ui5/webcomponents-fiori`, `@ui5/webcomponents-icons`).
+Apache-2.0. Generated theme values, icon paths and illustrations are © SAP SE or an SAP affiliate company, used
+under Apache-2.0 (`@sap-theming/theming-base-content`, `@ui5/webcomponents`, `@ui5/webcomponents-fiori`,
+`@ui5/webcomponents-icons`). Components and component CSS are partly derived from UI5 Web Components and OpenUI5
+(Apache-2.0); each shipped file says so in its header.
+
+**The 72 font is not covered.** Its files carry their own license ("Copyright SAP SE. All rights reserved" plus
+Monotype terms that forbid copying and redistribution), even though they sit inside an Apache-2.0 npm package. This
+registry does not bundle them. The optional `@fiori/fiori-font` item only adds `@font-face` rules that load the
+font from SAP's npm package on jsDelivr, as UI5 Web Components does. Install it only if your use of 72 is permitted
+(for example under your SAP license); without it the theme falls back to Arial / Helvetica.
+
+The SAP logo icon (`sap-logo-shape`) is left out of the icon set: Apache-2.0 grants no trademark rights.

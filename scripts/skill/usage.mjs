@@ -15,7 +15,7 @@ export const iconsItem = {
   name: "icons",
   type: "registry:lib",
   title: "SAP Horizon icons",
-  description: "705 SAP Horizon icons (tree-shakeable) and the <Icon> component.",
+  description: "704 SAP Horizon icons (tree-shakeable) and the <Icon> component.",
   registryDependencies: ["@fiori/fiori-theme"],
   files: [
     { path: "registry/lib/fiori-icons.ts", type: "registry:lib" },

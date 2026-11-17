@@ -1,3 +1,7 @@
+// Portions derived from SAP's open-source UI5 projects (UI5 Web Components 2.28 / OpenUI5),
+// © SAP SE or an SAP affiliate company and UI5 contributors, licensed under Apache-2.0.
+// Modified by shadcn-fiori: ported to React. SPDX-License-Identifier: Apache-2.0
+
 import * as React from "react"
 
 import { ColorPalette, ColorPaletteStateContext, ColorPaletteStateProvider, type ColorPaletteProps } from "@/components/ui/color-palette"

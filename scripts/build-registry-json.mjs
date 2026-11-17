@@ -67,7 +67,7 @@ const registry = {
       name: "fiori",
       type: "registry:base",
       title: "Fiori (SAP Horizon) base",
-      description: "Theme, density, 72 font, icons and every Fiori component. Install with `shadcn init <url>/r/fiori.json`.",
+      description: "Theme, density, icons and every Fiori component (the 72 font is the separate, optional @fiori/fiori-font). Install with `shadcn init <url>/r/fiori.json`.",
       registryDependencies: ["@fiori/fiori-theme", ...components.map((c) => `@fiori/${c.name}`)],
       config: {
         style: "new-york",
@@ -95,6 +95,16 @@ const registry = {
         '@import "./styles/fiori/fiori-tailwind.css"': {},
         '@import "./styles/fiori/fiori-components.css"': {},
       },
+    },
+    {
+      // Opt-in: the 72 font files are © SAP SE / Monotype, not Apache-2.0 (see scripts/generate-tokens.mjs).
+      name: "fiori-font",
+      type: "registry:item",
+      title: "SAP 72 font (optional)",
+      description: "@font-face rules that load SAP's 72 font from jsDelivr. The font is not Apache-2.0 licensed: check your rights to use it before installing.",
+      registryDependencies: ["@fiori/fiori-theme"],
+      files: [css("fiori-font.css")],
+      css: { '@import "./styles/fiori/fiori-font.css"': {} },
     },
     iconsItem,
     ...components,
