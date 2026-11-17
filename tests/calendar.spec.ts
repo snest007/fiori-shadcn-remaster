@@ -206,3 +206,51 @@ for (const id of ["calendar-multiple", "calendar-range", "calendar-special"]) te
     }
   } finally { await reference.close() }
 })
+
+for (const direction of ["ltr", "rtl"]) for (const mode of ["single", "range", "multiple"]) test(`Calendar ${direction} ${mode} selection announces with native conditions and assertive politeness`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  const id = mode === "range" ? "calendar-announcement-range-start" : `calendar-${mode}`
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?fixtures&only=${id}&dir=${direction}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const holder = current.locator(`[data-fixture="${id}"]`)
+      const day = holder.locator(native ? `[role="gridcell"][data-sap-timestamp="${Date.UTC(2024, 2, 13) / 1000}"]` : '[role="gridcell"][data-date="20240313"]')
+      const region = current.locator(native ? '.ui5-invisiblemessage-assertive' : '[data-slot="calendar-announcement"]')
+      await expect(region).toHaveAttribute("aria-live", "assertive")
+      await day.focus(); await expect(day).toBeFocused()
+      await current.keyboard.press("Enter")
+      await expect(day).toHaveAttribute("aria-selected", "true")
+      await expect(region).toHaveText("Selected")
+      // Negative conditions use mutation counts: no sleeps and no stale text
+      // mistaken for a fresh announcement. Selection state settles first.
+      await region.evaluate((node) => { (window as any).__calendarAnnouncements = 0; new MutationObserver(() => (window as any).__calendarAnnouncements++).observe(node, { childList: true, subtree: true, characterData: true }) })
+      await current.keyboard.press("Enter")
+      await expect(day).toHaveAttribute("aria-selected", mode === "multiple" ? "false" : "true")
+      if (mode === "multiple") {
+        expect(await current.evaluate(() => (window as any).__calendarAnnouncements)).toBe(0)
+        await current.keyboard.press("Shift+Enter")
+        await expect(day).toHaveAttribute("aria-selected", "true")
+        await expect.poll(() => current.evaluate(() => (window as any).__calendarAnnouncements)).toBeGreaterThan(0)
+        await current.evaluate(() => (window as any).__calendarAnnouncements = 0)
+        const outside = holder.getByRole("gridcell", { name: "March 25, 2024", exact: true })
+        await outside.focus(); await expect(outside).toBeFocused()
+        await current.keyboard.press("Shift+Enter")
+        await expect(outside).toHaveAttribute("aria-selected", "true")
+        expect(await current.evaluate(() => (window as any).__calendarAnnouncements)).toBe(0)
+        await current.keyboard.press("Shift+Space")
+        await expect(holder.getByRole("gridcell", { name: "March 26, 2024", exact: true })).toHaveAttribute("aria-selected", "true")
+        expect(await current.evaluate(() => (window as any).__calendarAnnouncements)).toBe(0)
+      } else await expect.poll(() => current.evaluate(() => (window as any).__calendarAnnouncements)).toBeGreaterThan(0)
+    }
+  } finally { await reference.close() }
+})
+
+test("Calendar selection text override reaches the assertive announcement", async ({ page }) => {
+  await page.goto('/index.html?fixtures&only=calendar-announcement-override')
+  await page.waitForSelector("html[data-ready=true]")
+  const day = page.locator('[data-fixture="calendar-announcement-override"]').getByRole("gridcell", { name: "March 13, 2024", exact: true })
+  await day.click()
+  await expect(day).toHaveAttribute("aria-selected", "true")
+  await expect(page.locator('[data-slot="calendar-announcement"]')).toHaveText("Delivery date selected")
+})

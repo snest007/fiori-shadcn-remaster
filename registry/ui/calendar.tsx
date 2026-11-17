@@ -1,4 +1,5 @@
 import * as React from "react"
+import { createPortal } from "react-dom"
 
 // UI5 2.28 Calendar fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -86,11 +87,13 @@ const defaultLabels: CalendarLabels = {
 }
 
 type CalendarTexts = {
+  selected: string
   previousButtonShortcut: string
   nextButtonShortcut: string
 }
 
 const defaultTexts: CalendarTexts = {
+  selected: "Selected", // UI5 LIST_ITEM_SELECTED
   previousButtonShortcut: "Pagedown", // UI5 CALENDAR_HEADER_MONTH_PREVIOUS_BUTTON_SHORTCUT (pinned English bundle)
   nextButtonShortcut: "Pageup", // UI5 CALENDAR_HEADER_MONTH_NEXT_BUTTON_SHORTCUT (pinned English bundle)
 }
@@ -192,6 +195,17 @@ function Calendar({
   const [secondDate, setSecondDate] = React.useState<Date | null>(null)
   const [legendType, setLegendType] = React.useState<string | null>(null)
   const rootRef = React.useRef<HTMLDivElement>(null)
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
+  React.useEffect(() => setAnnouncementTarget(rootRef.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? document.body), [])
+  React.useEffect(() => {
+    if (!announcement.text) return
+    // InvisibleMessage.js clears the message after 3000 ms; repeat selection
+    // replaces the text node so the same text is announced again.
+    const timer = setTimeout(() => setAnnouncement((old) => old.sequence === announcement.sequence ? { ...old, text: "" } : old), 3000)
+    return () => clearTimeout(timer)
+  }, [announcement])
+  const announceSelected = () => setAnnouncement((old) => ({ text: texts.selected, sequence: old.sequence + 1 }))
   const [legendTexts, setLegendTexts] = React.useState<Record<string, string>>({})
   React.useLayoutEffect(() => {
     const root = rootRef.current
@@ -277,12 +291,26 @@ function Calendar({
         for (let d = startOfDay(from); dayKey(d) <= dayKey(to); d = addDays(d, 1)) {
           const inSel = next.some((s) => isSameDay(s, d))
           if (toggle && inSel) next = next.filter((s) => !isSameDay(s, d))
-          else if (!inSel && !isDisabled(d)) next.push(d)
+          else if (!inSel && !isDisabled(d)) {
+            next.push(d)
+            // DayPicker.js:_multipleSelection uses _toggleTimestampInSelection
+            // inside the selected span: every newly toggled-on day announces.
+            // Extending outside that span uses _addTimestampToSelection silently.
+            if (toggle) announceSelected()
+          }
         }
         setSelected(next)
-      } else setSelected(has(day) ? selected.filter((s) => !isSameDay(s, day)) : [...selected, day])
+      } else {
+        // DayPicker.js:_toggleTimestampInSelection announces only additions.
+        // _selectWeek deliberately does not announce.
+        if (!has(day)) announceSelected()
+        setSelected(has(day) ? selected.filter((s) => !isSameDay(s, day)) : [...selected, day])
+      }
       return
     }
+    // DayPicker.js:_updateSelectedDates announces every Single/Range activation,
+    // including a repeated selection and either endpoint, assertively.
+    announceSelected()
     if (selectionMode === "range" && selected.length === 1) {
       const [a, b] = [selected[0], day].sort((x, y) => dayKey(x) - dayKey(y))
       setSecondDate(null)
@@ -549,6 +577,7 @@ function Calendar({
         </div>
         {legend}
       </div>
+      {announcementTarget && createPortal(<span data-slot="calendar-announcement" data-owner={props.id} className="sr-only" role="alert" aria-live="assertive" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>, announcementTarget)}
     </LegendContext.Provider>
   )
 }

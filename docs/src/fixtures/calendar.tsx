@@ -10,6 +10,7 @@ export type CalendarFixture = {
   max?: string
   hideWeekNumbers?: boolean
   picker?: CalendarPicker
+  announcementText?: string
   special?: boolean
 }
 
@@ -155,6 +156,8 @@ export default defineFixtures<CalendarFixture>({
     }
   },
   cases: [
+    { id: "calendar-announcement-override", props: { dates: ["2024-03-12"], announcementText: "Delivery date selected" } },
+    { id: "calendar-announcement-range-start", props: { mode: "range", dates: ["2024-03-12"] } },
     { id: "calendar-single", props: { dates: ["2024-03-12"] } },
     { id: "calendar-today", props: {} },
     { id: "calendar-range", props: { mode: "range", dates: ["2024-03-05", "2024-03-14"] } },
@@ -165,8 +168,9 @@ export default defineFixtures<CalendarFixture>({
     { id: "calendar-month-picker", props: { dates: ["2024-03-12"], picker: "month" } },
     { id: "calendar-year-picker", props: { dates: ["2024-03-12"], picker: "year" } },
   ],
-  react: ({ dates = [], mode = "single", min, max, hideWeekNumbers, picker, special }) => (
+  react: ({ dates = [], mode = "single", min, max, hideWeekNumbers, picker, special, announcementText }) => (
     <Calendar
+      texts={announcementText ? { selected: announcementText } : undefined}
       selectionMode={mode}
       defaultSelectedDates={dates.map(d)}
       minDate={min ? d(min) : undefined}
