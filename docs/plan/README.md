@@ -76,7 +76,7 @@ F1 and F2 can run in parallel after F0.
 - [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
 - [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/fiori-shadcn-remaster, Pages; push only, no gh; run in the main checkout, not via RUN.md)
 - [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (rescoped 2026-11-17 after two returns: continue on `codex/E4`; see the card's addendum and `returns/E4.md`. After S0; before waves P and H)
-- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (rescoped 2026-11-17 after two returns: continue on `codex/E5`; see the card's addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
+- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (third attempt returned; retained on `codex/E5` — see the card's 2026-11-17 addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
