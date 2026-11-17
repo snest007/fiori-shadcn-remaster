@@ -19,6 +19,12 @@ const e5Evidence = ".integration/E5-evidence/third-20261117"
 
 interface AuditGroup { component: string; owner: string; rows: { key: string; status: string; english: string; englishSource: string; triage?: string }[] }
 type AuditBaseline = Record<string, { owner: string; gapCount: number; okKeys: string[] }>
+function readSourceAudit(): AuditGroup[] {
+  // The complete source/reference inventory exceeds execFileSync's default 1 MiB.
+  // Preserve every row instead of truncating the audit consumed by the ratchet.
+  const { audit } = JSON.parse(execFileSync(process.execPath, ["scripts/i18n-audit.mjs", "--json"], { encoding: "utf8", maxBuffer: 8 * 1024 * 1024 })) as { audit: AuditGroup[] }
+  return audit
+}
 function auditRatchetProblems(audit: AuditGroup[], baseline: AuditBaseline) {
   const problems: string[] = []
   for (const group of audit) {
@@ -35,12 +41,19 @@ function auditRatchetProblems(audit: AuditGroup[], baseline: AuditBaseline) {
   return problems
 }
 
+test("i18n audit assigns the Calendar pilot to P2a and leaves time controls in P2", () => {
+  const audit = readSourceAudit()
+  for (const group of audit) expect(group.owner, group.component).toMatch(/^P(?:2a|[1-6])$/)
+  expect(audit.filter(group => group.owner === "P2a").map(group => group.component).sort()).toEqual(["calendar", "date-picker", "date-range-picker", "date-time-picker"])
+  for (const name of ["time-picker", "picker-field"]) expect(audit.find(group => group.component === name)?.owner, name).toBe("P2")
+})
+
 test("i18n audit ratchet guards owning gap counts and every implemented key", () => {
-  const { audit } = JSON.parse(execFileSync(process.execPath, ["scripts/i18n-audit.mjs", "--json"], { encoding: "utf8" })) as { audit: AuditGroup[] }
+  const audit = readSourceAudit()
   const baseline = JSON.parse(readFileSync("tests/i18n-audit-baseline.json", "utf8")) as AuditBaseline
   expect(auditRatchetProblems(audit, baseline)).toEqual([])
   for (const group of audit) {
-    expect(group.owner, group.component).toMatch(/^P[1-6]$/)
+    expect(group.owner, group.component).toMatch(/^P(?:2a|[1-6])$/)
     expect(group.rows.filter(row => row.status === "gap").every(row => row.triage), `${group.component}: preserve gap triage`).toBe(true)
   }
   // Exercise regressions against the real source inventory: a gap reduction needs
