@@ -153,6 +153,7 @@ parallel with them and with each other, except cards that touch the same existin
 - [ ] [H4 AnalyticalTable: tree, selection, sub-components, row states](tasks/H4-analytical-table-tree-select-subcomponents.md) — L (after H3)
 - [ ] [H5 AnalyticalTable: virtualisation, infinite scroll, F2 editing, pop-in](tasks/H5-analytical-table-virtual-infinite-edit.md) — L (after H4)
 - [ ] [H6 Calendar extension points (+ date pickers)](tasks/H6-calendar-extension-points.md) — M (after E4, E5)
+- [ ] [H6b Calendar: activated day in selection events, custom week numbers](tasks/H6b-calendar-selection-detail-week-numbers.md) — S (after H6; same file, never in parallel with it)
 - [ ] [H7 Input suggestions + MessageBox](tasks/H7-input-suggestions-messagebox.md) — L (after H0)
 - [ ] [H8 SplitButton, ButtonBadge, NumericInput](tasks/H8-split-button-badge-numeric.md) — M (after E4, E5)
 - [ ] [H9 SelectDialog, SplitterLayout, DynamicDateRange, CalendarLegend check](tasks/H9-select-dialog-splitter-dynamic-date-range.md) — L (after H0)
