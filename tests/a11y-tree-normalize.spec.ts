@@ -1,4 +1,8 @@
 import { expect, test } from "@playwright/test"
+import { execFileSync } from "node:child_process"
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { join, resolve } from "node:path"
 import { applyAllowedWrappers, captureAX, correctCalendarHeaderBugs, diffTree, normalizeAX, normalizeSnapshot, relocateTableLoadingOverlay, type AXNode } from "./a11y-tree-normalize"
 
 test("normalize only whitespace in quoted accessible names", () => {
@@ -225,4 +229,67 @@ test("an explicit option valid-default allowance retains invalid ancestry and se
   expect(diffTree(ours, native, [path])).toEqual(['/ax/0/properties/invalid: ours "true"; UI5 undefined', '/ax/0/children/0/properties/selected: ours true; UI5 false'])
   const invalidChild = structuredClone(ours); invalidChild.ax[0].children[0].properties.invalid = "true"
   expect(() => diffTree(invalidChild, native, [path])).toThrow("requires invalid=false versus absence")
+})
+
+test("ratchet identities preserve semantic channels and reject capture errors", async () => {
+  const { differenceEntry, reportEntries, ratchetCase } = await import("./a11y-tree-baseline")
+  const role = differenceEntry("webcomponents/ltr/button-default", '/ax/0/role: ours "button"; UI5 "link"')
+  expect(role).toMatchObject({ matrix: "webcomponents/ltr", caseId: "button-default", path: "/ax/0/role", kind: "role", owner: "P1" })
+  const selected = differenceEntry("phone/ltr/combobox-phone", '/ax/0/properties/selected: ours true; UI5 false')
+  expect(selected.kind).toBe("state:selected")
+  expect(selected.owner).toBe("P2")
+  expect(differenceEntry("webcomponents/ltr/button-default", '/ax/0/name: ours undefined; UI5 "Label"').kind).toBe("name")
+  const baseline = { version: 1 as const, entries: [role] }
+  expect(ratchetCase("webcomponents/ltr/button-default", ['/ax/0/role: ours "button"; UI5 "link"'], baseline)).toEqual([])
+  expect(ratchetCase("webcomponents/ltr/button-default", ['/ax/0/role: ours "button"; UI5 "checkbox"'], baseline)[0]).toContain("changed mismatch")
+  expect(ratchetCase("webcomponents/ltr/button-default", [], baseline)[0]).toContain("stale — delete it")
+  expect(ratchetCase("webcomponents/ltr/button-default", ['/ax/0/name: ours "A"; UI5 "B"'], baseline)[0]).toContain("unlisted")
+  expect(() => reportEntries({ "phone/ltr/combobox-phone": { captured: false, differences: ["timeout"] } })).toThrow(/cannot be baselined/)
+  expect(() => reportEntries({ "phone/ltr/combobox-phone": { captured: true, allowanceError: "invalid wrapper", differences: [] } })).toThrow(/cannot be baselined/)
+})
+
+test("ratchet retains removed cases and assigns every real component group", async () => {
+  const { caseOwner, staleCaseCoverage } = await import("./a11y-tree-baseline")
+  expect(caseOwner("sapui5-adapt-filters-dialog-group")).toBe("P4")
+  expect(caseOwner("shellbar-search-scopes")).toBe("P6")
+  expect(caseOwner("table-loading")).toBe("P3")
+  expect(caseOwner("calendar-legend")).toBe("P2a")
+  expect(caseOwner("tag-interactive")).toBe("P5")
+  expect(caseOwner("icon-decorative")).toBe("P5")
+  expect(() => caseOwner("unknown-widget")).toThrow(/No P-card owner/)
+  expect(staleCaseCoverage("phone/ltr", [], { version: 1, entries: [{ matrix: "phone/ltr", caseId: "select-phone", path: "/ax/0/name", kind: "name", owner: "P1" }] })).toHaveLength(1)
+})
+
+test("ratchet baseline schema rejects duplicate identities missing fingerprints and wrong owners", async () => {
+  const { differenceEntry, parseTreeBaseline } = await import("./a11y-tree-baseline")
+  const entry = differenceEntry("webcomponents/ltr/button-default", '/ax/0/name: ours "A"; UI5 "B"')
+  expect(parseTreeBaseline({ version: 1, entries: [entry] }).entries).toEqual([entry])
+  expect(() => parseTreeBaseline({ version: 1, entries: [entry, entry] })).toThrow(/Duplicate/)
+  expect(() => parseTreeBaseline({ version: 1, entries: [{ ...entry, fingerprint: undefined }] })).toThrow(/Malformed/)
+  expect(() => parseTreeBaseline({ version: 1, entries: [{ ...entry, owner: "P6" }] })).toThrow(/Incorrect baseline owner/)
+  expect(() => parseTreeBaseline({ version: 2, entries: [] })).toThrow(/Malformed/)
+})
+
+test("baseline CLI refuses overwrite incomplete capture and pruning uncaptured owning cases", () => {
+  const directory = mkdtempSync(join(tmpdir(), "e4-a11y-cli-")), script = resolve("scripts/a11y-baseline.mjs")
+  const report = Object.fromEntries(["webcomponents/ltr/button-default", "webcomponents/rtl/button-rtl", "phone/ltr/select-phone", "openui5/ltr/variant-management-trigger"].map((key) => [key, { captured: true, differences: ['/ax/0/name: ours "A"; UI5 "B"'] }]))
+  const run = (...args: string[]) => execFileSync(process.execPath, [script, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" })
+  try {
+    mkdirSync(join(directory, "tests")); mkdirSync(join(directory, "test-results"))
+    const output = join(directory, "test-results/a11y-tree-report.json")
+    writeFileSync(output, JSON.stringify(report))
+    expect(run("--write")).toContain('"total": 4')
+    expect(() => run("--write")).toThrow(/Baseline already exists/)
+    expect(() => run("--list", "P99")).toThrow(/Unknown owner/)
+    const baseline = readFileSync(join(directory, "tests/a11y-tree-baseline.json"), "utf8")
+    const filtered = { ...report }; delete filtered["webcomponents/ltr/button-default"]
+    writeFileSync(output, JSON.stringify(filtered))
+    expect(() => run("--prune", "P1")).toThrow(/Incomplete report/)
+    filtered["webcomponents/ltr/button-other"] = { captured: true, differences: [] }
+    writeFileSync(output, JSON.stringify(filtered))
+    expect(() => run("--prune", "P1")).toThrow(/Cannot prune uncaptured case/)
+    expect(readFileSync(join(directory, "tests/a11y-tree-baseline.json"), "utf8")).toBe(baseline)
+    writeFileSync(output, JSON.stringify({ ...report, "phone/ltr/select-phone": { captured: false, differences: ["timeout"] } }))
+    expect(() => run("--prune", "P1")).toThrow(/cannot be baselined/)
+  } finally { rmSync(directory, { recursive: true, force: true }) }
 })

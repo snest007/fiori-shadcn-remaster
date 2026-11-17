@@ -75,13 +75,18 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
      /`aria-sort`/`aria-rowindex`…, ids and `tabindex`. Each customisation point gets a test that a custom render
      keeps them.
    - The accessibility tree is compared with UI5's for every fixture (`tests/a11y-tree.spec.ts`, added by card E4).
-     Known differences live in the **ratchet baseline** `tests/a11y-tree-baseline.json` (one entry per case + node path,
-     each with an owning card id). The test fails on any difference **not** in the baseline, and on any baseline entry
+     Known differences live in the **ratchet baseline** `tests/a11y-tree-baseline.json` (one entry per matrix, case,
+     node path and semantic kind, each with a P1–P6 owning card id and an exact mismatch fingerprint). The test fails on any difference **not** in the baseline, on a changed mismatch at the same identity, and on any baseline entry
      that no longer differs (so a fix must delete its entry — the baseline only shrinks). Only a card listed as the
      entry's owner may delete entries; nobody adds entries except E4 (which creates the baseline) — new code must match
      UI5 or use `a11yDiff`. `a11yDiff` is for permanent, justified deviations (documented UI5 bug, inert wrapper, rule 5
      over UI5) with a concrete reason (e.g. "UI5 bug: role=listitem inside role=grid, TableTemplate.js:…"), never to
      make a failing test pass.
+   - `scripts/a11y-baseline.mjs --write` creates E4's initial baseline once from complete, successful captures of Web
+     LTR/RTL, phone and OpenUI5. `--list P<n>` lists an owner's entries; `--prune P<n>` removes only that owner's
+     stale entries after a complete capture, and refuses uncaptured owning cases. Baselines never absorb capture or
+     allowance errors. `tests/a11y-audit-baseline.json` records per-component gap/unverified counts; the audit test
+     fails when any count rises. E4's verified mappings and functional customization proofs stay `ok` or `fixed in E4`.
    - Don't remove or weaken an existing ARIA attribute, keyboard shortcut or announcement without the card saying so
      (rule 7 applies to accessibility behaviour too).
 10. **Localization is ported in full, never trimmed.** Everything UI5 makes locale-dependent is locale-dependent here.

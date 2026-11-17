@@ -1,7 +1,8 @@
-import { readFileSync, readdirSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { runInNewContext } from "node:vm"
 import { expect, test, type Page } from "@playwright/test"
 import ts from "typescript"
+import { staleCaseCoverage } from "./a11y-tree-baseline"
 import { allowedDifferences, compareCase, recordComparison, writeComparisonReport } from "./a11y-tree-normalize"
 
 // Read the checked-in self-contained cases expressions without importing React
@@ -33,6 +34,7 @@ const allowed = allowedDifferences("docs/src/fixtures-phone")
 const query = "fixtures-phone&theme=sap_horizon&density=cozy"
 const options = { viewport: { width: 375, height: 667 }, hasTouch: true }
 const secondary = ["time-picker-inputs", "search-scopes", "shellbar-search-scopes"]
+if (existsSync("tests/a11y-tree-baseline.json")) test("phone baseline has no removed cases", () => expect(staleCaseCoverage("phone/ltr", [...ids, ...secondary])).toEqual([]))
 
 function diagnostics(page: Page) {
   const events: { channel: string; message: string }[] = []

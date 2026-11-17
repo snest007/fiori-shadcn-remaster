@@ -1,6 +1,8 @@
 // Generate a source-backed inventory. An inferred prop name is never a verified equivalent.
 import { readFileSync, readdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
+import ts from "typescript"
+import { componentOwner } from "../tests/a11y-tree-baseline.ts"
 
 const root = process.cwd()
 const read = (file) => readFileSync(path.join(root, file), "utf8")
@@ -97,6 +99,8 @@ for (const [key, equivalent] of [
   ["CALENDAR_HEADER_MONTH_PREVIOUS_BUTTON_SHORTCUT", "previousButtonShortcut"],
   ["CALENDAR_HEADER_MONTH_NEXT_BUTTON_SHORTCUT", "nextButtonShortcut"],
 ]) verifiedTexts[`calendar.${key}`] = { equivalent: `Calendar.texts.${equivalent}`, proof: "tests/calendar.spec.ts: Calendar header arrows preserve UI5 descriptions and localized shortcuts in every picker and direction", status: "fixed in E4" }
+verifiedTexts["calendar.LIST_ITEM_SELECTED"] = { equivalent: "Calendar.texts.selected", proof: "tests/calendar.spec.ts: Calendar [ltr/rtl] [single/range/multiple] selection announces with native conditions and assertive politeness; Calendar selection text override reaches the assertive announcement", status: "fixed in E4" }
+for (const [key, equivalent] of [["LIST_ITEM_POSITION", "itemPosition"], ["LIST_ITEM_GROUP_HEADER", "groupHeader"]]) verifiedTexts[`combobox.${key}`] = { equivalent: `ComboBox.texts.${equivalent}`, proof: "tests/combobox.spec.ts: ComboBox [ltr/rtl] keyboard announcements use displayed rows, group headers and additional text; ComboBox lets callers override group and displayed-position announcement texts", status: "fixed in E4" }
 const rows = [], sourceFiles = new Map()
 for (const pkg of packages) {
   const manifestPath = `node_modules/${pkg}/dist/custom-elements.json`
@@ -137,20 +141,74 @@ for (const [file, owner] of sourceFiles) {
   for (let index = 0; index < lines.length; index++) if (/\bannounce\(|\bapplyCustomAnnouncement\(|\bgetCustomAnnouncement\(/.test(lines[index])) {
     announcements.push({ owner, source: `${file}:${index + 1}`, native: lines[index].trim(), status: owner === "segmented-button" ? "fixed in E4" : "gap", ...(owner === "segmented-button" ? { equivalent: "assertive alert span in the nearest modal ancestor or document.body", proof: "tests/segmented-button.spec.ts: selection announces assertively and deselection does not announce" } : {}) })
     const row = announcements.at(-1)
+    if (file.endsWith("/DayPicker.js") && lines[index].includes("announce(DayPicker")) Object.assign(row, { status: "fixed in E4", equivalent: "Calendar owned assertive alert: Single/Range activations and toggled-on Multiple days; silent range extensions/week/deselection", proof: "tests/calendar.spec.ts: Calendar [ltr/rtl] [single/range/multiple] selection announces with native conditions and assertive politeness" })
+    if (file.endsWith("/ComboBox.js") && (lines[index].includes("announce(`${groupHeaderText}") || lines[index].includes("announce(`${currentItemAdditionalText}"))) Object.assign(row, { status: "fixed in E4", equivalent: "ComboBox owned polite alert: group header or additionalText plus displayed non-group position while open; additionalText alone while closed", proof: "tests/combobox.spec.ts: ComboBox [ltr/rtl] keyboard announcements use displayed rows, group headers and additional text" })
     if (file.endsWith("/List.js") && lines[index].includes("announce(selectedText")) Object.assign(row, { status: "fixed in E4", equivalent: "List/Tree owned polite alerts in the nearest modal ancestor or document.body (Tree inherits this native List selection channel)", proof: "tests/list.spec.ts: List selection changes announce politely with the same selected/not-selected text; tests/tree.spec.ts: Tree [RTL] custom content cannot replace owned role, states, ids or tab stops; Tree text overrides keep selection descriptions and polite announcements connected" })
     if (file.endsWith("/Select.js") && lines[index].includes("announce(text")) Object.assign(row, { status: "fixed in E4", equivalent: "Select's owned polite alert announces selected text; open state adds the same position text", proof: "tests/select.spec.ts: Select group summary and selection announcements preserve UI5 text and politeness" })
     if (file.endsWith("/ListItemCustom.js")) Object.assign(row, { equivalent: "ListItemCustom focus name/connected label targets verified for custom text + Fiori Button; other widget/state hooks still gap", proof: "tests/list.spec.ts: List custom focus description matches UI5 content and controls and clears on blur" })
   }
 }
-const custom = owners.flatMap((file) => read(`registry/ui/${file}`).split("\n").flatMap((line, index) =>
-  /asChild\??\s*[:=]|\b(?:render\w*|\w*ClassName|className)\??\s*:|React\.ReactNode|React\.ComponentType/.test(line)
-    ? [{ owner: file.replace(/\.tsx$/, ""), source: `registry/ui/${file}:${index + 1}`, declaration: line.trim(), status: file === "segmented-button.tsx" || file === "tree.tsx" && line.trim() === "content?: React.ReactNode" ? "fixed in E4" : "gap", ...(file === "segmented-button.tsx" ? { proof: "tests/segmented-button.spec.ts: custom hosts retain role, selected, positions, descriptions and roving tabindex" } : {}), ...(file === "tree.tsx" && line.trim() === "content?: React.ReactNode" ? { proof: "tests/tree.spec.ts: Tree [RTL] custom content cannot replace owned role, states, ids or tab stops" } : {}) }] : []))
+// Use exported component signatures, not broad implementation-line regexes.
+// The allowed consumer spec owns the exact runtime proof map and source-backed
+// nonfunctional classifications; unknown public points stay gap.
+const consumerSpec = read("tests/a11y-tree-customizations.spec.ts")
+const inlineMap = (name) => {
+  const match = new RegExp(`const ${name} = (\\{[\\s\\S]*?\\n\\}) as const`).exec(consumerSpec)
+  if (!match) throw new Error(`Missing inline customization inventory ${name}`)
+  return JSON.parse(match[1].replace(/,(\s*})$/, "$1"))
+}
+const customizationProofs = inlineMap("customizationProofs"), nonFunctional = inlineMap("nonFunctionalCustomizations"), excludedCustomizations = inlineMap("excludedCustomizationPoints")
+const configuration = ts.readConfigFile("tsconfig.json", ts.sys.readFile)
+const parsed = ts.parseJsonConfigFileContent(configuration.config, ts.sys, ".")
+const program = ts.createProgram(parsed.fileNames, parsed.options), checker = program.getTypeChecker()
+const custom = []
+for (const file of program.getSourceFiles().filter((source) => /registry\/ui\/[^/]+\.tsx$/.test(source.fileName))) {
+  const module = checker.getSymbolAtLocation(file)
+  if (!module) continue
+  for (const symbol of checker.getExportsOfModule(module)) {
+    if (!/^[A-Z]/.test(symbol.name) || /Context$|StateProvider$/.test(symbol.name)) continue
+    const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0]
+    const parameter = declaration && checker.getTypeOfSymbolAtLocation(symbol, declaration).getCallSignatures()[0]?.parameters[0]
+    if (!parameter) continue
+    const type = checker.getTypeOfSymbolAtLocation(parameter, parameter.valueDeclaration ?? declaration)
+    for (const property of type.getProperties()) {
+      const native = property.valueDeclaration ?? declaration
+      const propType = checker.typeToString(checker.getTypeOfSymbolAtLocation(property, native))
+      if (/^on[A-Z]/.test(property.name) || !(/ReactNode|ReactElement|ComponentType/.test(propType) || /^(className|.*ClassName|asChild)$/.test(property.name))) continue
+      const point = `${symbol.name}.${property.name}`, proof = customizationProofs[point], reason = nonFunctional[point] ?? excludedCustomizations[point]
+      const owner = path.basename(file.fileName, ".tsx")
+      custom.push({ owner, point, source: `registry/ui/${owner}.tsx`, declaration: `${point}: ${propType}`, status: reason ? "ok" : proof ? "fixed in E4" : "gap", functional: !reason, proof: reason ?? (proof ? `tests/a11y-tree-customizations.spec.ts: ${proof}` : undefined) })
+    }
+  }
+}
+for (const point of ["DataTable.columns.header", "DataTable.columns.cell", "FilterDefinition.render"]) {
+  const owner = point.startsWith("DataTable") ? "data-table" : "adapt-filters-dialog", proof = customizationProofs[point]
+  custom.push({ owner, point, source: `registry/ui/${owner}.tsx`, declaration: point, status: proof ? "fixed in E4" : "gap", functional: true, proof: proof && `tests/a11y-tree-customizations.spec.ts: ${proof}` })
+}
+
 const live = owners.flatMap((file) => read(`registry/ui/${file}`).split("\n").flatMap((line, index) =>
   /aria-live=|role="(?:status|alert)"|\bannounce\(/.test(line)
     ? [{ owner: file.replace(/\.tsx$/, ""), source: `registry/ui/${file}:${index + 1}`, channel: line.trim() }] : []))
 const markdown = (value) => String(value).replace(/\|/g, "\\|").replace(/\s+/g, " ").trim()
 const table = (headers, items) => `| ${headers.join(" | ")} |\n| ${headers.map(() => "---").join(" | ")} |\n${items.map((item) => `| ${item.map(markdown).join(" | ")} |`).join("\n")}\n`
-const report = { pinned: { webcomponents: JSON.parse(read("node_modules/@ui5/webcomponents/package.json")).version, fiori: JSON.parse(read("node_modules/@ui5/webcomponents-fiori/package.json")).version }, accessibleMembers: rows, texts: textRows, announcements, customizations: custom, liveRegions: live }
-const output = process.argv.includes("--json") ? JSON.stringify(report, null, 2) : `# Accessibility audit — E4 retained-source inventory\n\nGenerated by \`node scripts/a11y-audit.mjs\` from pinned UI5 ${report.pinned.webcomponents}/${report.pinned.fiori}. E4 is **incomplete**. A native passthrough candidate is not proof of correct placement, dynamic behavior or fixture coverage. Unverified rows below deliberately remain \`gap\` until individually verified; this generator never promotes a regex match to \`ok\`.\n\n## Accessible members (${rows.length})\n\n${table(["UI5 component.member", "Our equivalent", "Status", "Owning source", "Proof"], rows.map((row) => [`${row.component}.${row.member}`, `registry/ui/${row.owner}.tsx: ${row.equivalent}`, row.status, row.source, row.proof ?? "Unverified"]))}\n## Referenced UI5 i18n text keys (includes accessibility and visible strings) (${textRows.length})\n\n${table(["Owner", "UI5 key", "Equivalent / verification", "Status", "Source"], textRows.map((row) => [row.owner, row.key, row.equivalent, row.status, row.source]))}\n## Native announcement and focus-description channels (${announcements.length})\n\n${table(["Owner", "Native call", "Our equivalent", "Status", "Source", "Proof"], announcements.map((row) => [row.owner, row.native, row.equivalent ?? "Unverified", row.status, row.source, row.proof ?? "Unverified"]))}\n## React live regions (${live.length})\n\n${table(["Owner", "Current channel", "Source"], live.map((row) => [row.owner, row.channel, row.source]))}\n## Customization declarations (${custom.length})\n\nThis source inventory includes content slots and className slots as well as render hooks; each still requires an owning ARIA-retention test. It is not a count of completed custom-render tests.\n\n${table(["Owner", "Declaration", "Status", "Source"], custom.map((row) => [row.owner, row.declaration, row.status, row.source]))}\n`
-if (process.argv.includes("--json")) process.stdout.write(output + "\n")
+for (const row of announcements) { row.parityOwner = [...new Set(row.owner.split(",").map(componentOwner))].join(","); row.inventoryStatus = ["ok", "fixed in E4"].includes(row.status) ? "ok" : `owner: ${row.parityOwner}` }
+const counts = {}
+for (const [category, items] of Object.entries({ accessibleMembers: rows, texts: textRows, announcements, customizations: custom })) for (const row of items) for (const owner of row.owner.split(",")) {
+  const count = counts[owner] ??= { accessibleMembers: 0, texts: 0, announcements: 0, customizations: 0, gap: 0, unverified: 0 }
+  if (!["ok", "fixed in E4"].includes(row.status)) { count[category]++; count.gap++; if (!row.proof) count.unverified++ }
+}
+const report = { counts, pinned: { webcomponents: JSON.parse(read("node_modules/@ui5/webcomponents/package.json")).version, fiori: JSON.parse(read("node_modules/@ui5/webcomponents-fiori/package.json")).version }, accessibleMembers: rows, texts: textRows, announcements, customizations: custom, liveRegions: live }
+const output = process.argv.includes("--json") ? JSON.stringify(report, null, 2) : `# Accessibility audit — E4 retained-source inventory\n\nGenerated by \`node scripts/a11y-audit.mjs\` from pinned UI5 ${report.pinned.webcomponents}/${report.pinned.fiori}. E4 establishes the infrastructure and ratchets; remaining unverified member/text/channel rows belong to P1–P6. The named E4 repairs and functional customization points carry concrete proofs. A native passthrough candidate is not proof of correct placement, dynamic behavior or fixture coverage. Unverified rows below deliberately remain \`gap\` until individually verified; this generator never promotes a regex match to \`ok\`.\n\n## Accessible members (${rows.length})\n\n${table(["UI5 component.member", "Our equivalent", "Status", "Owning source", "Proof"], rows.map((row) => [`${row.component}.${row.member}`, `registry/ui/${row.owner}.tsx: ${row.equivalent}`, row.status, row.source, row.proof ?? "Unverified"]))}\n## Referenced UI5 i18n text keys (includes accessibility and visible strings) (${textRows.length})\n\n${table(["Owner", "UI5 key", "Equivalent / verification", "Status", "Source"], textRows.map((row) => [row.owner, row.key, row.equivalent, row.status, row.source]))}\n## Native announcement and focus-description channels (${announcements.length})\n\n${table(["Owner", "Native call", "Our equivalent", "Status", "Source", "Proof"], announcements.map((row) => [row.owner, row.native, row.equivalent ?? "Unverified", row.inventoryStatus, row.source, row.proof ?? "Unverified"]))}\n## React live regions (${live.length})\n\n${table(["Owner", "Current channel", "Source"], live.map((row) => [row.owner, row.channel, row.source]))}\n## Customization declarations (${custom.length})\n\nExported signatures are reconciled with the allowed consumer spec. Functional points carry an actual consumer proof; ignored inherited children/host flags and documented implementation helpers are explicitly identified by their owning source.\n\n${table(["Owner", "Declaration", "Status", "Source", "Proof / source classification"], custom.map((row) => [row.owner, row.declaration, row.status, row.source, row.proof ?? "Unverified"]))}\n`
+if (process.argv.includes("--check-baseline")) {
+  const baseline = JSON.parse(read("tests/a11y-audit-baseline.json"))
+  const failures = []
+  for (const [component, values] of Object.entries(counts)) for (const [channel, count] of Object.entries(values)) if (count > (baseline.components[component]?.[channel] ?? 0)) failures.push(`${component}.${channel}: ${count} > ${baseline.components[component]?.[channel] ?? 0}`)
+  if (failures.length) throw new Error(`Accessibility audit ratchet increased:\n${failures.join("\n")}`)
+  console.log("Accessibility audit ratchet: 0 increased counts")
+} else if (process.argv.includes("--write-baseline")) {
+  const file = "tests/a11y-audit-baseline.json"
+  try { read(file); throw new Error("Audit baseline already exists; initial creation is E4-only") } catch (error) { if (error.code !== "ENOENT") throw error }
+  writeFileSync(file, JSON.stringify({ version: 1, components: counts }, null, 2) + "\n")
+  console.log(JSON.stringify(counts, null, 2))
+} else if (process.argv.includes("--json")) process.stdout.write(output + "\n")
 else { writeFileSync("docs/plan/a11y-audit.md", output); console.log(`${rows.length} accessible members, ${textRows.length} text keys, ${announcements.length} native channels, ${live.length} React live regions, ${custom.length} customization declarations; unverified rows remain gap`) }

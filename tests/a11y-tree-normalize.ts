@@ -1,6 +1,7 @@
-import { mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs"
 import { expect, type Page } from "@playwright/test"
 import ts from "typescript"
+import { ratchetCase, readTreeBaseline } from "./a11y-tree-baseline"
 
 type SnapshotNode = { role: string; name?: string; states: string[]; text?: string; children: SnapshotNode[] }
 /** Parse Playwright's actual snapshot while normalizing whitespace in accessible names only.
@@ -365,7 +366,12 @@ export async function compareCase(ours: Page, reference: Page, id: string, key: 
     allowanceError = error instanceof Error ? error.message : String(error)
     differences = [allowanceError, ...diffTree(a, b)]
   }
-  recordComparison(key, { captured: true, differences, allowed, allowanceError, ours: a, ui5: b })
-  return differences.map((line) => `${id}${allowed ? ` (${allowed.reason})` : ""}: ${line}`)
+  // Captures retain every difference; the ratchet changes acceptance, never the
+  // compared roles/names/states/relations/descendants or a11yDiff's strict guards.
+  // Before E4's one initial --write, capture real differences and fail normally.
+  // The absent-baseline path is never an acceptance waiver.
+  const failures = allowanceError || !existsSync("tests/a11y-tree-baseline.json") ? differences : ratchetCase(key, differences, readTreeBaseline())
+  recordComparison(key, { captured: true, differences, ratchetFailures: failures, allowed, allowanceError, ours: a, ui5: b })
+  return failures.map((line) => `${id}${allowed ? ` (${allowed.reason})` : ""}: ${line}`)
 }
 
