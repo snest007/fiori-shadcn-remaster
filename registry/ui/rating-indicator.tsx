@@ -5,6 +5,10 @@ import { favorite, unfavorite } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 
+/**
+ * @accessibility Native aria-label and aria-labelledby name the root slider. roleDescription overrides aria-roledescription and requiredText overrides the required aria-description.
+ * @accessibility Arrow keys change the rating; Home/End reach zero/maximum, digit keys set it, and Space/Enter increment with wrapping. readOnly remains focusable; displayOnly and disabled have no keyboard stop.
+ */
 type RatingIndicatorProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
   value?: number
   defaultValue?: number

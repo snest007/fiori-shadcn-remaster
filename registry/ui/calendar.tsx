@@ -541,8 +541,6 @@ function DayPicker({
   legendType,
   isDisabled,
   labels,
-  minDate,
-  maxDate,
   setFocused,
   setSecondDate,
   selectDay,

@@ -41,6 +41,10 @@ function ComboBoxItemGroup(_props: ComboBoxItemGroupProps): React.ReactNode {
   return null
 }
 
+/**
+ * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the input combobox. arrowLabel names its arrow; listLabel names the popup and listbox; dialogTitle, okText and cancelText name phone dialog actions.
+ * @accessibility F4 or Alt+Up/Down toggles options. Arrows, PageUp/PageDown, Home and End navigate; Enter commits and Escape closes or restores the focus value. Desktop focus stays in the input with owned aria-activedescendant; groups are nonselectable headers.
+ */
 type ComboBoxProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "children" | "size"> & {
   /** <ComboBoxItem> and <ComboBoxItemGroup> elements (fragments and arrays are fine). */
   children?: React.ReactNode
