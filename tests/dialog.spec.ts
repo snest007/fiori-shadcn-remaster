@@ -516,3 +516,16 @@ test("dialog: the surface size observer disconnects on close and is renewed on r
   await openAutoSize(page)
   await expect.poll(counts).toEqual({ total: 2, active: 1 })
 })
+
+test("dialog: custom outer host keeps owned role name refs tabindex and focus target", async ({ page }) => {
+  await page.goto('/index.html?fixtures&only=dialog-custom-host')
+  await page.waitForSelector("html[data-ready=true]")
+  const host = page.locator('[data-fixture="dialog-custom-host"] [data-custom-host="dialog"]')
+  await expect(host).toHaveAttribute("role", "dialog")
+  await expect(host).toHaveAttribute("tabindex", "-1")
+  await expect(host).toHaveAccessibleName("Dialog title")
+  await expect(host).not.toHaveAttribute("id", "dialog-caller-host")
+  const labelledby = await host.getAttribute("aria-labelledby")
+  await expect(page.locator(`[id="${labelledby}"]`)).toHaveText("Dialog title")
+  await host.focus(); await expect(host).toBeFocused()
+})

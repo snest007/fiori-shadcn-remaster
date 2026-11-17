@@ -60,3 +60,5 @@ export const WithFooterBar: Story = { parameters: openDocs, render: function Con
   const [open, setOpen] = React.useState(true)
   return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger asChild><Button>Review order</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Confirm order</DialogTitle></DialogHeader><DialogBody><DialogDescription>Submit purchase order 45000123 to Northwind Traders?</DialogDescription></DialogBody><Bar design="footer" endContent={<><DialogClose asChild><Button variant="emphasized">Submit</Button></DialogClose><DialogClose asChild><Button>Cancel</Button></DialogClose></>} /></DialogContent></Dialog>
 } }
+
+export const CustomHost: Story = { render: () => <Dialog open modal={false}><DialogContent asChild portal={false}><section><DialogHeader><DialogTitle>Custom host dialog</DialogTitle></DialogHeader><DialogBody>Dialog content</DialogBody></section></DialogContent></Dialog> }
