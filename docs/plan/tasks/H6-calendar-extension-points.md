@@ -1,9 +1,10 @@
 # H6 — Calendar composition and content extension points
 
-> **Draft for approval from X0; do not start before owner approval.** Implement
-> [docs/extension-contract.md](../../extension-contract.md) and
-> [the Calendar design](../../spikes/calendar-composition/README.md). This is the rewritten X0 proposal, not an
-> approval record. Depends on E4, E5 and **P2 merged**, and does not run alongside P2 or H6b/H6c.
+> **Approved with X0 on 2026-11-17.** Implement [docs/extension-contract.md](../../extension-contract.md) (read its
+> amendments first) and [the Calendar design](../../spikes/calendar-composition/README.md). Depends on E4, E5 and
+> **P2a merged** (Calendar and date pickers were split out of P2), and does not run alongside P2a or H6b/H6c.
+> Amendment 1 applies: every T3 key here is backed by the X0 fiscal consumers and probes; don't add keys beyond the
+> list below.
 
 **Goal:** implement Calendar's T1/T2/T3 contract without changing no-override UI5 pixels, tree or interaction.
 Consumers can replace reusable layouts and item models without forking Calendar. Fiscal components remain consumer

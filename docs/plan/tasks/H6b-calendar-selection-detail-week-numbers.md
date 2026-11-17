@@ -1,6 +1,6 @@
 # H6b — Calendar: activated day in selection events, custom week numbers
 
-> **Draft for owner approval after X0.** The two policies remain a separate S card after H6 and P2 merge.
+> **Approved with X0 on 2026-11-17.** The two policies remain a separate S card after H6 and P2a merge.
 > They conform to [the extension contract](../../extension-contract.md) and the Calendar composition design.
 > No fiscal props/components are added. Do not overlap H6/H6c/P2 on Calendar files.
 

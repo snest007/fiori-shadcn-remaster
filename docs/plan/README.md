@@ -120,7 +120,8 @@ on the way are listed for the owner, not built.
 | Card | Components (owner value in the baselines) |
 |---|---|
 | P1 | button, segmented-button, toggle-button, label, input, textarea, checkbox, radio-group, switch, slider, rating-indicator, step-input, select, form |
-| P2 | combobox, multi-combobox, multi-input, token, tokenizer, file-uploader, color-palette, color-palette-popover, color-picker, calendar, date-picker, date-range-picker, date-time-picker, time-picker, picker-field |
+| P2 | combobox, multi-combobox, multi-input, token, tokenizer, file-uploader, color-palette, color-palette-popover, color-picker, time-picker, picker-field |
+| P2a | calendar, date-picker, date-range-picker, date-time-picker (split from P2 on 2026-11-17 so the Calendar pilot runs first) |
 | P3 | table, data-table, list, tree, timeline, upload-collection, object-status, object-number, object-identifier |
 | P4 | dialog, popover, responsive-popover, menu, toast, user-menu, value-help-dialog, view-settings-dialog, adapt-filters-dialog |
 | P5 | avatar, busy-indicator, card, carousel, expandable-text, hero-banner, illustrated-message, link, media-gallery, message-strip, panel, progress-indicator, tag, text, title |
@@ -129,7 +130,8 @@ on the way are listed for the owner, not built.
 Components added later (wave H) join the group of their demo category; their cards must not add baseline entries.
 
 - [ ] [P1 Actions and text/choice fields](tasks/P1-parity-actions-fields.md) — L (after E4, E5)
-- [ ] [P2 Value pickers, tokens and dates](tasks/P2-parity-value-pickers.md) — L (after E4, E5)
+- [ ] [P2a Calendar and date pickers](tasks/P2a-parity-calendar-date-pickers.md) — M (after E4, E5; **first**, unblocks H6)
+- [ ] [P2 Value pickers, tokens and time](tasks/P2-parity-value-pickers.md) — L (after E4, E5)
 - [ ] [P3 Data (incl. custom-content announcements)](tasks/P3-parity-data.md) — L (after E4, E5)
 - [ ] [P4 Overlays (incl. ViewSettingsDialog mode control)](tasks/P4-parity-overlays.md) — L (after E4, E5)
 - [ ] [P5 Display](tasks/P5-parity-display.md) — L (after E4, E5)
@@ -145,7 +147,14 @@ H1's AnalyticalTable contract must conform to it.
 
 - [x] [X0 Extension architecture: library-wide contract + Calendar pilot design](tasks/X0-extension-architecture.md) — M (design only; no `registry/` edits; any time)
 
-Draft rollout (full cards after owner approval). Every card is S or M and implements only its stated component scope; candidate keys are in [the inventory](../extension-contract.md). A group's P card merges **before** its extension cards; no concurrent edits of the same files. First prove the pattern with P2 → H6 → H6b → H6c; then P3 → X12 → X13. Other groups follow their P card and may run independently. H0 → H1–H5 remains serial.
+**X0 approved by the owner on 2026-11-17**, with amendments (top of [the contract](../extension-contract.md)); AGENTS.md
+rule 11 is active. Rollout list below; full cards are written per group when it comes up. Every card is S or M and
+implements only its stated components. **"Apply the inventory tiers" means: T1 in full; a T2/T3 point only with a
+realistic consumer example that would otherwise fork the file, plus its invariant tests.** Inventory tiers and candidate
+keys are ceilings, not targets; unneeded keys are listed as "not needed yet" in the final message. A group's P card
+merges **before** its extension cards; no concurrent edits of the same files. First prove the pattern with
+**P2a → H6 → H6b → H6c** (right after E4/E5); then P3 → X12 → X13. Other groups follow their P card and may run
+independently. H0 → H1–H5 remains serial.
 
 - [ ] **X1 Action buttons** — M, after P1; apply the inventory tiers to `button`, `toggle-button`, `segmented-button`, preserving defaults and validating owned parts, locale and installed consumers.
 
@@ -239,14 +248,14 @@ Order: E4 and E5 first (wave P may run alongside H). Then H0. H1–H5 (Analytica
 parallel with them and with each other, except cards that touch the same existing file (noted in each card).
 
 - [ ] [H0 WCR reference harness + WCR texts in the i18n pipeline](tasks/H0-wcr-reference-harness.md) — M (after E4, E5; adds devDependencies)
-- [ ] [H1 AnalyticalTable: extension contract, ARIA ownership, columns, keyboard](tasks/H1-analytical-table-foundation.md) — L (after H0, P3; **on hold until X0 is approved** — its contract must conform to `docs/extension-contract.md`)
+- [ ] [H1 AnalyticalTable: extension contract, ARIA ownership, columns, keyboard](tasks/H1-analytical-table-foundation.md) — L (after H0, P3; conforms to the approved `docs/extension-contract.md`)
 - [ ] [H2 AnalyticalTable: sorting and filtering](tasks/H2-analytical-table-sort-filter.md) — L (after H1)
 - [ ] [H3 AnalyticalTable: grouping and aggregation](tasks/H3-analytical-table-group-aggregate.md) — L (after H2)
 - [ ] [H4 AnalyticalTable: tree, selection, sub-components, row states](tasks/H4-analytical-table-tree-select-subcomponents.md) — L (after H3)
 - [ ] [H5 AnalyticalTable: virtualisation, infinite scroll, F2 editing, pop-in](tasks/H5-analytical-table-virtual-infinite-edit.md) — L (after H4)
-- [ ] [H6 Calendar extension points (+ date pickers)](tasks/H6-calendar-extension-points.md) — M (after E4, E5, P2; **X0 draft, awaits approval**)
-- [ ] [H6b Calendar: activated day in selection events, custom week numbers](tasks/H6b-calendar-selection-detail-week-numbers.md) — S (after H6; same file, never in parallel with it; **on hold until X0**)
-- [ ] [H6c Calendar week numbers: match UI5 2.28 + `calendarWeekNumbering`](tasks/H6c-calendar-week-numbering.md) — M (after E5, H6, H6b; same files, never in parallel with them)
+- [ ] [H6 Calendar extension points (+ date pickers)](tasks/H6-calendar-extension-points.md) — M (after E4, E5, P2a; X0-approved design)
+- [ ] [H6b Calendar: activated day in selection events, custom week numbers](tasks/H6b-calendar-selection-detail-week-numbers.md) — S (after H6; same file, never in parallel with it)
+- [ ] [H6c Calendar week numbers: match UI5 2.28 + `calendarWeekNumbering`](tasks/H6c-calendar-week-numbering.md) — M (after E5, P2a, H6, H6b; same files, never in parallel with them)
 - [ ] [H7 Input suggestions + MessageBox](tasks/H7-input-suggestions-messagebox.md) — L (after H0)
 - [ ] [H8 SplitButton, ButtonBadge, NumericInput](tasks/H8-split-button-badge-numeric.md) — M (after E4, E5)
 - [ ] [H9 SelectDialog, SplitterLayout, DynamicDateRange, CalendarLegend check](tasks/H9-select-dialog-splitter-dynamic-date-range.md) — L (after H0)

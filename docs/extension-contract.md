@@ -1,9 +1,22 @@
-# Extension contract — X0 proposal
+# Extension contract
 
-Status: **draft for owner approval**, 2026-11-17. Approval makes this the library contract; this commit does not
-activate rule 11 or change registry APIs. UI5 parity remains the default, and fiscal/business rules belong to
-consumers. This contract generalises H1's instance/state/content/props contract. Calendar evidence and exact API
-signatures are in [the composition spike](spikes/calendar-composition/README.md).
+Status: **approved by the owner on 2026-11-17** (X0 review), with the amendments below. This is the library contract
+that AGENTS.md rule 11 points to. UI5 parity remains the default, and fiscal/business rules belong to consumers. This
+contract generalises H1's instance/state/content/props contract. Calendar evidence and exact API signatures are in
+[the composition spike](spikes/calendar-composition/README.md).
+
+## Amendments at approval (they override the sections below where they conflict)
+
+1. **Tiers in the inventory are ceilings, not targets.** Every rollout card implements **T1 in full** for its
+   components. A T2 or T3 point ships only with a realistic consumer example that would otherwise fork the file
+   (section 4), in a story or spike, and its invariant tests. Candidate `components` keys that no example needs stay
+   unbuilt; the card's final message lists them as "not needed yet". "Apply the inventory tiers" in a rollout card
+   means exactly this.
+2. **Calendar first, without waiting for P2.** Calendar and the three date pickers move out of P2 into **P2a**.
+   P2a runs right after E4 and E5, then H6 → H6b → H6c. P2 keeps its other components.
+3. **"Release" for experimental status (section 3)** means one published registry version: a deploy of `public/r`
+   (card E3's publishing pipeline) with a changelog entry naming the experimental surface. An extension point leaves
+   experimental status at the earliest in the following release, by an explicit card, never by renaming (rule 7).
 
 ## Tiers
 
@@ -89,7 +102,7 @@ internal React state or DOM caches. Document refs on their target hosts. Keep H1
 merge consumer engine options before library-owned semantics; expose TanStack instance plus stable imperative API.
 Consumer engine features cannot overwrite semantic prop getters or the reference keyboard model.
 
-Ship a new extension surface with documented `experimental` status for at least one release, an upgrade example,
+Ship a new extension surface with documented `experimental` status for at least one release (amendment 3), an upgrade example,
 one realistic independent consumer and exact default conformance tests. Experimental status is a feedback signal,
 **not permission to rename/remove exports**: rule 7 still needs an explicitly authorised card. Stabilise when a
 release of consumer feedback, registry installation, keyboard/locale/axe and upgrade tests pass. Additive keys can
@@ -140,7 +153,7 @@ clearly distinct from changing today's registry. H6 must repeat the same consume
 exports. Rejected: a second calendar-composition item, docs imports in shipped components, or claiming the existing
 smoke alone validates new exports.
 
-## 7. Proposed AGENTS.md rule 11 (activate after approval)
+## 7. AGENTS.md rule 11 (activated 2026-11-17; the AGENTS.md text, which adds amendment 1, is authoritative)
 
 > **11. Extensibility is a library contract.** New and changed components implement their applicable tier and all
 > lower applicable capabilities from `docs/extension-contract.md`. Default UI5 pixels, accessibility tree and
@@ -152,8 +165,7 @@ smoke alone validates new exports.
 > Add a point for a demonstrated reusable fork boundary, not a bespoke domain feature. Name shared packaging/schema/
 > test-helper edits in the task card and commit. T4 is deferred until an approved card implements it.
 
-Recommendation: keep the rule here until the owner accepts X0. Rejected: silently changing AGENTS.md during this
-card or making the proposal binding before approval.
+The owner accepted X0 on 2026-11-17; rule 11 is now in AGENTS.md.
 
 ## Reference models read
 
@@ -268,7 +280,7 @@ integration alongside their owning P6/components. H1's new AnalyticalTable is no
 T3 in H1–H5. No inventory row authorises feature additions or promises all candidate keys.
 
 Rollout order: approve X0 → complete the component group's P card → the group's X cards; shared-slot/getter patterns
-start with H6/H6b after P2, then X12 (list) and X13 (tree), then selects/comboboxes/tables. H6c follows H6b and fixes
+start with H6/H6b after P2a (amendment 2), then X12 (list) and X13 (tree), then selects/comboboxes/tables. H6c follows H6b and fixes
 week numbers without changing the new week hook. H0 → H1–H5 stay serial and use this contract. Different P groups may
 progress independently; never overlap a group's X/H card with its P card, or two cards editing a shared component.
 X40 adds validated extension usage metadata after H6 and X12 establish real APIs; it does not block content rollout.
