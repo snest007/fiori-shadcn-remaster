@@ -280,7 +280,14 @@ function DialogContent({ className, children, asChild, state = "none", portal = 
   // PopupTemplate.js keeps the dialog role, name/description references and
   // focus trap on the outer section. Context providers cannot be Slot hosts.
   const hostProps = custom ? { ...custom.props } : undefined
-  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-labelledby", "aria-describedby", "aria-modal"]) delete (hostProps as Record<string, unknown>)[key]
+  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-labelledby", "aria-describedby", "aria-modal"]) {
+    if ((hostProps as Record<string, unknown>)[key] !== undefined && process.env.NODE_ENV !== "production") console.warn("Dialog.Content: ignored custom host ownership prop", key)
+    delete (hostProps as Record<string, unknown>)[key]
+  }
+  if (hostProps && props["aria-label"] !== undefined) {
+    if (hostProps["aria-label"] !== undefined && process.env.NODE_ENV !== "production") console.warn("Dialog.Content: ignored custom host ownership prop", "aria-label")
+    delete hostProps["aria-label"]
+  }
   const body = (
       <DialogStateContext.Provider value={state}>
         <DialogDragContext.Provider value={startDrag}>
