@@ -11,6 +11,7 @@ import { Icon } from "@/components/ui/icon"
 import { MenuItem } from "@/components/ui/menu"
 import { Tag } from "@/components/ui/tag"
 import { Text } from "@/components/ui/text"
+import { Title } from "@/components/ui/title"
 import { ToggleButton } from "@/components/ui/toggle-button"
 import { da, menu2, product, sysHelp, travelExpense } from "@/lib/fiori-icons"
 import { docsLink, fioriMeta } from "../_lib/meta"
@@ -19,10 +20,10 @@ const base = fioriMeta({ name: "shell-bar", component: ShellBar })
 const meta = {
   ...base,
   parameters: { ...base.parameters, fiori: { ...base.parameters.fiori, ownsLandmarks: true }, layout: "fullscreen", docs: { page: ItemDocs, story: { inline: false, height: "340px" } } },
-  // This fullscreen header example is embedded in its story-owned native main.
-  // ShellBarTemplate.js uses a native header; the main ancestor supplies the
-  // embedded-header semantics without changing ShellBar's own ARIA or props.
-  decorators: [(Story, context) => context.viewMode === "story" ? <main aria-label="Corporate portal"><Story /></main> : <div><Story /></div>],
+  // ShellBarTemplate.js uses a native application header. Keep its banner above
+  // a separate, meaningful main workspace rather than changing header semantics.
+  // The Docs document already owns main; its inline component stays embedded.
+  decorators: [(Story, context) => context.viewMode === "story" ? <><Story /><main aria-label="Purchase orders" className="grid gap-3 p-4"><Title level="H1" size="H3">Purchase orders</Title><Text>Review supplier confirmations and delivery dates for the purchasing team.</Text><section aria-label="Order summary"><Title level="H2" size="H4">Order 1001</Title><Text>Northwind Traders: Delivery confirmed. Three order lines are ready for review.</Text></section></main></> : <div><Story /></div>],
   args: { titleText: "Corporate portal", menuBranding: false, withStartButton: true, withLogo: true, withSearch: true, withProfile: true, withAssistant: true, minimal: false, searchExpanded: false, showNotifications: true, notificationsCount: "12", showProductSwitch: true, disableSearchCollapse: false, onSearchExpandedChange: fn(), onNotificationsClick: fn(), onProfileClick: fn(), onProductSwitchClick: fn(), onSearchButtonClick: fn(), onSearchFieldClear: fn(), onContentItemVisibilityChange: fn(), onBreakpointChange: fn() },
   argTypes: { ...base.argTypes, titleText: { control: "text" }, menuBranding: { control: "boolean" }, withStartButton: { control: "boolean" }, withLogo: { control: "boolean" }, withSearch: { control: "boolean" }, withProfile: { control: "boolean" }, withAssistant: { control: "boolean" }, minimal: { control: "boolean" }, searchExpanded: { control: "boolean" }, showNotifications: { control: "boolean" }, notificationsCount: { control: "text" }, showProductSwitch: { control: "boolean" }, disableSearchCollapse: { control: "boolean" }, branding: { control: false }, startButton: { control: false }, search: { control: false }, assistant: { control: false }, profile: { control: false }, content: { control: false }, texts: { control: false }, accessibilityAttributes: { control: false }, defaultSearchExpanded: { control: false }, onSearchExpandedChange: { control: false }, onNotificationsClick: { control: false }, onProfileClick: { control: false }, onProductSwitchClick: { control: false }, onSearchButtonClick: { control: false }, onSearchFieldClear: { control: false }, onContentItemVisibilityChange: { control: false }, onBreakpointChange: { control: false } },
   render: function PortalHeader(args: Args) {
