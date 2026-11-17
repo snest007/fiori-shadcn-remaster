@@ -143,7 +143,8 @@ We don't build those features. X0 defines one contract for every component (styl
 proves it on Calendar with a prototype, and proposes rollout cards. Calendar work in wave H (H6, H6b) waits for it;
 H1's AnalyticalTable contract must conform to it.
 
-- [ ] [X0 Extension architecture: library-wide contract + Calendar pilot design](tasks/X0-extension-architecture.md) — M (design only; no `registry/` edits; any time)
+- [x] [X0 Extension architecture: library-wide contract + Calendar pilot design](tasks/X0-extension-architecture.md) — M (design only; no `registry/` edits; any time)
+
 Draft rollout (full cards after owner approval). Every card is S or M and implements only its stated component scope; candidate keys are in [the inventory](../extension-contract.md). A group's P card merges **before** its extension cards; no concurrent edits of the same files. First prove the pattern with P2 → H6 → H6b → H6c; then P3 → X12 → X13. Other groups follow their P card and may run independently. H0 → H1–H5 remains serial.
 
 - [ ] **X1 Action buttons** — M, after P1; apply the inventory tiers to `button`, `toggle-button`, `segmented-button`, preserving defaults and validating owned parts, locale and installed consumers.
