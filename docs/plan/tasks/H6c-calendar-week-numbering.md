@@ -5,7 +5,7 @@
 Also port UI5's `calendarWeekNumbering` property, which sets the first day of the week and the week-1 rule together.
 This is a bug fix: the API changes are additive (rule 7) and only the computed week numbers change.
 
-Depends on **E5 (merged)**, which adds the locale fixtures `calendar-l10n-de-DE/zh-CN/ar-EG`. Order: after H6 and
+Depends on **E5 and P2a (merged)**; E5 adds the locale fixtures `calendar-l10n-de-DE/zh-CN/ar-EG`. Order: after H6 and
 H6b. All three cards edit `calendar.tsx`, so never run this one in parallel with them. H6b's
 `getWeekNumber({ defaultNumber })` receives the corrected number automatically. If H6b is merged, its API doesn't
 change; if not, this card doesn't depend on it.

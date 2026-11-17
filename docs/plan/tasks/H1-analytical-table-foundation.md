@@ -1,9 +1,8 @@
 # H1 — AnalyticalTable foundation: extension contract, ARIA ownership, columns
 
-> **On hold until X0 is approved (owner's decision, 2026-11-17).** The library follows one extension contract
-> (`docs/plan/tasks/X0-extension-architecture.md` → `docs/extension-contract.md`). The "Extension contract" section
-> below is X0's starting input; once X0 is approved, it conforms to the library contract (X0 adds a note listing any
-> differences). Don't start H1 before that, so AnalyticalTable doesn't ship an API that rule 7 would then freeze.
+> **X0 approved on 2026-11-17.** The extension contract below conforms to `docs/extension-contract.md` (see
+> "Conformance to the X0 extension contract" at the end, and the contract's amendments: T2/T3 points need a consumer
+> example).
 
 **Goal:** start `AnalyticalTable` — the React port of WCR 2.28.2's `AnalyticalTable` — with the architecture every later
 card (H2–H5) builds on, and the column features: sizing, resizing, reordering, hiding, freezing (sticky). Ported from
@@ -57,6 +56,24 @@ none of it may break ARIA (AGENTS.md rule 9) or localization (rule 10).
 Write `docs/src/demos/analytical-table.tsx` with a **"Custom"** example that uses every point above (custom cell with
 a micro chart-like bar using tokens, custom header menu item, `getRowProps` className, custom text) — the S-wave story
 copies it.
+
+## Conformance to the X0 extension contract (approved 2026-11-17)
+
+The extension contract above conforms to [docs/extension-contract.md](../../extension-contract.md), tiers T1–T3.
+Keep tableOptions/tableRef, controlled states, content-only wrappers, class maps, protected prop merging and all
+texts/locale promises. Add a public `useAnalyticalTable()` facade with read-only model/actions, protected row/cell/
+header getters and typed structural replacements; default wrappers continue owning grid roles/count/index/focus.
+The engine's instance access remains additive, and options/features cannot overwrite semantic/focus ownership.
+Document components keys, context/getter names and imperative methods as rule-7 public API. Customise docs/stories
+and installed-consumer conformance use the same library contract.
+
+Differences are intentional domain capabilities: H1 exposes the TanStack instance/options/imperative scroll methods
+where Calendar exposes date/item/paging actions; its F2 editing mode permits focus into cell content, while Calendar
+cells remain a single roving stop. Existing WCR-named `NoDataComponent`/`LoadingComponent` remain **content** slots in
+owned hosts despite their names. Per-column meta classes supplement the uniform class map; WCR reference/i18n keys
+supplement UI5 keys. None weakens ARIA/text/locale ownership. Generic structural replacement is new to H1's starting
+contract; approve the common facade before coding, not a second incompatible table-only replacement API. H1's
+component files also wait for P3 to merge to avoid data-table/shared data ownership collisions.
 
 ## Column features (this card)
 

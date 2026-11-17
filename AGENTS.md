@@ -112,6 +112,24 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
     - Don't remove a text prop, hard-code a string or format, or narrow locale support without the card saying so
       (rule 7 applies to localization too).
 
+11. **Extensibility is a library contract** (owner-approved 2026-11-17; `docs/extension-contract.md`). The library ships
+    UI5 parity as the default plus extension points; consumers build features (fiscal pickers, booking calendars…) on
+    top. We don't build those features.
+    - New and changed components implement the contract's T1 in full. T2/T3 points ship only with a realistic consumer
+      example that would otherwise fork the file, plus invariant tests; inventory tiers are ceilings, not targets.
+    - Default UI5 pixels, accessibility tree and interaction stay unchanged unless the owning card explicitly fixes
+      parity.
+    - Customisation points use component-owned semantic hosts and protected getters (`getXProps(item, extra)` merges
+      `extra`). They can't remove roles, ARIA states/relationships, focus management, keyboard handling,
+      announcements, overridable texts, locale or RTL behaviour. No unrestricted `asChild` on semantic hosts.
+    - Slot names, `components` keys, context state/actions/getters and detail types are public API (rule 7). A new
+      surface ships as documented experimental for one registry release (contract amendment 3); experimental never
+      permits renaming or removing.
+    - Each extension point ships with a Customise docs section, a story for its tier, neutral paired fixtures,
+      adversarial ownership tests (hostile `role` / `aria-*` / `id` / `tabindex` props are ignored with a dev
+      warning) and an installed-consumer example that imports only the component's item entry.
+    - T4 (headless) is deferred until an approved card implements it.
+
 ## Definition of done (every card)
 
 - `pnpm generate && pnpm typecheck && pnpm registry:build` succeed.
@@ -121,6 +139,7 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
 - Accessibility (rule 9): new or changed states have fixtures on both sides so `tests/a11y-tree.spec.ts` compares them;
   axe stays clean; new keyboard paths and announcements have behaviour tests; the accessibility baseline doesn't grow
   (and shrinks by exactly the entries your card fixed).
+- Extensibility (rule 11): new extension points meet the contract (example, ownership tests, Customise docs, story).
 - Localization (rule 10): every new user-visible or announced string is in `texts` with its UI5 key named; new formatted
   values use `Intl` with the resolved locale; new states have an RTL fixture; the i18n audit baseline doesn't grow.
 - Git: work on a branch `codex/<card-id>`, small commits, messages in English, imperative mood. Don't push; don't merge.
