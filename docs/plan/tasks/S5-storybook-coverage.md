@@ -16,11 +16,10 @@
    reference and floorplan pages unchanged.
 4. **Locale toolbar** — if `.storybook/preview.tsx` has no Locale menu yet (E5 ran before S0 was merged, so it skipped
    its section 6), add the Locale toolbar and its test as described in E5 section 6. Skip if E5 isn't merged.
-5. **Leftover component defects** — if `docs/plan/handoff/*-a11y-candidates/` directories or `fixed by E4-followup`
-   / `fixed by E4 —` markers remain in `tests-storybook/` (defects found after E4 merged, or left by E4), write one
-   follow-up card `docs/plan/tasks/E4b-a11y-followup.md` in the same style as E4 section 5 (table: patch, defect, UI5
-   behaviour, decision), add it to `docs/plan/README.md` under wave E, and point every remaining marker at it. Don't fix
-   the components here. If nothing remains, say so.
+5. **Leftover component defects** — list every `fixed by E4-followup` / `fixed by E4 —` marker still in
+   `tests-storybook/` and every `docs/plan/handoff/*-a11y-candidates/` directory still on main, with the P card that
+   owns each (by component group). Don't fix components here and don't write a new card: the P cards own them. If
+   any belongs to no P card, say so.
 6. **AGENTS.md** — rule: a PR that adds a component or a visual state must add/extend its stories; the coverage gate
    enforces the first half.
 7. **README** — make the Storybook URL the first "browse components" link.
@@ -29,8 +28,7 @@
 
 `tests-storybook/coverage.spec.ts` (new), any `docs/stories/**` file (gap fixes), `docs/src/main.tsx` (the link
 only), `.storybook/preview.tsx` (Locale toolbar only), `tests-storybook/storybook.spec.ts`, `tests-storybook/known-issues.ts`
-(marker comments only), `docs/plan/tasks/E4b-a11y-followup.md` (new, only if needed), `docs/plan/README.md`, `AGENTS.md`,
-`README.md`.
+(marker comments only), `AGENTS.md`, `README.md`.
 
 ## Acceptance
 

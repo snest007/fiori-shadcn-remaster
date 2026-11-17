@@ -75,8 +75,8 @@ F1 and F2 can run in parallel after F0.
 - [x] [E1 Interaction-state visual fixtures](tasks/E1-interaction-fixtures.md) — M
 - [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
 - [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/fiori-shadcn-remaster, Pages; push only, no gh; run in the main checkout, not via RUN.md)
-- [ ] [E4 Accessibility parity: tree vs UI5 + accessible* audit](tasks/E4-a11y-parity.md) — L (owner: accessibility is kept in full; AGENTS.md rule 9. After S0 (fixes the five defects S0 handed off in `docs/plan/handoff/S0-a11y-candidates/`); before wave H; parallel to S1–S5)
-- [ ] [E5 Localization parity: locale provider, UI5 texts audit, numbers, language packs](tasks/E5-l10n-parity.md) — L (owner: localization is kept in full; AGENTS.md rule 10. Run before wave H; parallel to wave S and E4, one component at a time where they overlap)
+- [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (rescoped 2026-11-17 after two returns: continue on `codex/E4`; see the card's addendum and `returns/E4.md`. After S0; before waves P and H)
+- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (rescoped 2026-11-17 after two returns: continue on `codex/E5`; see the card's addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
@@ -102,10 +102,38 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 
 - [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
 - [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
-- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (after S0)
-- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (after S0)
-- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (after S0)
+- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (returned twice; third attempt approved on `codex/S2` — see `returns/S2.md`)
+- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (returned twice; third attempt approved on `codex/S3` — see `returns/S3.md`)
+- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (returned twice; third attempt approved on `codex/S4` **after SX** — see `returns/S4.md`)
+- [ ] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/SX-storybook-landmarks.md) — S (unblocks S4)
 - [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
+
+## Wave P — accessibility and localization parity backlog (ratchet)
+
+Created 2026-11-17 after E4/E5 were returned twice: whole-library parity (794 of 957 tree comparisons differ; 1,365
+i18n gap rows; hundreds of a11y audit rows) can't be one card. E4/E5 create **ratchet baselines** — known differences
+are recorded with an owning P card; tests fail on anything new and on stale entries, so the baselines only shrink
+(AGENTS.md rules 9 and 10). Each P card drives its component group to zero. After E4 and E5; P cards touch disjoint
+components and may run in parallel (at most two at a time — each runs the full tree matrix). Absent UI5 features found
+on the way are listed for the owner, not built.
+
+| Card | Components (owner value in the baselines) |
+|---|---|
+| P1 | button, segmented-button, toggle-button, label, input, textarea, checkbox, radio-group, switch, slider, rating-indicator, step-input, select, form |
+| P2 | combobox, multi-combobox, multi-input, token, tokenizer, file-uploader, color-palette, color-palette-popover, color-picker, calendar, date-picker, date-range-picker, date-time-picker, time-picker, picker-field |
+| P3 | table, data-table, list, tree, timeline, upload-collection, object-status, object-number, object-identifier |
+| P4 | dialog, popover, responsive-popover, menu, toast, user-menu, value-help-dialog, view-settings-dialog, adapt-filters-dialog |
+| P5 | avatar, busy-indicator, card, carousel, expandable-text, hero-banner, illustrated-message, link, media-gallery, message-strip, panel, progress-indicator, tag, text, title |
+| P6 | bar, breadcrumbs, filter-bar, notification-list, product-switch, search, shell-bar, side-navigation, tabs, toolbar, variant-management, wizard, dynamic-page, dynamic-side-content, flexible-column-layout, navigation-layout, object-page, page, f6-navigation, variants |
+
+Components added later (wave H) join the group of their demo category; their cards must not add baseline entries.
+
+- [ ] [P1 Actions and text/choice fields](tasks/P1-parity-actions-fields.md) — L (after E4, E5)
+- [ ] [P2 Value pickers, tokens and dates](tasks/P2-parity-value-pickers.md) — L (after E4, E5)
+- [ ] [P3 Data (incl. custom-content announcements)](tasks/P3-parity-data.md) — L (after E4, E5)
+- [ ] [P4 Overlays (incl. ViewSettingsDialog mode control)](tasks/P4-parity-overlays.md) — L (after E4, E5)
+- [ ] [P5 Display](tasks/P5-parity-display.md) — L (after E4, E5)
+- [ ] [P6 Navigation and layout](tasks/P6-parity-navigation-layout.md) — L (after E4, E5)
 
 ## Wave H — issue #1: AnalyticalTable, Calendar extension points, missing components
 
@@ -115,7 +143,7 @@ hooks and the table instance; we don't build bespoke features. Accessibility (ru
 full. Components UI5 Web Components lacks are ported from **UI5 Web Components for React 2.28.2** (WCR), which H0 turns
 into a pixel / accessibility-tree / locale reference.
 
-Order: E4 and E5 first. Then H0. H1–H5 (AnalyticalTable) edit the same files and run strictly in order; H6–H10 run in
+Order: E4 and E5 first (wave P may run alongside H). Then H0. H1–H5 (AnalyticalTable) edit the same files and run strictly in order; H6–H10 run in
 parallel with them and with each other, except cards that touch the same existing file (noted in each card).
 
 - [ ] [H0 WCR reference harness + WCR texts in the i18n pipeline](tasks/H0-wcr-reference-harness.md) — M (after E4, E5; adds devDependencies)
