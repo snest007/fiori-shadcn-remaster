@@ -183,6 +183,10 @@ test("item with href is a link and opens in a new tab", async ({ page }) => {
 test.describe("collapsed", () => {
   test.beforeEach(async ({ page }) => {
     await page.locator("#side-navigation-demo-toggle").click()
+    // side-navigation.css animates the collapse (width 0.3s). A click on More Items while it is still
+    // sliding in can hit the page instead and leave the overflow menu closed (seen in the E6 full run,
+    // and in f6-navigation.spec.ts). Start every collapsed test from the settled state.
+    await waitCollapsedNavigation(page)
   })
 
   test("is a vertical menubar of icon items", async ({ page }) => {
