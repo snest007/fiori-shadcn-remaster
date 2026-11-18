@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
 import { applyAllowedWrappers, captureAX, correctCalendarHeaderBugs, diffTree, normalizeAX, normalizeSnapshot, relocateTableLoadingOverlay, type AXNode } from "./a11y-tree-normalize"
+import { writeMatrixCoverage } from "./a11y-tree-coverage"
 
 test("normalize only whitespace in quoted accessible names", () => {
   expect(normalizeSnapshot('- button "  Save  \\n changes  " [disabled]\n  - text: Keep  spacing')).toEqual([
@@ -278,11 +279,21 @@ test("baseline CLI refuses overwrite incomplete capture and pruning uncaptured o
     mkdirSync(join(directory, "tests")); mkdirSync(join(directory, "test-results"))
     const output = join(directory, "test-results/a11y-tree-report.json")
     writeFileSync(output, JSON.stringify(report))
-    expect(run("--write")).toContain('"total": 4')
+    expect(() => run("--write")).toThrow(/Incomplete report: missing full fixture inventory/)
+    for (const key of Object.keys(report)) {
+      const [engine, dir, id] = key.split("/")
+      writeMatrixCoverage(`${engine}/${dir}`, [id, `${id}-second`], join(directory, "test-results"))
+    }
+    // The reviewer's four-record report covers every matrix but omits owning
+    // fixtures. Even with valid full inventories it must not create a baseline.
+    expect(() => run("--write")).toThrow(/requires 2 fixtures, captured 1/)
+    for (const key of Object.keys(report)) report[`${key}-second`] = { captured: true, differences: ['/ax/0/name: ours "A"; UI5 "B"'] }
+    writeFileSync(output, JSON.stringify(report))
+    expect(run("--write")).toContain('"total": 8')
     expect(() => run("--write")).toThrow(/Baseline already exists/)
     expect(() => run("--list", "P99")).toThrow(/Unknown owner/)
     const baseline = readFileSync(join(directory, "tests/a11y-tree-baseline.json"), "utf8")
-    const filtered = { ...report }; delete filtered["webcomponents/ltr/button-default"]
+    const filtered = { ...report }; delete filtered["webcomponents/ltr/button-default"]; delete filtered["webcomponents/ltr/button-default-second"]
     writeFileSync(output, JSON.stringify(filtered))
     expect(() => run("--prune", "P1")).toThrow(/Incomplete report/)
     filtered["webcomponents/ltr/button-other"] = { captured: true, differences: [] }

@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, writeFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
 import { staleCaseCoverage } from "./a11y-tree-baseline"
+import { writeMatrixCoverage } from "./a11y-tree-coverage"
 import { allowedDifferences, compareCase, pageAX, writeComparisonReport } from "./a11y-tree-normalize"
 
 for (const direction of ["ltr", "rtl"] as const) test(`all Web Component accessibility trees ${direction}`, async ({ browser }) => {
@@ -23,6 +24,7 @@ for (const direction of ["ltr", "rtl"] as const) test(`all Web Component accessi
       }, null, 2))
       expect([...referenceIds].sort(), "Every paired React fixture needs exactly one native fixture, in both directions").toEqual([...pairedIds].sort())
       const directionalIds = direction === "ltr" ? referenceIds : referenceIds.filter((id) => /^(slider|step-input|carousel|calendar|date-picker|date-range-picker|date-time-picker|time-picker|segmented-button)/.test(id))
+      writeMatrixCoverage(`webcomponents/${direction}`, directionalIds)
       if (!process.env.E4_A11Y_COMPONENT && existsSync("tests/a11y-tree-baseline.json")) expect(staleCaseCoverage(`webcomponents/${direction}`, directionalIds)).toEqual([])
       const ids = directionalIds.filter((id) => !process.env.E4_A11Y_COMPONENT || id.startsWith(`${process.env.E4_A11Y_COMPONENT}-`))
       expect(ids.length, "The selected matrix must compare at least one fixture").toBeGreaterThan(0)

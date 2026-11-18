@@ -3,6 +3,7 @@ import { runInNewContext } from "node:vm"
 import { expect, test, type Page } from "@playwright/test"
 import ts from "typescript"
 import { staleCaseCoverage } from "./a11y-tree-baseline"
+import { writeMatrixCoverage } from "./a11y-tree-coverage"
 import { allowedDifferences, compareCase, recordComparison, writeComparisonReport } from "./a11y-tree-normalize"
 
 // Read the checked-in self-contained cases expressions without importing React
@@ -76,6 +77,7 @@ test("phone fixture definitions agree with both runtime pages", async ({ browser
       const runtimeIds: string[] = await page.evaluate(() => (window as any).__fixtures.map((entry: any) => entry.id))
       expect(runtimeIds.sort(), index ? "native UI5 coverage" : "React coverage").toEqual(ids)
     }
+    writeMatrixCoverage("phone/ltr", [...ids, ...secondary])
   } finally { await ours.close(); await reference.close() }
 })
 
