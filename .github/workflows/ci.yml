@@ -4,14 +4,48 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  check:
+  # Main CI spent only 18s generating/checking/building. Rebuild in each job:
+  # transferring generated source + dist would not avoid Playwright's server build.
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm generate && pnpm typecheck && pnpm registry:build && pnpm build
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      # Main's measured visual test totals: phone 321s, desktop 257s,
+      # interaction 82s, SAPUI5 77s. Give each one its own sequential phase,
+      # after four balanced non-visual shards, so reference passes never overlap.
+      matrix:
+        include:
+          - shard: 1
+            visual: visual-phone
+          - shard: 2
+            visual: visual
+          - shard: 3
+            visual: visual-interaction
+          - shard: 4
+            visual: visual-sapui5
+    env:
+      PORT: 4310
+      SAPUI5_PORT: 4311
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -24,18 +58,62 @@ jobs:
           path: ~/.ui5
           key: ${{ runner.os }}-ui5-${{ hashFiles('sapui5/ui5.yaml') }}
       - run: pnpm install --frozen-lockfile
+      - id: playwright-version
+        run: echo "version=$(pnpm exec playwright --version | cut -d ' ' -f2)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-chromium-${{ steps.playwright-version.outputs.version }}
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm generate && pnpm typecheck && pnpm registry:build && pnpm build
-      - run: pnpm exec playwright test --retries=0
-        env:
-          PORT: 4310
-          SAPUI5_PORT: 4311
-      - run: pnpm storybook:build && pnpm test:storybook
-        env:
-          PORT: 4310
+      - run: pnpm generate
+      - name: Non-visual shard ${{ matrix.shard }}/4
+        shell: bash
+        run: |
+          mapfile -t specs < <(git ls-files 'tests/*.spec.ts' | grep -vE '/visual(-sapui5|-phone|-interaction)?\.spec\.ts$')
+          pnpm test:summary "${specs[@]}" --shard=${{ matrix.shard }}/4 --retries=0
+          mkdir -p "$RUNNER_TEMP/non-visual-results"
+          cp -a test-results/. "$RUNNER_TEMP/non-visual-results/"
+      - name: Serial ${{ matrix.visual }} comparisons
+        run: pnpm test:summary tests/${{ matrix.visual }}.spec.ts --shard=1/1 --workers=1 --retries=0
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: test-results
+          name: test-results-shard-${{ matrix.shard }}
+          path: |
+            test-results/
+            ${{ runner.temp }}/non-visual-results/
+          if-no-files-found: ignore
+
+  storybook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      # Main's 1280 tests took 12m35s; two shards keep this parallel job below 12m.
+      matrix:
+        shard: [1, 2]
+    env:
+      PORT: 4320
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: playwright-version
+        run: echo "version=$(pnpm exec playwright --version | cut -d ' ' -f2)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-chromium-${{ steps.playwright-version.outputs.version }}
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm generate && pnpm storybook:build
+      - run: pnpm test:summary -c playwright.storybook.config.ts --shard=${{ matrix.shard }}/2 --retries=0
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: storybook-results-shard-${{ matrix.shard }}
           path: test-results/
           if-no-files-found: ignore
