@@ -17,7 +17,10 @@ type CaseInfo = { id: string; tolerance: number }
 // cells one by one costs ~100ms each, which doesn't scale to hundreds of fixtures.
 async function shoot(page: Page, url: string, ids?: string[]) {
   await page.goto(url)
-  await page.waitForSelector("html[data-ready=true]", { timeout: 30_000 })
+  // The UI5 reference page is ~9s of main-thread work on an idle machine (ui5-main.ts waits
+  // for every fixture's own readiness); a CI runner core is slower. Same bound as
+  // tests/visual-sapui5.spec.ts. This only bounds the wait; see the describe mode below.
+  await page.waitForSelector("html[data-ready=true]", { timeout: 60_000 })
   await page.mouse.move(0, 0)
   // Chromium captures an RTL document from its negative scroll origin when any fixture
   // overflows horizontally. Cells have their own dir attribute, so normalize only the
@@ -49,6 +52,12 @@ async function shoot(page: Page, url: string, ids?: string[]) {
 
 const report: Record<string, { ratio: number; size: string }> = {}
 
+// Each pass loads the full UI5 reference page, which is CPU-bound. Run in parallel on the
+// 4-vCPU CI runner, three of them at once took 58-97s and some missed the 60s readiness wait.
+// Run the passes in order in one worker. Unlike "serial", "default" mode keeps running
+// the remaining passes after a failure, so every theme still reports.
+test.describe.configure({ mode: "default" })
+
 const passes = THEMES.flatMap((theme) => DENSITIES.map((density) => ({ theme, density, direction: "ltr" })))
 passes.push({ theme: "sap_horizon", density: "cozy", direction: "rtl" })
 
@@ -56,11 +65,16 @@ for (const { theme, density, direction } of passes) {
     test(`${theme} ${density}${direction === "rtl" ? " RTL" : ""} matches UI5`, async ({ browser }) => {
       test.setTimeout(120_000)
       const q = `?theme=${theme}&density=${density}&dir=${direction}`
+      // Close each page (and its context) as soon as it has been captured: the reference
+      // pages keep UI5 timers and observers running, and leaving them open made every later
+      // pass in this worker slower until one missed its readiness wait on CI.
       const ui5Page = await browser.newPage()
-      const ref = await shoot(ui5Page, `/ui5.html${q}`)
+      const ref = await shoot(ui5Page, `/ui5.html${q}`).finally(() => ui5Page.context().close())
       const oursPage = await browser.newPage()
+      let cases: CaseInfo[] = []
       const ours = await shoot(oursPage, `/index.html${q}&fixtures`, [...ref.keys()])
-      const cases: CaseInfo[] = await oursPage.evaluate(() => (window as any).__fixtures)
+        .then(async (shots) => { cases = await oursPage.evaluate(() => (window as any).__fixtures); return shots })
+        .finally(() => oursPage.context().close())
       const dir = `test-results/visual/${theme}-${density}${direction === "rtl" ? "-rtl" : ""}`
       mkdirSync(dir, { recursive: true })
       const failures: string[] = []
