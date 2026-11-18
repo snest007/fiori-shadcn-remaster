@@ -255,3 +255,39 @@ test("Calendar selection text override reaches the assertive announcement", asyn
   await expect(day).toHaveAttribute("aria-selected", "true")
   await expect(page.locator('[data-slot="calendar-announcement"]')).toHaveText("Delivery date selected")
 })
+
+for (const dir of ["ltr", "rtl"]) test(`Calendar ${dir} repeated Selected keeps UI5's earlier clear timer`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?fixtures&only=calendar-single&dir=${dir}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const now = new Date("2024-03-13T12:00:00Z")
+      await current.clock.install({ time: now })
+      await current.clock.pauseAt(now)
+      // UI5's selected cell name changes after activation; keep the owning date
+      // locator stable while asserting the state and announcement independently.
+      const day = current.locator('[data-fixture="calendar-single"]').locator(native ? `[role="gridcell"][data-sap-timestamp="${Date.UTC(2024, 2, 13) / 1000}"]` : '[role="gridcell"][data-date="20240313"]')
+      const region = current.locator(native ? ".ui5-invisiblemessage-assertive" : '[data-slot="calendar-announcement"]')
+      await day.focus(); await expect(day).toBeFocused()
+      await day.press("Enter")
+      await current.clock.runFor(20)
+      await expect(day).toHaveAttribute("aria-selected", "true")
+      await expect(region).toHaveText("Selected")
+      await current.clock.runFor(1000)
+      await day.press("Enter")
+      await current.clock.runFor(20)
+      await expect(region).toHaveText("Selected")
+      await current.clock.runFor(2100)
+      await expect(region).toBeEmpty()
+      // Once both outstanding timers have fired, a fresh selection has its own
+      // full lifetime. Time is virtual; no wall-clock sleeps or retries.
+      await current.clock.runFor(1000)
+      await day.press("Enter")
+      await current.clock.runFor(20)
+      await expect(region).toHaveText("Selected")
+      await current.clock.runFor(3100)
+      await expect(region).toBeEmpty()
+    }
+  } finally { await reference.close() }
+})

@@ -202,14 +202,24 @@ function Calendar({
   const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
   const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
   React.useEffect(() => setAnnouncementTarget(rootRef.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? document.body), [])
-  React.useEffect(() => {
-    if (!announcement.text) return
-    // InvisibleMessage.js clears the message after 3000 ms; repeat selection
-    // replaces the text node so the same text is announced again.
-    const timer = setTimeout(() => setAnnouncement((old) => old.sequence === announcement.sequence ? { ...old, text: "" } : old), 3000)
-    return () => clearTimeout(timer)
-  }, [announcement])
-  const announceSelected = () => setAnnouncement((old) => ({ text: texts.selected, sequence: old.sequence + 1 }))
+  const announcementTimers = React.useRef(new Set<ReturnType<typeof setTimeout>>())
+  React.useEffect(() => () => {
+    for (const timer of announcementTimers.current) clearTimeout(timer)
+    announcementTimers.current.clear()
+  }, [])
+  const announceSelected = () => {
+    const message = texts.selected
+    setAnnouncement((old) => ({ text: message, sequence: old.sequence + 1 }))
+    // DayPicker.js:_updateSelectedDates/_toggleTimestampInSelection call
+    // InvisibleMessage.js:announce: each call keeps its own 3000 ms timer and
+    // clears only if the current text still equals that call's message. Repeating
+    // Selected must not cancel the first clear; a different message survives it.
+    const timer = setTimeout(() => {
+      announcementTimers.current.delete(timer)
+      setAnnouncement((old) => old.text === message ? { ...old, text: "" } : old)
+    }, 3000)
+    announcementTimers.current.add(timer)
+  }
   const [legendTexts, setLegendTexts] = React.useState<Record<string, string>>({})
   React.useLayoutEffect(() => {
     const root = rootRef.current
