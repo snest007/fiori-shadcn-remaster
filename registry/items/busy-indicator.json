@@ -25,6 +25,6 @@
     "source": "ui5-apidoc"
   },
   "registryDependencies": [
-    "@fiori/locale"
+    "@petalo/locale"
   ]
 }

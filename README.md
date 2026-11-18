@@ -122,7 +122,7 @@ Fiori behaviour this library reproduces (beyond appearance):
 Install the locale utilities and optional SAP translations:
 
 ```bash
-npx shadcn add @fiori/i18n-de
+npx shadcn add @petalo/i18n-de
 ```
 
 ```tsx
