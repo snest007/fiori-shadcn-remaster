@@ -2,7 +2,9 @@
 
 Owner: E4 (not merged when this defect was found). The candidate patch is **not applied**.
 
-The focusable start role="separator" contains a second focusable control, its layout-switch arrow.
+The start role="separator" contains a focusable layout-switch arrow. When its resize grip is visible,
+the separator is focusable too; end-expanded layouts omit resize tabindex/value/name while retaining
+the separator role and arrow. Axe reports nested-interactive in both structures.
 Strict axe reports nested-interactive. This reproduces in the normal docs demo with
 ThreeColumnsMidExpanded, independently of Storybook, and in a fresh real UI5 Web Components
 2.28.1 instance at the same desktop width. UI5 has the same problem.
@@ -41,14 +43,22 @@ The owning implementation must prove the proposal with:
    semantic structure; do not trim separator ARIA or remove the arrow from the keyboard model.
 
 S4's temporary marker is the self-contained // S4 block in tests-storybook/known-issues.ts.
-It checks the actual component-owned start separator, its exact labels, visible grip, single native
-arrow, roles/orientation/value and focusability, in explicitly named S4 stories. For a live primary
-Control it additionally checks the exact layout argument and component state. Other nodes/rules,
-unknown stories, extra focusable descendants and changed labels remain unexpected. Remove this
-marker when the component fix lands.
+It checks the actual component-owned start separator and its single visible native arrow, the exact
+labels, orientation, children and arrow focusability, only on the four desktop arrow layouts in
+explicit S4 stories. Mid-expanded layouts require a visible grip, tabindex=0 and a numeric current
+value. End-expanded layouts require the grip hidden and resize tabindex/value absent; the default
+separator label is absent as in UI5. For live Controls, the exact layout argument must match the
+component state. Hidden or arrowless separators need no marker. Other nodes/rules, unknown stories,
+extra focusable descendants and changed labels remain unexpected. Remove the marker after the fix.
 
-Verification status at this fourth-attempt stop: the marker is provisional. Its first live Controls
-check still reports nested-interactive on a separator configuration without the resizable attributes
-required by the predicate. No second hypothesis was attempted because the separately confirmed
-shared Show code defect invokes S4's stop rule. This candidate/marker is not an acceptance pass;
-the owning repair must finish exact matching checks.
+Second and last marker hypothesis: remove the incorrect assumption that every visible arrow's
+separator has a visible resize grip, and validate the two exact source-backed structures instead.
+All layout Control choices in Morning/HCB pass:
+2 passed, 0 failed, 0 flaky, 0 skipped (11.6s).
+
+Fresh outside-Storybook evidence in .integration/S4-evidence/fourth-owner-20261118/
+fcl-marker-diagnostic.json compares the ordinary React demo and an isolated installed UI5 instance
+in all four arrow layouts. Both reproduce the same defect in every one. OneColumn and
+MidColumnFullScreen report no nested-interactive violation. The live Control matrix also confirms
+that all other choices have no offending arrow/visible separator combination and no such violation.
+The candidate patch remains unapplied and still passes git apply --check.

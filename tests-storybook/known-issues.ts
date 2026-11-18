@@ -148,9 +148,11 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
         // S4
         // component defect, fixed by E4 — see docs/plan/handoff/S4-a11y-candidates
         // FlexibleColumnLayoutTemplate.js nests arrowStart's Button under its
-        // focusable role=separator. The docs demo and real UI5 2.28 instance both
+        // role=separator. The docs demo and real UI5 2.28 instance both
         // reproduce nested-interactive. Approve only this existing semantic host,
-        // with its one owned arrow and visible grip; other nodes remain failures.
+        // with its one owned arrow. End-expanded layouts hide the grip and omit
+        // resize ARIA/tabindex; axe still treats the separator role as interactive.
+        // Arrowless/hidden separators need no marker; other nodes remain failures.
         if (rule === "nested-interactive" && [
           "layout-flexible-column-layout--playground", "layout-flexible-column-layout--one-column",
           "layout-flexible-column-layout--two-columns-start-expanded", "layout-flexible-column-layout--two-columns-mid-expanded",
@@ -164,17 +166,26 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           "floorplans-master-detail--playground", "floorplans-master-detail--rtl",
         ].includes(context.story)) {
           const root = unique('[data-slot="flexible-column-layout"]')
-          const separator = root?.querySelector('[data-slot="flexible-column-layout-start-separator"][role="separator"][tabindex="0"]')
+          const separator = root?.querySelector('[data-slot="flexible-column-layout-start-separator"][role="separator"]')
           const arrow = separator?.querySelector(':scope > button[data-slot="button"].fiori-fcl__arrow')
           const grip = separator?.querySelector(':scope > .fiori-fcl__grip')
           if (!root || !separator || actual !== separator || !arrow || !grip
-            || !visible(separator) || !visible(arrow) || !visible(grip)
+            || !visible(separator) || !visible(arrow) || root.getAttribute('data-media') !== 'desktop'
             || separator.getAttribute('aria-orientation') !== 'vertical'
-            || !separator.hasAttribute('aria-valuenow') || separator.children.length !== 2
+            || separator.children.length !== 2
             || (arrow as HTMLButtonElement).disabled || (arrow as HTMLButtonElement).tabIndex !== 0
             || separator.querySelectorAll('button,[tabindex]').length !== 1) return false
+          const layout = root.getAttribute('data-layout')
+          if (!['ThreeColumnsMidExpanded', 'ThreeColumnsEndExpanded',
+            'ThreeColumnsStartHiddenMidExpanded', 'ThreeColumnsStartHiddenEndExpanded'].includes(layout ?? '')) return false
+          const resizable = layout === 'ThreeColumnsMidExpanded' || layout === 'ThreeColumnsStartHiddenMidExpanded'
+          if (visible(grip) !== resizable) return false
+          if (resizable) {
+            const value = separator.getAttribute('aria-valuenow')
+            if (separator.getAttribute('tabindex') !== '0' || value === null || !Number.isFinite(Number(value))) return false
+          } else if (separator.hasAttribute('tabindex') || separator.hasAttribute('aria-valuenow')) return false
           const custom = context.story === 'layout-flexible-column-layout--custom-texts'
-          if (separator.getAttribute('aria-label') !== (custom ? 'Resize orders and detail' : 'Resize between start and mid columns')
+          if (separator.getAttribute('aria-label') !== (custom ? 'Resize orders and detail' : resizable ? 'Resize between start and mid columns' : null)
             || arrow.getAttribute('aria-label') !== (custom ? 'Show or hide purchase orders' : 'Switch between start and middle column layouts')) return false
           if (context.primary) {
             const args = JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}')
