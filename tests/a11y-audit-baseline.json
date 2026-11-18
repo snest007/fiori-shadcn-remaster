@@ -1,0 +1,653 @@
+{
+  "version": 1,
+  "components": {
+    "avatar": {
+      "accessibleMembers": 5,
+      "texts": 6,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 11,
+      "unverified": 11
+    },
+    "bar": {
+      "accessibleMembers": 3,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 3,
+      "unverified": 3
+    },
+    "breadcrumbs": {
+      "accessibleMembers": 2,
+      "texts": 5,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 7,
+      "unverified": 7
+    },
+    "button": {
+      "accessibleMembers": 5,
+      "texts": 4,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 9,
+      "unverified": 9
+    },
+    "card": {
+      "accessibleMembers": 2,
+      "texts": 5,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 7,
+      "unverified": 7
+    },
+    "carousel": {
+      "accessibleMembers": 2,
+      "texts": 6,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 8,
+      "unverified": 8
+    },
+    "checkbox": {
+      "accessibleMembers": 2,
+      "texts": 7,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 9,
+      "unverified": 9
+    },
+    "color-palette": {
+      "accessibleMembers": 2,
+      "texts": 7,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 9,
+      "unverified": 9
+    },
+    "color-palette-popover": {
+      "accessibleMembers": 2,
+      "texts": 2,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 4,
+      "unverified": 4
+    },
+    "color-picker": {
+      "accessibleMembers": 2,
+      "texts": 15,
+      "announcements": 1,
+      "customizations": 0,
+      "gap": 18,
+      "unverified": 18
+    },
+    "combobox": {
+      "accessibleMembers": 2,
+      "texts": 23,
+      "announcements": 1,
+      "customizations": 0,
+      "gap": 26,
+      "unverified": 26
+    },
+    "date-picker": {
+      "accessibleMembers": 4,
+      "texts": 15,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 19,
+      "unverified": 19
+    },
+    "date-range-picker": {
+      "accessibleMembers": 4,
+      "texts": 9,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 13,
+      "unverified": 13
+    },
+    "date-time-picker": {
+      "accessibleMembers": 4,
+      "texts": 10,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 14,
+      "unverified": 14
+    },
+    "dialog": {
+      "accessibleMembers": 5,
+      "texts": 16,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 21,
+      "unverified": 21
+    },
+    "file-uploader": {
+      "accessibleMembers": 4,
+      "texts": 15,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 19,
+      "unverified": 19
+    },
+    "form": {
+      "accessibleMembers": 5,
+      "texts": 2,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 7,
+      "unverified": 7
+    },
+    "icon": {
+      "accessibleMembers": 1,
+      "texts": 2,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 3,
+      "unverified": 3
+    },
+    "input": {
+      "accessibleMembers": 1,
+      "texts": 23,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 24,
+      "unverified": 24
+    },
+    "link": {
+      "accessibleMembers": 5,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 5,
+      "unverified": 5
+    },
+    "list": {
+      "accessibleMembers": 4,
+      "texts": 9,
+      "announcements": 4,
+      "customizations": 0,
+      "gap": 17,
+      "unverified": 14
+    },
+    "menu": {
+      "accessibleMembers": 3,
+      "texts": 8,
+      "announcements": 2,
+      "customizations": 0,
+      "gap": 13,
+      "unverified": 13
+    },
+    "multi-combobox": {
+      "accessibleMembers": 2,
+      "texts": 25,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 27,
+      "unverified": 27
+    },
+    "multi-input": {
+      "accessibleMembers": 4,
+      "texts": 5,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 9,
+      "unverified": 9
+    },
+    "panel": {
+      "accessibleMembers": 2,
+      "texts": 1,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 3,
+      "unverified": 3
+    },
+    "popover": {
+      "accessibleMembers": 5,
+      "texts": 4,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 9,
+      "unverified": 9
+    },
+    "progress-indicator": {
+      "accessibleMembers": 1,
+      "texts": 4,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 5,
+      "unverified": 5
+    },
+    "radio-group": {
+      "accessibleMembers": 2,
+      "texts": 5,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 7,
+      "unverified": 7
+    },
+    "slider": {
+      "accessibleMembers": 2,
+      "texts": 8,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 10,
+      "unverified": 10
+    },
+    "rating-indicator": {
+      "accessibleMembers": 2,
+      "texts": 3,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 5,
+      "unverified": 5
+    },
+    "responsive-popover": {
+      "accessibleMembers": 5,
+      "texts": 1,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 6,
+      "unverified": 6
+    },
+    "segmented-button": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "select": {
+      "accessibleMembers": 0,
+      "texts": 13,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 13,
+      "unverified": 13
+    },
+    "step-input": {
+      "accessibleMembers": 2,
+      "texts": 3,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 5,
+      "unverified": 5
+    },
+    "switch": {
+      "accessibleMembers": 2,
+      "texts": 4,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 6,
+      "unverified": 6
+    },
+    "table": {
+      "accessibleMembers": 2,
+      "texts": 28,
+      "announcements": 12,
+      "customizations": 0,
+      "gap": 42,
+      "unverified": 42
+    },
+    "textarea": {
+      "accessibleMembers": 4,
+      "texts": 12,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 16,
+      "unverified": 16
+    },
+    "time-picker": {
+      "accessibleMembers": 4,
+      "texts": 17,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 21,
+      "unverified": 21
+    },
+    "toggle-button": {
+      "accessibleMembers": 5,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 5,
+      "unverified": 5
+    },
+    "tokenizer": {
+      "accessibleMembers": 2,
+      "texts": 10,
+      "announcements": 1,
+      "customizations": 0,
+      "gap": 13,
+      "unverified": 13
+    },
+    "toolbar": {
+      "accessibleMembers": 7,
+      "texts": 2,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 9,
+      "unverified": 9
+    },
+    "tree": {
+      "accessibleMembers": 5,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 5,
+      "unverified": 5
+    },
+    "dynamic-page": {
+      "accessibleMembers": 2,
+      "texts": 7,
+      "announcements": 1,
+      "customizations": 0,
+      "gap": 10,
+      "unverified": 10
+    },
+    "dynamic-side-content": {
+      "accessibleMembers": 1,
+      "texts": 2,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 3,
+      "unverified": 3
+    },
+    "flexible-column-layout": {
+      "accessibleMembers": 1,
+      "texts": 5,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 6,
+      "unverified": 6
+    },
+    "illustrated-message": {
+      "accessibleMembers": 1,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 1,
+      "unverified": 1
+    },
+    "search": {
+      "accessibleMembers": 4,
+      "texts": 6,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 10,
+      "unverified": 10
+    },
+    "shell-bar": {
+      "accessibleMembers": 3,
+      "texts": 9,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 12,
+      "unverified": 12
+    },
+    "side-navigation": {
+      "accessibleMembers": 6,
+      "texts": 12,
+      "announcements": 1,
+      "customizations": 0,
+      "gap": 19,
+      "unverified": 19
+    },
+    "timeline": {
+      "accessibleMembers": 1,
+      "texts": 2,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 3,
+      "unverified": 3
+    },
+    "upload-collection": {
+      "accessibleMembers": 3,
+      "texts": 13,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 16,
+      "unverified": 16
+    },
+    "user-menu": {
+      "accessibleMembers": 3,
+      "texts": 11,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 14,
+      "unverified": 14
+    },
+    "wizard": {
+      "accessibleMembers": 2,
+      "texts": 11,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 13,
+      "unverified": 13
+    },
+    "busy-indicator": {
+      "accessibleMembers": 0,
+      "texts": 1,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 1,
+      "unverified": 1
+    },
+    "calendar": {
+      "accessibleMembers": 0,
+      "texts": 27,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 27,
+      "unverified": 27
+    },
+    "expandable-text": {
+      "accessibleMembers": 0,
+      "texts": 5,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 5,
+      "unverified": 5
+    },
+    "label": {
+      "accessibleMembers": 0,
+      "texts": 1,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 1,
+      "unverified": 1
+    },
+    "message-strip": {
+      "accessibleMembers": 0,
+      "texts": 1,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 1,
+      "unverified": 1
+    },
+    "tabs": {
+      "accessibleMembers": 0,
+      "texts": 9,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 9,
+      "unverified": 9
+    },
+    "title": {
+      "accessibleMembers": 0,
+      "texts": 6,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 6,
+      "unverified": 6
+    },
+    "text": {
+      "accessibleMembers": 0,
+      "texts": 2,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 2,
+      "unverified": 2
+    },
+    "token": {
+      "accessibleMembers": 0,
+      "texts": 3,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 3,
+      "unverified": 3
+    },
+    "notification-list": {
+      "accessibleMembers": 0,
+      "texts": 18,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 18,
+      "unverified": 18
+    },
+    "product-switch": {
+      "accessibleMembers": 0,
+      "texts": 1,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 1,
+      "unverified": 1
+    },
+    "view-settings-dialog": {
+      "accessibleMembers": 0,
+      "texts": 16,
+      "announcements": 1,
+      "customizations": 0,
+      "gap": 17,
+      "unverified": 17
+    },
+    "tag": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "data-table": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "adapt-filters-dialog": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "filter-bar": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "object-identifier": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "object-number": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "object-status": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "picker-field": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "variant-management": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "object-page": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "page": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "hero-banner": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "media-gallery": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "navigation-layout": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "toast": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    },
+    "value-help-dialog": {
+      "accessibleMembers": 0,
+      "texts": 0,
+      "announcements": 0,
+      "customizations": 0,
+      "gap": 0,
+      "unverified": 0
+    }
+  }
+}
