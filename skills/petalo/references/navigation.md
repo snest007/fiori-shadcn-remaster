@@ -35,7 +35,7 @@ Arrange page or dialog header and footer content in start, centered and end area
 Main exports: `Bar`.
 
 ```bash
-npx shadcn add @fiori/bar
+npx shadcn add @petalo/bar
 ```
 
 ## breadcrumbs
@@ -55,7 +55,7 @@ Show the current location and let users return to ancestors in the navigation pa
 Main exports: `Breadcrumbs`, `BreadcrumbsItem`.
 
 ```bash
-npx shadcn add @fiori/breadcrumbs
+npx shadcn add @petalo/breadcrumbs
 ```
 
 ## f6-navigation
@@ -67,7 +67,7 @@ Usage guidance has not been authored for this item yet; inspect its installed AP
 Main exports: `installF6Navigation`, `useF6Navigation`.
 
 ```bash
-npx shadcn add @fiori/f6-navigation
+npx shadcn add @petalo/f6-navigation
 ```
 
 ## filter-bar
@@ -91,7 +91,7 @@ Let users limit a result collection by several criteria in the page header.
 Main exports: `FilterBar`, `FilterBarItem`, `FilterBarToggle`, `filterExpandedSummary`, `filterSummary`.
 
 ```bash
-npx shadcn add @fiori/filter-bar
+npx shadcn add @petalo/filter-bar
 ```
 
 ## notification-list
@@ -112,7 +112,7 @@ Collect business-event updates that users may read, act on or dismiss without in
 Main exports: `NotificationList`, `NotificationListGroupItem`, `NotificationListItem`.
 
 ```bash
-npx shadcn add @fiori/notification-list
+npx shadcn add @petalo/notification-list
 ```
 
 ## product-switch
@@ -132,7 +132,7 @@ Let users choose another product from a grid of labeled product entries.
 Main exports: `ProductSwitch`, `ProductSwitchItem`.
 
 ```bash
-npx shadcn add @fiori/product-switch
+npx shadcn add @petalo/product-switch
 ```
 
 ## search
@@ -153,7 +153,7 @@ Find content by submitting a query, optionally with scopes and suggestions.
 Main exports: `Search`, `SearchItem`, `SearchItemGroup`, `ShellBarSearch`.
 
 ```bash
-npx shadcn add @fiori/search
+npx shadcn add @petalo/search
 ```
 
 ## shell-bar
@@ -174,7 +174,7 @@ Provide a consistent product header with branding and global entry points.
 Main exports: `ShellBar`, `ShellBarBadge`, `ShellBarBranding`, `ShellBarItem`, `ShellBarMenuButton`, `ShellBarSpacer`.
 
 ```bash
-npx shadcn add @fiori/shell-bar
+npx shadcn add @petalo/shell-bar
 ```
 
 ## side-navigation
@@ -198,7 +198,7 @@ Provide the main navigation between modules or destinations within a product.
 Main exports: `SideNavigation`, `SideNavigationGroup`, `SideNavigationItem`, `SideNavigationSubItem`.
 
 ```bash
-npx shadcn add @fiori/side-navigation
+npx shadcn add @petalo/side-navigation
 ```
 
 ## tabs
@@ -221,7 +221,7 @@ Switch between content facets or prominent filtered views within the current pag
 Main exports: `Tabs`, `TabsContent`, `TabsList`, `TabsSeparator`, `TabsTrigger`.
 
 ```bash
-npx shadcn add @fiori/tabs
+npx shadcn add @petalo/tabs
 ```
 
 ## toolbar
@@ -242,7 +242,7 @@ Group related actions and controls in a horizontal row with keyboard navigation 
 Main exports: `Toolbar`, `ToolbarButton`, `ToolbarItem`, `ToolbarSeparator`, `ToolbarSpacer`.
 
 ```bash
-npx shadcn add @fiori/toolbar
+npx shadcn add @petalo/toolbar
 ```
 
 ## variant-management
@@ -264,7 +264,7 @@ Save, select and maintain named views of filter or table personalization setting
 Main exports: `VariantManagement`.
 
 ```bash
-npx shadcn add @fiori/variant-management
+npx shadcn add @petalo/variant-management
 ```
 
 ## variants
@@ -276,7 +276,7 @@ Usage guidance has not been authored for this item yet; inspect its installed AP
 Main exports: `STANDARD_VARIANT_KEY`, `localStorageAdapter`, `useVariantState`.
 
 ```bash
-npx shadcn add @fiori/variants
+npx shadcn add @petalo/variants
 ```
 
 ## wizard
@@ -300,5 +300,5 @@ Guide users through a task in reachable steps inside an existing page or custom 
 Main exports: `Wizard`, `WizardStep`.
 
 ```bash
-npx shadcn add @fiori/wizard
+npx shadcn add @petalo/wizard
 ```

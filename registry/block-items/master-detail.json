@@ -2,14 +2,14 @@
   "title": "Master-Detail (Flexible Column Layout)",
   "description": "Fiori Flexible Column Layout app: searchable product list, product object view and sales order line item, navigated with useFlexibleColumnLayout.",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/flexible-column-layout",
-    "@fiori/bar",
-    "@fiori/button",
-    "@fiori/input",
-    "@fiori/list",
-    "@fiori/tag",
-    "@fiori/f6-navigation"
+    "@petalo/icons",
+    "@petalo/flexible-column-layout",
+    "@petalo/bar",
+    "@petalo/button",
+    "@petalo/input",
+    "@petalo/list",
+    "@petalo/tag",
+    "@petalo/f6-navigation"
   ],
   "usage": {
     "summary": "Browse a searchable record list beside its selected detail and, when needed, a related sub-detail.",

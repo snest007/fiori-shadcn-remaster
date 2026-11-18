@@ -60,4 +60,4 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: node scripts/smoke-install.mjs --registry=https://snest007.github.io/fiori-shadcn-remaster/r
+      - run: node scripts/smoke-install.mjs --registry=https://snest007.github.io/petalo/r

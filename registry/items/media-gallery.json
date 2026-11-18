@@ -2,9 +2,9 @@
   "title": "MediaGallery",
   "description": "Fiori image and video gallery with measured thumbnail overflow, selectable items, keyboard navigation, responsive layouts, and a phone carousel (ui5-media-gallery).",
   "registryDependencies": [
-    "@fiori/button",
-    "@fiori/carousel",
-    "@fiori/icons"
+    "@petalo/button",
+    "@petalo/carousel",
+    "@petalo/icons"
   ],
   "usage": {
     "summary": "Browse images and videos by selecting thumbnails and inspecting the selected media.",

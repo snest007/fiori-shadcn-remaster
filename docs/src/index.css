@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../../registry/styles/fiori-font.css";
 @import "../../registry/styles/fiori.css";
 @import "../../registry/styles/fiori-tailwind.css";
 @import "../../registry/styles/fiori-components.css";

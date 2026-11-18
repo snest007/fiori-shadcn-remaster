@@ -1,6 +1,6 @@
 {
   "title": "NavigationLayout",
-  "registryDependencies": ["@fiori/side-navigation"],
+  "registryDependencies": ["@petalo/side-navigation"],
   "description": "Fiori navigation layout: header, collapsible side navigation and content; collapses the side navigation on small screens (ui5-navigation-layout).",
   "usage": {
     "summary": "Compose a full-screen header, vertical navigation and page content with responsive navigation visibility.",

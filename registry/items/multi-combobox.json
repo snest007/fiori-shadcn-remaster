@@ -4,16 +4,16 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input",
-    "@fiori/checkbox",
-    "@fiori/token",
-    "@fiori/tokenizer",
-    "@fiori/f6-navigation",
-    "@fiori/use-is-phone",
-    "@fiori/responsive-popover",
-    "@fiori/button",
-    "@fiori/toggle-button"
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/checkbox",
+    "@petalo/token",
+    "@petalo/tokenizer",
+    "@petalo/f6-navigation",
+    "@petalo/use-is-phone",
+    "@petalo/responsive-popover",
+    "@petalo/button",
+    "@petalo/toggle-button"
   ],
   "description": "Fiori multi combo box: tokens plus a filterable check box list, \"show selected\" via n more, select all and the SAP keyboard model.",
   "usage": {

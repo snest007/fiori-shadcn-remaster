@@ -1,5 +1,5 @@
 {
-  "name": "shadcn-fiori",
+  "name": "petalo",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -7,9 +7,9 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/snest007/fiori-shadcn-remaster.git"
+    "url": "https://github.com/snest007/petalo.git"
   },
-  "homepage": "https://snest007.github.io/fiori-shadcn-remaster/",
+  "homepage": "https://snest007.github.io/petalo/",
   "packageManager": "pnpm@10.26.2",
   "scripts": {
     "tokens": "node scripts/generate-tokens.mjs",
@@ -18,7 +18,7 @@
     "generate": "pnpm tokens && pnpm icons && pnpm illustrations && pnpm css",
     "dev": "pnpm css && vite",
     "build": "pnpm css && vite build",
-    "build:pages": "REGISTRY_URL=https://snest007.github.io/fiori-shadcn-remaster/r BASE_PATH=/fiori-shadcn-remaster/ pnpm registry:build && BASE_PATH=/fiori-shadcn-remaster/ pnpm build && pnpm storybook:build && node -e \"require('node:fs').cpSync('storybook-static', 'dist/storybook', { recursive: true }); require('node:fs').writeFileSync('dist/.nojekyll', '')\"",
+    "build:pages": "REGISTRY_URL=https://snest007.github.io/petalo/r BASE_PATH=/petalo/ pnpm registry:build && BASE_PATH=/petalo/ pnpm build && pnpm storybook:build && node -e \"require('node:fs').cpSync('storybook-static', 'dist/storybook', { recursive: true }); require('node:fs').writeFileSync('dist/.nojekyll', '')\"",
     "preview": "vite preview --port 4173 --strictPort",
     "sapui5:serve": "cd sapui5 && ui5 serve --port ${SAPUI5_PORT:-4174}",
     "registry:build": "pnpm css && node scripts/build-registry-json.mjs --require-usage && shadcn build registry.json --output public/r && pnpm skill:build",
@@ -31,7 +31,9 @@
     "skill:eval-build": "node scripts/eval-skill-build.mjs",
     "storybook": "storybook dev -p 6006 --no-open",
     "storybook:build": "pnpm css && storybook build -o storybook-static --quiet",
-    "test:storybook": "playwright test -c playwright.storybook.config.ts"
+    "test:storybook": "playwright test -c playwright.storybook.config.ts",
+    "test:summary": "node scripts/test-summary.mjs",
+    "test:changed": "node scripts/test-changed.mjs"
   },
   "dependencies": {
     "@tanstack/react-table": "9.3.1",

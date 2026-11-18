@@ -53,7 +53,7 @@ viewport frame
 Main exports: `AppShell` (default export).
 
 ```bash
-npx shadcn add @fiori/app-shell
+npx shadcn add @petalo/app-shell
 ```
 
 ## empty-states
@@ -95,7 +95,7 @@ main gallery
 Main exports: `EmptyStates` (default export).
 
 ```bash
-npx shadcn add @fiori/empty-states
+npx shadcn add @petalo/empty-states
 ```
 
 ## launchpad
@@ -135,7 +135,7 @@ AppShell (shared shell actions and scrolling content)
 Main exports: `Launchpad` (default export).
 
 ```bash
-npx shadcn add @fiori/launchpad
+npx shadcn add @petalo/launchpad
 ```
 
 ## list-report
@@ -176,7 +176,7 @@ DynamicPage
 Main exports: `ListReport` (default export).
 
 ```bash
-npx shadcn add @fiori/list-report
+npx shadcn add @petalo/list-report
 ```
 
 ## master-detail
@@ -217,7 +217,7 @@ viewport frame
 Main exports: `MasterDetail` (default export).
 
 ```bash
-npx shadcn add @fiori/master-detail
+npx shadcn add @petalo/master-detail
 ```
 
 ## object-page-floorplan
@@ -265,7 +265,7 @@ viewport frame
 Main exports: `ObjectPageBlock` (default export).
 
 ```bash
-npx shadcn add @fiori/object-page-floorplan
+npx shadcn add @petalo/object-page-floorplan
 ```
 
 ## wizard-page
@@ -316,5 +316,5 @@ viewport frame
 Main exports: `WizardPage` (default export).
 
 ```bash
-npx shadcn add @fiori/wizard-page
+npx shadcn add @petalo/wizard-page
 ```

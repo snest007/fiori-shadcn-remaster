@@ -219,7 +219,7 @@ test("f6: registry library and five blocks distribute the opt-in dependency", ()
   expect(item.dependencies).toEqual([])
   expect(item.files[0].content).not.toMatch(/(?:import|require).*@ui5/)
   for (const name of ["app-shell", "launchpad", "list-report", "object-page-floorplan", "master-detail"]) {
-    expect(JSON.parse(readFileSync(`public/r/${name}.json`, "utf8")).registryDependencies).toContain("@fiori/f6-navigation")
+    expect(JSON.parse(readFileSync(`public/r/${name}.json`, "utf8")).registryDependencies).toContain("@petalo/f6-navigation")
   }
 })
 
@@ -649,6 +649,12 @@ test("f6: SideNavigation normal and overflow handlers let aliases reach the page
   await toggle.click()
   const more = nav.getByRole("menuitem", { name: "More Items", exact: true })
   await expect(more).toBeVisible()
+  // side-navigation.css animates the collapse (width 0.3s). Clicking More mid-animation can land
+  // while the item is still sliding in (seen at x=-148) and hit <main> instead, so the menu never
+  // opens. Wait for the final collapsed width and the cleared animating flag, as
+  // tests/side-navigation.spec.ts waitCollapsedNavigation does.
+  await expect.poll(() => nav.locator("[data-slot=side-navigation]").evaluate((el) => el.getBoundingClientRect().width)).toBe(64)
+  await expect(nav.locator(".fiori-sn__root")).not.toHaveAttribute("data-animating", "")
   await more.focus()
   await page.keyboard.press("Control+Alt+ArrowDown")
   await expect(shell.getByRole("button", { name: "Expand navigation", exact: true })).toBeFocused()

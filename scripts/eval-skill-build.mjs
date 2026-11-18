@@ -57,7 +57,7 @@ export function outputImports(source, file, registry) {
   return { runtime: [...imports].sort(), modules: [...modules].sort() }
 }
 
-export function validateOutputs(root, cases, outputRoot = join(root, "skills/shadcn-fiori/evals/outputs")) {
+export function validateOutputs(root, cases, outputRoot = join(root, "skills/petalo/evals/outputs")) {
   const manifest = JSON.parse(readFileSync(join(root, "registry.json"), "utf8"))
   // Icon is shipped by the library item "icons" but imported through components/ui/icon.
   const registry = new Map(manifest.items.map((item) => [item.name, item]))
@@ -92,7 +92,7 @@ export async function buildSkillOutputs({ root = resolve("."), evalPath, outputR
     const pages = validateOutputs(root, evaluation.cases, outputRoot)
     harness.run("pnpm build", root)
     await harness.serve(`pnpm exec vite preview --port ${registryPort} --strictPort`, root, registryPort)
-    await harness.waitFor(`${registry}/fiori.json`)
+    await harness.waitFor(`${registry}/petalo.json`)
     step(`create eval consumer app in ${dir}`)
     harness.setupConsumer(dir)
     step("shadcn init")
