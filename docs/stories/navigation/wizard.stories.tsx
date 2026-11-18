@@ -66,7 +66,7 @@ const textKeys = [
   ],
   [
     "texts.stepContentLabel",
-    "WIZARD_STEP_ARIA_LABEL",
+    "WIZARD_NAV_STEP_DEFAULT_HEADING + number/title",
     "Step {0} {1}"
   ],
   [
@@ -125,7 +125,7 @@ function ItemDocs() {
   const context = React.useContext(DocsContext)
   const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs") && !story.usesMount).slice(1)
   const [copied, setCopied] = React.useState(false)
-  const command = "npx shadcn add @fiori/wizard"
+  const command = "npx shadcn add @petalo/wizard"
   return <main><DocsTitle /><p>{guide.description}</p>
     <section aria-label="Install component"><div className="flex items-center gap-3"><pre><code>{command}</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText(command); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
     <section aria-label="Usage guidance"><p>{guide.usage.summary}</p><h2>When to use</h2><ul>{guide.usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{guide.usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when}{" "}{entry.use.map((alternative, index) => <React.Fragment key={alternative}>{index > 0 && ", "}<a href={docsLink(alternative)} target="_top">{alternative}</a></React.Fragment>)}</li>)}</ul></section>

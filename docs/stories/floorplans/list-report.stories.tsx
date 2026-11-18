@@ -23,23 +23,23 @@ const guide = {
   "title": "List Report",
   "description": "SAP Fiori List Report with saved views, localStorage persistence, a personalized filter bar, a snapping header, products table and mass-action footer. Sample data inline.",
   "registryDependencies": [
-    "@fiori/dynamic-page",
-    "@fiori/filter-bar",
-    "@fiori/data-table",
-    "@fiori/table",
-    "@fiori/toolbar",
-    "@fiori/bar",
-    "@fiori/button",
-    "@fiori/input",
-    "@fiori/select",
-    "@fiori/title",
-    "@fiori/object-status",
-    "@fiori/object-number",
-    "@fiori/object-identifier",
-    "@fiori/icons",
-    "@fiori/variant-management",
-    "@fiori/variants",
-    "@fiori/f6-navigation"
+    "@petalo/dynamic-page",
+    "@petalo/filter-bar",
+    "@petalo/data-table",
+    "@petalo/table",
+    "@petalo/toolbar",
+    "@petalo/bar",
+    "@petalo/button",
+    "@petalo/input",
+    "@petalo/select",
+    "@petalo/title",
+    "@petalo/object-status",
+    "@petalo/object-number",
+    "@petalo/object-identifier",
+    "@petalo/icons",
+    "@petalo/variant-management",
+    "@petalo/variants",
+    "@petalo/f6-navigation"
   ],
   "usage": {
     "summary": "Find and act on business records with saved views, applied filters and a responsive results table.",
@@ -102,7 +102,7 @@ function BlockDocs() {
   const context = React.useContext(DocsContext)
   const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs")).slice(1)
   const [copied, setCopied] = React.useState(false)
-  const command = "npx shadcn add @fiori/list-report"
+  const command = "npx shadcn add @petalo/list-report"
   return <main><Title /><p>{guide.description}</p>
     <section aria-label="Install floorplan"><h2>Install</h2><div className="flex items-center gap-3"><pre><code>{command}</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText(command); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
     <section aria-label="Usage guidance"><p>{guide.usage.summary}</p><h2>When to use</h2><ul>{guide.usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{guide.usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when} Alternatives: {entry.use.join(", ")}.</li>)}</ul></section>

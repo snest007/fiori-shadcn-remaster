@@ -25,20 +25,20 @@ const guide = {
   "title": "Wizard page (floorplan)",
   "description": "Fiori Wizard floorplan: a Page with a Wizard of form steps (Select, Input, DatePicker, Checkbox), step-by-step validation, a review page with Edit links and a footer with Review / Submit / Cancel.",
   "registryDependencies": [
-    "@fiori/page",
-    "@fiori/wizard",
-    "@fiori/bar",
-    "@fiori/button",
-    "@fiori/checkbox",
-    "@fiori/date-picker",
-    "@fiori/input",
-    "@fiori/label",
-    "@fiori/link",
-    "@fiori/message-strip",
-    "@fiori/select",
-    "@fiori/text",
-    "@fiori/title",
-    "@fiori/icons"
+    "@petalo/page",
+    "@petalo/wizard",
+    "@petalo/bar",
+    "@petalo/button",
+    "@petalo/checkbox",
+    "@petalo/date-picker",
+    "@petalo/input",
+    "@petalo/label",
+    "@petalo/link",
+    "@petalo/message-strip",
+    "@petalo/select",
+    "@petalo/text",
+    "@petalo/title",
+    "@petalo/icons"
   ],
   "categories": [
     "floorplan",
@@ -110,7 +110,7 @@ function BlockDocs() {
   const context = React.useContext(DocsContext)
   const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs")).slice(1)
   const [copied, setCopied] = React.useState(false)
-  const command = "npx shadcn add @fiori/wizard-page"
+  const command = "npx shadcn add @petalo/wizard-page"
   return <main><Title /><p>{guide.description}</p>
     <section aria-label="Install floorplan"><h2>Install</h2><div className="flex items-center gap-3"><pre><code>{command}</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText(command); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
     <section aria-label="Usage guidance"><p>{guide.usage.summary}</p><h2>When to use</h2><ul>{guide.usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{guide.usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when} Alternatives: {entry.use.join(", ")}.</li>)}</ul></section>

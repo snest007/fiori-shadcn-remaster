@@ -23,12 +23,12 @@ const guide = {
   "title": "Empty states",
   "description": "Gallery of the standard Fiori empty and error states (no data, no search results, no filter results, unable to load, page not found, success) as IllustratedMessage with actions, at different sizes.",
   "registryDependencies": [
-    "@fiori/button",
-    "@fiori/card",
-    "@fiori/illustrated-message",
-    "@fiori/label",
-    "@fiori/segmented-button",
-    "@fiori/title"
+    "@petalo/button",
+    "@petalo/card",
+    "@petalo/illustrated-message",
+    "@petalo/label",
+    "@petalo/segmented-button",
+    "@petalo/title"
   ],
   "categories": [
     "empty-states"
@@ -88,7 +88,7 @@ function BlockDocs() {
   const context = React.useContext(DocsContext)
   const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs")).slice(1)
   const [copied, setCopied] = React.useState(false)
-  const command = "npx shadcn add @fiori/empty-states"
+  const command = "npx shadcn add @petalo/empty-states"
   return <main><Title /><p>{guide.description}</p>
     <section aria-label="Install floorplan"><h2>Install</h2><div className="flex items-center gap-3"><pre><code>{command}</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText(command); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
     <section aria-label="Usage guidance"><p>{guide.usage.summary}</p><h2>When to use</h2><ul>{guide.usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{guide.usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when} Alternatives: {entry.use.join(", ")}.</li>)}</ul></section>

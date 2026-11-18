@@ -23,12 +23,12 @@ const guide = {
   "title": "Launchpad",
   "description": "The App Shell block with a SideNavigation wired to its menu button and a page per navigation item.",
   "registryDependencies": [
-    "@fiori/app-shell",
-    "@fiori/side-navigation",
-    "@fiori/text",
-    "@fiori/title",
-    "@fiori/icons",
-    "@fiori/f6-navigation"
+    "@petalo/app-shell",
+    "@petalo/side-navigation",
+    "@petalo/text",
+    "@petalo/title",
+    "@petalo/icons",
+    "@petalo/f6-navigation"
   ],
   "usage": {
     "summary": "Start an application-entry page from a shared shell, selected side navigation and replaceable page content.",
@@ -90,7 +90,7 @@ function BlockDocs() {
   const context = React.useContext(DocsContext)
   const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs")).slice(1)
   const [copied, setCopied] = React.useState(false)
-  const command = "npx shadcn add @fiori/launchpad"
+  const command = "npx shadcn add @petalo/launchpad"
   return <main><Title /><p>{guide.description}</p>
     <section aria-label="Install floorplan"><h2>Install</h2><div className="flex items-center gap-3"><pre><code>{command}</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText(command); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
     <section aria-label="Usage guidance"><p>{guide.usage.summary}</p><h2>When to use</h2><ul>{guide.usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{guide.usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when} Alternatives: {entry.use.join(", ")}.</li>)}</ul></section>

@@ -25,14 +25,14 @@ const guide = {
   "title": "Master-Detail (Flexible Column Layout)",
   "description": "Fiori Flexible Column Layout app: searchable product list, product object view and sales order line item, navigated with useFlexibleColumnLayout.",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/flexible-column-layout",
-    "@fiori/bar",
-    "@fiori/button",
-    "@fiori/input",
-    "@fiori/list",
-    "@fiori/tag",
-    "@fiori/f6-navigation"
+    "@petalo/icons",
+    "@petalo/flexible-column-layout",
+    "@petalo/bar",
+    "@petalo/button",
+    "@petalo/input",
+    "@petalo/list",
+    "@petalo/tag",
+    "@petalo/f6-navigation"
   ],
   "usage": {
     "summary": "Browse a searchable record list beside its selected detail and, when needed, a related sub-detail.",
@@ -89,7 +89,7 @@ function BlockDocs() {
   const context = React.useContext(DocsContext)
   const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs")).slice(1)
   const [copied, setCopied] = React.useState(false)
-  const command = "npx shadcn add @fiori/master-detail"
+  const command = "npx shadcn add @petalo/master-detail"
   return <main><Title /><p>{guide.description}</p>
     <section aria-label="Install floorplan"><h2>Install</h2><div className="flex items-center gap-3"><pre><code>{command}</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText(command); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
     <section aria-label="Usage guidance"><p>{guide.usage.summary}</p><h2>When to use</h2><ul>{guide.usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{guide.usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when} Alternatives: {entry.use.join(", ")}.</li>)}</ul></section>

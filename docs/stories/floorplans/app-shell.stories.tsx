@@ -23,19 +23,19 @@ const guide = {
   "title": "App Shell",
   "description": "SAP Fiori launchpad-style shell: a ShellBar wired to notifications, user menu and product switch popovers, with a side navigation slot and a content area.",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/avatar",
-    "@fiori/button",
-    "@fiori/card",
-    "@fiori/notification-list",
-    "@fiori/popover",
-    "@fiori/product-switch",
-    "@fiori/search",
-    "@fiori/shell-bar",
-    "@fiori/text",
-    "@fiori/title",
-    "@fiori/user-menu",
-    "@fiori/f6-navigation"
+    "@petalo/icons",
+    "@petalo/avatar",
+    "@petalo/button",
+    "@petalo/card",
+    "@petalo/notification-list",
+    "@petalo/popover",
+    "@petalo/product-switch",
+    "@petalo/search",
+    "@petalo/shell-bar",
+    "@petalo/text",
+    "@petalo/title",
+    "@petalo/user-menu",
+    "@petalo/f6-navigation"
   ],
   "usage": {
     "summary": "Frame application pages with shared shell actions, optional side navigation and a scrolling content area.",
@@ -98,7 +98,7 @@ function BlockDocs() {
   const context = React.useContext(DocsContext)
   const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs")).slice(1)
   const [copied, setCopied] = React.useState(false)
-  const command = "npx shadcn add @fiori/app-shell"
+  const command = "npx shadcn add @petalo/app-shell"
   return <main><Title /><p>{guide.description}</p>
     <section aria-label="Install floorplan"><h2>Install</h2><div className="flex items-center gap-3"><pre><code>{command}</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText(command); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
     <section aria-label="Usage guidance"><p>{guide.usage.summary}</p><h2>When to use</h2><ul>{guide.usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{guide.usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when} Alternatives: {entry.use.join(", ")}.</li>)}</ul></section>

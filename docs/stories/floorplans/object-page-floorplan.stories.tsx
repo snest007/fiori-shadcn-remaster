@@ -23,25 +23,25 @@ const guide = {
   "title": "Object Page",
   "description": "SAP Fiori Object Page floorplan: object header with avatar and facets, anchor navigation, sections General Information (form), Items (table) and Notes, edit mode with a Save / Cancel floating footer. Sample data inline.",
   "registryDependencies": [
-    "@fiori/object-page",
-    "@fiori/dynamic-page",
-    "@fiori/form",
-    "@fiori/table",
-    "@fiori/toolbar",
-    "@fiori/bar",
-    "@fiori/breadcrumbs",
-    "@fiori/button",
-    "@fiori/input",
-    "@fiori/textarea",
-    "@fiori/text",
-    "@fiori/label",
-    "@fiori/title",
-    "@fiori/avatar",
-    "@fiori/object-status",
-    "@fiori/object-number",
-    "@fiori/object-identifier",
-    "@fiori/icons",
-    "@fiori/f6-navigation"
+    "@petalo/object-page",
+    "@petalo/dynamic-page",
+    "@petalo/form",
+    "@petalo/table",
+    "@petalo/toolbar",
+    "@petalo/bar",
+    "@petalo/breadcrumbs",
+    "@petalo/button",
+    "@petalo/input",
+    "@petalo/textarea",
+    "@petalo/text",
+    "@petalo/label",
+    "@petalo/title",
+    "@petalo/avatar",
+    "@petalo/object-status",
+    "@petalo/object-number",
+    "@petalo/object-identifier",
+    "@petalo/icons",
+    "@petalo/f6-navigation"
   ],
   "usage": {
     "summary": "Inspect and edit one object through a complete header, sectioned details and Save/Cancel flow.",
@@ -105,7 +105,7 @@ function BlockDocs() {
   const context = React.useContext(DocsContext)
   const variants = context.componentStories().filter((story) => story.tags?.includes("autodocs")).slice(1)
   const [copied, setCopied] = React.useState(false)
-  const command = "npx shadcn add @fiori/object-page-floorplan"
+  const command = "npx shadcn add @petalo/object-page-floorplan"
   return <main><Title /><p>{guide.description}</p>
     <section aria-label="Install floorplan"><h2>Install</h2><div className="flex items-center gap-3"><pre><code>{command}</code></pre><Button aria-label="Copy install command" onClick={async () => { await navigator.clipboard.writeText(command); setCopied(true) }}>{copied ? "Copied" : "Copy"}</Button></div><span role="status" className="sr-only">{copied ? "Install command copied" : ""}</span></section>
     <section aria-label="Usage guidance"><p>{guide.usage.summary}</p><h2>When to use</h2><ul>{guide.usage.useWhen.map((text) => <li key={text}>{text}</li>)}</ul><h2>Don't use</h2><ul>{guide.usage.avoidWhen.map((entry) => <li key={entry.when}>{entry.when} Alternatives: {entry.use.join(", ")}.</li>)}</ul></section>
