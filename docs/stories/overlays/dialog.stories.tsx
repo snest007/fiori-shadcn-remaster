@@ -62,3 +62,6 @@ export const WithFooterBar: Story = { parameters: openDocs, render: function Con
 } }
 
 export const CustomHost: Story = { render: () => <Dialog open modal={false}><DialogContent asChild portal={false}><section><DialogHeader><DialogTitle>Custom host dialog</DialogTitle></DialogHeader><DialogBody>Dialog content</DialogBody></section></DialogContent></Dialog> }
+function ChildrenOnlyHost({ children }: React.ComponentProps<"div">) { return <section>{children}</section> }
+export const ReactHost: Story = { render: () => <Dialog open modal={false}><DialogContent asChild portal={false}><ChildrenOnlyHost role="presentation" tabIndex={13}><DialogHeader><DialogTitle>React host dialog</DialogTitle></DialogHeader><DialogBody><DialogDescription>Dialog content</DialogDescription></DialogBody></ChildrenOnlyHost></DialogContent></Dialog> }
+export const RTLReactHost: Story = { ...ReactHost, globals: { dir: "rtl" } }

@@ -100,7 +100,12 @@ function PopoverContent({
       )}
       {...props} data-sap-ui-fastnavgroup-container="true"
     >
-      {custom ? React.createElement(custom.type, { ...hostProps, key: custom.key }, body) : body}
+      {custom ? typeof custom.type === "string"
+        ? React.createElement(custom.type, { ...hostProps, key: custom.key }, body)
+        // PopupTemplate.js owns the outer section. A React child may consume only
+        // children and drop Slot's props/ref, so keep those on our own DOM host.
+        : <div>{React.createElement(custom.type, { ...hostProps, key: custom.key }, body)}</div>
+        : body}
     </PopoverPrimitive.Content>
   )
   return portal ? <PopoverPrimitive.Portal>{surface}</PopoverPrimitive.Portal> : surface
