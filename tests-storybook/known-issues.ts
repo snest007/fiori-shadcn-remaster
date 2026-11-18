@@ -145,6 +145,44 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             && actual.classList.contains('fiori-multi-combobox__item')
             && [...actual.querySelectorAll('[tabindex]')].every((element) => element === indicator)
         }
+        // S4
+        // component defect, fixed by E4 — see docs/plan/handoff/S4-a11y-candidates
+        // FlexibleColumnLayoutTemplate.js nests arrowStart's Button under its
+        // focusable role=separator. The docs demo and real UI5 2.28 instance both
+        // reproduce nested-interactive. Approve only this existing semantic host,
+        // with its one owned arrow and visible grip; other nodes remain failures.
+        if (rule === "nested-interactive" && [
+          "layout-flexible-column-layout--playground", "layout-flexible-column-layout--one-column",
+          "layout-flexible-column-layout--two-columns-start-expanded", "layout-flexible-column-layout--two-columns-mid-expanded",
+          "layout-flexible-column-layout--three-columns-mid-expanded", "layout-flexible-column-layout--three-columns-end-expanded",
+          "layout-flexible-column-layout--three-columns-start-expanded-end-hidden", "layout-flexible-column-layout--three-columns-mid-expanded-end-hidden",
+          "layout-flexible-column-layout--three-columns-start-hidden-mid-expanded", "layout-flexible-column-layout--three-columns-start-hidden-end-expanded",
+          "layout-flexible-column-layout--mid-column-full-screen", "layout-flexible-column-layout--end-column-full-screen",
+          "layout-flexible-column-layout--tablet", "layout-flexible-column-layout--phone",
+          "layout-flexible-column-layout--disable-resizing", "layout-flexible-column-layout--custom-texts",
+          "layout-flexible-column-layout--rtl", "layout-flexible-column-layout--hook-navigation",
+          "floorplans-master-detail--playground", "floorplans-master-detail--rtl",
+        ].includes(context.story)) {
+          const root = unique('[data-slot="flexible-column-layout"]')
+          const separator = root?.querySelector('[data-slot="flexible-column-layout-start-separator"][role="separator"][tabindex="0"]')
+          const arrow = separator?.querySelector(':scope > button[data-slot="button"].fiori-fcl__arrow')
+          const grip = separator?.querySelector(':scope > .fiori-fcl__grip')
+          if (!root || !separator || actual !== separator || !arrow || !grip
+            || !visible(separator) || !visible(arrow) || !visible(grip)
+            || separator.getAttribute('aria-orientation') !== 'vertical'
+            || !separator.hasAttribute('aria-valuenow') || separator.children.length !== 2
+            || (arrow as HTMLButtonElement).disabled || (arrow as HTMLButtonElement).tabIndex !== 0
+            || separator.querySelectorAll('button,[tabindex]').length !== 1) return false
+          const custom = context.story === 'layout-flexible-column-layout--custom-texts'
+          if (separator.getAttribute('aria-label') !== (custom ? 'Resize orders and detail' : 'Resize between start and mid columns')
+            || arrow.getAttribute('aria-label') !== (custom ? 'Show or hide purchase orders' : 'Switch between start and middle column layouts')) return false
+          if (context.primary) {
+            const args = JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}')
+            if (context.story !== 'layout-flexible-column-layout--playground' || context.control?.prop !== 'layout'
+              || args.layout !== context.control.choice || root.getAttribute('data-layout') !== context.control.choice) return false
+          }
+          return true
+        }
         return false
       }, { target: node.target, rule: violation.id, context })
       ;(approved ? knownNodes : unexpectedNodes).push(node)
