@@ -1,7 +1,7 @@
 import * as React from "react"
 import { ArgTypes, Controls, DocsContext, DocsStory, Primary, Title as DocsTitle } from "@storybook/addon-docs/blocks"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { Wizard, WizardStep, type WizardProps } from "@/components/ui/wizard"
 import { Button } from "@/components/ui/button"
@@ -19,7 +19,7 @@ const meta = {
   argTypes: { ...base.argTypes, selectedStep: { control: "select", options: ["type", "information", "options", "pricing"] }, contentLayout: { control: "inline-radio", options: ["multipleSteps", "singleStep"] }, stepSwitchThreshold: { control: { type: "number", min: 0.5, max: 1, step: 0.1 } }, accessibleName: { control: "text" }, icons: { control: "boolean" }, allEnabled: { control: "boolean" }, branching: { control: "boolean" }, texts: { control: false }, defaultSelectedStep: { control: false }, onStepChange: { control: false } },
   render: function ProductWizard(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const [reached, setReached] = React.useState(1)
+    const [reached, setReached] = useState(1)
     const current = steps.findIndex((step) => step.value === args.selectedStep)
     const { icons, allEnabled, branching, ...props } = args
     return <div className="h-[28rem]"><Wizard {...props} onStepChange={(selectedStep, detail) => { args.onStepChange?.(selectedStep, detail); updateArgs({ selectedStep }) }}>{steps.map((step, index) => <WizardStep key={step.value} value={step.value} titleText={step.title} subtitleText={index === 1 ? "Optional" : undefined} icon={icons ? step.icon : undefined} disabled={!allEnabled && index > Math.max(reached, current)} branching={branching && index === 1}><div className="grid gap-3 p-4"><h2>{step.title}</h2><Label htmlFor={`wizard-story-${step.value}`}>{step.title} details</Label><Input id={`wizard-story-${step.value}`} placeholder="Enter details" />{index < 3 && <Button onClick={() => { setReached((previous) => Math.max(previous, index + 1)); updateArgs({ selectedStep: steps[index + 1].value }) }}>Continue to {steps[index + 1].title.toLowerCase()}</Button>}</div></WizardStep>)}</Wizard></div>

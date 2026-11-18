@@ -1,7 +1,7 @@
 import * as React from "react"
 import { ArgTypes, Controls, DocsContext, DocsStory, Primary, Title as DocsTitle } from "@storybook/addon-docs/blocks"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { NavigationLayout, type NavigationLayoutProps } from "@/components/ui/navigation-layout"
 import { SideNavigation, SideNavigationItem, SideNavigationSubItem } from "@/components/ui/side-navigation"
@@ -22,7 +22,7 @@ const meta = {
   argTypes: { ...base.argTypes, mode: { control: "inline-radio", options: ["auto", "collapsed", "expanded"] }, header: { control: false }, sideContent: { control: false }, onModeChange: { control: false } },
   render: function ApplicationLayout(args: NavigationLayoutProps) {
     const [, updateArgs] = useArgs<NavigationLayoutProps>()
-    const [page, setPage] = React.useState("home")
+    const [page, setPage] = useState("home")
     const toggle = () => { const collapsed = args.mode === "auto" ? window.matchMedia("(max-width: 599.98px)").matches : args.mode === "collapsed"; updateArgs({ mode: collapsed ? "expanded" : "collapsed" }) }
     return <div className="relative h-screen"><NavigationLayout {...args} onModeChange={(mode) => { args.onModeChange?.(mode); updateArgs({ mode }) }} header={<Bar startContent={<Button variant="transparent" size="icon" aria-label="Toggle navigation" onClick={toggle}><Icon icon={menu2} /></Button>}><Title level="H1" size="H4">Purchasing application</Title></Bar>} sideContent={<SideNavigation accessibleName="Purchasing navigation" value={page} onValueChange={setPage} fixedItems={<SideNavigationItem text="Settings" value="settings" icon={actionSettings} />}><SideNavigationItem text="Home" value="home" icon={home} /><SideNavigationItem text="People" value="people" icon={group}><SideNavigationSubItem text="My team" value="team" /></SideNavigationItem><SideNavigationItem text="Products" value="products" icon={product} /></SideNavigation>}><section aria-label="Application content" className="p-4"><Title level="H2" size="H3">Current page: {page}</Title><p>Select a business area from the navigation.</p></section></NavigationLayout></div>
   },

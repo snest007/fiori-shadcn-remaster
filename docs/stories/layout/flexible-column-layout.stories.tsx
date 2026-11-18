@@ -1,7 +1,7 @@
 import * as React from "react"
 import { ArgTypes, Controls, DocsContext, DocsStory, Primary, Title as DocsTitle } from "@storybook/addon-docs/blocks"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { FlexibleColumnLayout, useFlexibleColumnLayout, type FlexibleColumnLayoutProps, type FCLLayout } from "@/components/ui/flexible-column-layout"
 import { Bar } from "@/components/ui/bar"
@@ -22,8 +22,8 @@ const meta = {
   argTypes: { ...base.argTypes, layout: { control: "select", options: layouts }, width: { control: { type: "number", min: 400, max: 1600 } }, disableResizing: { control: "boolean" }, disableAnimation: { control: "boolean" }, startColumn: { control: false }, midColumn: { control: false }, endColumn: { control: false }, defaultLayout: { control: false }, layoutsConfiguration: { control: "object" }, accessibilityAttributes: { control: false }, onLayoutChange: { control: false }, onLayoutConfigurationChange: { control: false }, onMediaChange: { control: false } },
   render: function OrderColumns(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const [order, setOrder] = React.useState("Order 1001")
-    const [item, setItem] = React.useState("Notebook Basic 15")
+    const [order, setOrder] = useState("Order 1001")
+    const [item, setItem] = useState("Notebook Basic 15")
     const { width, ...props } = args
     return <div className="max-w-full overflow-x-auto"><FlexibleColumnLayout {...props} style={{ width, height: "32rem" }} onLayoutChange={(detail) => { args.onLayoutChange?.(detail); updateArgs({ layout: detail.layout }) }} accessibilityAttributes={{ startColumn: { role: "region", name: "Orders" }, midColumn: { role: "region", name: "Order detail" }, endColumn: { role: "region", name: "Item detail" }, ...args.accessibilityAttributes }} startColumn={<div><Bar><Title level="H1" size="H4">Orders</Title></Bar><List aria-label="Orders" selectionMode="single" value={[order]} onItemClick={(value) => { setOrder(value); updateArgs({ layout: "TwoColumnsMidExpanded" }) }}>{["Order 1001", "Order 1002", "Order 1003"].map((value) => <ListItemStandard key={value} value={value} text={value} type="navigation" />)}</List></div>} midColumn={<div><Bar endContent={<Button onClick={() => updateArgs({ layout: "MidColumnFullScreen" })}>Full screen</Button>}><Title level="H2" size="H4">{order}</Title></Bar><List aria-label="Order items" onItemClick={(value) => { setItem(value); updateArgs({ layout: "ThreeColumnsEndExpanded" }) }}>{["Notebook Basic 15", "Wireless mouse", "USB-C dock"].map((value) => <ListItemStandard key={value} value={value} text={value} type="navigation" />)}</List></div>} endColumn={<div><Bar endContent={<Button onClick={() => updateArgs({ layout: "TwoColumnsMidExpanded" })}>Close item</Button>}><Title level="H2" size="H4">Item</Title></Bar><p className="p-4">{item}: Delivery confirmed.</p></div>} /></div>
   },

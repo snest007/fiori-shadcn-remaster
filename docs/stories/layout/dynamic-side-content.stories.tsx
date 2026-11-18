@@ -1,7 +1,7 @@
 import * as React from "react"
 import { ArgTypes, Controls, DocsContext, DocsStory, Primary, Title as DocsTitle } from "@storybook/addon-docs/blocks"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { DynamicSideContent, type DynamicSideContentProps } from "@/components/ui/dynamic-side-content"
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ const meta = {
   argTypes: { ...base.argTypes, width: { control: { type: "number", min: 400, max: 1600 } }, sideContentPosition: { control: "inline-radio", options: ["end", "start"] }, sideContentVisibility: { control: "select", options: ["alwaysShow", "showAboveL", "showAboveM", "showAboveS", "neverShow"] }, sideContentFallDown: { control: "select", options: ["belowXL", "belowL", "belowM", "onMinimumWidth"] }, equalSplit: { control: "boolean" }, hideMainContent: { control: "boolean" }, hideSideContent: { control: "boolean" }, toggled: { control: "boolean" }, sideContent: { control: false }, accessibilityAttributes: { control: false }, onToggledChange: { control: false }, onLayoutChange: { control: false } },
   render: function SupplierSideContent(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const [breakpoint, setBreakpoint] = React.useState("")
+    const [breakpoint, setBreakpoint] = useState("")
     const { width, ...props } = args
     return <div className="grid gap-3 p-4"><div className="flex items-center gap-3"><Button onClick={() => { const toggled = !args.toggled; args.onToggledChange?.(toggled); updateArgs({ toggled }) }}>Toggle contents</Button><output>Breakpoint: {breakpoint}</output></div><div className="overflow-x-auto"><DynamicSideContent {...props} style={{ width, minHeight: "16rem" }} accessibilityAttributes={{ mainContent: { role: "region", ariaLabel: "Supplier details" }, sideContent: { role: "region", ariaLabel: "Supplier contacts" }, ...args.accessibilityAttributes }} onLayoutChange={(detail) => { args.onLayoutChange?.(detail); setBreakpoint(detail.currentBreakpoint) }} sideContent={<div className="h-full bg-(--sapList_SelectionBackgroundColor) p-4"><Title level="H2" size="H4">Contacts</Title><Text>Alex Lee, purchasing coordinator</Text></div>}><div className="h-full bg-(--sapGroup_ContentBackground) p-4"><Title level="H1" size="H3">Supplier details</Title><Text>Review delivery terms and purchasing agreements.</Text></div></DynamicSideContent></div></div>
   },

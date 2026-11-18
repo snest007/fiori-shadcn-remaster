@@ -1,7 +1,7 @@
 import * as React from "react"
 import { ArgTypes, Controls, DocsContext, DocsStory, Primary, Title as DocsTitle } from "@storybook/addon-docs/blocks"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useRef } from "storybook/preview-api"
 import { fn, expect, userEvent, within } from "storybook/test"
 import { VariantManagement, type VariantManagementProps, type VariantItem } from "@/components/ui/variant-management"
 import { Button } from "@/components/ui/button"
@@ -15,11 +15,11 @@ const meta = {
   argTypes: { ...base.argTypes, items: { control: "object" }, selectedKey: { control: "text" }, defaultKey: { control: "text" }, modified: { control: "boolean" }, supportDefault: { control: "boolean" }, supportFavorites: { control: "boolean" }, supportApplyAutomatically: { control: "boolean" }, supportPublic: { control: "boolean" }, supportContexts: { control: "boolean" }, showSaveAs: { control: "boolean" }, creationAllowed: { control: "boolean" }, showFooter: { control: "boolean" }, inErrorState: { control: "boolean" }, popoverTitle: { control: "text" }, level: { control: "select", options: ["Auto", "H1", "H2", "H3", "H4", "H5", "H6"] }, titleStyle: { control: "select", options: ["Auto", "H1", "H2", "H3", "H4", "H5", "H6"] }, maxWidth: { control: "text" }, defaultOpen: { control: "select", options: [undefined, "list", "save", "manage"] }, portal: { control: false }, texts: { control: false }, roles: { control: "object" }, onSelect: { control: false }, onSave: { control: false }, onManage: { control: false }, onManageCancel: { control: false }, onCancel: { control: false } },
   render: function SavedViews(args: VariantManagementProps) {
     const [, updateArgs] = useArgs<VariantManagementProps>()
-    const current = React.useRef(args)
+    const current = useRef(args)
     // Controls are authoritative when replacing/resetting data. Commit the next snapshot
     // synchronously too, so multiple callbacks before a Storybook rerender keep every view.
     current.current = args
-    const allocatedKeys = React.useRef(new Set<string>())
+    const allocatedKeys = useRef(new Set<string>())
     for (const item of args.items) allocatedKeys.current.add(item.key)
     const commit = (patch: Partial<VariantManagementProps>) => {
       current.current = { ...current.current, ...patch }

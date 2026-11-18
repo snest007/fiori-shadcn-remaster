@@ -1,7 +1,7 @@
 import * as React from "react"
 import { ArgTypes, Controls, DocsContext, DocsStory, Primary, Title as DocsTitle } from "@storybook/addon-docs/blocks"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { NotificationList, NotificationListItem, NotificationListGroupItem } from "@/components/ui/notification-list"
 import { MenuItem } from "@/components/ui/menu"
@@ -18,8 +18,8 @@ const meta = {
   argTypes: { ...base.argTypes, read: { control: "boolean" }, importance: { control: "inline-radio", options: ["standard", "important"] }, state: { control: "select", options: ["negative", "critical", "positive", "information"] }, showClose: { control: "boolean" }, wrappingType: { control: "inline-radio", options: ["none", "normal"] }, loading: { control: "boolean" }, childLoading: { control: "boolean" }, collapsed: { control: "boolean" }, grouped: { control: "boolean" }, withActions: { control: "boolean" }, empty: { control: "boolean" }, growing: { control: "inline-radio", options: ["none", "button", "scroll"] }, noDataText: { control: "text" }, texts: { control: false }, onItemClick: { control: false }, onItemClose: { control: false }, onItemToggle: { control: false }, onLoadMore: { control: false } },
   render: function OrderNotifications(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const [closed, setClosed] = React.useState<string[]>([])
-    const [extra, setExtra] = React.useState(0)
+    const [closed, setClosed] = useState<string[]>([])
+    const [extra, setExtra] = useState(0)
     const { read, importance, state, showClose, wrappingType, loading, childLoading, grouped, withActions, collapsed, growing, empty, onLoadMore, ...list } = args
     const items = empty ? null : <>{!closed.includes("delayed") && <NotificationListItem value="delayed" titleText="Order 1001 delayed" state={state} read={read} importance={importance} showClose={showClose} wrappingType={wrappingType} loading={childLoading || (!grouped && loading)} loadingDelay={0} menu={withActions ? <><MenuItem>Contact supplier</MenuItem><MenuItem>Review order</MenuItem></> : undefined} avatar={withActions ? <Avatar size="XS" initials="AL" accessibleName="Alex Lee" /> : undefined} footnotes={["Purchasing", "Today"]}>{description}</NotificationListItem>}{!closed.includes("shipped") && <NotificationListItem value="shipped" titleText="Order 1002 shipped" state="positive" read showClose={showClose}>The shipment has left the warehouse.</NotificationListItem>}{Array.from({ length: extra }, (_, index) => <NotificationListItem key={index} value={`new-${index}`} titleText={`Order ${1003 + index} confirmed`}>The supplier confirmed this order.</NotificationListItem>)}</>
     return <div className="max-w-xl"><NotificationList {...list} onItemClose={(value) => { args.onItemClose?.(value); setClosed((previous) => [...previous, value]) }} onItemToggle={(value, collapsed) => { args.onItemToggle?.(value, collapsed); updateArgs({ collapsed }) }}>{grouped && !empty ? <NotificationListGroupItem value="orders" titleText="Orders" read={read} collapsed={collapsed} onCollapsedChange={(collapsed) => updateArgs({ collapsed })} growing={growing} loading={loading} loadingDelay={0} onLoadMore={() => { onLoadMore?.(); setExtra((previous) => previous + 2) }}>{items}</NotificationListGroupItem> : items}</NotificationList></div>
