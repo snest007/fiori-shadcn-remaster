@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useEffect, useRef } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { MultiInput, SuggestionItem, type MultiInputProps } from "@/components/ui/multi-input"
 import { Token } from "@/components/ui/token"
@@ -112,8 +112,8 @@ const meta = {
   render: function DeliveryTokens(args: Args) {
     const [, updateArgs] = useArgs<Args>()
     const { tokenTexts, suggestions, initialSuggestionsOpen, ...props } = args
-    const root = React.useRef<HTMLDivElement>(null)
-    React.useEffect(() => {
+    const root = useRef<HTMLDivElement | null>(null)
+    useEffect(() => {
       const input = root.current?.querySelector<HTMLInputElement>('input[role="combobox"]')
       if (!initialSuggestionsOpen || !input) return
       // Use the component's real typing path to display its suggestions.
