@@ -1,7 +1,7 @@
 {
   "_version": "1.60.0",
   "sap.app": {
-    "id": "shadcn-fiori.sapui5-reference",
+    "id": "petalo.sapui5-reference",
     "type": "application",
     "applicationVersion": { "version": "0.1.0" }
   },

@@ -4,7 +4,7 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons"
+    "@petalo/icons"
   ],
   "description": "Fiori switch: icon, textual (on/off text) and graphical (semantic) designs, read-only state.",
   "usage": {

@@ -29,7 +29,7 @@ Compose a page with a structured title, collapsing header, scrolling content and
 Main exports: `DynamicPage`, `DynamicPageHeader`, `DynamicPageTitle`.
 
 ```bash
-npx shadcn add @fiori/dynamic-page
+npx shadcn add @petalo/dynamic-page
 ```
 
 ## dynamic-side-content
@@ -51,7 +51,7 @@ Keep supplementary context beside or below the main task without covering its co
 Main exports: `DynamicSideContent`.
 
 ```bash
-npx shadcn add @fiori/dynamic-side-content
+npx shadcn add @petalo/dynamic-side-content
 ```
 
 ## flexible-column-layout
@@ -74,7 +74,7 @@ Show up to three related pages in responsive list, detail and sub-detail columns
 Main exports: `FlexibleColumnLayout`, `useFlexibleColumnLayout`.
 
 ```bash
-npx shadcn add @fiori/flexible-column-layout
+npx shadcn add @petalo/flexible-column-layout
 ```
 
 ## navigation-layout
@@ -98,7 +98,7 @@ Compose a full-screen header, vertical navigation and page content with responsi
 Main exports: `NavigationLayout`.
 
 ```bash
-npx shadcn add @fiori/navigation-layout
+npx shadcn add @petalo/navigation-layout
 ```
 
 ## object-page
@@ -122,7 +122,7 @@ Compose one object’s categorized details with a dynamic header and anchor or t
 Main exports: `ObjectPage`, `ObjectPageHeader`, `ObjectPageHeaderFacet`, `ObjectPageSection`, `ObjectPageSubSection`.
 
 ```bash
-npx shadcn add @fiori/object-page
+npx shadcn add @petalo/object-page
 ```
 
 ## page
@@ -144,5 +144,5 @@ Hold one application screen with a header bar, scrolling content and optional fl
 Main exports: `Page`.
 
 ```bash
-npx shadcn add @fiori/page
+npx shadcn add @petalo/page
 ```

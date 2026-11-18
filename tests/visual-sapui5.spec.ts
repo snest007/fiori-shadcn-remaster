@@ -7,6 +7,9 @@ import { PNG } from "pngjs"
 
 const THEMES = ["sap_horizon", "sap_horizon_dark", "sap_horizon_hcb", "sap_horizon_hcw"]
 const DENSITIES = ["cozy", "compact"] as const
+const visualOnly = process.env.VISUAL_ONLY
+const prefixes = visualOnly === undefined ? undefined : visualOnly.split(",").map((prefix) => prefix.trim()).filter(Boolean)
+const matches = (id: string) => !prefixes || prefixes.some((prefix) => id.startsWith(prefix))
 const referenceURL = `http://localhost:${Number(process.env.SAPUI5_PORT ?? 4174)}/index.html`
 type CaseInfo = { id: string; tolerance: number }
 
@@ -53,6 +56,7 @@ async function shoot(page: Page, url: string, ids?: string[]) {
   const wanted = ids ? new Set(ids) : undefined
   const shots = new Map<string, PNG>()
   for (const box of boxes) {
+    if (!matches(box.id)) continue
     if (wanted && !wanted.has(box.id)) continue
     const x = Math.floor(box.x), y = Math.floor(box.y)
     const width = Math.ceil(box.x + box.width) - x, height = Math.ceil(box.y + box.height) - y
@@ -65,7 +69,7 @@ async function shoot(page: Page, url: string, ids?: string[]) {
 }
 
 async function readCases(page: Page): Promise<CaseInfo[]> {
-  return page.evaluate(() => (window as unknown as { __fixtures: CaseInfo[] }).__fixtures)
+  return (await page.evaluate(() => (window as unknown as { __fixtures: CaseInfo[] }).__fixtures)).filter((fixture) => matches(fixture.id))
 }
 
 // The OpenUI5 reference renders the variant-list popover header slightly differently when several
@@ -88,9 +92,10 @@ for (const theme of THEMES) {
         const ours = await shoot(page, `/index.html${query}&fixtures-sapui5`, [...reference.keys()])
         const cases = await readCases(page)
         const referenceCases = await readCases(referencePage)
+        if (prefixes) expect(cases.length, `VISUAL_ONLY=${visualOnly}: no fixtures matched`).toBeGreaterThan(0)
         expect(await referencePage.evaluate(() => (window as any).sap.ui.version), "Pinned OpenUI5 reference").toBe("1.154.0")
         const ids = cases.map((fixture) => fixture.id).sort()
-        expect(ids, "The smoke fixture must remain part of the comparison").toEqual(expect.arrayContaining([
+        if (!prefixes) expect(ids, "The smoke fixture must remain part of the comparison").toEqual(expect.arrayContaining([
           "sapui5-button-default", "sapui5-button-emphasized",
         ]))
         expect(referenceCases.map((fixture) => fixture.id).sort(), "Fixture definitions must agree").toEqual(ids)

@@ -54,6 +54,11 @@ test.describe("Toolbar keyboard and ARIA", () => {
     await expect(filter).toBeFocused() // caret moved to the start
     await page.keyboard.press("End") // Home/End always stay with the field
     await expect(filter).toBeFocused()
+    // Chromium on Linux/Windows moves the caret with End/Home; on macOS they leave it in place.
+    // End then Home ends at the start on every platform, so the arrow walk below is the same.
+    await page.keyboard.press("Home")
+    await expect(filter).toBeFocused()
+    await expect.poll(() => filter.evaluate((el: HTMLInputElement) => el.selectionStart)).toBe(0)
     await page.keyboard.press("ArrowRight")
     await page.keyboard.press("ArrowRight")
     await expect(filter).toBeFocused()

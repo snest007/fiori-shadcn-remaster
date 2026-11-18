@@ -66,7 +66,7 @@ test("skill generation converges, removes stale files and parses compound demos 
     for (const folder of ["registry/items", "registry/block-items", "registry/ui", "registry/blocks", "registry/lib", "docs/src/demos", "scripts/skill"]) {
       cpSync(join(root, folder), join(temp, folder), { recursive: true })
     }
-    cpSync(join(root, "skills/shadcn-fiori/evals"), join(temp, "skills/shadcn-fiori/evals"), { recursive: true })
+    cpSync(join(root, "skills/petalo/evals"), join(temp, "skills/petalo/evals"), { recursive: true })
     expect(run(skillBuilder, temp).status).toBe(0)
     // Compare the generated baseline with committed outputs, including filenames, before staging a
     // temporary Git index. This tests source/output drift as well as repeated-run determinism.
@@ -75,19 +75,19 @@ test("skill generation converges, removes stale files and parses compound demos 
         const path = join(entry.parentPath, entry.name)
         return [path.slice(folder.length + 1), readFileSync(path, "utf8")]
       }))
-    expect(tree(join(temp, "skills/shadcn-fiori"))).toEqual(tree(join(root, "skills/shadcn-fiori")))
+    expect(tree(join(temp, "skills/petalo"))).toEqual(tree(join(root, "skills/petalo")))
     expect(spawnSync("git", ["init", "--quiet"], { cwd: temp }).status).toBe(0)
     expect(spawnSync("git", ["add", "skills/"], { cwd: temp }).status).toBe(0)
-    write(temp, "skills/shadcn-fiori/references/stale.md", "obsolete\n")
-    write(temp, "skills/shadcn-fiori/old-category/obsolete.md", "obsolete\n")
+    write(temp, "skills/petalo/references/stale.md", "obsolete\n")
+    write(temp, "skills/petalo/old-category/obsolete.md", "obsolete\n")
     for (let pass = 0; pass < 2; pass++) {
       expect(run(skillBuilder, temp).status).toBe(0)
       const diff = spawnSync("git", ["diff", "--exit-code", "skills/"], { cwd: temp, encoding: "utf8" })
       expect(diff.stdout).toBe("")
       expect(diff.status).toBe(0)
-      expect(tree(join(temp, "skills/shadcn-fiori"))).toEqual(tree(join(root, "skills/shadcn-fiori")))
+      expect(tree(join(temp, "skills/petalo"))).toEqual(tree(join(root, "skills/petalo")))
     }
-    const data = readFileSync(join(temp, "skills/shadcn-fiori/references/data.md"), "utf8")
+    const data = readFileSync(join(temp, "skills/petalo/references/data.md"), "utf8")
     expect(data).toContain("## table")
     expect(data).toContain("## data-table")
     expect(data).toContain("`createDataTableColumnHelper`")
@@ -98,7 +98,7 @@ test("skill generation converges, removes stale files and parses compound demos 
     write(temp, "registry/items/usage-probe.json", JSON.stringify({ title: "Probe" }))
     write(temp, "registry/ui/usage-probe.tsx", 'const Probe = () => null; type ProbeProps = {}; export { Probe as UsageProbe, type ProbeProps }; export function useUsageProbe() {}; export function useDocumentedProbe() {}; export function documentedProbe() {}; export const ProbeContext = {}; export const internalProbe = 0\n')
     expect(run(skillBuilder, temp).status).toBe(0)
-    const updated = readFileSync(join(temp, "skills/shadcn-fiori/references/data.md"), "utf8")
+    const updated = readFileSync(join(temp, "skills/petalo/references/data.md"), "utf8")
     expect(updated).toContain("## usage-probe")
     expect(updated).toContain("Main exports: `UsageProbe`, `documentedProbe`, `useDocumentedProbe`.")
     expect(updated).not.toContain("`useUsageProbe`")
@@ -140,19 +140,19 @@ test("usage validation rejects invalid alternatives, counts, layouts and require
     }
     write(temp, "registry/items/table.json", JSON.stringify({ title: "Table", usage }))
     for (const [layout, dependencies, message] of [
-      [["UnknownControl"], ["@fiori/table"], 'unknown layout export "UnknownControl"'],
-      [["Select"], ["@fiori/table"], 'layout export "Select" needs a direct registryDependency'],
-      [["Icon"], ["@fiori/table"], 'layout export "Icon" needs a direct registryDependency'],
-      [["IconProps"], ["@fiori/icons"], 'unknown layout export "IconProps"'],
+      [["UnknownControl"], ["@petalo/table"], 'unknown layout export "UnknownControl"'],
+      [["Select"], ["@petalo/table"], 'layout export "Select" needs a direct registryDependency'],
+      [["Icon"], ["@petalo/table"], 'layout export "Icon" needs a direct registryDependency'],
+      [["IconProps"], ["@petalo/icons"], 'unknown layout export "IconProps"'],
     ] as const) {
       write(temp, "registry/block-items/report.json", JSON.stringify({ title: "Report", registryDependencies: dependencies, usage: { ...usage, layout } }))
       const result = run(builder, temp)
       expect(result.status).not.toBe(0)
       expect(result.stderr).toContain(message)
     }
-    write(temp, "registry/block-items/report.json", JSON.stringify({ title: "Report", registryDependencies: ["@fiori/icons"], usage: { ...usage, layout: ["Icon", "CustomIcon"] } }))
+    write(temp, "registry/block-items/report.json", JSON.stringify({ title: "Report", registryDependencies: ["@petalo/icons"], usage: { ...usage, layout: ["Icon", "CustomIcon"] } }))
     expect(run(builder, temp).status).toBe(0) // parsed aliases belong to the direct icons library
-    write(temp, "registry/block-items/report.json", JSON.stringify({ title: "Report", registryDependencies: ["@fiori/table"], usage: { ...usage, layout: ["Table"] } }))
+    write(temp, "registry/block-items/report.json", JSON.stringify({ title: "Report", registryDependencies: ["@petalo/table"], usage: { ...usage, layout: ["Table"] } }))
     expect(run(builder, temp).status).toBe(0)
     const required = run(builder, temp, ["--require-usage"])
     expect(required.status).not.toBe(0)
@@ -183,7 +183,7 @@ test("usage layouts accept actual block exports only through a direct block depe
     }
     write(temp, "registry/ui/icon.tsx", readFileSync(join(root, "registry/ui/icon.tsx"), "utf8"))
     write(temp, "registry/block-items/app-shell.json", JSON.stringify({ title: "App Shell" }))
-    for (const dependencies of [["@fiori/app-shell"], []]) {
+    for (const dependencies of [["@petalo/app-shell"], []]) {
       write(temp, "registry/block-items/launchpad.json", JSON.stringify({ title: "Launchpad", registryDependencies: dependencies, usage }))
       for (const script of [builder, skillBuilder]) {
         const result = run(script, temp)
@@ -203,9 +203,9 @@ test("usage layouts accept actual block exports only through a direct block depe
 test("recorded output gate rejects erased re-exports and retains value and mixed exports", async () => {
   const { validateOutputs } = await import(join(root, "scripts/eval-skill-build.mjs"))
   const ts = await import("typescript")
-  const cases = readJson(join(root, "skills/shadcn-fiori/evals/evals.json")).evals
+  const cases = readJson(join(root, "skills/petalo/evals/evals.json")).evals
   const temp = mkdtempSync(join(tmpdir(), "fiori-output-exports-"))
-  const source = join(root, "skills/shadcn-fiori/evals/outputs")
+  const source = join(root, "skills/petalo/evals/outputs")
   const original = readFileSync(join(source, "case-01.tsx"), "utf8")
   const page = 'export default function Page() { return null }\n'
   const erased = [

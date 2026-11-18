@@ -1,4 +1,4 @@
-# P2 — Accessibility and localization parity: value pickers, tokens and dates
+# P2 — Accessibility and localization parity: value pickers, tokens and time
 
 **Goal:** shrink this group's share of the two ratchet baselines to zero: every `tests/a11y-tree-baseline.json`
 entry with `owner: "P2"`, every `tests/a11y-audit-baseline.json` gap/unverified count for these components, and
@@ -8,7 +8,7 @@ run the full tree matrix).
 
 ## Components
 
-`combobox`, `multi-combobox`, `multi-input`, `token`, `tokenizer`, `file-uploader`, `color-palette`, `color-palette-popover`, `color-picker`, `calendar`, `date-picker`, `date-range-picker`, `date-time-picker`, `time-picker`, `picker-field`.
+`combobox`, `multi-combobox`, `multi-input`, `token`, `tokenizer`, `file-uploader`, `color-palette`, `color-palette-popover`, `color-picker`, `time-picker`, `picker-field`. (`calendar` and the three date pickers moved to **P2a** on 2026-11-17.)
 
 ## How
 
