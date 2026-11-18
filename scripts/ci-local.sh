@@ -13,7 +13,7 @@ docker run --rm --init --ipc=host \
   -e CI=1 -e PORT="${PORT:-4310}" -e SAPUI5_PORT="${SAPUI5_PORT:-4311}" \
   mcr.microsoft.com/playwright:v1.64.1-noble bash -c '
     set -euo pipefail
-    tar -C /source --exclude=node_modules --exclude=.git --exclude=.worktrees --exclude=.claude --exclude=test-results --exclude=dist --exclude=storybook-static -cf - . | tar -C /work -xf -
+    tar -C /source --exclude=node_modules --exclude=.git --exclude=.worktrees --exclude=.claude --exclude=test-results --exclude=dist --exclude=storybook-static --exclude=registry.json --exclude=public/r -cf - . | tar -C /work -xf -
     # The Playwright image includes browsers, not the repository-required Node 24.
     curl -fsSL https://nodejs.org/dist/latest-v24.x/SHASUMS256.txt -o /tmp/node-shasums
     arch="$(uname -m)"; case "$arch" in x86_64) arch=x64;; aarch64) arch=arm64;; esac
@@ -24,6 +24,7 @@ docker run --rm --init --ipc=host \
     npm install --global pnpm@10.26.2 > /results/setup.log 2>&1
     pnpm install --frozen-lockfile >> /results/setup.log 2>&1
     pnpm generate >> /results/setup.log 2>&1
+    pnpm registry:build >> /results/setup.log 2>&1
     pnpm build >> /results/setup.log 2>&1
     set +e
     pnpm test:summary "$@" --retries=0

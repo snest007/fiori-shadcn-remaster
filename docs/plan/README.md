@@ -82,7 +82,7 @@ F1 and F2 can run in parallel after F0.
 - [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/petalo, Pages; push only, no gh; run in the main checkout, not via RUN.md)
 - [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (fourth attempt approved 2026-11-17: the five review findings + initial baselines, rule 11 exempt — `returns/E4.md` top section; retained on `codex/E4` — see the card's 2026-11-17 addendum and `returns/E4.md`. After S0; before waves P and H)
 - [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt approved 2026-11-17: two Select/SegmentedButton findings + ratchet + acceptance, rule 11 exempt — `returns/E5.md` top section; retained on `codex/E5` — see the card's 2026-11-17 addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
-- [ ] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/E6-verification-budget.md) — M (owner's decision 2026-11-18; **after PR snest007/petalo#3 is merged**; run before further cards so they inherit the budget; max 2 CI rounds, then stop and report)
+- [ ] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/E6-verification-budget.md) — M (owner's decision 2026-11-18; **after PR snest007/petalo#3 is merged**; run before further cards so they inherit the budget; max 2 CI rounds, then stop and report) — verification returned: [E6 note](returns/E6.md)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 

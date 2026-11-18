@@ -65,7 +65,7 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-chromium-${{ steps.playwright-version.outputs.version }}
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm generate
+      - run: pnpm generate && pnpm registry:build
       - name: Non-visual shard ${{ matrix.shard }}/4
         shell: bash
         run: |

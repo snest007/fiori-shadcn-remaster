@@ -17,7 +17,12 @@ for (const name of savedLogs) cpSync(join("test-results", name), join(temporary,
 const log = createWriteStream(fullLog)
 const started = Date.now()
 const child = spawn("pnpm", ["exec", "playwright", "test", ...process.argv.slice(2), "--reporter=list,json"], {
-  env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_FILE: reportFile },
+  env: {
+    ...process.env,
+    PORT: process.env.PORT ?? "4310",
+    SAPUI5_PORT: process.env.SAPUI5_PORT ?? "4311",
+    PLAYWRIGHT_JSON_OUTPUT_FILE: reportFile,
+  },
   stdio: ["inherit", "pipe", "pipe"],
 })
 child.stdout.pipe(log, { end: false })

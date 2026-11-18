@@ -28,7 +28,12 @@ const interactionSource = readFileSync("tests/visual-interaction.spec.ts", "utf8
 for (const name of names) {
   const spec = `tests/${name}.spec.ts`
   if (existsSync(spec)) specs.add(spec)
-  else console.log(`${name} has no own spec; running only its visual fixtures.`)
+  else {
+    console.log(`${name} has no own spec; running only its visual fixtures.`)
+    // Absence of a behaviour spec must never request a full-suite fallback.
+    // The visual guard reports a component with no comparable fixtures clearly.
+    visualSpecs.add("tests/visual.spec.ts")
+  }
   if (existsSync(`docs/src/fixtures/${name}.tsx`) && existsSync(`docs/src/fixtures/${name}.ui5.ts`)) visualSpecs.add("tests/visual.spec.ts")
   if (existsSync(`docs/src/fixtures-sapui5/${name}.tsx`)) visualSpecs.add("tests/visual-sapui5.spec.ts")
   if (existsSync(`docs/src/fixtures-phone/${name}.tsx`)) visualSpecs.add("tests/visual-phone.spec.ts")
