@@ -28,7 +28,14 @@ export async function axeViolations(page: Page, theme: string, include?: string)
 export async function expectNamedControls(page: Page) {
   await waitForStoryFinished(page)
   for (const role of ["button", "link", "textbox", "searchbox", "combobox", "checkbox", "radio", "spinbutton", "slider", "switch", "tab", "option", "menuitem", "menuitemcheckbox", "menuitemradio", "treeitem", "gridcell", "columnheader", "rowheader", "progressbar", "listbox", "dialog", "alertdialog"] as const) {
-    for (const control of await page.getByRole(role).all()) await expect(control).toHaveAccessibleName(/\S/)
+    for (const control of await page.getByRole(role).all()) {
+      // A blank data cell is valid ARIA: it has nothing to name. UI5 renders these too, e.g. VariantManagement's
+      // manage table leaves the Standard row's Delete cell empty (OpenUI5 ColumnListItemRenderer.js gives the blank
+      // cell role=gridcell without a name). Only exempt a cell that is completely empty: no element children and
+      // no text. Any content, including an unnamed icon or button inside it, is still checked.
+      if (role === "gridcell" && await control.evaluate((node) => node.childElementCount === 0 && !node.textContent?.trim())) continue
+      await expect(control).toHaveAccessibleName(/\S/)
+    }
   }
   for (const row of await page.getByRole("row").all()) {
     if (await row.evaluate((node) => node.hasAttribute("tabindex") || node.hasAttribute("data-table-nav-row"))) await expect(row).toHaveAccessibleName(/\S/)
