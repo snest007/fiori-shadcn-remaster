@@ -10,6 +10,26 @@ run the full tree matrix).
 
 `table`, `data-table`, `list`, `tree`, `timeline`, `upload-collection`, `object-status`, `object-number`, `object-identifier` — includes the custom-content announcements (`CustomAnnouncement.js`, `ListItemCustom.js:97–128`, `TableCustomAnnouncement.js:38–85`) E5 deferred.
 
+## Handoff from E4 fourth attempt — 2026-11-18
+
+Both fresh Storybook acceptance rounds reproduce an additional List axe failure outside E4's five approved repairs:
+`tests-storybook/html-context.spec.ts:41`, “actual ordinary decorator gives List and Tree native headers/footers
+sectioning context”. The raw `listbox-sap_horizon-axe-raw.json` attachment reports `nested-interactive` on all three
+ListItemStandard options (Apples, Bananas, Cherries). Each `li[role=option]` contains a `span[role=checkbox]`
+selection control with `tabindex=-1`; axe explicitly reports that a negative tabindex does not prevent assistive
+technology from focusing nested controls. The preceding list-header-footer, list-empty and tree-header-footer
+attachments contain no violations. Each run stops at this Morning compact RTL listbox case, so this evidence
+does not establish the result of later themes.
+
+Owning sources: `registry/ui/list.tsx`; the source-generated comparison case in
+`tests-storybook/html-context-fixture.ts` composes `accessibleRole="listbox"` with `selectionMode="multiple"`.
+P3 must read installed UI5 List/ListItemStandard templates and selection semantics before choosing a repair that
+preserves component-owned roles, selection state, keyboard behavior and announcements. Keep the raw strict axe
+assertion. E4 did not change List, the fixture, the axe rules or any known-issue exclusions in its fourth attempt.
+
+Evidence: `.integration/E4-evidence/fourth-20261118/storybook-1/` and `storybook-2/` (full JSON with raw axe attachments and logs).
+E4's fourth-attempt scope explicitly sends new findings to their P owner; this issue belongs to **P3**.
+
 ## How
 
 1. Start from the data, not from memory: `node scripts/a11y-baseline.mjs --list P3` (or filter the JSON by
