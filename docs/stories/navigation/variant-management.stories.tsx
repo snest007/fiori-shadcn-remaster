@@ -5,8 +5,15 @@ import { useArgs, useRef } from "storybook/preview-api"
 import { fn, expect, userEvent, within } from "storybook/test"
 import { VariantManagement, type VariantManagementProps, type VariantItem } from "@/components/ui/variant-management"
 import { Button } from "@/components/ui/button"
+import { Title, type TitleLevel } from "@/components/ui/title"
 import { docsLink, fioriMeta } from "../_lib/meta"
 const views: VariantItem[] = [{ key: "standard", title: "Standard", rename: false, remove: false, author: "SAP" }, { key: "personal", title: "My view", changeable: true, rename: true, remove: true, author: "Alex" }, { key: "public", title: "Shared view", changeable: true, rename: true, remove: true, author: "Morgan", sharing: "Public" }, { key: "other", title: "Other view", favorite: false, changeable: true, remove: true, author: "Alex" }]
+const viewHeadingContext: { level: TitleLevel; text: string }[] = [
+  { level: "H2", text: "Purchasing" },
+  { level: "H3", text: "Purchase orders" },
+  { level: "H4", text: "View settings" },
+  { level: "H5", text: "Saved views" },
+]
 const base = fioriMeta({ name: "variant-management", component: VariantManagement })
 const meta = {
   ...base,
@@ -25,7 +32,11 @@ const meta = {
       current.current = { ...current.current, ...patch }
       updateArgs(patch)
     }
-    return <VariantManagement key={args.defaultOpen} {...args}
+    // OpenUI5 sap/m/VariantManagement.js#level and UI5 TitleTemplate.js#title
+    // preserve the requested semantic heading. The example supplies its real
+    // application ancestors when demonstrating a deeper level; Auto/H2 stays unchanged.
+    const headingLevel = args.level && args.level !== "Auto" ? Number(args.level.slice(1)) : 2
+    return <>{viewHeadingContext.filter(({ level }) => Number(level.slice(1)) < headingLevel).map(({ level, text }) => <Title key={level} level={level} size={level}>{text}</Title>)}<VariantManagement key={args.defaultOpen} {...args}
       onSelect={(event) => { current.current.onSelect?.(event); commit({ selectedKey: event.key, modified: false }) }}
       onSave={(event) => {
         const state = current.current
@@ -55,7 +66,7 @@ const meta = {
         // keeps its current draft flag through unrelated Manage changes.
         const modified = selectedWasDeleted ? false : state.modified
         commit({ items, defaultKey, selectedKey: selectedWasDeleted ? defaultKey : state.selectedKey, modified })
-      }} />
+      }} /></>
   },
 } satisfies Meta<typeof VariantManagement>
 export default meta

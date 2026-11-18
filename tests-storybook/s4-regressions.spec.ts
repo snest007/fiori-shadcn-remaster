@@ -1,11 +1,29 @@
 import { expect, test, type Page } from "@playwright/test"
-import { waitForStoryFinished } from "./accessibility"
+import { axeViolations, waitForStoryFinished } from "./accessibility"
+import { attachAudit, classifyViolations } from "./known-issues"
 
 // S4: the owner-approved third attempt requires a persistent regression of the
 // actual controlled story callbacks, rather than a duplicated controller model.
 const story = "navigation-variant-management--playground"
 const canvas = (page: Page) => page.locator(`[data-fiori-story="${story}"]`)
 const readArgs = async (page: Page) => JSON.parse(await canvas(page).getAttribute("data-fiori-args") ?? "{}")
+
+test("S4 heading-level Controls keep the saved-view title and its application hierarchy accessible", async ({ page }, testInfo) => {
+  await page.goto("/iframe.html?viewMode=docs&id=navigation-variant-management--docs")
+  const primary = page.locator("[data-fiori-primary]")
+  const control = page.locator("[data-fiori-controls]").getByRole("combobox", { name: "level", exact: true })
+  await expect(primary.locator(".fiori-vm-title")).toHaveRole("heading")
+  for (const level of ["H1", "H2", "H3", "H4", "H5", "H6", "Auto"]) {
+    await control.selectOption(level)
+    const expectedLevel = level === "Auto" ? 2 : Number(level.slice(1))
+    await expect(primary.getByRole("heading", { name: "My view", exact: true, level: expectedLevel })).toBeVisible()
+    const audit = await classifyViolations(page, await axeViolations(page, "sap_horizon", "[data-fiori-primary]"), {
+      story, theme: "sap_horizon", primary: true, control: { prop: "level", choice: level },
+    })
+    await attachAudit(testInfo, "saved-view-heading-" + level, audit)
+    expect(audit.unexpected).toEqual([])
+  }
+})
 
 for (const newDefault of [true, false]) {
   test(`S4 deleting the modified Personal view loads the clean ${newDefault ? "new" : "current"} Public default`, async ({ page }, testInfo) => {
