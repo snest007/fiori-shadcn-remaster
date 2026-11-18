@@ -155,6 +155,16 @@ These hard limits apply to every card and every agent (Codex and Claude).
 5. **Long runs go in the background** with a single completion notification. Don't check on them in between.
 6. **Time box:** if a task has used about 2 h of wall-clock time, or its own stated round limit, stop and report,
    even if the round limits above aren't reached yet.
+7. **Browsers stay out of the owner's way** (owner's decision, 2026-11-18). The owner works on the same machine;
+   a browser window that appears in front, takes focus or stays open interrupts their other tasks.
+   - Playwright tests, probes and evidence scripts run **headless** (the config default). Never pass `--headed`,
+     `--ui`, `--debug`, `headless: false`, `page.pause()` or `slowMo`, and don't launch "Chrome for Testing" with a
+     window. Screenshots, traces and `error-context.md` give the same evidence without one.
+   - Manual review of a page (Storybook Docs, the docs site) uses a browser tool that works in the background: the
+     agent's built-in browser, or the Chrome extension inside its own tab group. Not a new app window, not
+     `open <url>`.
+   - Close every browser, context and preview server you started before you end the run.
+   - If a task really needs a visible window, say why and ask the owner first.
 
 ## Definition of done (every card)
 
