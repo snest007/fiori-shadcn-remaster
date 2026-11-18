@@ -93,7 +93,7 @@ function StepInput({
 }: StepInputProps) {
   const valueStateTexts = useValueStateTexts()
 
-  const { t, locale, localized, hasProvider } = useFioriLocale(localeProp)
+  const { locale, localized, hasProvider } = useFioriLocale(localeProp)
   const resolvedTexts = useFioriTexts(defaultStepInputTexts, defaultStepInputTextsKeys, texts, localeProp)
   const decrementLabel = decrementLabelProp ?? resolvedTexts.decrement
   const incrementLabel = incrementLabelProp ?? resolvedTexts.increment

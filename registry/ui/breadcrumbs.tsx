@@ -3,7 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
-import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 import { slimArrowDown } from "@/lib/fiori-icons"

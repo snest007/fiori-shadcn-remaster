@@ -6,7 +6,7 @@ import * as React from "react"
 import { normalizeLocaleDigits } from "@/lib/fiori-numbers"
 import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 
-import { dayKey, getWeekInfo, modifyDateBy, parseDate, resolvePattern, startOfDay } from "@/lib/fiori-dates"
+import { dayKey, getWeekInfo, modifyDateBy, resolvePattern, startOfDay } from "@/lib/fiori-dates"
 import { appointment2 } from "@/lib/fiori-icons"
 import { useIsPhone } from "@/lib/use-is-phone"
 import { Button } from "@/components/ui/button"

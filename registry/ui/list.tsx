@@ -360,7 +360,7 @@ function List({
   onDrop,
   ...props
 }: ListProps) {
-  const { t, hasProvider, localized } = useFioriLocale(localeProp)
+  const { hasProvider, localized } = useFioriLocale(localeProp)
   const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp, localeProp)
   const growingButtonText = growingButtonTextProp ?? texts.growing
   const selectedText = selectedTextProp ?? texts.selected

@@ -6,7 +6,7 @@ import * as React from "react"
 import { normalizeLocaleDigits } from "@/lib/fiori-numbers"
 import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 
-import { dayKey, getWeekInfo, modifyDateBy, parseDate, patternFields, resolvePattern, startOfDay } from "@/lib/fiori-dates"
+import { dayKey, getWeekInfo, modifyDateBy, patternFields, resolvePattern, startOfDay } from "@/lib/fiori-dates"
 import { useIsPhone } from "@/lib/use-is-phone"
 import { SegmentedButton, SegmentedButtonItem } from "@/components/ui/segmented-button"
 import { cn } from "@/lib/utils"
@@ -304,8 +304,6 @@ function DateTimeSelection({
 }: DateTimeSelectionProps) {
   const { t, locale: resolvedLocale, localized } = useFioriLocale(localeProp)
   const locale = localized ? resolvedLocale : "en-US"
-  // UI5 DateFormat formats Gregorian fields with Latin digits; translations retain the original locale.
-  const dateLocale = new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()
   const dateLabel = dateLabelProp ?? t("DATETIME_PICKER_DATE_BUTTON", "Date") // UI5 DATETIME_PICKER_DATE_BUTTON
   const timeLabel = timeLabelProp ?? t("DATETIME_PICKER_TIME_BUTTON", "Time") // UI5 DATETIME_PICKER_TIME_BUTTON
 

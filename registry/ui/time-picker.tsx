@@ -7,7 +7,7 @@ import { normalizeLocaleDigits } from "@/lib/fiori-numbers"
 import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 import { useIsPhone } from "@/lib/use-is-phone"
 
-import { getDayPeriods, parseDate, patternFields, resolvePattern } from "@/lib/fiori-dates"
+import { getDayPeriods, patternFields, resolvePattern } from "@/lib/fiori-dates"
 import { timeEntryRequest } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -241,8 +241,6 @@ function TimeSelectionClocks({
 }: TimeSelectionClocksProps) {
   const { locale: resolvedLocale, localized } = useFioriLocale(localeProp)
   const locale = localized ? resolvedLocale : "en-US"
-  // UI5 DateFormat formats Gregorian fields with Latin digits; translations retain the original locale.
-  const dateLocale = new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()
 
   const phone = useIsPhone()
   const labels = useFioriTexts(defaultTimeLabels, defaultTimeLabelsKeys, labelsProp, localeProp)

@@ -3,7 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
-import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import { decline } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -53,7 +53,6 @@ function Token({
   onKeyDown,
   ...props
 }: TokenProps) {
-  const { t } = useFioriLocale()
   const resolvedTexts = useFioriTexts(defaultTokenTexts, defaultTokenTextsKeys, texts)
   const deleteLabel = deleteLabelProp ?? resolvedTexts.deleteLabel
   const [uncontrolled, setUncontrolled] = React.useState(defaultSelected)

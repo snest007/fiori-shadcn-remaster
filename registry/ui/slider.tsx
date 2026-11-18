@@ -286,7 +286,7 @@ function Slider({
   className,
   ...props
 }: SliderProps) {
-  const { t, locale, localized } = useFioriLocale(localeProp)
+  const { locale, localized } = useFioriLocale(localeProp)
   const resolvedTexts = useFioriTexts(defaultSliderTexts, defaultSliderTextsKeys, texts, localeProp)
   const tooltipInputLabel = tooltipInputLabelProp ?? resolvedTexts.tooltipInputLabel
   const tooltipInputDescription = tooltipInputDescriptionProp ?? resolvedTexts.tooltipInputDescription
@@ -431,7 +431,7 @@ function RangeSlider({
   className,
   ...props
 }: RangeSliderProps) {
-  const { t, locale, localized } = useFioriLocale(localeProp)
+  const { locale, localized } = useFioriLocale(localeProp)
   const resolvedTexts = useFioriTexts(defaultSliderTexts, defaultSliderTextsKeys, texts, localeProp)
   const tooltipInputLabel = tooltipInputLabelProp ?? resolvedTexts.tooltipInputLabel
   const tooltipInputDescription = tooltipInputDescriptionProp ?? resolvedTexts.tooltipInputDescription
