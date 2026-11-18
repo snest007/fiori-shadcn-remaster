@@ -221,7 +221,7 @@ async function buildLocalizedLandmarkFixture(worker: number) {
   // stories are not registered yet, so bundle the actual preview/composeStory and
   // owning Page/AppShell/List components without substituting their markup.
   const root = fileURLToPath(new URL("../", import.meta.url))
-  const source = resolve(root, `.integration/E5-evidence/third-20261117/locale-landmarks-${worker}`)
+  const source = resolve(root, `.integration/E5-evidence/fourth-20261118/locale-landmarks-${worker}`)
   const output = resolve(root, `storybook-static/e5-locale-landmarks-${worker}`)
   await mkdir(source, { recursive: true })
   await writeFile(resolve(source, "index.html"), '<!doctype html><html lang="en"><head><title>Localized Storybook landmarks</title></head><body><div id="storybook-root"></div><script type="module" src="virtual:e5-locale-landmarks"></script></body></html>')

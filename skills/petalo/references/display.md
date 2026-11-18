@@ -197,7 +197,7 @@ Usage guidance has not been authored for this item yet; inspect its installed AP
 Main exports: `FioriLocaleProvider`, `collatorIncludes`, `normalizeLocaleDigits`, `parseNumber`.
 
 ```bash
-npx shadcn add @fiori/locale
+npx shadcn add @petalo/locale
 ```
 
 ## media-gallery

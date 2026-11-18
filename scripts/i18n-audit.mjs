@@ -6,7 +6,7 @@ import ts from 'typescript'
 const packages = ['webcomponents', 'webcomponents-fiori']
 const defaults = {}, sourceHashes = {}, definitionSources = {}, componentSources = {}
 const defaultTables = {}, definitionTables = {}, componentDomains = {}
-export const auditEvidencePath = '.integration/E5-evidence/third-20261117/audit.json'
+export const auditEvidencePath = '.integration/E5-evidence/fourth-20261118/audit.json'
 const referenceCache = new Map()
 for (const pkg of packages) {
   const domain = `@ui5/${pkg}`

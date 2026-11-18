@@ -15,7 +15,7 @@ import { Card, CardContent } from "../registry/ui/card"
 const de = JSON.parse(readFileSync("registry/i18n/de.json", "utf8"))
 const locales = ["de-DE", "zh-CN", "ar-EG"]
 const components = ["calendar", "date-picker", "date-time-picker", "time-picker", "step-input", "slider"]
-const e5Evidence = ".integration/E5-evidence/third-20261117"
+const e5Evidence = ".integration/E5-evidence/fourth-20261118"
 
 interface AuditGroup { component: string; owner: string; rows: { key: string; status: string; english: string; englishSource: string; triage?: string }[] }
 type AuditBaseline = Record<string, { owner: string; gapCount: number; okKeys: string[] }>
@@ -202,6 +202,72 @@ test("Tag composes translated hidden descriptions and preserves complete legacy 
   await page.goto("/?locale=de-DE#/i18n")
   const descriptions = page.locator('#i18n-tag [data-slot="tag"] > .sr-only')
   await expect(descriptions).toHaveText([`${de.TAG_DESCRIPTION_TAG} ${de.TAG_ERROR}`, de.TAG_DESCRIPTION_TAG, "Component marker Component error", "Legacy complete description"])
+})
+
+test("closed Select Home and End change selection silently like UI5", async ({ browser }) => {
+  for (const native of [false, true]) {
+    const page = await browser.newPage()
+    try {
+      await page.goto(native ? "/ui5.html?only=select-grouped" : "/?fixtures&only=select-grouped")
+      await page.waitForSelector("html[data-ready=true]")
+      const cell = page.locator('[data-fixture="select-grouped"]')
+      const trigger = cell.getByRole("combobox")
+      await trigger.focus()
+      await expect(trigger).toBeFocused()
+      const message = page.locator(native ? ".ui5-invisiblemessage-polite" : '[data-fixture="select-grouped"] [data-slot="select-announcement"]')
+      for (const [key, value] of [["End", "Gamma"], ["Home", "Standalone"]]) {
+        await trigger.press(key)
+        await expect(trigger).toHaveText(value)
+        await expect(message).toHaveText("")
+      }
+      await trigger.press("ArrowDown")
+      await expect(trigger).toHaveText("Alpha")
+      await expect(message).toHaveText(/Alpha/)
+      await trigger.press("End")
+      await expect(trigger).toHaveText("Gamma")
+      await expect(message).toHaveText(/Alpha/) // silent keys preserve an earlier live message
+    } finally { await page.close() }
+  }
+})
+
+for (const component of ["select", "segmented-button"]) test(`${component} live announcement follows UI5's guarded 3000 ms cleanup`, async ({ browser }) => {
+  for (const native of [false, true]) {
+    const page = await browser.newPage()
+    try {
+      const id = component === "select" ? "select-grouped" : component
+      await page.goto(native ? `/ui5.html?only=${id}` : `/?fixtures&only=${id}`)
+      await page.waitForSelector("html[data-ready=true]")
+      const cell = page.locator(`[data-fixture="${id}"]`)
+      const frozen = new Date()
+      await page.clock.install({ time: frozen })
+      await page.clock.pauseAt(frozen)
+      const message = page.locator(native ? `.ui5-invisiblemessage-${component === "select" ? "polite" : "assertive"}` : `[data-fixture="${id}"] [data-slot="${component}-announcement"]`)
+      const activate = async () => {
+        if (component === "select") {
+          const trigger = cell.getByRole("combobox")
+          await trigger.focus()
+          await trigger.press("ArrowDown")
+        } else {
+          const option = cell.getByRole("option").last()
+          await option.focus()
+          await option.press("Enter")
+        }
+      }
+      await activate()
+      await expect(message).toHaveText(component === "select" ? /Alpha/ : "Selected")
+      await page.clock.runFor(2000)
+      await activate()
+      await expect(message).toHaveText(component === "select" ? /Beta/ : "Selected")
+      await page.clock.runFor(1000)
+      // InvisibleMessage's earlier timer clears identical repeated text but leaves
+      // a different, newer Select announcement until its own 3000 ms deadline.
+      await expect(message).toHaveText(component === "select" ? /Beta/ : "")
+      await page.clock.runFor(1999)
+      await expect(message).toHaveText(component === "select" ? /Beta/ : "")
+      await page.clock.runFor(1)
+      await expect(message).toHaveText("")
+    } finally { await page.close() }
+  }
 })
 
 for (const locale of ["de-DE", "ar-EG"]) test(`SegmentedButton announces selection assertively and emits nothing on deselection (${locale})`, async ({ page }) => {

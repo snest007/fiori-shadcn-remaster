@@ -1,4 +1,5 @@
 import { expect, test, type FrameLocator, type Page } from "@playwright/test"
+import { readFileSync } from "node:fs"
 
 // Docs pages render `inline: false` stories in a lazy child iframe whose URL carries no
 // globals (addon-docs getStoryHref). Before the fix the child booted in Morning Horizon and
@@ -53,4 +54,25 @@ test("a standalone story keeps its own URL globals", async ({ page }) => {
   await page.goto("/iframe.html?viewMode=story&id=forms-select--open&globals=theme:sap_horizon_hcw")
   await expect(page.locator("[data-fiori-story]")).toHaveAttribute("data-theme", "sap_horizon_hcw")
   await expect(page.locator("html")).toHaveAttribute("data-theme", "sap_horizon_hcw")
+})
+
+test("Docs Open child inherits the toolbar locale and retains German text when theme changes", async ({ page }) => {
+  const de = JSON.parse(readFileSync(new URL("../registry/i18n/de.json", import.meta.url), "utf8"))
+  await page.goto(DOCS)
+  const docs = page.frameLocator("#storybook-preview-iframe")
+  await expect(docs.locator(".sbdocs-content").first()).toBeVisible()
+  await page.getByRole("button", { name: /^Locale and SAP translations / }).click()
+  await page.getByText("Deutsch", { exact: true }).click()
+  await expect(page.getByRole("button", { name: /^Locale and SAP translations / })).toHaveAccessibleName("Locale and SAP translations Deutsch")
+  const child = await mountedChild(docs, "sap_horizon")
+  // The open popup hides its trigger from the tree; inspect the owned host's text
+  // attributes while the actual Open story stays open.
+  await expect(child.locator('[data-slot="select-trigger"]')).toHaveAttribute("aria-roledescription", de.SELECT_ROLE_DESCRIPTION)
+  await expect(child.locator('[data-slot="select-trigger"]')).toHaveAccessibleDescription(de.SELECT_OPTIONS_IN_GROUPS.replace("{0}", "4").replace("{1}", "1"))
+  await expect(page).toHaveURL(/globals=[^&]*locale:de/)
+
+  await pickTheme(page, docs, "High Contrast Black", "sap_horizon_hcb")
+  const after = await mountedChild(docs, "sap_horizon_hcb")
+  await expect(after.locator('[data-slot="select-trigger"]')).toHaveAttribute("aria-roledescription", de.SELECT_ROLE_DESCRIPTION)
+  await expect(docs.locator("html")).toHaveAttribute("data-theme", "sap_horizon_hcb")
 })
