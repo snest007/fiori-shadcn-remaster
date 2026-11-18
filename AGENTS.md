@@ -27,6 +27,10 @@ pnpm registry:build                # registry.json + public/r (shadcn build)
 pnpm build                         # docs site → dist/
 PORT=4310 pnpm exec playwright test                      # full suite (builds + serves on PORT)
 PORT=4310 pnpm exec playwright test tests/<name>.spec.ts # one spec
+PORT=4310 pnpm test:summary tests/<name>.spec.ts          # compact result + full log on disk
+PORT=4310 pnpm test:changed                             # committed component changes vs main
+VISUAL_ONLY=<prefix>[,<prefix>…] PORT=4310 pnpm test:summary tests/visual.spec.ts # affected fixtures
+scripts/ci-local.sh tests/toolbar.spec.ts                # Linux CI reproduction in Docker
 PORT=4310 pnpm exec playwright test tests/visual.spec.ts # pixel diff vs UI5, 4 themes × 2 densities
 pnpm check                         # everything above, in order
 pnpm storybook                     # component stories at http://localhost:6006
@@ -130,6 +134,28 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
       warning) and an installed-consumer example that imports only the component's item entry.
     - T4 (headless) is deferred until an approved card implements it.
 
+## Verification budget
+
+These hard limits apply to every card and every agent (Codex and Claude).
+
+1. **CI rounds: at most 2 pushes per task.** If CI is still red after the second push, stop. Commit the work in
+   progress and write `docs/plan/returns/<card>.md` with the failing test names, what each round changed and why,
+   your hypotheses for what is left, and what you would try next. Then end the run. The owner decides whether a
+   third round happens. This limit does not authorize pushing when the card forbids it.
+2. **Local fix attempts: at most 2 per failing test.** Two hypotheses tried and it still fails → commit and report
+   it in the same return note, then end the run. Don't widen the search in the same run.
+3. **Inner loop = affected specs only.** Use `pnpm test:changed` while working (it reads committed changes against
+   `main...HEAD`), or `pnpm test:summary tests/<name>.spec.ts` and `VISUAL_ONLY=<prefix>[,<prefix>…]` for affected
+   visual fixtures. Run the full suite twice only at the end, for the definition of done. Shared files make
+   `test:changed` say "run the full suite" and exit non-zero; choose affected tooling checks during implementation.
+   A component without its own spec runs only its visual fixtures and prints a notice.
+4. **Compact output.** Never print a whole Playwright or CI log into the conversation. Use `pnpm test:summary`
+   or grep for summary and failing lines, at most about 50 lines. For CI, use `gh run watch` once (no polling loops),
+   then `gh run view --log-failed | grep` for the failing tests only. Full logs stay on disk.
+5. **Long runs go in the background** with a single completion notification. Don't check on them in between.
+6. **Time box:** if a task has used about 2 h of wall-clock time, or its own stated round limit, stop and report,
+   even if the round limits above aren't reached yet.
+
 ## Definition of done (every card)
 
 - `pnpm generate && pnpm typecheck && pnpm registry:build` succeed.
@@ -147,6 +173,7 @@ Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves 
   left an uncommitted draft and a stray branch there.
 - SAPUI5 fixtures share one reference page: a popup you open must not stay painted outside its own cell (hide parents
   you replace, re-pin after `_applyPosition`), and it must not close because another fixture took focus.
+- Final message states how many CI rounds and how many full-suite runs the task used.
 - Final message: what changed (files), test summary lines (copy them), anything skipped or deferred and why,
   any shared file you touched.
 

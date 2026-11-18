@@ -8,6 +8,9 @@ import { PNG } from "pngjs"
 
 const THEMES = ["sap_horizon", "sap_horizon_dark", "sap_horizon_hcb", "sap_horizon_hcw"]
 const DENSITIES = ["cozy", "compact"] as const
+const visualOnly = process.env.VISUAL_ONLY
+const prefixes = visualOnly === undefined ? undefined : visualOnly.split(",").map((prefix) => prefix.trim()).filter(Boolean)
+const matches = (id: string) => !prefixes || prefixes.some((prefix) => id.startsWith(prefix))
 
 // Case list and tolerances come from the built docs page itself (window.__fixtures), so this file
 // never needs to import the fixture modules (which reference browser-only UI5 code).
@@ -15,7 +18,18 @@ type CaseInfo = { id: string; tolerance: number }
 
 // One full-page screenshot per page, then each [data-fixture] cell is cropped out of it. Shooting
 // cells one by one costs ~100ms each, which doesn't scale to hundreds of fixtures.
-async function shoot(page: Page, url: string, ids?: string[]) {
+async function shoot(page: Page, url: string, ids?: string[]): Promise<Map<string, PNG>> {
+  // The pages already support exact `only=` ids. Loading each selected cell avoids
+  // initializing/capturing the entire UI5 catalog in the affected-fixture loop.
+  if (prefixes && !new URL(url, "http://fixtures").searchParams.has("only")) {
+    expect(ids?.length ?? 0, `VISUAL_ONLY=${visualOnly}: no fixtures matched`).toBeGreaterThan(0)
+    const selected = new Map<string, PNG>()
+    for (const id of ids!) {
+      const shots = await shoot(page, `${url}&only=${encodeURIComponent(id)}`, [id])
+      for (const [key, shot] of shots) selected.set(key, shot)
+    }
+    return selected
+  }
   await page.goto(url)
   // The UI5 reference page is ~9s of main-thread work on an idle machine (ui5-main.ts waits
   // for every fixture's own readiness); a CI runner core is slower. Same bound as
@@ -65,15 +79,28 @@ for (const { theme, density, direction } of passes) {
     test(`${theme} ${density}${direction === "rtl" ? " RTL" : ""} matches UI5`, async ({ browser }) => {
       test.setTimeout(120_000)
       const q = `?theme=${theme}&density=${density}&dir=${direction}`
+      let selectedCases: CaseInfo[] | undefined
+      if (prefixes) {
+        const discovery = await browser.newPage()
+        try {
+          await discovery.goto(`/index.html${q}&fixtures`)
+          await discovery.waitForSelector("html[data-ready=true]")
+          selectedCases = (await discovery.evaluate(() => (window as any).__fixtures) as CaseInfo[]).filter((fixture) => matches(fixture.id))
+          expect(selectedCases.length, `VISUAL_ONLY=${visualOnly}: no fixtures matched`).toBeGreaterThan(0)
+        } finally {
+          await discovery.context().close()
+        }
+      }
       // Close each page (and its context) as soon as it has been captured: the reference
       // pages keep UI5 timers and observers running, and leaving them open made every later
       // pass in this worker slower until one missed its readiness wait on CI.
       const ui5Page = await browser.newPage()
-      const ref = await shoot(ui5Page, `/ui5.html${q}`).finally(() => ui5Page.context().close())
+      const ref = await shoot(ui5Page, `/ui5.html${q}`, selectedCases?.map((fixture) => fixture.id)).finally(() => ui5Page.context().close())
+      if (prefixes) expect([...ref.keys()].sort(), "Every selected UI5 fixture must render").toEqual(selectedCases!.map((fixture) => fixture.id).sort())
       const oursPage = await browser.newPage()
       let cases: CaseInfo[] = []
       const ours = await shoot(oursPage, `/index.html${q}&fixtures`, [...ref.keys()])
-        .then(async (shots) => { cases = await oursPage.evaluate(() => (window as any).__fixtures); return shots })
+        .then(async (shots) => { cases = selectedCases ?? await oursPage.evaluate(() => (window as any).__fixtures); return shots })
         .finally(() => oursPage.context().close())
       const dir = `test-results/visual/${theme}-${density}${direction === "rtl" ? "-rtl" : ""}`
       mkdirSync(dir, { recursive: true })

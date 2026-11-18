@@ -8,7 +8,7 @@
 //   node scripts/integrate.mjs status                 list codex/* branches, worktrees, merge state
 //   node scripts/integrate.mjs scope [branch…]        files each branch changes vs. what its card allows
 //   node scripts/integrate.mjs merge [branch…]        scope check, then merge --no-ff in the given order
-//   node scripts/integrate.mjs verify [--runs=3] [--workers=<positive integer>]
+//   node scripts/integrate.mjs verify [--runs=2] [--workers=<positive integer>]
 //                                                     install, generate, typecheck, registry, N full runs, smoke install, recorded usage output build
 //   node scripts/integrate.mjs cleanup [branch…]      remove merged branches and their (clean) worktrees
 //
@@ -180,7 +180,7 @@ if (cmd === "prepare") {
     fail("verify --workers must be a positive integer, e.g. --workers=1.")
   }
   requireCleanMain()
-  const runs = Number(args.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 3)
+  const runs = Number(args.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 2)
   const killPorts = () => sh(`for p in ${PORT} ${SAPUI5_PORT} 4312 4313; do lsof -ti tcp:$p | xargs kill 2>/dev/null; done; true`, { allowFail: true })
   killPorts()
   const steps = []

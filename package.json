@@ -31,7 +31,9 @@
     "skill:eval-build": "node scripts/eval-skill-build.mjs",
     "storybook": "storybook dev -p 6006 --no-open",
     "storybook:build": "pnpm css && storybook build -o storybook-static --quiet",
-    "test:storybook": "playwright test -c playwright.storybook.config.ts"
+    "test:storybook": "playwright test -c playwright.storybook.config.ts",
+    "test:summary": "node scripts/test-summary.mjs",
+    "test:changed": "node scripts/test-changed.mjs"
   },
   "dependencies": {
     "@tanstack/react-table": "9.3.1",

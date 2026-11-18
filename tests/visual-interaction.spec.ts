@@ -12,6 +12,9 @@ const CASES = [
   "tabs-text", "list-basic", "table-interactive", "side-navigation-flat", "shell-bar-interaction",
   "menu-interaction", "card-interactive", "panel-expanded",
 ]
+const visualOnly = process.env.VISUAL_ONLY
+const prefixes = visualOnly === undefined ? undefined : visualOnly.split(",").map((prefix) => prefix.trim()).filter(Boolean)
+const selectedCases = prefixes ? CASES.filter((id) => prefixes.some((prefix) => id.startsWith(prefix))) : CASES
 type CaseInfo = { id: string; tolerance: number; interact?: { selector?: string; ui5Selector?: string } }
 type State = "focus" | "hover" | "active"
 const FOCUSABLE = 'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
@@ -72,8 +75,10 @@ async function shot(page: Page, id: string) {
   return PNG.sync.read(await page.locator(`[data-fixture="${id}"]`).screenshot({ animations: "disabled", caret: "hide" }))
 }
 
-for (const theme of THEMES) for (const id of CASES) {
+// Keep a real test to report a bad filter even when selection would otherwise collect zero tests.
+for (const theme of THEMES) for (const id of selectedCases.length ? selectedCases : [CASES[0]]) {
   test(`${theme} cozy ${id} interaction states match UI5`, async ({ browser }) => {
+    if (prefixes) expect(selectedCases.length, `VISUAL_ONLY=${visualOnly}: no fixtures matched`).toBeGreaterThan(0)
     const ours = await browser.newPage()
     const ui5 = await browser.newPage()
     const query = `theme=${theme}&density=cozy&only=${encodeURIComponent(id)}`
