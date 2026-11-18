@@ -63,6 +63,8 @@ const defaultSegmentedButtonTextsKeys = { selected: "LIST_ITEM_SELECTED" } as co
 function SegmentedButton({ className, selectionMode = "single", itemsFitContent, children, style, value, defaultValue, onValueChange, dir, ref, texts, ...props }: SegmentedButtonProps) {
   const resolvedTexts = useFioriTexts(defaultSegmentedButtonTexts, defaultSegmentedButtonTextsKeys, texts)
   const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const announcementTimers = React.useRef(new Set<ReturnType<typeof setTimeout>>())
+  React.useEffect(() => () => { announcementTimers.current.forEach(clearTimeout) }, [])
   const pendingActivation = React.useRef<string | undefined>(undefined)
   const [completedActivation, setCompletedActivation] = React.useState<{ value: string; sequence: number } | undefined>(undefined)
   const completeActivation = () => {
@@ -101,7 +103,17 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
     // SegmentedButton.js/_selectItem fires selection-change before inspecting
     // target.selected. Wait for the callback's controlled value to commit, so a
     // rejected/reverted selection and multiple deselection cannot be announced.
-    if (completedActivation && selected.includes(completedActivation.value)) setAnnouncement(previous => ({ text: resolvedTexts.selected, sequence: previous.sequence + 1 }))
+    if (completedActivation && selected.includes(completedActivation.value)) {
+      const text = resolvedTexts.selected
+      setAnnouncement(previous => ({ text, sequence: previous.sequence + 1 }))
+      // UI5 util/InvisibleMessage.js/announce clears matching text after 3000 ms,
+      // including repeated identical messages; different newer text survives.
+      const timer = setTimeout(() => {
+        announcementTimers.current.delete(timer)
+        setAnnouncement(previous => previous.text === text ? { ...previous, text: "" } : previous)
+      }, 3000)
+      announcementTimers.current.add(timer)
+    }
   }, [completedActivation])
 
   return (
