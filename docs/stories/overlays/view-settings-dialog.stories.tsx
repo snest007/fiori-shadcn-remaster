@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { ViewSettingsDialog, type ViewSettings, type ViewSettingsDialogProps } from "@/components/ui/view-settings-dialog"
 import { DialogTrigger } from "@/components/ui/dialog"
@@ -94,7 +94,7 @@ const meta = {
   argTypes: { ...base.argTypes, open: { control: "boolean" }, sortItems: { control: "object" }, filterItems: { control: "object" }, groupItems: { control: "object" }, sortDescending: { control: "boolean" }, groupDescending: { control: "boolean" }, resetEnabled: { control: "boolean" }, texts: { control: "object" }, portal: { control: false }, onOpenChange: { control: false }, onConfirm: { control: false }, onCancel: { control: false }, onReset: { control: false } },
   render: function ProductViewSettings(args: ViewSettingsDialogProps) {
     const [, updateArgs] = useArgs<ViewSettingsDialogProps>()
-    const [settings, setSettings] = React.useState<ViewSettings | null>(null)
+    const [settings, setSettings] = useState<ViewSettings | null>(null)
     return <div className="grid gap-3"><ViewSettingsDialog {...args} onOpenChange={(open) => { args.onOpenChange?.(open); updateArgs({ open }) }} onConfirm={(result) => { args.onConfirm?.(result); setSettings(result) }}><DialogTrigger asChild><Button>Configure product view</Button></DialogTrigger></ViewSettingsDialog><output>{settings ? `Sort by ${settings.sortBy ?? "None"}; group by ${settings.groupBy ?? "None"}` : "View settings have not been confirmed"}</output></div>
   },
 } satisfies Meta<typeof ViewSettingsDialog>

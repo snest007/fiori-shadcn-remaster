@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { Toast } from "@/components/ui/toast"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ const meta = {
   argTypes: { ...base.argTypes, children: { control: "text", table: { disable: false } }, open: { control: "boolean" }, duration: { control: "number" }, placement: { control: "select", options: ["top-start", "top-center", "top-end", "middle-start", "middle-center", "middle-end", "bottom-start", "bottom-center", "bottom-end"] }, portal: { control: "boolean" }, onOpenChange: { control: false } },
   render: function OrderNotification(args) {
     const [, updateArgs] = useArgs<React.ComponentProps<typeof Toast>>()
-    const [sequence, setSequence] = React.useState(0)
+    const [sequence, setSequence] = useState(0)
     return <div className="grid gap-3"><Button onClick={() => { setSequence((value) => value + 1); args.onOpenChange?.(true); updateArgs({ open: true }) }}>Save purchase order</Button><Toast key={sequence} {...args} onOpenChange={(open) => { args.onOpenChange?.(open); updateArgs({ open }) }} /></div>
   },
 } satisfies Meta<typeof Toast>
