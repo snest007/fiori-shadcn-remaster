@@ -1,11 +1,11 @@
 # Spike: fiscal calendar on Calendar's public API
 
 **Question.** Can a consumer support SAP S/4 fiscal year variants with `Calendar` as it is today, without editing
-`registry/ui/calendar.tsx`? Which extension points are missing (input for card H6), and which needs are outside
-Calendar altogether?
+`registry/ui/calendar.tsx`? Which extension points are missing (input for cards H6 and X0)?
 
 **Answer.** About half. Period *selection* and *validation* work today; period *display* in the day grid does not.
-Fiscal *paging* and *special periods* don't belong in Calendar at all.
+Fiscal *paging* and *special periods* need structural extension points (replaceable parts, overridable paging, a
+generic grid picker). Card X0 designs them; the library itself doesn't get a fiscal component.
 
 This spike is throw-away code: not a registry item, not in `pnpm test`, no edits outside this folder.
 
@@ -56,13 +56,16 @@ Uses a running server on `PORT` if there is one (e.g. `PORT=5181`); otherwise it
 | G5 | DatePicker / DateRangePicker don't forward any of this. A fiscal date *field* would need its own popover. | 6 passthrough (`calendarProps`) |
 | G6 | `CalendarLegendItem` takes only `text`; no custom marker for "period band". | 4 legend `children` / marker slot |
 
-## Outside Calendar → separate `FiscalPeriodPicker` card
+## Structural gaps → card X0 (extension architecture)
 
-| Need | Why it isn't a Calendar extension |
+The library won't ship a fiscal component (owner's decision, 2026-11-17: features are endless; the library provides
+extension points). These needs show which **structural** points Calendar lacks. X0 designs them library-wide.
+
+| Need | Structural point it requires |
 |---|---|
-| Page by fiscal period (header arrows, PageUp/PageDown) | Calendar's paging is Gregorian-month arithmetic (`modifyDateBy(…, "month")`). A 4-4-5 period that starts on 30 March can't be "the page". The spike pages with its own buttons outside the calendar. Making the header pluggable would change Calendar's keyboard model, which is a UI5-parity contract. |
-| Special periods 13–16 | They have no days of their own; they subdivide the last regular period. They can't be cells in a day grid. The spike offers them as explicit buttons, and the result keeps `period: 14, special: true`. |
-| A period grid (P01…P16 by fiscal year) | It is a MonthPicker-shaped grid with variant-defined labels and count. That is a new component (or a generalised `GridPicker`), not a day-grid customisation. |
+| Page by fiscal period (header arrows, PageUp/PageDown) | Overridable paging step (default: UI5's Gregorian month) and a replaceable header. Defaults keep UI5 parity; overriding is the consumer's choice. |
+| Special periods 13–16 | They have no days, so they can't be day cells. The consumer needs a **generic grid picker** (consumer-defined items, count, row size) with Calendar's keyboard model and ARIA, the same part the month/year pickers use. |
+| A period grid (P01…P16 by fiscal year) | The same generic grid picker, plus a replaceable header that pages by fiscal year. |
 
 ## Suggested acceptance line for H6
 

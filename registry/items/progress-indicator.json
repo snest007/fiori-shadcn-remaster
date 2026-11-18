@@ -1,8 +1,8 @@
 {
   "title": "ProgressIndicator",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input"
+    "@petalo/icons",
+    "@petalo/input"
   ],
   "description": "Fiori progress indicator: value bar with value text, value states with icons (ui5-progress-indicator).",
   "usage": {

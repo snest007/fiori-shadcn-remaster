@@ -2,9 +2,9 @@
   "title": "ExpandableText",
   "description": "Fiori expandable text: text cut at a character limit with Show More / Show Less, in place or in a popover (ui5-expandable-text).",
   "registryDependencies": [
-    "@fiori/button",
-    "@fiori/link",
-    "@fiori/popover"
+    "@petalo/button",
+    "@petalo/link",
+    "@petalo/popover"
   ],
   "usage": {
     "summary": "Keep prose within a character limit while letting users reveal the full text.",

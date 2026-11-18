@@ -1,7 +1,7 @@
 {
   "title": "User Menu",
   "dependencies": [],
-  "registryDependencies": ["@fiori/icons", "@fiori/avatar", "@fiori/button", "@fiori/popover"],
+  "registryDependencies": ["@petalo/icons", "@petalo/avatar", "@petalo/button", "@petalo/popover"],
   "description": "Fiori user menu popover with account header, manage account, menu items and sign out (ui5-user-menu).",
   "usage": {
     "summary": "Expose signed-in user information, user-specific actions and sign out from the profile entry point.",

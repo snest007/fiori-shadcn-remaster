@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Smoke test of the registry as a consumer sees it: builds public/r + the docs site, serves it,
-// creates a fresh Vite + React 19 + Tailwind v4 app in a temp dir, runs `shadcn init <url>/r/fiori.json`,
+// creates a fresh Vite + React 19 + Tailwind v4 app in a temp dir, runs `shadcn init <url>/r/petalo.json`,
 // adds every block, renders each block in Chromium and fails on build errors, page errors or console errors.
 //
 //   node scripts/smoke-install.mjs [--keep] [--registry=http://host/r]
@@ -53,10 +53,10 @@ export function createConsumerHarness(root = resolve(".")) {
     run("pnpm add react@19 react-dom@19", dir)
     run("pnpm add -D vite@8 @vitejs/plugin-react@6 tailwindcss@4 @tailwindcss/vite@4 typescript@5.9 @types/react@19 @types/react-dom@19 @types/node@24", dir)
   }
-  function initRegistry(dir, registry) { run(`npx -y ${SHADCN} init ${registry}/fiori.json --yes`, dir) }
+  function initRegistry(dir, registry) { run(`npx -y ${SHADCN} init ${registry}/petalo.json --yes`, dir) }
   function addItems(dir, names) {
     if (names.some((name) => !/^[a-z0-9-]+$/.test(name))) throw new Error("Invalid registry item name")
-    if (names.length) run(`npx -y ${SHADCN} add ${names.map((name) => `@fiori/${name}`).join(" ")} --yes --overwrite`, dir)
+    if (names.length) run(`npx -y ${SHADCN} add ${names.map((name) => `@petalo/${name}`).join(" ")} --yes --overwrite`, dir)
   }
   function stopServers() {
     for (const p of servers) { try { process.kill(-p.pid) } catch {} }
@@ -77,7 +77,7 @@ export async function runSmoke() {
     let registry = remote
     if (!registry) {
       step("build registry and site")
-      // fiori.json bakes the @fiori namespace URL in (REGISTRY_URL); it must point at the server below.
+      // petalo.json bakes the @petalo namespace URL in (REGISTRY_URL); it must point at the server below.
       const env = { REGISTRY_URL: `http://localhost:${REG_PORT}/r` }
       run("pnpm registry:build", root, env)
       run("pnpm build", root, env)
@@ -86,7 +86,7 @@ export async function runSmoke() {
     }
     // GitHub Pages may take up to two minutes to propagate a new deployment. Keep local
     // server startup's existing timeout; only the first remote registry fetch waits longer.
-    await waitFor(`${registry}/fiori.json`, remote ? 120_000 : 60_000)
+    await waitFor(`${registry}/petalo.json`, remote ? 120_000 : 60_000)
 
     step(`create consumer app in ${dir}`)
     setupConsumer(dir)

@@ -36,7 +36,7 @@ for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
       await expect(main).toHaveAttribute("data-docs-route", route.name)
       await expect(main.getByRole("heading", { level: 1, name: route.title, exact: true })).toBeVisible()
       await expect(page.locator(`#docs-navigation a[href="#/${route.name}"]`)).toHaveAttribute("aria-current", "page")
-      if (route.name !== "floorplans") await expect(main.locator("pre").first()).toHaveText(`npx shadcn add @fiori/${route.name}`)
+      if (route.name !== "floorplans") await expect(main.locator("pre").first()).toHaveText(`npx shadcn add @petalo/${route.name}`)
       const results = await new AxeBuilder({ page })
         // Preserve the all-demo contrast check above, including SAP's disabled opacity exception.
         .disableRules(["color-contrast"])

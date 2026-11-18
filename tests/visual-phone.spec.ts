@@ -5,6 +5,9 @@ import { PNG } from "pngjs"
 
 const THEMES = ["sap_horizon", "sap_horizon_dark", "sap_horizon_hcb", "sap_horizon_hcw"]
 const DENSITIES = ["cozy", "compact"]
+const visualOnly = process.env.VISUAL_ONLY
+const prefixes = visualOnly === undefined ? undefined : visualOnly.split(",").map((prefix) => prefix.trim()).filter(Boolean)
+const matches = (id: string) => !prefixes || prefixes.some((prefix) => id.startsWith(prefix))
 // A separate, isolated 375×667 page per fixture opens the genuine native phone
 // Dialog. Device forcing never shares a page with the desktop oracle fixtures.
 for (const theme of THEMES) for (const density of DENSITIES) {
@@ -15,7 +18,9 @@ for (const theme of THEMES) for (const density of DENSITIES) {
     const query = `fixtures-phone&theme=${theme}&density=${density}`
     await ours.goto(`/index.html?${query}`)
     await ours.waitForSelector("html[data-ready=true]")
-    const cases: { id: string; tolerance: number }[] = await ours.evaluate(() => (window as any).__fixtures)
+    const cases = (await ours.evaluate(() => (window as any).__fixtures) as { id: string; tolerance: number }[]).filter((fixture) => matches(fixture.id))
+    const states = ["time-picker-inputs", "search-scopes", "shellbar-search-scopes"].filter(matches)
+    if (prefixes) expect(cases.length + states.length, `VISUAL_ONLY=${visualOnly}: no fixtures matched`).toBeGreaterThan(0)
     const directory = `test-results/visual-phone/${theme}-${density}`
     mkdirSync(directory, { recursive: true })
     const failures: string[] = []
@@ -52,7 +57,7 @@ for (const theme of THEMES) for (const density of DENSITIES) {
     }
     // Secondary surfaces use their real focus/button APIs; numeric time entry is
     // a Popover, while Search scopes are a separate full-screen phone Dialog.
-    for (const state of ["time-picker-inputs", "search-scopes", "shellbar-search-scopes"]) {
+    for (const state of states) {
       const buffers = await Promise.all([ours, oracle].map(async (page, index) => {
         const kind = state === "time-picker-inputs" ? "time-picker" : state === "search-scopes" ? "search" : "shellbar-search"
         await page.goto(`/${index ? "ui5" : "index"}.html?${query}&interactive&only=${kind}-phone${kind === "time-picker" ? "" : "-scopes"}`)

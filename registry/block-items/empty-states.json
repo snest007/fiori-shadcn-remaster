@@ -1,7 +1,7 @@
 {
   "title": "Empty states",
   "description": "Gallery of the standard Fiori empty and error states (no data, no search results, no filter results, unable to load, page not found, success) as IllustratedMessage with actions, at different sizes.",
-  "registryDependencies": ["@fiori/button", "@fiori/card", "@fiori/illustrated-message", "@fiori/label", "@fiori/segmented-button", "@fiori/title"],
+  "registryDependencies": ["@petalo/button", "@petalo/card", "@petalo/illustrated-message", "@petalo/label", "@petalo/segmented-button", "@petalo/title"],
   "categories": ["empty-states"],
   "usage": {
     "summary": "Start from a gallery of empty, no-results, failure and success messages with recovery-action examples.",

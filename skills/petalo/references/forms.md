@@ -45,7 +45,7 @@ Select independent options, including choices reviewed before submission.
 Main exports: `Checkbox`.
 
 ```bash
-npx shadcn add @fiori/checkbox
+npx shadcn add @petalo/checkbox
 ```
 
 ## color-palette
@@ -66,7 +66,7 @@ Choose a predefined color from swatches kept visible in the page.
 Main exports: `ColorPalette`, `ColorPaletteItem`.
 
 ```bash
-npx shadcn add @fiori/color-palette
+npx shadcn add @petalo/color-palette
 ```
 
 ## color-palette-popover
@@ -87,7 +87,7 @@ Choose a predefined color in an on-demand anchored surface.
 Main exports: `ColorPalettePopover`.
 
 ```bash
-npx shadcn add @fiori/color-palette-popover
+npx shadcn add @petalo/color-palette-popover
 ```
 
 ## color-picker
@@ -108,7 +108,7 @@ Choose an arbitrary color visually or enter its channel values.
 Main exports: `ColorPicker`.
 
 ```bash
-npx shadcn add @fiori/color-picker
+npx shadcn add @petalo/color-picker
 ```
 
 ## combobox
@@ -133,7 +133,7 @@ Choose one suggested value by typing, with filtering and optional free-text entr
 Main exports: `ComboBox`, `ComboBoxItem`, `ComboBoxItemGroup`.
 
 ```bash
-npx shadcn add @fiori/combobox
+npx shadcn add @petalo/combobox
 ```
 
 ## file-uploader
@@ -154,7 +154,7 @@ Select local files for a caller-managed upload flow.
 Main exports: `FileUploader`.
 
 ```bash
-npx shadcn add @fiori/file-uploader
+npx shadcn add @petalo/file-uploader
 ```
 
 ## form
@@ -176,7 +176,7 @@ Arrange related labels and fields for one record in responsive groups.
 Main exports: `Form`, `FormGroup`, `FormItem`.
 
 ```bash
-npx shadcn add @fiori/form
+npx shadcn add @petalo/form
 ```
 
 ## input
@@ -200,7 +200,7 @@ Enter one line of text, a number or a formatted string.
 Main exports: `Input`, `InputIcon`.
 
 ```bash
-npx shadcn add @fiori/input
+npx shadcn add @petalo/input
 ```
 
 ## label
@@ -221,7 +221,7 @@ Give a form field a persistent, accessible name.
 Main exports: `Label`.
 
 ```bash
-npx shadcn add @fiori/label
+npx shadcn add @petalo/label
 ```
 
 ## multi-combobox
@@ -245,7 +245,7 @@ Select several predefined options from a filterable list and display selections 
 Main exports: `MultiComboBox`, `MultiComboBoxItem`, `MultiComboBoxItemGroup`.
 
 ```bash
-npx shadcn add @fiori/multi-combobox
+npx shadcn add @petalo/multi-combobox
 ```
 
 ## multi-input
@@ -269,7 +269,7 @@ Collect several values as caller-managed tokens, with suggestions and optional v
 Main exports: `MultiInput`, `SuggestionItem`.
 
 ```bash
-npx shadcn add @fiori/multi-input
+npx shadcn add @petalo/multi-input
 ```
 
 ## radio-group
@@ -293,7 +293,7 @@ Choose one mutually exclusive answer while keeping every option visible.
 Main exports: `RadioGroup`, `RadioGroupItem`.
 
 ```bash
-npx shadcn add @fiori/radio-group
+npx shadcn add @petalo/radio-group
 ```
 
 ## rating-indicator
@@ -313,7 +313,7 @@ Collect an icon-based rating or display an aggregate rating.
 Main exports: `RatingIndicator`.
 
 ```bash
-npx shadcn add @fiori/rating-indicator
+npx shadcn add @petalo/rating-indicator
 ```
 
 ## select
@@ -338,7 +338,7 @@ Choose one value from a short predefined list without entering free text.
 Main exports: `Select`, `SelectContent`, `SelectGroup`, `SelectItem`, `SelectLabel`, `SelectSeparator`, `SelectTrigger`, `SelectValue`.
 
 ```bash
-npx shadcn add @fiori/select
+npx shadcn add @petalo/select
 ```
 
 ## slider
@@ -362,7 +362,7 @@ Adjust one value or a numeric interval along a visual scale.
 Main exports: `RangeSlider`, `Slider`.
 
 ```bash
-npx shadcn add @fiori/slider
+npx shadcn add @petalo/slider
 ```
 
 ## step-input
@@ -383,7 +383,7 @@ Enter an exact number or adjust it by a predefined step.
 Main exports: `StepInput`.
 
 ```bash
-npx shadcn add @fiori/step-input
+npx shadcn add @petalo/step-input
 ```
 
 ## switch
@@ -404,7 +404,7 @@ Turn a setting on or off with an immediate effect.
 Main exports: `Switch`.
 
 ```bash
-npx shadcn add @fiori/switch
+npx shadcn add @petalo/switch
 ```
 
 ## textarea
@@ -426,7 +426,7 @@ Enter editable prose across multiple lines.
 Main exports: `TextArea`.
 
 ```bash
-npx shadcn add @fiori/textarea
+npx shadcn add @petalo/textarea
 ```
 
 ## token
@@ -447,7 +447,7 @@ Represent one previously selected value as a selectable, removable item.
 Main exports: `Token`.
 
 ```bash
-npx shadcn add @fiori/token
+npx shadcn add @petalo/token
 ```
 
 ## tokenizer
@@ -469,5 +469,5 @@ Manage keyboard navigation, selection and overflow for existing tokens.
 Main exports: `Tokenizer`.
 
 ```bash
-npx shadcn add @fiori/tokenizer
+npx shadcn add @petalo/tokenizer
 ```
