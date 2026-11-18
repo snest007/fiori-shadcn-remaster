@@ -2,13 +2,13 @@
   "title": "Shell Bar",
   "dependencies": [],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/list",
-    "@fiori/menu",
-    "@fiori/popover",
-    "@fiori/search",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/list",
+    "@petalo/menu",
+    "@petalo/popover",
+    "@petalo/search",
+    "@petalo/locale"
   ],
   "description": "Fiori application header with branding, content, collapsible search, notifications, custom items, overflow, profile and product switch (ui5-shellbar).",
   "usage": {

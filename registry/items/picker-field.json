@@ -5,14 +5,14 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input",
-    "@fiori/popover",
-    "@fiori/button",
-    "@fiori/responsive-popover",
-    "@fiori/use-is-phone",
-    "@fiori/f6-navigation",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/popover",
+    "@petalo/button",
+    "@petalo/responsive-popover",
+    "@petalo/use-is-phone",
+    "@petalo/f6-navigation",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Compose a custom text field and picker with caller-owned value rules.",

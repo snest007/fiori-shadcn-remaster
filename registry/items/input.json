@@ -1,8 +1,8 @@
 {
   "title": "Input",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/locale"
   ],
   "description": "Fiori input with value states and value state message.",
   "usage": {

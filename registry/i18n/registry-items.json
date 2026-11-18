@@ -5,7 +5,7 @@
     "title": "SAP translations (ar)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -21,7 +21,7 @@
     "title": "SAP translations (bg)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -37,7 +37,7 @@
     "title": "SAP translations (ca)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -53,7 +53,7 @@
     "title": "SAP translations (sr-ME)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -69,7 +69,7 @@
     "title": "SAP translations (cs)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -85,7 +85,7 @@
     "title": "SAP translations (cy)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -101,7 +101,7 @@
     "title": "SAP translations (da)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -117,7 +117,7 @@
     "title": "SAP translations (de)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -133,7 +133,7 @@
     "title": "SAP translations (el)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -149,7 +149,7 @@
     "title": "SAP translations (en)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -165,7 +165,7 @@
     "title": "SAP translations (en-GB)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -181,7 +181,7 @@
     "title": "SAP translations (es)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -197,7 +197,7 @@
     "title": "SAP translations (es-MX)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -213,7 +213,7 @@
     "title": "SAP translations (et)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -229,7 +229,7 @@
     "title": "SAP translations (fi)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -245,7 +245,7 @@
     "title": "SAP translations (fr)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -261,7 +261,7 @@
     "title": "SAP translations (fr-CA)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -277,7 +277,7 @@
     "title": "SAP translations (hi)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -293,7 +293,7 @@
     "title": "SAP translations (hr)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -309,7 +309,7 @@
     "title": "SAP translations (hu)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -325,7 +325,7 @@
     "title": "SAP translations (id)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -341,7 +341,7 @@
     "title": "SAP translations (it)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -357,7 +357,7 @@
     "title": "SAP translations (he)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -373,7 +373,7 @@
     "title": "SAP translations (ja)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -389,7 +389,7 @@
     "title": "SAP translations (kk)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -405,7 +405,7 @@
     "title": "SAP translations (ko)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -421,7 +421,7 @@
     "title": "SAP translations (lt)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -437,7 +437,7 @@
     "title": "SAP translations (lv)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -453,7 +453,7 @@
     "title": "SAP translations (mk)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -469,7 +469,7 @@
     "title": "SAP translations (ms)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -485,7 +485,7 @@
     "title": "SAP translations (nl)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -501,7 +501,7 @@
     "title": "SAP translations (nb)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -517,7 +517,7 @@
     "title": "SAP translations (pl)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -533,7 +533,7 @@
     "title": "SAP translations (pt-BR)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -549,7 +549,7 @@
     "title": "SAP translations (pt-PT)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -565,7 +565,7 @@
     "title": "SAP translations (ro)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -581,7 +581,7 @@
     "title": "SAP translations (ru)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -597,7 +597,7 @@
     "title": "SAP translations (sr-Latn)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -613,7 +613,7 @@
     "title": "SAP translations (sk)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -629,7 +629,7 @@
     "title": "SAP translations (sl)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -645,7 +645,7 @@
     "title": "SAP translations (sr)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -661,7 +661,7 @@
     "title": "SAP translations (sv)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -677,7 +677,7 @@
     "title": "SAP translations (th)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -693,7 +693,7 @@
     "title": "SAP translations (tr)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -709,7 +709,7 @@
     "title": "SAP translations (uk)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -725,7 +725,7 @@
     "title": "SAP translations (vi)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -741,7 +741,7 @@
     "title": "SAP translations (zh-CN)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {
@@ -757,7 +757,7 @@
     "title": "SAP translations (zh-TW)",
     "description": "Optional SAP UI5 language pack for FioriLocaleProvider.",
     "registryDependencies": [
-      "@fiori/locale"
+      "@petalo/locale"
     ],
     "files": [
       {

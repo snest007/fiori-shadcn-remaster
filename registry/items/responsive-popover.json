@@ -2,12 +2,12 @@
   "title": "ResponsivePopover",
   "description": "UI5 responsive popover: desktop popover, full-screen phone dialog with header and footer slots.",
   "registryDependencies": [
-    "@fiori/use-is-phone",
-    "@fiori/popover",
-    "@fiori/dialog",
-    "@fiori/button",
-    "@fiori/icons",
-    "@fiori/locale"
+    "@petalo/use-is-phone",
+    "@petalo/popover",
+    "@petalo/dialog",
+    "@petalo/button",
+    "@petalo/icons",
+    "@petalo/locale"
   ],
   "dependencies": [
     "radix-ui"

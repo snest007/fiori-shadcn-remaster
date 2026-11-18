@@ -1,15 +1,45 @@
-# shadcn-fiori
+# petalo
 
-SAP Fiori (Horizon) look **and** interaction for React, distributed as a [shadcn/ui](https://ui.shadcn.com) registry.
-The colors, sizes, shadows, fonts and icons are not hand-tuned. They are generated from SAP's open-source theme
+React components that follow the SAP Fiori (Horizon) design language, in look **and** interaction, distributed as a
+[shadcn/ui](https://ui.shadcn.com) registry. *Petalo* is Italian for "petal".
+The colors, sizes, shadows and icons are not hand-tuned. They are generated from SAP's open-source theme
 packages, and each component is screenshot-compared against [UI5 Web Components](https://github.com/UI5/webcomponents),
 SAP's official implementation.
 
-[![CI](https://github.com/snest007/fiori-shadcn-remaster/actions/workflows/ci.yml/badge.svg)](https://github.com/snest007/fiori-shadcn-remaster/actions/workflows/ci.yml)
+[![CI](https://github.com/snest007/petalo/actions/workflows/ci.yml/badge.svg)](https://github.com/snest007/petalo/actions/workflows/ci.yml)
 
-> Built on the SAP Horizon design language. This is not an SAP product. "SAP" and "Fiori" are trademarks of SAP SE.
+> An independent project, not affiliated with or endorsed by SAP SE, and not an SAP product. "SAP" and "Fiori" are
+> trademarks of SAP SE, used here only to describe the design language this project follows.
 
-Browse the [component docs and floorplans](https://snest007.github.io/fiori-shadcn-remaster/).
+Browse the [component docs and floorplans](https://snest007.github.io/petalo/).
+
+## Why petalo
+
+[UI5 Web Components](https://github.com/UI5/webcomponents) are SAP's official, framework-independent Fiori
+implementation, and a good choice when you want a maintained library you consume as-is. petalo takes the
+[shadcn/ui](https://ui.shadcn.com) approach instead: you get the source, so you can change anything.
+
+- **You own the code.** `npx shadcn add @petalo/<name>` copies plain React + TypeScript files into your project.
+  Edit markup, behaviour or styles directly; there is no package version to wait for and nothing to fork.
+- **No Shadow DOM.** Every element is in your DOM, so Tailwind classes, your CSS, `className` on any part,
+  `querySelector` and testing tools reach it. UI5 Web Components render inside Shadow DOM, where outside styles only
+  reach what a component exposes through CSS variables, `::part()` and slots.
+- **Composable parts.** Components are built from small exported pieces (291 exports across the registry, e.g.
+  `Select`, `SelectTrigger`, `SelectContent`, `SelectItem`) instead of one closed element, and 26 components accept
+  `asChild` to render as your own element (a router link, for example).
+- **React-native data flow.** Controlled and uncontrolled props (`value` / `onValueChange`, `open` /
+  `onOpenChange`), typed with TypeScript; DataTable is built on TanStack Table, so column definitions, sorting and
+  filtering use its API.
+- **Same tokens, your theme.** Styling uses SAP's `--sap*` theme parameters and UI5's component parameters as plain
+  CSS variables. Switch the four Horizon themes and cozy/compact density with `data-theme` / `data-density` on any
+  element, or override a variable to rebrand.
+- **Fidelity is tested, not assumed.** Components are pixel-compared with UI5 Web Components 2.28 in 4 themes ×
+  2 densities (the few with no UI5 Web Component, such as FilterBar, are checked against SAP's design guidelines),
+  and keyboard models and ARIA are ported from UI5's source. Customization points such as `asChild` keep the
+  component's roles, states and focus handling.
+
+What you give up: updates are not automatic. When you have edited a copied file, you merge upstream changes
+yourself (`npx shadcn add --diff` shows what changed), as with any shadcn registry.
 
 ## Status: all four phases done (foundation, core, complex controls, layouts & floorplans)
 
@@ -18,27 +48,33 @@ Browse the [component docs and floorplans](https://snest007.github.io/fiori-shad
 | Themes | Morning Horizon, Evening Horizon, High Contrast Black, High Contrast White (`data-theme`) |
 | Density | cozy (default), compact (`data-density="compact"`, works on any subtree) |
 | Tokens | 1479 `--sap*` variables per theme + 1477 component parameters from UI5 (main + fiori packages) |
-| Icons | 705 SAP Horizon icons, tree-shakeable |
+| Icons | 704 SAP Horizon icons, tree-shakeable |
 | Components (73) | **Actions** Button, ToggleButton, SegmentedButton · **Forms** Label, Input, TextArea, Select, ComboBox, MultiComboBox, MultiInput (+Token, Tokenizer), StepInput, CheckBox, RadioGroup, Switch, Slider/RangeSlider, RatingIndicator, FileUploader, Form · **Dates** Calendar, DatePicker, DateRangePicker, TimePicker, DateTimePicker · **Data** Table, DataTable (TanStack, virtualized), List, Tree, Timeline, UploadCollection, ObjectStatus, ObjectNumber, ObjectIdentifier · **Overlays** Dialog, Popover, Menu, Toast, ViewSettingsDialog, ValueHelpDialog, UserMenu · **Display** MessageStrip, Tag, Avatar/AvatarGroup, Card, Panel, BusyIndicator, ProgressIndicator, Link, Title, Text, ExpandableText, Carousel, HeroBanner, IllustratedMessage · **Navigation** Tabs (IconTabBar), Breadcrumbs, Toolbar, Bar, FilterBar, ShellBar, Search, ProductSwitch, NotificationList, SideNavigation, Wizard · **Layout** Page, DynamicPage, ObjectPage, FlexibleColumnLayout (+`useFlexibleColumnLayout`), DynamicSideContent, NavigationLayout |
-| Floorplans (blocks) | `app-shell`, `launchpad` (shell + side navigation), `list-report`, `object-page-floorplan`, `master-detail` (flexible column layout), `wizard-page`, `empty-states` — preview at `/block.html?name=<block>`, install with `npx shadcn add @fiori/<block>` |
-| Illustrations | 118 SAP illustrations (72 Fiori + 46 TNT) in Scene/Dialog/Spot/Dot sizes; `illustrations-core` (14 common states) ships with IllustratedMessage, the rest as `@fiori/illustration-<name>` |
+| Floorplans (blocks) | `app-shell`, `launchpad` (shell + side navigation), `list-report`, `object-page-floorplan`, `master-detail` (flexible column layout), `wizard-page`, `empty-states` — preview at `/block.html?name=<block>`, install with `npx shadcn add @petalo/<block>` |
+| Illustrations | 118 SAP illustrations (72 Fiori + 46 TNT) in Scene/Dialog/Spot/Dot sizes; `illustrations-core` (14 common states) ships with IllustratedMessage, the rest as `@petalo/illustration-<name>` |
 | Verified | 600 fixtures pixel-diffed vs UI5 2.28 in 4 themes × 2 densities (4800 cells, worst 1.6%); components without a UI5 Web Component (FilterBar, ValueHelpDialog, ObjectPage, Object*) checked against SAP's guideline images; axe; 391 Playwright tests incl. Fiori keyboard models |
 
 ## Browse in Storybook
 
-Browse [Storybook](https://snest007.github.io/fiori-shadcn-remaster/storybook/) for individual component states, live Controls, source code and usage guidance. Run `pnpm storybook` locally at `http://localhost:6006`.
+Browse [Storybook](https://snest007.github.io/petalo/storybook/) for individual component states, live Controls, source code and usage guidance. Run `pnpm storybook` locally at `http://localhost:6006`.
 
 ## Install into an app
 
 Requires Tailwind CSS v4 and React 19.
 
 ```bash
-npx shadcn@latest init https://snest007.github.io/fiori-shadcn-remaster/r/fiori.json
+npx shadcn@latest init https://snest007.github.io/petalo/r/petalo.json
 ```
 
 This writes the theme to `src/styles/fiori/`, adds the imports to your Tailwind CSS entry, maps shadcn's
 `--primary` / `--border` / … to Fiori tokens, and installs the components. Add components individually with
-`npx shadcn add @fiori/button`.
+`npx shadcn add @petalo/button`.
+
+The SAP 72 font is a separate, optional item (see [License](#license) before you add it):
+
+```bash
+npx shadcn@latest add https://snest007.github.io/petalo/r/fiori-font.json
+```
 
 To switch themes and density, set attributes on `<html>` (or any element):
 
@@ -47,7 +83,7 @@ To switch themes and density, set attributes on `<html>` (or any element):
 ```
 
 Next.js: the CLI writes the theme files to `src/styles/fiori/`. If your CSS entry is `app/globals.css`,
-move the folder next to it, or fix the three `@import` paths.
+move the folder next to it, or fix the `@import` paths.
 
 ## Usage
 
@@ -78,7 +114,7 @@ Fiori behaviour this library reproduces (beyond appearance):
 - **Value states** (negative, critical, positive, information): the field styling, and a message that appears
   while the field is focused, is linked with `aria-describedby`, and defaults to SAP's standard text.
 - **Focus**: the inner focus ring appears only for keyboard focus, never on mouse click.
-- **F6 navigation**: install `@fiori/f6-navigation` and call `useF6Navigation()` or `installF6Navigation()` to enable page-group navigation. The five main floorplan blocks opt in; Popup scopes keep navigation inside the open surface.
+- **F6 navigation**: install `@petalo/f6-navigation` and call `useF6Navigation()` or `installF6Navigation()` to enable page-group navigation. The five main floorplan blocks opt in; Popup scopes keep navigation inside the open surface.
 - **Chinese text**: the 72 font has no CJK glyphs, so the font stack falls back to PingFang SC / Microsoft YaHei / Noto Sans CJK.
 
 ## Localization
@@ -112,7 +148,7 @@ and separators are accepted as an input extension. Calendars remain Gregorian.
 
 ## Use with coding agents
 
-Copy `skills/shadcn-fiori` into your project's `.claude/skills/` or `.agents/skills/` directory. The skill helps agents
+Copy `skills/petalo` into your project's `.claude/skills/` or `.agents/skills/` directory. The skill helps agents
 choose components and floorplans using this registry's APIs. Its category references are generated from the same item
 metadata as the docs and registry; run `pnpm skill:build` after editing usage guidance.
 
@@ -128,7 +164,7 @@ pnpm check             # regenerate, typecheck, build registry + site, run all t
 |---|---|
 | `scripts/generate-tokens.mjs` | Writes `registry/styles/fiori.css` (tokens, density, shadcn mapping) and `fiori-tailwind.css` from `@sap-theming/theming-base-content` and UI5's compiled theme parameters |
 | `scripts/generate-icons.mjs` | Writes `registry/lib/fiori-icons.ts` from `@ui5/webcomponents-icons` |
-| `scripts/build-registry-json.mjs` | Writes `registry.json`; `REGISTRY_URL` sets the `@fiori` namespace URL baked into `fiori.json` |
+| `scripts/build-registry-json.mjs` | Writes `registry.json`; `REGISTRY_URL` sets the `@petalo` namespace URL baked into `petalo.json` |
 | `registry/` | What gets distributed: `ui/`, `lib/`, `styles/fiori-components.css` |
 | `scripts/generate-illustrations.mjs` | Writes `registry/lib/fiori-illustrations/` and their registry items from `@ui5/webcomponents-fiori` |
 | `registry/blocks/`, `registry/block-items/` | Floorplans (`registry:block`), previewed by `docs/block.html` |
@@ -160,5 +196,15 @@ Collected from all phases; none blocks using the library.
 
 ## License
 
-Apache-2.0. Generated theme values, fonts, icon paths and illustrations are © SAP SE, used under Apache-2.0
-(`@sap-theming/theming-base-content`, `@ui5/webcomponents`, `@ui5/webcomponents-fiori`, `@ui5/webcomponents-icons`).
+Apache-2.0. Generated theme values, icon paths and illustrations are © SAP SE or an SAP affiliate company, used
+under Apache-2.0 (`@sap-theming/theming-base-content`, `@ui5/webcomponents`, `@ui5/webcomponents-fiori`,
+`@ui5/webcomponents-icons`). Components and component CSS are partly derived from UI5 Web Components and OpenUI5
+(Apache-2.0); each shipped file says so in its header.
+
+**The 72 font is not covered.** Its files carry their own license ("Copyright SAP SE. All rights reserved" plus
+Monotype terms that forbid copying and redistribution), even though they sit inside an Apache-2.0 npm package. This
+registry does not bundle them. The optional `@petalo/fiori-font` item only adds `@font-face` rules that load the
+font from SAP's npm package on jsDelivr, as UI5 Web Components does. Install it only if your use of 72 is permitted
+(for example under your SAP license); without it the theme falls back to Arial / Helvetica.
+
+The SAP logo icon (`sap-logo-shape`) is left out of the icon set: Apache-2.0 grants no trademark rights.

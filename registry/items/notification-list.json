@@ -2,14 +2,14 @@
   "title": "Notification List",
   "dependencies": [],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/busy-indicator",
-    "@fiori/button",
-    "@fiori/link",
-    "@fiori/list",
-    "@fiori/menu",
-    "@fiori/tag",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/busy-indicator",
+    "@petalo/button",
+    "@petalo/link",
+    "@petalo/list",
+    "@petalo/menu",
+    "@petalo/tag",
+    "@petalo/locale"
   ],
   "description": "Fiori notifications with state icons, read/unread, importance, actions menu, close button, More/Less and collapsible groups with button or scroll growing (ui5-notification-list).",
   "usage": {

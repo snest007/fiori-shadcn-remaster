@@ -1,9 +1,9 @@
 {
   "title": "Slider",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/locale",
-    "@fiori/input"
+    "@petalo/icons",
+    "@petalo/locale",
+    "@petalo/input"
   ],
   "description": "Fiori Slider and RangeSlider: tickmarks with labels, tooltips, UI5 keyboard model (ui5-slider, ui5-range-slider).",
   "usage": {

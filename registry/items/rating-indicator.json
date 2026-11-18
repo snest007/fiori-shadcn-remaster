@@ -1,8 +1,8 @@
 {
   "title": "RatingIndicator",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/locale"
   ],
   "description": "Fiori rating indicator: stars with half values, sizes S/M/L, read-only/display-only, UI5 keyboard model (ui5-rating-indicator).",
   "usage": {

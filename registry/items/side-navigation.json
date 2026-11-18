@@ -1,11 +1,11 @@
 {
   "title": "SideNavigation",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/popover",
-    "@fiori/menu",
-    "@fiori/f6-navigation",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/popover",
+    "@petalo/menu",
+    "@petalo/f6-navigation",
+    "@petalo/locale"
   ],
   "description": "Fiori side navigation: groups, items and sub-items as a keyboard tree; collapsed icon mode with sub-item popovers and a height-aware overflow menu; fixed footer items (ui5-side-navigation).",
   "usage": {

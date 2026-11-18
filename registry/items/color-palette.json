@@ -2,10 +2,10 @@
   "title": "ColorPalette",
   "description": "Fiori predefined color palette with the UI5 five-column keyboard model, default color and local recent colors.",
   "registryDependencies": [
-    "@fiori/button",
-    "@fiori/color-picker",
-    "@fiori/dialog",
-    "@fiori/locale"
+    "@petalo/button",
+    "@petalo/color-picker",
+    "@petalo/dialog",
+    "@petalo/locale"
   ],
   "files": [
     {

@@ -2,15 +2,15 @@
   "title": "DateRangePicker",
   "description": "Fiori date range picker: a start - end field with a range-selecting calendar.",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input",
-    "@fiori/calendar",
-    "@fiori/date-picker",
-    "@fiori/picker-field",
-    "@fiori/button",
-    "@fiori/responsive-popover",
-    "@fiori/use-is-phone",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/calendar",
+    "@petalo/date-picker",
+    "@petalo/picker-field",
+    "@petalo/button",
+    "@petalo/responsive-popover",
+    "@petalo/use-is-phone",
+    "@petalo/locale"
   ],
   "files": [
     {

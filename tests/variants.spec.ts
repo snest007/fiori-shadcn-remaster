@@ -47,7 +47,7 @@ test("variants: registry item distributes the library and its type dependencies"
   expect(item.files.map((file: { path: string; type: string }) => ({ path: file.path, type: file.type }))).toEqual([
     { path: "registry/lib/fiori-variants.ts", type: "registry:lib" },
   ])
-  expect(item.registryDependencies).toEqual(expect.arrayContaining(["@fiori/filter-bar", "@fiori/variant-management"]))
+  expect(item.registryDependencies).toEqual(expect.arrayContaining(["@petalo/filter-bar", "@petalo/variant-management"]))
 })
 
 test("variants: load applies the default values, search and field order, while Standard stays immutable", async ({ page }) => {

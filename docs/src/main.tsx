@@ -197,7 +197,7 @@ function DocsShell({ mode, onModeChange }: { mode: NavigationLayoutMode; onModeC
       <ShellBar
         texts={{ label: "Component library header", additionalInfo: "Display settings" }}
         startButton={<Button id="docs-menu" variant="transparent" size="icon" aria-label="Toggle component navigation" aria-controls="docs-navigation" aria-expanded={expanded} onClick={() => onModeChange(expanded ? "collapsed" : "expanded")}><Icon icon={icons.menu2} /></Button>}
-        branding={<ShellBarBranding href="#/button">shadcn-fiori</ShellBarBranding>}
+        branding={<ShellBarBranding href="#/button">petalo</ShellBarBranding>}
         content={<>
           <ShellBarSpacer />
           <Button key="storybook" asChild><a href={import.meta.env.PROD ? "./storybook/" : "http://localhost:6006/"}>Storybook</a></Button>
@@ -248,7 +248,7 @@ function IconsPage() {
 }
 
 function Install({ name }: { name: string }) {
-  return <pre className="overflow-x-auto rounded-(--sapElement_BorderCornerRadius) border border-(--sapGroup_ContentBorderColor) bg-(--sapList_Background) p-4"><code>{`npx shadcn add @fiori/${name}`}</code></pre>
+  return <pre className="overflow-x-auto rounded-(--sapElement_BorderCornerRadius) border border-(--sapGroup_ContentBorderColor) bg-(--sapList_Background) p-4"><code>{`npx shadcn add @petalo/${name}`}</code></pre>
 }
 
 function PropsTable({ props }: { props: ComponentDocs["props"] }) {

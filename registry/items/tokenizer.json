@@ -1,12 +1,12 @@
 {
   "title": "Tokenizer",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/token",
-    "@fiori/popover",
-    "@fiori/button",
-    "@fiori/f6-navigation",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/token",
+    "@petalo/popover",
+    "@petalo/button",
+    "@petalo/f6-navigation",
+    "@petalo/locale"
   ],
   "description": "Fiori tokenizer: a keyboard-navigable token list that collapses into an \"n more\" link with a popover of all tokens.",
   "usage": {

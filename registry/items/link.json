@@ -1,8 +1,8 @@
 {
   "title": "Link",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/locale"
   ],
   "description": "Fiori link: Default, Subtle and Emphasized designs, wrapping, Enter/Space activation.",
   "usage": {

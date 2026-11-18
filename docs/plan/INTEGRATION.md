@@ -53,11 +53,15 @@ Then `git add <files> && git commit --no-edit` and re-run `merge` for the remain
 
 ## 3. Verify
 
+Follow AGENTS.md's verification budget: at most two local fix hypotheses per failing test, two CI pushes if
+authorized, and about two hours per task. Stop and write `docs/plan/returns/<card>.md` when a limit is reached.
+Keep logs on disk and report compact summaries; background long runs and notify only on completion.
+
 ```bash
-node scripts/integrate.mjs verify                # install, generate, typecheck, registry, 3 full runs (retries off), smoke install
+node scripts/integrate.mjs verify                # install, generate, typecheck, registry, 2 full runs (retries off), smoke install
 ```
 
-It writes `.integration/REPORT.md` and per-run logs (`run-N.log`). PASS requires all three runs green and the
+It writes `.integration/REPORT.md` and per-run logs (`run-N.log`). PASS requires both runs green and the
 smoke install green. Run it with the **default workers** (no `--workers` flag). `--workers=1` is only a diagnostic for
 cause 6 — a final PASS obtained with `--workers=1` doesn't count, because parallel runs are what the owner uses (the
 suite takes ~3 min in parallel, ~13 min with one worker).

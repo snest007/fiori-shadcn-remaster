@@ -1,9 +1,9 @@
 {
   "title": "MessageStrip",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/locale"
   ],
   "description": "Fiori message strip: information/positive/negative/critical and color-set designs, closable.",
   "usage": {

@@ -4,7 +4,7 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/input"
+    "@petalo/input"
   ],
   "description": "Fiori radio buttons in a group with roving tabindex; arrow keys move selection, value and read-only states.",
   "usage": {

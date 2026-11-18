@@ -1,10 +1,10 @@
 {
   "title": "Wizard",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/popover",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/popover",
+    "@petalo/locale"
   ],
   "description": "Fiori wizard: step tabs (number or icon, title, subtitle, separators) over scrolling step contents; keyboard tab navigation, scroll-to-step, disabled future steps, collapsed step stacks (ui5-wizard).",
   "usage": {

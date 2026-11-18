@@ -1,12 +1,12 @@
 {
   "title": "List",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/busy-indicator",
-    "@fiori/checkbox",
-    "@fiori/radio-group",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/busy-indicator",
+    "@petalo/checkbox",
+    "@petalo/radio-group",
+    "@petalo/locale"
   ],
   "description": "Fiori list: standard / custom items, groups, selection modes (single, multiple, delete\u2026), growing, roving focus.",
   "files": [

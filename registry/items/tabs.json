@@ -1,11 +1,11 @@
 {
   "title": "Tabs (IconTabBar)",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/list",
-    "@fiori/popover",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/list",
+    "@petalo/popover",
+    "@petalo/locale"
   ],
   "description": "Fiori IconTabBar / TabContainer: text and icon tabs, counts, semantic designs, responsive overflow, UI5 keyboard model.",
   "usage": {

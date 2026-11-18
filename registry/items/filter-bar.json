@@ -1,12 +1,12 @@
 {
   "title": "FilterBar",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/input",
-    "@fiori/label",
-    "@fiori/adapt-filters-dialog",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/input",
+    "@petalo/label",
+    "@petalo/adapt-filters-dialog",
+    "@petalo/locale"
   ],
   "description": "Fiori filter bar with declarative condition editors, built-in Adapt Filters personalization, ordered visibility, live search, required-field validation and SAPUI5 active-filter summaries.",
   "usage": {

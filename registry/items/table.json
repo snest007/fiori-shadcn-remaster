@@ -1,12 +1,12 @@
 {
   "title": "Table",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/checkbox",
-    "@fiori/menu",
-    "@fiori/busy-indicator",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/checkbox",
+    "@petalo/menu",
+    "@petalo/busy-indicator",
+    "@petalo/locale"
   ],
   "description": "Fiori responsive table (ui5-table): selection, popin, growing, row actions, group rows and grid keyboard navigation.",
   "files": [

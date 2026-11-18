@@ -5,17 +5,17 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/checkbox",
-    "@fiori/combobox",
-    "@fiori/input",
-    "@fiori/label",
-    "@fiori/popover",
-    "@fiori/segmented-button",
-    "@fiori/select",
-    "@fiori/toggle-button",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/checkbox",
+    "@petalo/combobox",
+    "@petalo/input",
+    "@petalo/label",
+    "@petalo/popover",
+    "@petalo/segmented-button",
+    "@petalo/select",
+    "@petalo/toggle-button",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Personalize filter fields, their order and values in a staged dialog before applying changes.",

@@ -2,11 +2,11 @@
   "title": "User Menu",
   "dependencies": [],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/avatar",
-    "@fiori/button",
-    "@fiori/popover",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/avatar",
+    "@petalo/button",
+    "@petalo/popover",
+    "@petalo/locale"
   ],
   "description": "Fiori user menu popover with account header, manage account, menu items and sign out (ui5-user-menu).",
   "usage": {

@@ -2,10 +2,10 @@
   "title": "DynamicPage",
   "description": "Fiori dynamic page: sticky title (heading, breadcrumbs, KPIs, actions), header that snaps on scroll, expand/collapse and pin buttons, floating footer.",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button",
-    "@fiori/toggle-button",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/toggle-button",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Compose a page with a structured title, collapsing header, scrolling content and optional finalizing footer.",

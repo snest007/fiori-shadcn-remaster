@@ -4,12 +4,12 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input",
-    "@fiori/use-is-phone",
-    "@fiori/responsive-popover",
-    "@fiori/button",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/use-is-phone",
+    "@petalo/responsive-popover",
+    "@petalo/button",
+    "@petalo/locale"
   ],
   "description": "Fiori combo box: free-text field with type-ahead filtering, inline autocomplete and the SAP keyboard model.",
   "usage": {

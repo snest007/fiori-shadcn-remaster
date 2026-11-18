@@ -2,12 +2,12 @@
   "title": "ColorPicker",
   "description": "Fiori color picker with hue, alpha, hexadecimal and RGB/HSL channel inputs.",
   "registryDependencies": [
-    "@fiori/button",
-    "@fiori/input",
-    "@fiori/label",
-    "@fiori/slider",
-    "@fiori/icons",
-    "@fiori/locale"
+    "@petalo/button",
+    "@petalo/input",
+    "@petalo/label",
+    "@petalo/slider",
+    "@petalo/icons",
+    "@petalo/locale"
   ],
   "files": [
     {

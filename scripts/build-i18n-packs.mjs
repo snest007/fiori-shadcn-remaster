@@ -21,7 +21,7 @@ for (const file of readdirSync(source).filter(file => /^messagebundle_.*\.json$/
   const json = JSON.stringify(pack, null, 2) + '\n'
   writeFileSync(`registry/i18n/${tag}.json`, json)
   writeFileSync(`registry/i18n/${tag}.ts`, `// SAP SE UI5 translations; Apache-2.0. See NOTICE. Generated; do not edit.\nimport type { FioriTexts } from "@/lib/fiori-locale"\n\nconst texts = ${json.trim()} satisfies FioriTexts\nexport default texts\nexport { texts }\n`)
-  items.push({ name: `i18n-${tag}`, type: 'registry:lib', title: `SAP translations (${tag})`, description: 'Optional SAP UI5 language pack for FioriLocaleProvider.', registryDependencies: ['@fiori/locale'], files: [{ path: `registry/i18n/${tag}.ts`, type: 'registry:lib', target: `lib/fiori-i18n/${tag}.ts` }] })
+  items.push({ name: `i18n-${tag}`, type: 'registry:lib', title: `SAP translations (${tag})`, description: 'Optional SAP UI5 language pack for FioriLocaleProvider.', registryDependencies: ['@petalo/locale'], files: [{ path: `registry/i18n/${tag}.ts`, type: 'registry:lib', target: `lib/fiori-i18n/${tag}.ts` }] })
 }
 writeFileSync('registry/i18n/registry-items.json', JSON.stringify(items, null, 2) + '\n')
 console.log(`i18n packs: ${items.length} languages, ${keys.length} rendered keys per pack`)

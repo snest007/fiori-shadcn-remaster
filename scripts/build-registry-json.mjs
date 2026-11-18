@@ -2,7 +2,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { componentOwners, iconsItem, itemMetadata, usageMarkdown, validateUsage } from "./skill/usage.mjs"
 
-// Where public/r is served. Consumers' components.json gets "@fiori" -> this URL on `shadcn init`.
+// Where public/r is served. Consumers' components.json gets "@petalo" -> this URL on `shadcn init`.
 const REGISTRY_URL = (process.env.REGISTRY_URL ?? "http://localhost:4173/r").replace(/\/$/, "")
 
 // Theme CSS lands next to the app's Tailwind entry (src/index.css in Vite, app/globals.css in Next):
@@ -16,7 +16,7 @@ const ui = (name, extra = {}) => ({
   type: extra.type ?? "registry:ui",
   title: extra.title,
   description: extra.description,
-  registryDependencies: ["@fiori/fiori-theme", ...(extra.registryDependencies ?? [])],
+  registryDependencies: ["@petalo/fiori-theme", ...(extra.registryDependencies ?? [])],
   dependencies: extra.dependencies ?? [],
   files: [...(extra.type === "registry:lib" ? [] : [{ path: `registry/ui/${name}.tsx`, type: "registry:ui" }]), ...(extra.files ?? [])],
   ...(extra.usage ? { meta: { usage: extra.usage }, docs: usageMarkdown(extra.usage) } : {}),
@@ -35,7 +35,7 @@ const blockMetadata = itemMetadata("registry/block-items").map((item) => ({ ...i
 const illustrations = JSON.parse(readFileSync("registry/lib/fiori-illustrations/registry-items.json", "utf8"))
 validateUsage([
   ...componentMetadata.map((item) => ({ ...item, type: item.type ?? "registry:ui" })), ...blockMetadata, ...illustrations,
-  { name: "fiori" }, { name: "fiori-theme" }, iconsItem,
+  { name: "petalo" }, { name: "fiori-theme" }, iconsItem,
 ], componentOwners(process.cwd(), [...componentMetadata, ...blockMetadata, iconsItem]), { requireUsage: process.argv.includes("--require-usage") })
 const components = componentMetadata.map((extra) => ui(extra.name, extra))
 
@@ -48,7 +48,7 @@ const blocks = blockMetadata.map((extra) => {
       type: "registry:block",
       title: extra.title,
       description: extra.description,
-      registryDependencies: ["@fiori/fiori-theme", ...(extra.registryDependencies ?? [])],
+      registryDependencies: ["@petalo/fiori-theme", ...(extra.registryDependencies ?? [])],
       dependencies: extra.dependencies ?? [],
       files: [{ path: `registry/blocks/${name}.tsx`, type: "registry:block" }, ...(extra.files ?? [])],
       categories: extra.categories ?? ["floorplan"],
@@ -64,20 +64,22 @@ for (const b of blocks) {
 
 const registry = {
   $schema: "https://ui.shadcn.com/schema/registry.json",
-  name: "fiori",
-  homepage: "https://github.com/snest007/fiori-shadcn-remaster",
+  name: "petalo",
+  homepage: "https://github.com/snest007/petalo",
   items: [
     {
-      name: "fiori",
+      // Entry point: `shadcn init <url>/r/petalo.json`. The project is named petalo (not "fiori": SAP
+      // trademark); item and file names like fiori-theme / fiori.css describe the design language.
+      name: "petalo",
       type: "registry:base",
-      title: "Fiori (SAP Horizon) base",
-      description: "Theme, density, 72 font, icons and every Fiori component. Install with `shadcn init <url>/r/fiori.json`.",
-      registryDependencies: ["@fiori/fiori-theme", ...components.map((c) => `@fiori/${c.name}`)],
+      title: "petalo base (SAP Fiori Horizon design language)",
+      description: "Theme, density, icons and every Fiori component (the 72 font is the separate, optional @petalo/fiori-font). Install with `shadcn init <url>/r/petalo.json`.",
+      registryDependencies: ["@petalo/fiori-theme", ...components.map((c) => `@petalo/${c.name}`)],
       config: {
         style: "new-york",
         iconLibrary: "lucide",
         tailwind: { baseColor: "neutral", cssVariables: true },
-        registries: { "@fiori": `${REGISTRY_URL}/{name}.json` },
+        registries: { "@petalo": `${REGISTRY_URL}/{name}.json` },
       },
     },
     {
@@ -99,6 +101,16 @@ const registry = {
         '@import "./styles/fiori/fiori-tailwind.css"': {},
         '@import "./styles/fiori/fiori-components.css"': {},
       },
+    },
+    {
+      // Opt-in: the 72 font files are © SAP SE / Monotype, not Apache-2.0 (see scripts/generate-tokens.mjs).
+      name: "fiori-font",
+      type: "registry:item",
+      title: "SAP 72 font (optional)",
+      description: "@font-face rules that load SAP's 72 font from jsDelivr. The font is not Apache-2.0 licensed: check your rights to use it before installing.",
+      registryDependencies: ["@petalo/fiori-theme"],
+      files: [css("fiori-font.css")],
+      css: { '@import "./styles/fiori/fiori-font.css"': {} },
     },
     iconsItem,
     ...components,

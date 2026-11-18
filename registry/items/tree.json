@@ -1,9 +1,9 @@
 {
   "title": "Tree",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/list",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/list",
+    "@petalo/locale"
   ],
   "description": "Fiori tree: nested items with expand/collapse (\u2192 / \u2190), indentation levels and the List selection modes.",
   "usage": {

@@ -28,7 +28,7 @@ Select Gregorian dates in a calendar that remains visible.
 Main exports: `Calendar`, `CalendarLegend`, `CalendarLegendItem`.
 
 ```bash
-npx shadcn add @fiori/calendar
+npx shadcn add @petalo/calendar
 ```
 
 ## date-picker
@@ -51,7 +51,7 @@ Enter or select one localized Gregorian date.
 Main exports: `DatePicker`, `formatPickerDate`, `parsePickerDate`.
 
 ```bash
-npx shadcn add @fiori/date-picker
+npx shadcn add @petalo/date-picker
 ```
 
 ## date-range-picker
@@ -74,7 +74,7 @@ Enter a localized Gregorian start and end date as one interval.
 Main exports: `DateRangePicker`.
 
 ```bash
-npx shadcn add @fiori/date-range-picker
+npx shadcn add @petalo/date-range-picker
 ```
 
 ## date-time-picker
@@ -98,7 +98,7 @@ Enter one localized Gregorian date and time together.
 Main exports: `DateTimePicker`, `DateTimeSelection`.
 
 ```bash
-npx shadcn add @fiori/date-time-picker
+npx shadcn add @petalo/date-time-picker
 ```
 
 ## picker-field
@@ -119,7 +119,7 @@ Compose a custom text field and picker with caller-owned value rules.
 Main exports: `PickerField`, `PickerPopoverBody`, `examplePlaceholder`.
 
 ```bash
-npx shadcn add @fiori/picker-field
+npx shadcn add @petalo/picker-field
 ```
 
 ## time-picker
@@ -140,5 +140,5 @@ Enter or select a localized time without a date.
 Main exports: `TimePicker`, `TimePickerClock`, `TimePickerFooter`, `TimeSelectionClocks`.
 
 ```bash
-npx shadcn add @fiori/time-picker
+npx shadcn add @petalo/time-picker
 ```

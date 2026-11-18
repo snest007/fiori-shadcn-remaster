@@ -12,7 +12,7 @@ export function fioriMeta<C extends React.ComponentType<any>>({ name, component,
 }) {
   const block = blocks[`../../../registry/block-items/${name}.json`]
   const item = block ? { category: "Floorplans", title: block.title } : data.metadata[name]
-  if (!item) throw new Error(`No owning demo for @fiori/${name}`)
+  if (!item) throw new Error(`No owning demo for @petalo/${name}`)
   if (category && category !== item.category) throw new Error(`Category does not match the owning demo for ${name}`)
   return {
     id: toId(`${item.category}/${name}`),

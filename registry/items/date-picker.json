@@ -2,12 +2,12 @@
   "title": "DatePicker",
   "description": "Fiori date picker: a date field with lenient parsing, value states and a calendar value help.",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input",
-    "@fiori/calendar",
-    "@fiori/picker-field",
-    "@fiori/use-is-phone",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/calendar",
+    "@petalo/picker-field",
+    "@petalo/use-is-phone",
+    "@petalo/locale"
   ],
   "files": [
     {

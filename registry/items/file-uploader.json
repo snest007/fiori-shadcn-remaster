@@ -1,9 +1,9 @@
 {
   "title": "FileUploader",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/locale"
   ],
   "description": "Fiori file uploader: input-styled field with browse/clear icons, multiple files, accept, max size, drag & drop (ui5-file-uploader). Upload transport is up to the caller.",
   "usage": {

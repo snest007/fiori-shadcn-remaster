@@ -1,8 +1,8 @@
 {
   "title": "Tag",
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/locale"
   ],
   "description": "Fiori tag: semantic designs with state icons, Set1/Set2 colour schemes 1\u201310, sizes S/L, interactive.",
   "usage": {

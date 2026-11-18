@@ -4,10 +4,10 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input",
-    "@fiori/popover",
-    "@fiori/locale"
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/popover",
+    "@petalo/locale"
   ],
   "description": "Fiori modal dialog with header/footer bars and Negative/Critical/Positive/Information states (ui5-dialog).",
   "usage": {
