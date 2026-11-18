@@ -94,6 +94,8 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
   const itemPositionText = React.useRef(defaultSelectTexts.itemPosition)
   const pendingItemAnnouncement = React.useRef(false)
   const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const announcementTimers = React.useRef(new Set<ReturnType<typeof setTimeout>>())
+  React.useEffect(() => () => { announcementTimers.current.forEach(clearTimeout) }, [])
   const announce = React.useCallback((selected: string, opened: boolean) => {
     const ordered = [...items.current.entries()].sort(([, a], [, b]) => a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
     const index = ordered.findIndex(([value]) => value === selected)
@@ -103,12 +105,19 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
     const label = ordered[index][1].node.textContent ?? ""
     const text = `${label} ${opened ? itemPositionText.current(index + 1, ordered.length) : ""}`.trim()
     setAnnouncement(previous => ({ text, sequence: previous.sequence + 1 }))
+    // UI5 util/InvisibleMessage.js/announce clears after 3000 ms only if the
+    // message is still current; an earlier timer must not erase different text.
+    const timer = setTimeout(() => {
+      announcementTimers.current.delete(timer)
+      setAnnouncement(previous => previous.text === text ? { ...previous, text: "" } : previous)
+    }, 3000)
+    announcementTimers.current.add(timer)
   }, [])
   const setValue = React.useCallback(
-    (v: string) => {
+    (v: string, announceClosed = true) => {
       if (valueProp === undefined) setUncontrolledValue(v)
       onValueChange?.(v)
-      if (changeTarget.current?.contains(document.activeElement)) announce(v, false)
+      if (announceClosed && changeTarget.current?.contains(document.activeElement)) announce(v, false)
       // UI5 Select.js/_fireChangeEvent emits committed change independently of forms.
       // Bubble this semantic event so ToolbarItem can hear opaque function wrappers.
       changeTarget.current?.dispatchEvent(new Event("fiori-control-change", { bubbles: true }))
@@ -181,7 +190,7 @@ const SelectOpenContext = React.createContext<{
   open: boolean
   setOpen: (o: boolean) => void
   value: string | undefined
-  setValue: (v: string) => void
+  setValue: (v: string, announceClosed?: boolean) => void
   changeTarget: React.RefObject<HTMLDivElement | null>
   phone: boolean
   phoneListId: string
@@ -322,7 +331,8 @@ function SelectTrigger({
           if (!e.altKey && (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Home" || e.key === "End")) {
             e.preventDefault()
             const next = items.step(state.value, e.key)
-            if (next !== undefined && next !== state.value) state.setValue(next)
+            // Select.js/_handleHomeKey/_handleEndKey change selection silently.
+            if (next !== undefined && next !== state.value) state.setValue(next, e.key !== "Home" && e.key !== "End")
           }
         }}
         onKeyUp={(e) => {
