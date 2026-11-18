@@ -431,7 +431,7 @@ function I18nPage() {
     </FioriLocaleProvider>
     <section id="i18n-no-provider-match"><Select defaultValue="z"><SelectTrigger aria-label="Unlocalized matching"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">Äther</SelectItem><SelectItem value="z">Zulu</SelectItem></SelectContent></Select></section>
     <I18nValueHelpExample id="i18n-vhd-no-provider" title="Unlocalized value help" empty />
-    <Section title="Optional SAP language packs"><p>Translations are derived from UI5 Web Components 2.28.1 and OpenUI5 1.154.0, © SAP SE, Apache-2.0. Install only the packs your application needs.</p><div className="grid gap-2">{Object.keys(languagePacks).filter(path => !path.endsWith("registry-items.json")).sort().map(path => { const tag = path.split("/").at(-1)!.slice(0,-5); return <div key={tag}><code>{`npx shadcn add @fiori/i18n-${tag}`}</code></div> })}</div></Section>
+    <Section title="Optional SAP language packs"><p>Translations are derived from UI5 Web Components 2.28.1 and OpenUI5 1.154.0, © SAP SE, Apache-2.0. Install only the packs your application needs.</p><div className="grid gap-2">{Object.keys(languagePacks).filter(path => !path.endsWith("registry-items.json")).sort().map(path => { const tag = path.split("/").at(-1)!.slice(0,-5); return <div key={tag}><code>{`npx shadcn add @petalo/i18n-${tag}`}</code></div> })}</div></Section>
   </div>
 }
 
