@@ -5,13 +5,13 @@
     "react-dom"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/input",
-    "@fiori/f6-navigation",
-    "@fiori/use-is-phone",
-    "@fiori/responsive-popover",
-    "@fiori/button",
-    "@fiori/title"
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/f6-navigation",
+    "@petalo/use-is-phone",
+    "@petalo/responsive-popover",
+    "@petalo/button",
+    "@petalo/title"
   ],
   "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+↓ open).",
   "usage": {

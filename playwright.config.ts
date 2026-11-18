@@ -17,6 +17,13 @@ export default defineConfig({
     baseURL: `http://localhost:${port}`,
     viewport: { width: 1280, height: 900 },
     deviceScaleFactor: 1,
+    // Both sides of every pixel comparison render in this same Chromium, but on Linux it
+    // draws text with LCD subpixel antialiasing and hinting. Subpixel AA depends on whether
+    // a layer is opaque, so the same glyph gets coloured fringes on one page and greyscale
+    // on the other (2-11% "differing" pixels in CI), and hinting snaps line boxes so a
+    // 1px size mismatch appears. Greyscale, unhinted text is what macOS Chromium draws
+    // already, so these flags make Linux CI match local runs without touching tolerances.
+    launchOptions: { args: ["--disable-lcd-text", "--font-render-hinting=none"] },
   },
   webServer: [{
     command: `pnpm build && pnpm exec vite preview --port ${port} --strictPort`,

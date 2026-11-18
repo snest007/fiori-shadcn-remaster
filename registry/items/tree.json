@@ -2,8 +2,8 @@
   "title": "Tree",
   "dependencies": ["react-dom"],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/list"
+    "@petalo/icons",
+    "@petalo/list"
   ],
   "description": "Fiori tree: nested items with expand/collapse (→ / ←), indentation levels and the List selection modes.",
   "usage": {

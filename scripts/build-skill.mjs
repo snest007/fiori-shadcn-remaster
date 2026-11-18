@@ -14,9 +14,9 @@ for (const item of components) {
 }
 for (const name of categoryByName.keys()) if (!components.some((item) => item.name === name)) throw new Error(`${name}: unknown demo registry item`)
 const illustrations = JSON.parse(readFileSync(join(root, "registry/lib/fiori-illustrations/registry-items.json"), "utf8"))
-validateUsage([...components, ...blocks, ...illustrations, { name: "fiori" }, { name: "fiori-theme" }, iconsItem], componentOwners(root, [...components, ...blocks, iconsItem]))
+validateUsage([...components, ...blocks, ...illustrations, { name: "petalo" }, { name: "fiori-theme" }, iconsItem], componentOwners(root, [...components, ...blocks, iconsItem]))
 
-const install = (name) => `npx shadcn add @fiori/${name}`
+const install = (name) => `npx shadcn add @petalo/${name}`
 const cell = (value) => value.replace(/\|/g, "\\|").replace(/\n/g, " ")
 const summary = (item) => item.usage?.summary ?? item.description ?? item.title
 const table = (headings, rows) => ["| " + headings.join(" | ") + " |", "| " + headings.map(() => "---").join(" | ") + " |", ...rows.map((row) => "| " + row.map(cell).join(" | ") + " |")].join("\n")
@@ -38,7 +38,7 @@ function entry(item) {
   return sections.join("\n\n")
 }
 
-const output = join(root, "skills/shadcn-fiori")
+const output = join(root, "skills/petalo")
 const generated = new Map()
 const all = [...components, ...blocks].sort((a, b) => compare(a.name, b.name))
 for (const category of categories) {
@@ -67,7 +67,7 @@ if (/\{\{[A-Z_]+\}\}/.test(template)) throw new Error("Unresolved skill template
 const bytes = Buffer.byteLength(template, "utf8")
 if (bytes > 8000) throw new Error(`SKILL.md is ${bytes} bytes; maximum is 8000 bytes (8 KB)`)
 generated.set("SKILL.md", template)
-generated.set("NOTICE", "shadcn-fiori usage guidance\n\nGuidance adapted in original wording from SAP/ai-skills-library (Apache-2.0).\nSource: https://github.com/SAP/ai-skills-library/tree/cd0bb455ec68db3f83db94b200546618c32f8ab2/skills/sap-fiori-guidelines\nPinned commit: cd0bb455ec68db3f83db94b200546618c32f8ab2\nCopyright SAP SE and ai-skills-library contributors.\nThe adaptation describes the APIs available in this registry.\n")
+generated.set("NOTICE", "petalo usage guidance\n\nGuidance adapted in original wording from SAP/ai-skills-library (Apache-2.0).\nSource: https://github.com/SAP/ai-skills-library/tree/cd0bb455ec68db3f83db94b200546618c32f8ab2/skills/sap-fiori-guidelines\nPinned commit: cd0bb455ec68db3f83db94b200546618c32f8ab2\nCopyright SAP SE and ai-skills-library contributors.\nThe adaptation describes the APIs available in this registry.\n")
 
 // Remove obsolete generated outputs. evals/ is hand-written evidence, owned by the author,
 // and must survive every generation (including outputs and their first-attempt notes).
@@ -86,4 +86,4 @@ for (const [file, content] of generated) {
   mkdirSync(join(output, file, ".."), { recursive: true })
   writeFileSync(join(output, file), content)
 }
-console.log(`skills/shadcn-fiori written (${all.length} items, ${categories.length} references, SKILL.md ${bytes} bytes)`)
+console.log(`skills/petalo written (${all.length} items, ${categories.length} references, SKILL.md ${bytes} bytes)`)

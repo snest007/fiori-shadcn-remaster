@@ -4,8 +4,8 @@
     "radix-ui"
   ],
   "registryDependencies": [
-    "@fiori/icons",
-    "@fiori/button"
+    "@petalo/icons",
+    "@petalo/button"
   ],
   "description": "Fiori panel: expandable (animated) or fixed, header text or custom header.",
   "usage": {

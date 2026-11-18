@@ -1,6 +1,6 @@
 specVersion: "4.0"
 metadata:
-  name: shadcn-fiori.sapui5-reference
+  name: petalo.sapui5-reference
 type: application
 resources:
   configuration:

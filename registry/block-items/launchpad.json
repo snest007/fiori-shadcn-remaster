@@ -1,7 +1,7 @@
 {
   "title": "Launchpad",
   "description": "The App Shell block with a SideNavigation wired to its menu button and a page per navigation item.",
-  "registryDependencies": ["@fiori/app-shell", "@fiori/side-navigation", "@fiori/text", "@fiori/title", "@fiori/icons", "@fiori/f6-navigation"],
+  "registryDependencies": ["@petalo/app-shell", "@petalo/side-navigation", "@petalo/text", "@petalo/title", "@petalo/icons", "@petalo/f6-navigation"],
   "usage": {
     "summary": "Start an application-entry page from a shared shell, selected side navigation and replaceable page content.",
     "useWhen": [

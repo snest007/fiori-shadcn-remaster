@@ -8,13 +8,18 @@ listed in README "Not done yet". Each task is a self-contained card in `tasks/`.
 ```bash
 git switch main && git switch -c codex/<card-id>
 pnpm install --frozen-lockfile && pnpm generate
-# … implement the card …
+# … implement the card; use pnpm test:changed / affected test:summary specs while working …
 pnpm typecheck && pnpm registry:build
-PORT=4310 pnpm exec playwright test   # twice; 0 failed, 0 flaky
+PORT=4310 pnpm test:summary           # twice only at the end; 0 failed, 0 flaky
 git add -A && git commit -m "<card-id>: <summary>"
 ```
 
 Suggested prompt: `Read AGENTS.md, then implement docs/plan/tasks/<card-id>.md. Follow its acceptance checks exactly.`
+
+Follow [AGENTS.md](../../AGENTS.md) "Verification budget": at most 2 CI pushes when authorized, 2 local fix
+hypotheses per failing test, and about 2 hours. Stop, commit and write `returns/<card>.md` when a limit is reached.
+Keep logs on disk, print at most about 50 summary/failure lines, use `gh run watch` once without polling loops,
+and background long runs with one completion notification. Report CI rounds and full-suite run counts.
 
 One card per branch. Cards in the same wave touch disjoint files and can run in parallel (separate worktrees/branches);
 later waves depend on earlier ones.
@@ -24,7 +29,7 @@ integration) — [RUN.md](RUN.md): `Read AGENTS.md and docs/plan/RUN.md, then ru
 
 Or by hand: merging in a separate session with [INTEGRATION.md](INTEGRATION.md):
 `Read AGENTS.md and docs/plan/INTEGRATION.md, then integrate the pending codex/* branches.`
-It reviews scope and fidelity, merges, runs `node scripts/integrate.mjs verify` (3 full runs + smoke install),
+It reviews scope and fidelity, merges, runs `node scripts/integrate.mjs verify` (2 full runs + smoke install),
 cleans up and prints `.integration/REPORT.md` — paste that report to the owner/Claude for sign-off.
 
 Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
@@ -74,15 +79,16 @@ F1 and F2 can run in parallel after F0.
 
 - [x] [E1 Interaction-state visual fixtures](tasks/E1-interaction-fixtures.md) — M
 - [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
-- [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/fiori-shadcn-remaster, Pages; push only, no gh; run in the main checkout, not via RUN.md)
-- [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (rescoped 2026-11-17 after two returns: continue on `codex/E4`; see the card's addendum and `returns/E4.md`. After S0; before waves P and H)
-- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (rescoped 2026-11-17 after two returns: continue on `codex/E5`; see the card's addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
+- [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/petalo, Pages; push only, no gh; run in the main checkout, not via RUN.md)
+- [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (fourth attempt approved 2026-11-17: the five review findings + initial baselines, rule 11 exempt — `returns/E4.md` top section; retained on `codex/E4` — see the card's 2026-11-17 addendum and `returns/E4.md`. After S0; before waves P and H)
+- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt approved 2026-11-17: two Select/SegmentedButton findings + ratchet + acceptance, rule 11 exempt — `returns/E5.md` top section; retained on `codex/E5` — see the card's 2026-11-17 addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
+- [x] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/E6-verification-budget.md) — M (owner's decision 2026-11-18; **after PR snest007/petalo#3 is merged**; run before further cards so they inherit the budget; max 2 CI rounds, then stop and report) — done 2026-11-18: CI ≈10 min (was 32); the returned side-navigation flake was fixed on main by waiting for the collapse in the collapsed beforeEach ([E6 note](returns/E6.md))
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
 Source: SAP's design guidance as packaged in `SAP/ai-skills-library` (`sap-fiori-guidelines`, Apache-2.0), rewritten
 for this registry's components. One `usage` object per item JSON feeds the registry output, the docs pages and a
-generated agent skill `skills/shadcn-fiori/`. G0 first (pipeline + pilot); G1–G4 are content-only and run in parallel
+generated agent skill `skills/petalo/`. G0 first (pipeline + pilot); G1–G4 are content-only and run in parallel
 (each touches different item JSONs; regenerate `skills/` after merge); G5 last.
 
 - [x] [G0 Schema, pipeline, docs, skill generator + pilot](tasks/G0-usage-guidance-pipeline.md) — M
@@ -102,9 +108,9 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 
 - [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
 - [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
-- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (third attempt returned; retained on `codex/S2` — see `returns/S2.md`)
-- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (third attempt returned; retained on `codex/S3` — see `returns/S3.md`)
-- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (third attempt returned; retained on `codex/S4` — see `returns/S4.md`)
+- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S2.md` top section; retained on `codex/S2`)
+- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S3.md` top section; retained on `codex/S3`)
+- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S4.md` top section; retained on `codex/S4`)
 - [x] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/SX-storybook-landmarks.md) — S (unblocks S4)
 - [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
 
@@ -238,7 +244,7 @@ independently. H0 → H1–H5 remains serial.
 
 ## Wave H — issue #1: AnalyticalTable, Calendar extension points, missing components
 
-From [issue #1](https://github.com/snest007/fiori-shadcn-remaster/issues/1) (reporter azhu716). Principle agreed with
+From [issue #1](https://github.com/snest007/petalo/issues/1) (reporter azhu716). Principle agreed with
 them: **parity with the reference, plus extension points** — consumers customise through render slots, state, styling
 hooks and the table instance; we don't build bespoke features. Accessibility (rule 9) and localization (rule 10) in
 full. Components UI5 Web Components lacks are ported from **UI5 Web Components for React 2.28.2** (WCR), which H0 turns

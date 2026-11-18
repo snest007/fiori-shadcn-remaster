@@ -57,6 +57,21 @@ async function expectKeyUpDefault(page: Page, key: string, prevented: boolean) {
   })).toEqual({ key: key === "Space" ? " " : key.split("+").at(-1), defaultPrevented: prevented })
 }
 
+// Chromium on macOS treats Option+Tab as "Tab to links" and moves focus through the overflow
+// menu's outer href anchors; on Linux and Windows Alt+Tab has no in-page default, so focus stays
+// on the row. The component only stops UI5's handling and leaves the native default either way.
+const altTabMovesToLinks = process.platform === "darwin"
+
+// Focus the outer NavigationMenuItemTemplate.js href anchor of the Events row. On macOS reach it
+// through the native Option+Tab default; elsewhere no key reaches it, so focus it directly.
+async function focusOuterAnchor(page: Page, menu: Locator) {
+  const anchor = menu.locator("[data-sn-menu-link]")
+  if (altTabMovesToLinks) await page.keyboard.press("Alt+Tab")
+  else await anchor.focus()
+  await expect(anchor).toBeFocused()
+  return anchor
+}
+
 const ignoredNavigationModifiers = ["Shift", "Alt", "Control", "Meta", "Control+Meta", "Control+Shift"]
 const navigationKeyCases = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"]
 
@@ -168,6 +183,10 @@ test("item with href is a link and opens in a new tab", async ({ page }) => {
 test.describe("collapsed", () => {
   test.beforeEach(async ({ page }) => {
     await page.locator("#side-navigation-demo-toggle").click()
+    // side-navigation.css animates the collapse (width 0.3s). A click on More Items while it is still
+    // sliding in can hit the page instead and leave the overflow menu closed (seen in the E6 full run,
+    // and in f6-navigation.spec.ts). Start every collapsed test from the settled state.
+    await waitCollapsedNavigation(page)
   })
 
   test("is a vertical menubar of icon items", async ({ page }) => {
@@ -474,8 +493,8 @@ test.describe("collapsed", () => {
       await pressWithDefault(page, key, false)
       await expect(menu).toBeVisible()
       if (["Control+Tab", "Meta+Tab", "Control+Meta+Tab", "Meta+Shift+Tab"].includes(key)) await expect(events).toBeFocused()
-      if (key === "Alt+Tab") await expect(menu.locator("[data-sn-menu-link]")).toBeFocused()
-      if (key === "Alt+Shift+Tab") await expect(menuRow(menu, "Locations")).toBeFocused()
+      if (key === "Alt+Tab") await expect(altTabMovesToLinks ? menu.locator("[data-sn-menu-link]") : events).toBeFocused()
+      if (key === "Alt+Shift+Tab") await expect(altTabMovesToLinks ? menuRow(menu, "Locations") : events).toBeFocused()
     }
     await focusMenuRow(events)
     await pressWithDefault(page, "ArrowRight", false)
@@ -488,7 +507,7 @@ test.describe("collapsed", () => {
       await expect(submenu).toBeVisible()
       await expect(menu).toBeVisible()
       if (["Control+Tab", "Meta+Tab", "Control+Meta+Tab", "Meta+Shift+Tab"].includes(key)) await expect(local).toBeFocused()
-      if (["Alt+Tab", "Alt+Shift+Tab"].includes(key)) await expect(menuRow(submenu, "Events")).toBeFocused()
+      if (["Alt+Tab", "Alt+Shift+Tab"].includes(key)) await expect(altTabMovesToLinks ? menuRow(submenu, "Events") : local).toBeFocused()
     }
   })
 
@@ -800,9 +819,7 @@ test.describe("collapsed", () => {
         await expect(menuRow(menu, "Locations")).toBeFocused()
         await page.keyboard.press("ArrowDown")
         await focusMenuRow(menuRow(menu, "Events"))
-        await page.keyboard.press("Alt+Tab")
-        const anchor = menu.locator("[data-sn-menu-link]")
-        await expect(anchor).toBeFocused()
+        const anchor = await focusOuterAnchor(page, menu)
         await observeKeyboardDefaults(page)
         // Menu.js cancels plain Enter on the host, but neither outer-anchor key invokes
         // NavigationMenuItem.js's inner-LI activation or its cancellation callback.
@@ -844,8 +861,7 @@ test.describe("collapsed", () => {
       await expect(menuRow(menu, "Locations")).toBeFocused()
       await page.keyboard.press("ArrowDown")
       await focusMenuRow(menuRow(menu, "Events"))
-      await page.keyboard.press("Alt+Tab")
-      await expect(menu.locator("[data-sn-menu-link]")).toBeFocused()
+      await focusOuterAnchor(page, menu)
       await observeKeyboardDefaults(page)
       // Chromium's Shift+Enter navigation can request a separate window without a
       // context page event. Assert its actual native navigation request, as in UI5.

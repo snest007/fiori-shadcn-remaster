@@ -1,7 +1,7 @@
 {
   "title": "Flexible Column Layout",
   "description": "Fiori list-detail-detail layout with up to three columns, resizable separators, responsive column count and the useFlexibleColumnLayout navigation helper.",
-  "registryDependencies": ["@fiori/icons", "@fiori/button"],
+  "registryDependencies": ["@petalo/icons", "@petalo/button"],
   "usage": {
     "summary": "Show up to three related pages in responsive list, detail and sub-detail columns.",
     "useWhen": [

@@ -1,7 +1,7 @@
 {
   "title": "ColorPicker",
   "description": "Fiori color picker with hue, alpha, hexadecimal and RGB/HSL channel inputs.",
-  "registryDependencies": ["@fiori/button", "@fiori/input", "@fiori/label", "@fiori/slider", "@fiori/icons"],
+  "registryDependencies": ["@petalo/button", "@petalo/input", "@petalo/label", "@petalo/slider", "@petalo/icons"],
   "files": [{ "path": "registry/lib/fiori-color.ts", "type": "registry:lib" }],
   "usage": {
     "summary": "Choose an arbitrary color visually or enter its channel values.",

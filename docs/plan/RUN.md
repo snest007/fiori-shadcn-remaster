@@ -22,13 +22,20 @@ Only run cards in parallel if the backlog says they're independent (same wave, d
 `spawn_agent` with `agent_type: "worker"`, `fork_context: false`, and this message (fill in the values):
 
 ```text
-You implement ONE task card of the shadcn-fiori repo.
+You implement ONE task card of the petalo repo.
 Work ONLY in <path> (a git worktree on branch <branch>). First `cd "<path>"`; never cd into or edit any other
 checkout, never switch branches, never merge or push.
 Read <path>/AGENTS.md, then implement <path>/<card>. Follow its acceptance checks exactly.
 For Playwright always use PORT=<PORT> SAPUI5_PORT=<SAPUI5_PORT> (other agents use other ports).
 Commit your work on <branch> (small commits, messages ending with the Co-Authored-By line from AGENTS.md).
-Final message: changed files, the two full-suite summary lines, shared files touched and why, anything deferred.
+Use `pnpm test:changed` while working, the full suite twice only at the end (use `pnpm test:summary`).
+Follow AGENTS.md verification budget: at most 2 CI pushes (only if the card authorizes them), at most 2 local fix
+hypotheses per failing test, about 2 hours total. If a limit is reached, commit work in progress, write
+docs/plan/returns/<id>.md with failing tests, each round's change/reason, remaining hypotheses and next steps,
+then end the run. Never print whole logs: at most about 50 summary/failure lines. Use `gh run watch` once,
+then `gh run view --log-failed | grep` for failing tests only. Background long runs; notify only on completion.
+Final message: changed files, the two full-suite summary lines, CI round/full-suite run counts, shared files
+touched and why, anything deferred.
 ```
 
 Wait for all workers (`wait_agent`), then `close_agent` each. A worker that fails or stops early: read its last
@@ -41,7 +48,7 @@ The author can't review itself, so never reuse the worker. `spawn_agent` with `a
 commands), `fork_context: false`, message:
 
 ```text
-You review ONE finished task-card branch of the shadcn-fiori repo. Do NOT edit, commit, merge or switch branches.
+You review ONE finished task-card branch of the petalo repo. Do NOT edit, commit, merge or switch branches.
 Repo: <main checkout path>. Branch: <branch>. Card: <card>. Worktree with the code: <path>.
 Read AGENTS.md, then docs/plan/INTEGRATION.md section 1 ("Review each branch") and do exactly that for this branch:
 1. `node scripts/integrate.mjs scope <branch>` and judge every UNLISTED file (justified or not, why).
@@ -78,7 +85,7 @@ Follow `docs/plan/INTEGRATION.md` sections 2–4 for the cards whose verdict is 
 
 ```bash
 node scripts/integrate.mjs merge <branches in backlog order>   # add --accept-scope only for files a reviewer justified
-node scripts/integrate.mjs verify                               # 3 full runs, retries off, default workers, + smoke install
+node scripts/integrate.mjs verify                               # 2 full runs, retries off, default workers, + smoke install
 node scripts/integrate.mjs cleanup
 ```
 

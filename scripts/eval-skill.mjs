@@ -6,14 +6,14 @@ import { resolve, join } from "node:path"
 import { pathToFileURL } from "node:url"
 import { componentOwners, iconsItem, itemMetadata, validateUsage } from "./skill/usage.mjs"
 
-export function evaluateSkill(root = resolve("."), evalPath = join(root, "skills/shadcn-fiori/evals/evals.json")) {
+export function evaluateSkill(root = resolve("."), evalPath = join(root, "skills/petalo/evals/evals.json")) {
   const components = itemMetadata(join(root, "registry/items")).map((item) => ({ ...item, type: item.type ?? "registry:ui" }))
   const blocks = itemMetadata(join(root, "registry/block-items")).map((item) => ({ ...item, type: "registry:block" }))
   const assets = JSON.parse(readFileSync(join(root, "registry/lib/fiori-illustrations/registry-items.json"), "utf8"))
-  const items = [...components, ...blocks, ...assets, iconsItem, { name: "fiori" }, { name: "fiori-theme" }]
+  const items = [...components, ...blocks, ...assets, iconsItem, { name: "petalo" }, { name: "fiori-theme" }]
   validateUsage(items, componentOwners(root, [...components, ...blocks, iconsItem]), { requireUsage: true })
   const byName = new Map(items.map((item) => [item.name, item]))
-  const skill = readFileSync(join(root, "skills/shadcn-fiori/SKILL.md"), "utf8")
+  const skill = readFileSync(join(root, "skills/petalo/SKILL.md"), "utf8")
   const input = JSON.parse(readFileSync(evalPath, "utf8"))
   const cases = Array.isArray(input) ? input : input.evals
   if (!Array.isArray(cases) || !cases.length) throw new Error("evals.json must contain nonempty evals")

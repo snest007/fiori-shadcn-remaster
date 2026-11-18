@@ -361,7 +361,9 @@ test.describe("D1b phone native contracts", () => {
     })
     test(`${label} Menu phone Control click follows the platform's native button event`, async ({ page }) => {
       const holder = await visit(page, 'menu', native, '&two-trees')
-      const opener = holder.getByRole('button', { name: 'Open Second Menu', exact: true })
+      // Where Control+click is a click (not macOS), the React phone dialog opens modally and
+      // hides the rest of the page from the accessibility tree, the opener included.
+      const opener = holder.getByRole('button', { name: 'Open Second Menu', exact: true, includeHidden: true })
       await opener.evaluate((node: HTMLElement) => {
         node.dataset.gestureEvents = '[]'
         for (const type of ['click', 'contextmenu']) node.addEventListener(type, (event) => {
