@@ -142,3 +142,56 @@ for (const defect of defectCases) {
     } else expect(audit.known).toEqual([])
   })
 }
+
+test("S4 overflow portal region marker rejects foreign content and other story/rule contexts", async ({ page }, testInfo) => {
+  const story = "navigation-side-navigation--open"
+  await page.goto("/iframe.html?viewMode=story&id=" + story)
+  await expect(page.getByRole("menu", { name: "Additional Navigation Items", exact: true })).toBeVisible()
+  await waitForStoryFinished(page)
+  const context = { story, theme: "sap_horizon" }
+  const raw = (await axeViolations(page, context.theme)).filter(v => v.id === "region")
+  expect(raw).toHaveLength(1)
+  const initial = await classifyViolations(page, raw, context)
+  expect(initial.unexpected).toEqual([])
+  expect(initial.known.flatMap(v => v.nodes)).toHaveLength(1)
+  expect((await classifyViolations(page, raw, { ...context, story: "actions-button--playground" })).known).toEqual([])
+  expect((await classifyViolations(page, raw.map(v => ({ ...v, id: "s4-unapproved-rule" })), context)).known).toEqual([])
+  await page.evaluate(() => {
+    const foreign = document.createElement("p")
+    foreign.id = "s4-foreign-menu-region"
+    foreign.textContent = "Content outside the navigation menu"
+    document.body.append(foreign)
+  })
+  const audit = await classifyViolations(page, (await axeViolations(page, context.theme)).filter(v => v.id === "region"), context)
+  await attachAudit(testInfo, "s4-foreign-menu-region", audit)
+  expect(audit.known.flatMap(v => v.nodes)).toHaveLength(1)
+  expect(audit.unexpected.flatMap(v => v.nodes).some(node => JSON.stringify(node.target).includes("s4-foreign-menu-region"))).toBe(true)
+})
+
+test("S4 empty-title marker rejects an extra empty element inside the owned heading", async ({ page }, testInfo) => {
+  const story = "navigation-variant-management--empty-list"
+  await page.goto("/iframe.html?viewMode=story&id=" + story)
+  // The empty title has zero width; its attached heading remains axe-visible.
+  await expect(page.locator(".fiori-vm-title")).toBeAttached()
+  await waitForStoryFinished(page)
+  await page.locator(".fiori-vm-title").evaluate(node => node.append(document.createElement("span")))
+  const audit = await classifyViolations(page, (await axeViolations(page, "sap_horizon")).filter(v => v.id === "empty-heading"), { story, theme: "sap_horizon" })
+  await attachAudit(testInfo, "s4-extra-empty-title-element", audit)
+  expect(audit.known).toEqual([])
+  expect(audit.unexpected.flatMap(v => v.nodes)).toHaveLength(1)
+})
+
+test("S4 Tabs Open play leaves the real overflow list visible without console errors", async ({ page }) => {
+  const errors: string[] = []
+  page.on("pageerror", error => errors.push(error.message))
+  page.on("console", message => { if (message.type() === "error") errors.push(message.text()) })
+  await page.goto("/iframe.html?viewMode=story&id=navigation-tabs--open")
+  const canvas = page.locator('[data-fiori-story="navigation-tabs--open"]')
+  await expect(canvas.getByRole("button", { name: "More", exact: true })).toBeVisible()
+  await waitForStoryFinished(page)
+  await expect(canvas.getByRole("button", { name: "More", exact: true })).toHaveAttribute("aria-expanded", "true")
+  const overflow = page.getByRole("list", { name: "Hidden tabs", exact: true })
+  await expect(overflow).toBeVisible()
+  await expect(overflow.getByRole("listitem").first()).toBeVisible()
+  expect(errors).toEqual([])
+})

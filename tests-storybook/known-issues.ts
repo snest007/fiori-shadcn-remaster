@@ -88,24 +88,40 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             // SideNavigationItemTemplate labels only the text and describes the tag;
             // React and UI5 both omit the visible New tag from the default name.
             const items = [...canvas.querySelectorAll('[data-slot="side-navigation-item"][role="treeitem"]')]
-            const item = items.find(node => node.querySelector('.fiori-sn-item__text')?.textContent === 'Products')
+            const products = items.filter(node => node.querySelector('.fiori-sn-item__text')?.textContent === 'Products')
+            const item = products.length === 1 ? products[0] : null
             const text = item?.querySelector(':scope > .fiori-sn-item__text')
             const tag = item?.querySelector(':scope > .fiori-sn-item__tag')
+            // Tag owns a decorative icon, its hidden type text and visible label.
+            // The browser AX name is Products; its description is Tag New.
+            const badge = tag?.querySelector(':scope > [data-slot="tag"][data-design="neutral"][data-size="S"]')
+            const icon = badge?.querySelector(':scope > svg[data-slot="icon"][aria-hidden="true"][focusable="false"]')
+            const kind = badge?.querySelector(':scope > span.sr-only')
+            const label = badge?.querySelector(':scope > span.fiori-tag__text')
             return actual === item && !!item && visible(item) && item.getAttribute('data-level') === '1'
               && !!text && !!tag && item.getAttribute('aria-labelledby') === text.id
               && item.getAttribute('aria-describedby') === tag.id && !item.hasAttribute('aria-label')
-              && tag.textContent === 'New' && tag.children.length === 1 && tag.firstElementChild?.getAttribute('data-slot') === 'tag'
+              && tag.children.length === 1 && tag.firstElementChild === badge && !!badge && badge.children.length === 3
+              && !!icon && !!kind && kind.children.length === 0 && kind.textContent === 'Tag'
+              && !!label && label.children.length === 0 && label.textContent === 'New' && badge.textContent === 'TagNew'
+              && badge.querySelector('button,a,input,select,textarea,[tabindex],[role]') === null
               && item.querySelectorAll('.fiori-sn-item__tag').length === 1
           }
-          if (rule === "aria-required-children" && context.story === "navigation-side-navigation--open") {
+          if (["aria-required-children", "region"].includes(rule) && context.story === "navigation-side-navigation--open") {
             // React puts tabbable boundary dummies inside role=menu. UI5's
             // ListTemplate puts its dummies outside the menu UL; its own
             // aria-required-children finding concerns role=none item hosts.
             const trigger = unique('[data-slot="side-navigation-overflow"][role="menuitem"][aria-expanded="true"]')
             const menu = unique('[data-sn-overflow-menu][data-slot="menu-content"][role="menu"][aria-label="Additional Navigation Items"]', document)
+            // Axe also targets this menu's sole Radix positioning wrapper for
+            // region: its focusable role=none dummies are outside landmark content.
+            // Approve the wrapper only with the exact same owned menu structure.
+            const popper = unique('[data-radix-popper-content-wrapper]', document)
             const boundaries = menu ? [...menu.querySelectorAll('[data-sn-focus-boundary]')] : []
             const rows = menu ? [...menu.querySelectorAll('[data-sn-menu-row][role="menuitem"]')] : []
-            if (actual !== menu || !menu || !trigger || !visible(menu) || menu.getAttribute('aria-orientation') !== 'vertical'
+            if (actual !== (rule === 'region' ? popper : menu) || !menu || !trigger || !visible(menu) || menu.getAttribute('aria-orientation') !== 'vertical'
+              || !menu.id || trigger.getAttribute('aria-controls') !== menu.id
+              || !popper || popper.children.length !== 1 || popper.firstElementChild !== menu
               || boundaries.length !== 2 || rows.length === 0
               || boundaries.some(node => node.getAttribute('role') !== 'none' || node.getAttribute('tabindex') !== '0' || node.children.length !== 0 || node.textContent !== '')) return false
             return [...menu.querySelectorAll('button,a,input,select,textarea,[tabindex]')].every(node => boundaries.includes(node) || rows.includes(node))
@@ -116,12 +132,24 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             // text. The candidate keeps the trigger but omits an empty heading host.
             const root = unique('[data-slot="variant-management"]')
             const heading = root ? unique('.fiori-vm-title[data-slot="title"]', root) : null
+            // Title.tsx / UI5 TitleTemplate.js titleInner own exactly this empty
+            // truncation span. A foreign element or any added text is not approved.
+            const inner = heading?.querySelector(':scope > span.relative.inline-block.max-w-full.overflow-hidden.text-ellipsis')
             const trigger = root ? unique('.fiori-vm-trigger', root) : null
             const arrow = trigger ? unique('button.fiori-vm-arrow[aria-label="View ."]', trigger) : null
+            // The preview serializes only scalar args, so items=[] is absent.
+            // Verify the actual empty list body instead of an unavailable array.
+            const surface = unique('.fiori-vm-list', document)
+            const body = surface ? unique('.fiori-vm-list-body', surface) : null
+            const empty = body ? unique('.fiori-vm-empty[data-slot="illustrated-message"]', body) : null
             return actual === heading && !!heading && visible(heading) && heading.tagName === 'H2'
-              && heading.children.length === 0 && heading.textContent === '' && !!trigger && trigger.contains(heading) && !!arrow
+              && heading.childNodes.length === 1 && heading.firstChild === inner && !!inner && inner.childNodes.length === 0
+              && inner.getAttributeNames().length === 1 && inner.hasAttribute('class')
+              && heading.textContent === '' && !!trigger && trigger.contains(heading) && !!arrow
               && JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}').selectedKey === ''
-              && JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}').items?.length === 0
+              && JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}').defaultOpen === 'list'
+              && !!body && !!empty && body.children.length === 1 && body.firstElementChild === empty
+              && body.querySelector('[role="option"],[role="listbox"]') === null
           }
           const reportStory = ['floorplans-list-report--playground', 'floorplans-list-report--rtl'].includes(context.story)
           const objectStory = ['floorplans-object-page--playground', 'floorplans-object-page--rtl'].includes(context.story)

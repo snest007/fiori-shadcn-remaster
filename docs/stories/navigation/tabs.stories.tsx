@@ -47,7 +47,20 @@ export const OverflowIcons: Story = { decorators: narrow, args: { longList: true
 export const CustomOverflow: Story = { decorators: narrow, args: { longList: true, customOverflow: true, value: "t9" } }
 export const CustomStartAndEnd: Story = { decorators: narrow, args: { longList: true, customOverflow: true, overflowMode: "startAndEnd", value: "t5" } }
 export const CustomStartEmpty: Story = { decorators: narrow, args: { longList: true, customOverflow: true, overflowMode: "startAndEnd", value: "t0" } }
-export const Open: Story = { decorators: narrow, args: { longList: true }, parameters: { docs: { story: { inline: false, height: "420px" } } }, play: async ({ canvasElement }) => { const canvas = within(canvasElement); await waitFor(() => expect(canvas.getByRole("button", { name: "More" })).toBeVisible()); await userEvent.click(canvas.getByRole("button", { name: "More" })); await waitFor(() => expect(within(canvasElement.ownerDocument.body).getByRole("listbox", { name: "Hidden tabs" })).toBeVisible()) } }
+export const Open: Story = {
+  decorators: narrow, args: { longList: true },
+  parameters: { docs: { story: { inline: false, height: "420px" } } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const opener = await canvas.findByRole("button", { name: "More" })
+    await userEvent.click(opener)
+    await waitFor(() => expect(opener).toHaveAttribute("aria-expanded", "true"))
+    // TabContainerPopoverTemplate.js uses a single-selection List. The React
+    // port's List owns role=list, not listbox; wait for that real portal surface.
+    const overflow = await within(canvasElement.ownerDocument.body).findByRole("list", { name: "Hidden tabs" })
+    await expect(overflow).toBeVisible()
+  },
+}
 export const CustomTexts: Story = { decorators: narrow, args: { longList: true, moreText: "Other sections", overflowMenuTitle: "Order sections", overflowListAriaLabel: "Additional order sections" } }
 export const RTL: Story = { ...OverflowStartAndEnd, globals: { dir: "rtl" } }
 
