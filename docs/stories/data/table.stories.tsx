@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useRef as useStoryRef } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { Table, TableCell, TableGroupRow, TableHeaderCell, TableHeaderRow, TableRow, TableRowAction, TableRowActionNavigation, type TableProps, type TableRowHighlight } from "@/components/ui/table"
 import { Toolbar, ToolbarButton, ToolbarSpacer } from "@/components/ui/toolbar"
@@ -45,7 +45,8 @@ const meta = {
   },
   render: function ProductsTable(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const lastProductNumber = React.useRef(products.length)
+    // useArgs and this render's state share Storybook's hook context.
+    const lastProductNumber = useStoryRef(products.length)
     const { items, interactiveRows, withActions, groupRows, showHighlights, movable, stickyHeader, sorted, onAction, ...props } = args
     const highlights: TableRowHighlight[] = ["negative", "critical", "positive", "information"]
     const row = (product: Product, index: number) => <TableRow key={product.id} rowKey={product.id} interactive={interactiveRows} movable={movable} navigated={withActions && index === 1} highlight={showHighlights ? highlights[index % highlights.length] : undefined} actions={withActions ? <><TableRowAction icon={edit} text={`Edit ${product.name}`} onClick={() => onAction?.("Edit", product.id)} /><TableRowAction icon={deleteIcon} text={`Delete ${product.name}`} onClick={() => { onAction?.("Delete", product.id); updateArgs({ items: items.filter((item) => item.id !== product.id) }) }} /><TableRowActionNavigation interactive text={`Open ${product.name}`} onClick={() => onAction?.("Open", product.id)} /></> : undefined}>

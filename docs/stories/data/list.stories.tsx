@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useRef as useStoryRef } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { List, ListItemCustom, ListItemGroup, ListItemStandard, type ListProps, type ListItemStandardProps } from "@/components/ui/list"
 import { Avatar } from "@/components/ui/avatar"
@@ -38,7 +38,8 @@ const meta = {
   },
   render: function ProductList(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const lastProductNumber = React.useRef(fruits.length)
+    // useArgs and this render's state share Storybook's hook context.
+    const lastProductNumber = useStoryRef(fruits.length)
     const { items, customItems, grouped, onDetail, ...props } = args
     const row = (item: Item) => customItems ? <ListItemCustom key={item.value} value={item.value} type={item.type} disabled={item.disabled} highlight={item.highlight}><div className="flex w-full items-center justify-between gap-2"><span>{item.text}</span><Button onClick={() => onDetail?.(item.value)} aria-label={`Edit ${item.text}`}>Edit</Button></div></ListItemCustom> : <ListItemStandard key={item.value} {...item} onDetailClick={() => onDetail?.(item.value)} />
     return <List {...props} onValueChange={(value, detail) => { args.onValueChange?.(value, detail); updateArgs({ value }) }} onItemDelete={(value) => { args.onItemDelete?.(value); updateArgs({ items: items.filter((item) => item.value !== value) }) }} onLoadMore={() => { args.onLoadMore?.()
