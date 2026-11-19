@@ -77,7 +77,7 @@ jobs:
           # The Noble image defaults monospace to WenQuanYi; ubuntu-latest uses DejaVu Sans Mono.
           # This changes the existing delayed-font wrapping test. Restore only that font, without apt.
           # Keep this checksum-pinned extraction identical to scripts/ci-local.sh.
-          curl -fsSL https://archive.ubuntu.com/ubuntu/pool/main/f/fonts-dejavu/fonts-dejavu-mono_2.37-8_all.deb -o /tmp/dejavu-mono.deb
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 https://archive.ubuntu.com/ubuntu/pool/main/f/fonts-dejavu/fonts-dejavu-mono_2.37-8_all.deb -o /tmp/dejavu-mono.deb
           echo '8a599d6553307db7ecb795d2f0e5a301e03234afc75c7358b0ba43466454c89a  /tmp/dejavu-mono.deb' | sha256sum -c -
           dpkg-deb -x /tmp/dejavu-mono.deb /
           fc-cache -f
