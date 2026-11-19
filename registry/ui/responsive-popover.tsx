@@ -43,6 +43,7 @@ function ResponsivePopoverAnchor({ children, asChild, ref, ...props }: React.Com
   const Host = asChild ? Slot.Root : "div"
   return <Host {...props} ref={ownerRef} style={asChild ? props.style : { ...props.style, display: "contents" }}>{children}</Host>
 }
+/** @accessibility The desktop popover and phone dialog require headerText or aria-label on the surface. The phone close button uses closeLabel. Tab stays in the phone dialog, Escape closes it, and focus returns to the opener unless preventFocusRestore is set. */
 type ResponsivePopoverContentProps = PopoverContentProps & {
   /** Phone title; callers with a custom header still get an accessible dialog title. */
   headerText?: string

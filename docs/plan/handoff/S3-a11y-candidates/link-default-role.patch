@@ -1,0 +1,13 @@
+diff --git a/registry/ui/link.tsx b/registry/ui/link.tsx
+--- a/registry/ui/link.tsx
++++ b/registry/ui/link.tsx
+@@ -55,6 +55,9 @@ function Link({
+       data-design={design}
+       data-wrapping={wrappingType}
+       data-interactive-area={interactiveAreaSize}
++      // UI5 LinkTemplate.js always emits effectiveAccRole, including without href.
++      // Native role in props can select "button" for action-only links, as UI5 recommends.
++      role="link"
+       href={disabled ? undefined : href}
+       tabIndex={disabled ? -1 : (tabIndex ?? 0)}
+       aria-disabled={disabled || undefined}

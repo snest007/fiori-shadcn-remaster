@@ -19,6 +19,7 @@ const defaultStateText: Partial<Record<TagDesign, string>> = {
   information: "Information",
 }
 
+/** @accessibility tagText describes a non-interactive tag. Interactive tags are buttons named by children, with roleDescription as aria-roledescription; Enter/Space activate. Icon-only interactive tags need aria-label. */
 type TagProps = Omit<React.ComponentProps<"div">, "children"> & {
   design?: TagDesign
   /** For set1 / set2: which of SAP's 10 indication colours. Default 1. */

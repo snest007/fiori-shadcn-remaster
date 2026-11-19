@@ -73,6 +73,7 @@ const defaultTexts: ViewSettingsTexts = {
   back: "Back",
 }
 
+/** @accessibility texts.title names the dialog; texts names mode buttons, lists, order choices, reset and footer actions. Each list is one Tab stop: Arrow Up/Down and Home/End move, Enter/Space select. Escape cancels staged changes and returns focus to DialogTrigger. */
 type ViewSettingsDialogProps = {
   open?: boolean
   defaultOpen?: boolean

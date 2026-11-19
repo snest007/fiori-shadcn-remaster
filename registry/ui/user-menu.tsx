@@ -52,6 +52,7 @@ const defaultTexts: UserMenuTexts = {
 
 const MenuContext = React.createContext<{ activate: (value: string | undefined, onSelect?: (e: { preventDefault: () => void }) => void) => void } | null>(null)
 
+/** @accessibility The account title and texts.accessibleName name the popup. The menu owns named items and roving focus; Arrow Up/Down and Home/End move, Enter/Space activate, Tab cycles, and Escape restores focus to opener. texts names the account bar, actions, manage-account and sign-out controls. */
 type UserMenuProps = Omit<React.ComponentProps<typeof PopoverContent>, "title"> & {
   open?: boolean
   onOpenChange?: (open: boolean) => void
