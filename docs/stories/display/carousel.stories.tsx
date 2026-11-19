@@ -1,6 +1,5 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { Carousel, type CarouselProps } from "@/components/ui/carousel"
 import { Button } from "@/components/ui/button"
@@ -45,9 +44,12 @@ const meta = {
   args: { accessibleName: "Products", pageIndex: 0, count: 5, cyclic: false, itemsPerPage: "S1 M1 L1 XL1", hideNavigationArrows: false, hidePageIndicator: false, pageIndicatorType: "Default", arrowsPlacement: "Content", backgroundDesign: "Translucent", pageIndicatorBackgroundDesign: "Solid", pageIndicatorBorderDesign: "Solid", multipleWidth: false, actions: false, onNavigate: fn() },
   argTypes: { ...base.argTypes, pageIndex: { control: "number" }, count: { control: "number" }, cyclic: { control: "boolean" }, itemsPerPage: { control: "text" }, hideNavigationArrows: { control: "boolean" }, hidePageIndicator: { control: "boolean" }, pageIndicatorType: { control: "inline-radio", options: ["Default", "Numeric"] }, arrowsPlacement: { control: "inline-radio", options: ["Content", "Navigation"] }, backgroundDesign: { control: "select", options: ["Translucent", "Solid", "Transparent"] }, pageIndicatorBackgroundDesign: { control: "select", options: ["Translucent", "Solid", "Transparent"] }, pageIndicatorBorderDesign: { control: "inline-radio", options: ["Solid", "None"] }, accessibleName: { control: "text" }, ofText: { control: "text" }, previousPageText: { control: "text" }, nextPageText: { control: "text" }, roleDescription: { control: "text" }, listLabel: { control: "text" }, multipleWidth: { control: "boolean" }, actions: { control: "boolean" }, onNavigate: { control: false } },
   render: function ProductCarousel(args: Args) {
-    const [, updateArgs] = useArgs<Args>()
+    // Keep navigation in React's event batch: Carousel.changeFocus must reveal
+    // the next item before its layout effect focuses it. useArgs updates later.
+    const [pageIndex, setPageIndex] = React.useState(args.pageIndex ?? 0)
+    React.useEffect(() => setPageIndex(args.pageIndex ?? 0), [args.pageIndex])
     const { count, multipleWidth, actions, ...props } = args
-    return <div className={multipleWidth ? "max-w-3xl" : "max-w-sm"}><Carousel {...props} onNavigate={(pageIndex) => { args.onNavigate?.(pageIndex); updateArgs({ pageIndex }) }}>{Array.from({ length: Math.max(0, count) }, (_, index) => <div key={index} className="flex h-32 w-full items-center justify-center bg-(--sapNeutralBackground) text-(--sapTextColor)">{actions ? <Button onClick={fn()}>View product {index + 1}</Button> : `Product ${index + 1}`}</div>)}</Carousel><output>Page index: {args.pageIndex}</output></div>
+    return <div className={multipleWidth ? "max-w-3xl" : "max-w-sm"}><Carousel {...props} pageIndex={pageIndex} onNavigate={(pageIndex) => { args.onNavigate?.(pageIndex); setPageIndex(pageIndex) }}>{Array.from({ length: Math.max(0, count) }, (_, index) => <div key={index} className="flex h-32 w-full items-center justify-center bg-(--sapNeutralBackground) text-(--sapTextColor)">{actions ? <Button onClick={fn()}>View product {index + 1}</Button> : `Product ${index + 1}`}</div>)}</Carousel><output>Page index: {pageIndex}</output></div>
   },
 } satisfies Meta<Args>
 export default meta

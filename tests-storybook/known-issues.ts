@@ -462,6 +462,25 @@ export async function classifyS1PointerFocus(page: Page, context: { story: strin
 // marker to the independent name assertion. Keep S0/S1 and the axe classifier
 // unchanged; a Locator supplies the actual checked node, never a caller selector.
 export const s3ComponentDefect = "component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates"
+// S3
+// component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
+// P5: the ordinary action-link demo has the same missing default role. UI5
+// LinkTemplate.js always emits effectiveAccRole, even when href is absent.
+export async function classifyS3NoHrefActionLink(control: Locator, context: AuditContext) {
+  if (context.primary || !["display-link--playground", "display-link--rtl"].includes(context.story) || !["sap_horizon", "sap_horizon_hcb"].includes(context.theme)) return false
+  return control.evaluate((actual, context) => {
+    if (document.documentElement.dataset.theme !== context.theme) return false
+    const scope = document.querySelector(context.primary ? "#storybook-docs [data-fiori-primary]" : "#storybook-root")
+    const canvases = scope?.querySelectorAll('[data-fiori-story="' + context.story + '"]')
+    if (canvases?.length !== 1) return false
+    const links = canvases[0].querySelectorAll('a[data-slot="link"].fiori-link')
+    return links.length === 1 && links[0] === actual && (actual as HTMLElement).checkVisibility()
+      && !actual.hasAttribute("href") && !actual.hasAttribute("role")
+      && actual.getAttribute("tabindex") === "0" && !actual.hasAttribute("aria-disabled")
+      && actual.querySelector(':scope > .fiori-link__text')?.textContent?.trim() === "View purchase order"
+      && !actual.hasAttribute("aria-label") && !actual.hasAttribute("aria-labelledby")
+  }, context)
+}
 export async function classifyS3UnnamedModeControl(control: Locator, context: AuditContext) {
   if (context.story === "overlays-view-settings-dialog--playground") return classifyS3UnnamedPlaygroundModeControl(control, context)
   return control.evaluate((actual, context) => {

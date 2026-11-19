@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { MediaGallery, MediaGalleryItem, type MediaGalleryProps } from "@/components/ui/media-gallery"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,10 @@ import { fioriMeta } from "../_lib/meta"
 
 // Local illustration content avoids network requests while retaining intrinsic image ratios.
 function picture(index: number, thumbnail = false) {
-  return "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${thumbnail ? 120 : 320}" height="${thumbnail ? 120 : 240}" viewBox="0 0 320 240"><circle cx="${80 + index * 15}" cy="70" r="30" fill="currentColor"/><path d="M0 240 100 100 175 170 235 115 320 240Z" fill="currentColor"/></svg>`)
+  // A data-URL SVG cannot inherit the image element's currentColor. Resolve the
+  // SAP token when rendering so the sample pictures remain visible in HCB too.
+  const foreground = typeof document === "undefined" ? "currentColor" : getComputedStyle(document.documentElement).getPropertyValue("--sapTextColor").trim() || "currentColor"
+  return "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${thumbnail ? 120 : 320}" height="${thumbnail ? 120 : 240}" viewBox="0 0 320 240"><circle cx="${80 + index * 15}" cy="70" r="30" fill="${foreground}"/><path d="M0 240 100 100 175 170 235 115 320 240Z" fill="${foreground}"/></svg>`)
 }
 const failedPicture = "data:image/png;base64,bm90LWEtcGljdHVyZQ=="
 type Args = MediaGalleryProps & { count: number; selectedIndex: number; disabledIndex: number; hiddenIndex: number; itemLayout: "Square" | "Wide"; thumbnails: boolean; video: boolean; width: number; height: number; contentless: boolean; siblingSlot: "none" | "content" | "thumbnail"; recoverySlot: "none" | "content" | "thumbnail"; removeFailure: boolean; mixedLayout: boolean }
@@ -53,8 +56,8 @@ const meta = {
   argTypes: { ...base.argTypes, accessibleName: { control: "text" }, layout: { control: "select", options: ["Auto", "Horizontal", "Vertical"] }, menuHorizontalAlign: { control: "inline-radio", options: ["Left", "Right"] }, menuVerticalAlign: { control: "inline-radio", options: ["Top", "Bottom"] }, showAllThumbnails: { control: "boolean" }, interactiveDisplayArea: { control: "boolean" }, count: { control: "number" }, selectedIndex: { control: "number" }, disabledIndex: { control: "number" }, hiddenIndex: { control: "number" }, itemLayout: { control: "inline-radio", options: ["Square", "Wide"] }, thumbnails: { control: "boolean" }, video: { control: "boolean" }, width: { control: "number" }, height: { control: "number" }, contentless: { control: "boolean" }, siblingSlot: { control: "select", options: ["none", "content", "thumbnail"] }, recoverySlot: { control: "select", options: ["none", "content", "thumbnail"] }, removeFailure: { control: "boolean" }, mixedLayout: { control: "boolean" }, carouselProps: { control: "object" }, overflowText: { control: false }, onSelectionChange: { control: false }, onOverflowClick: { control: false }, onDisplayAreaClick: { control: false } },
   render: function ProductMedia(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const [last, setLast] = React.useState("No media action")
-    const [removed, setRemoved] = React.useState(false)
+    const [last, setLast] = useState("No media action")
+    const [removed, setRemoved] = useState(false)
     const { count, selectedIndex, disabledIndex, hiddenIndex, itemLayout, thumbnails, video, width, height, contentless, siblingSlot, recoverySlot, removeFailure, mixedLayout, ...props } = args
     const recovery = <img src={failedPicture} alt="Unavailable media preview" onError={() => { if (removeFailure) setRemoved(true) }} />
     return <div className="grid gap-3"><MediaGallery {...props} style={{ width, height }} className="max-w-full" onSelectionChange={(item) => { args.onSelectionChange?.(item); setLast(item.id); updateArgs({ selectedIndex: Number(item.dataset.index) }) }} onOverflowClick={() => { args.onOverflowClick?.(); setLast("More pictures requested") }} onDisplayAreaClick={() => { args.onDisplayAreaClick?.(); setLast("Displayed picture activated") }}>{Array.from({ length: Math.max(0, count) }, (_, index) => <MediaGalleryItem key={index} id={`product-media-${index}`} data-index={index} selected={index === selectedIndex} disabled={index === disabledIndex} hidden={index === hiddenIndex} layout={mixedLayout ? index === 1 ? "Wide" : "Square" : itemLayout} aria-label={contentless && index === 1 ? "Empty product picture" : recoverySlot !== "none" && index === 1 ? "Media recovery example" : undefined} thumbnail={index === 1 && recoverySlot === "thumbnail" ? removed ? undefined : recovery : siblingSlot === "thumbnail" ? <><img src={picture(index, true)} alt={`Product thumbnail ${index + 1}`} /><img src={picture(index + 1, true)} alt={`Later thumbnail ${index + 1}`} /></> : thumbnails ? <img src={picture(index, true)} alt={`Product thumbnail ${index + 1}`} /> : undefined}>{contentless && index === 1 ? undefined : index === 1 && recoverySlot === "content" ? removed ? undefined : recovery : video ? <video preload="none" poster={picture(index)} aria-label={`Product video ${index + 1}`} /> : <img src={picture(index)} alt={`Product picture ${index + 1}`} />}{siblingSlot === "content" && <video preload="none" poster={picture(index + 1)} aria-label={`Later product video ${index + 1}`} />}</MediaGalleryItem>)}</MediaGallery><div className="flex flex-wrap gap-2"><Button onClick={() => updateArgs({ count: 0 })}>Clear pictures</Button><Button onClick={() => updateArgs({ count: 4, selectedIndex: 0 })}>Restore pictures</Button>{recoverySlot !== "none" && <Button onClick={() => setRemoved((value) => !value)}>{removed ? "Restore preview" : "Remove preview"}</Button>}</div><output>{last}</output></div>

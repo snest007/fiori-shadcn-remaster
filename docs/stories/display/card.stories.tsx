@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Text } from "@/components/ui/text"
+import { Title, type TitleLevel } from "@/components/ui/title"
 import { calendar, overflow } from "@/lib/fiori-icons"
 import { DocsPage } from "../_lib/DocsPage"
 import { fioriMeta } from "../_lib/meta"
@@ -28,6 +29,9 @@ const textDefaults = [
 ]
 
 const base = fioriMeta({ name: "card", component: Card })
+// UI5 CardHeaderTemplate owns its heading; the application supplies the ancestor
+// hierarchy when the live titleLevel Control selects a deeper heading.
+const headingContext = ["Sales performance", "Regional overview", "Quarterly results", "Market totals", "Revenue details"]
 const meta = {
   ...base,
   parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
@@ -36,7 +40,7 @@ const meta = {
   render: function SalesCard(args: Args) {
     const [opened, setOpened] = React.useState(0)
     const { titleText, subtitleText, additionalText, interactive, titleLevel, roleDescription, avatarKind, action, showHeader, showContent, onHeaderClick, ...props } = args
-    return <Card {...props} className="w-80 max-w-full">{showHeader && <CardHeader titleText={titleText} subtitleText={subtitleText} additionalText={additionalText} interactive={interactive} titleLevel={titleLevel} roleDescription={roleDescription} avatar={avatarKind === "avatar" ? <Avatar initials="QS" accessibleName="Quarterly sales" /> : avatarKind === "icon" ? <Icon icon={calendar} /> : undefined} action={action ? <Button variant="transparent" size="icon" aria-label="More sales actions" onClick={fn()}><Icon icon={overflow} /></Button> : undefined} onClick={(event) => { onHeaderClick?.(event); setOpened((value) => value + 1) }} />}{showContent && <CardContent className="px-4 pb-4"><Text>Revenue grew compared with the previous quarter.</Text>{interactive && <output> Opened {opened} times</output>}</CardContent>}</Card>
+    return <div className="grid gap-2">{showHeader && headingContext.slice(0, (titleLevel ?? 3) - 1).map((text, index) => <Title key={text} level={("H" + (index + 1)) as TitleLevel}>{text}</Title>)}<Card {...props} className="w-80 max-w-full">{showHeader && <CardHeader titleText={titleText} subtitleText={subtitleText} additionalText={additionalText} interactive={interactive} titleLevel={titleLevel} roleDescription={roleDescription} avatar={avatarKind === "avatar" ? <Avatar initials="QS" accessibleName="Quarterly sales" /> : avatarKind === "icon" ? <Icon icon={calendar} /> : undefined} action={action ? <Button variant="transparent" size="icon" aria-label="More sales actions" onClick={fn()}><Icon icon={overflow} /></Button> : undefined} onClick={(event) => { onHeaderClick?.(event); setOpened((value) => value + 1) }} />}{showContent && <CardContent className="px-4 pb-4"><Text>Revenue grew compared with the previous quarter.</Text>{interactive && <output> Opened {opened} times</output>}</CardContent>}</Card></div>
   },
 } satisfies Meta<Args>
 export default meta

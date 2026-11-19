@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import { fn } from "storybook/test"
 import { IllustratedMessage, type IllustratedMessageProps } from "@/components/ui/illustrated-message"
 import { Button } from "@/components/ui/button"
+import { Title, type TitleLevel } from "@/components/ui/title"
 import type { IllustrationData } from "@/lib/fiori-illustrations/types"
 import { DocsPage } from "../_lib/DocsPage"
 import { fioriMeta } from "../_lib/meta"
@@ -35,6 +36,9 @@ const textDefaults = [
 ]
 
 const base = fioriMeta({ name: "illustrated-message", component: IllustratedMessage })
+// The application owns the hierarchy around IllustratedMessage's title, including
+// deeper titleLevel values selected through the live Controls.
+const headingContext = ["Purchasing", "Orders", "Supplier deliveries", "This week", "Main warehouse"]
 const meta = {
   ...base,
   parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
@@ -43,7 +47,7 @@ const meta = {
   render: function IllustratedState(args: Args) {
     const [attempts, setAttempts] = React.useState(0)
     const { illustrationName, actions, width, onAction, ...props } = args
-    return <div style={{ width }} className="max-w-full"><IllustratedMessage {...props} illustration={illustrations[illustrationName]}>{actions && <Button variant="emphasized" onClick={() => { onAction(); setAttempts((value) => value + 1) }}>Continue</Button>}</IllustratedMessage>{actions && <output>Continued {attempts} times</output>}</div>
+    return <div style={{ width }} className="grid max-w-full gap-2">{props.titleText !== null && headingContext.slice(0, Number((props.titleLevel ?? "H2").slice(1)) - 1).map((text, index) => <Title key={text} level={("H" + (index + 1)) as TitleLevel}>{text}</Title>)}<IllustratedMessage {...props} illustration={illustrations[illustrationName] ?? illustrations.NoData}>{actions && <Button variant="emphasized" onClick={() => { onAction(); setAttempts((value) => value + 1) }}>Continue</Button>}</IllustratedMessage>{actions && <output>Continued {attempts} times</output>}</div>
   },
 } satisfies Meta<Args>
 export default meta
