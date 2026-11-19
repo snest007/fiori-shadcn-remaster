@@ -83,6 +83,7 @@ F1 and F2 can run in parallel after F0.
 - [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (fourth attempt approved 2026-11-17: the five review findings + initial baselines, rule 11 exempt — `returns/E4.md` top section; retained on `codex/E4` — see the card's 2026-11-17 addendum and `returns/E4.md`. After S0; before waves P and H)
 - [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt approved 2026-11-17: two Select/SegmentedButton findings + ratchet + acceptance, rule 11 exempt — `returns/E5.md` top section; retained on `codex/E5` — see the card's 2026-11-17 addendum and `returns/E5.md`. Parallel to E4; before waves P and H)
 - [x] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/E6-verification-budget.md) — M (owner's decision 2026-11-18; **after PR snest007/petalo#3 is merged**; run before further cards so they inherit the budget; max 2 CI rounds, then stop and report) — done 2026-11-18: CI ≈10 min (was 32); the returned side-navigation flake was fixed on main by waiting for the collapse in the collapsed beforeEach ([E6 note](returns/E6.md))
+- [x] [E7 CI back under 12 minutes: Playwright container or cached system packages, time-based shards, timing warning](tasks/E7-ci-speed.md) — S (owner's decision 2026-11-19; any time, parallel to S2; max 2 CI rounds on its own branch)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
@@ -109,8 +110,9 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 - [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
 - [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
 - [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S2.md` top section; retained on `codex/S2`)
-- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S3.md` top section; retained on `codex/S3`)
-- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S4.md` top section; retained on `codex/S4`)
+- [x] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (done 2026-11-19 after six attempts; the shared Dialog story lookup in `pilots.spec.ts` / `docs.spec.ts` was pinned on main at merge)
+- [x] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (accepted through S4b on 2026-11-19; retained on `codex/S4` for owner review)
+- [x] [S4b Finish S4: the last 11 Storybook failures + acceptance](tasks/S4b-finish-s4-failures.md) — S (accepted 2026-11-19; Storybook and main each pass twice; no push or merge)
 - [x] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/SX-storybook-landmarks.md) — S (unblocks S4)
 - [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
 

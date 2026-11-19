@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useEffect, useRef } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { ColorPicker, type ColorPickerProps } from "@/components/ui/color-picker"
 import { ColorPalette, ColorPaletteItem } from "@/components/ui/color-palette"
@@ -145,16 +145,16 @@ const meta = {
   argTypes: { ...base.argTypes, value: { control: "text" }, simplified: { control: "boolean" }, accessibleName: { control: "text" }, texts: { control: "object" }, initialMode: { control: "select", options: ["rgb", "hsl"], description: "Initial channel mode for this example; the component's own toggle remains live." }, invalidHex: { control: false }, onValueChange: { control: false } },
   render: function ChartColorPicker(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const ref = React.useRef<HTMLDivElement>(null)
+    const ref = useRef<HTMLDivElement | null>(null)
     const { initialMode, invalidHex, ...props } = args
-    React.useEffect(() => {
+    useEffect(() => {
       const root = ref.current
       if (!root) return
       const toggle = root.querySelector<HTMLButtonElement>(".fiori-color-picker__toggle")
       const hueChannel = root.querySelector<HTMLInputElement>('input[aria-label="Hue"]')
       if (toggle && ((initialMode === "hsl") !== !!hueChannel)) toggle.click()
     }, [initialMode])
-    React.useEffect(() => {
+    useEffect(() => {
       const input = ref.current?.querySelector<HTMLInputElement>(".fiori-color-picker__hex input")
       if (!invalidHex || !input) return
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(input, "nothex")

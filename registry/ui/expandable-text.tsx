@@ -14,6 +14,7 @@ import { Popover, PopoverBody, PopoverContent, PopoverFooter, PopoverTrigger } f
 // full text in a popover with a Close button (focus returns to the link). The link is role="button"
 // with aria-expanded. Not implemented: UI5's full-screen dialog on phones (the popover is used there).
 
+/** @accessibility The Show More/Show Less link is a button with aria-expanded. Enter/Space toggles it; Popover mode adds descriptions from showFullTextLabel and closePopoverLabel, and its Close action restores focus. emptyIndicatorLabel names an empty value. */
 type ExpandableTextProps = React.ComponentProps<"div"> & {
   text?: string
   /** Characters shown while collapsed (default 100). */

@@ -113,6 +113,7 @@ const defaultTexts: ValueHelpTexts = {
   noData: "No data",
 }
 
+/** @accessibility title names the dialog. texts names search, conditions, selection and token-removal controls; operatorTexts names operators. Arrow Up/Down and Home/End move result-row focus; Space toggles multiple selection, Enter/Space confirms single selection, and Escape cancels and restores focus. */
 type ValueHelpDialogProps = {
   open?: boolean
   defaultOpen?: boolean

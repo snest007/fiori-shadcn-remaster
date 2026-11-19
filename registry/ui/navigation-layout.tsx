@@ -34,6 +34,9 @@ function useSmallScreen() {
   )
 }
 
+/**
+ * @accessibility Name the supplied SideNavigation and every header action. The layout connects collapsed navigation state and small-screen automatic collapse; it adds no keyboard model of its own. Its aside becomes inert when hidden on a small screen.
+ */
 type NavigationLayoutProps = React.ComponentProps<"div"> & {
   /** "auto" (default) collapses the side navigation on small screens; "collapsed" / "expanded" force a state. */
   mode?: NavigationLayoutMode

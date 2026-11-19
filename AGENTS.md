@@ -149,12 +149,23 @@ These hard limits apply to every card and every agent (Codex and Claude).
    visual fixtures. Run the full suite twice only at the end, for the definition of done. Shared files make
    `test:changed` say "run the full suite" and exit non-zero; choose affected tooling checks during implementation.
    A component without its own spec runs only its visual fixtures and prints a notice.
+   When a card adds many tests, check the CI timing warning and add a shard in the same card.
 4. **Compact output.** Never print a whole Playwright or CI log into the conversation. Use `pnpm test:summary`
    or grep for summary and failing lines, at most about 50 lines. For CI, use `gh run watch` once (no polling loops),
    then `gh run view --log-failed | grep` for the failing tests only. Full logs stay on disk.
 5. **Long runs go in the background** with a single completion notification. Don't check on them in between.
 6. **Time box:** if a task has used about 2 h of wall-clock time, or its own stated round limit, stop and report,
    even if the round limits above aren't reached yet.
+7. **Browsers stay out of the owner's way** (owner's decision, 2026-11-18). The owner works on the same machine;
+   a browser window that appears in front, takes focus or stays open interrupts their other tasks.
+   - Playwright tests, probes and evidence scripts run **headless** (the config default). Never pass `--headed`,
+     `--ui`, `--debug`, `headless: false`, `page.pause()` or `slowMo`, and don't launch "Chrome for Testing" with a
+     window. Screenshots, traces and `error-context.md` give the same evidence without one.
+   - Manual review of a page (Storybook Docs, the docs site) uses a browser tool that works in the background: the
+     agent's built-in browser, or the Chrome extension inside its own tab group. Not a new app window, not
+     `open <url>`.
+   - Close every browser, context and preview server you started before you end the run.
+   - If a task really needs a visible window, say why and ask the owner first.
 
 ## Definition of done (every card)
 

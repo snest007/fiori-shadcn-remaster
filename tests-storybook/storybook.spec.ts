@@ -35,13 +35,13 @@ async function tokenColor(page: Page, token: string) {
 }
 
 for (const story of stories) {
-  test(`${story.title}/${story.name} renders named controls without errors`, async ({ page }) => {
+  test(`${story.title}/${story.name} renders named controls without errors`, async ({ page }, testInfo) => {
     const errors: string[] = []
     page.on("pageerror", (error) => errors.push(error.message))
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()) })
     await render(page, story.id)
     await expect(page.locator("#storybook-root [data-slot]").first()).toBeAttached()
-    await expectNamedControls(page)
+    await expectNamedControls(page, { story: story.id, theme: "sap_horizon" }, testInfo)
     expect(errors).toEqual([])
   })
   for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {

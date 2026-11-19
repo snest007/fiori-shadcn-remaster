@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useEffect, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { ColorPalette, ColorPaletteItem, ColorPaletteStateProvider, ColorPaletteStateContext, type ColorPaletteProps } from "@/components/ui/color-palette"
 import { fioriMeta } from "../_lib/meta"
@@ -69,9 +69,9 @@ const meta = {
   render: function ChartColors(args: Args) {
     const [, updateArgs] = useArgs<Args>()
     const { colors, selectedIndices, hiddenIndices, recentColors, tooltip, toggleHidden, ...props } = args
-    const [hidden, setHidden] = React.useState<number[]>(hiddenIndices)
-    React.useEffect(() => setHidden(hiddenIndices), [hiddenIndices])
-    React.useEffect(() => { if (toggleHidden) setHidden([1]) }, [toggleHidden])
+    const [hidden, setHidden] = useState<number[]>(hiddenIndices)
+    useEffect(() => setHidden(hiddenIndices), [hiddenIndices])
+    useEffect(() => { if (toggleHidden) setHidden([1]) }, [toggleHidden])
     return <ColorPaletteStateProvider>{recentColors && <RecentHistory values={recentColors} />}<ColorPalette {...props} onMoreColorsOpenChange={(moreColorsOpen) => { args.onMoreColorsOpenChange?.(moreColorsOpen); updateArgs({ moreColorsOpen }) }} key={selectedIndices.join("|")}>
       {colors.map((value, index) => <ColorPaletteItem key={`${index}:${value}`} value={value} selected={selectedIndices.includes(index)} hidden={hidden.includes(index)} tooltip={index === 0 ? tooltip : undefined} />)}
     </ColorPalette></ColorPaletteStateProvider>

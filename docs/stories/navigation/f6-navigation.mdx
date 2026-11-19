@@ -1,0 +1,59 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Navigation/F6 Navigation" />
+
+# Fiori F6 navigation
+
+Opt into UI5 fast navigation between page groups. This library has no visual component or stories.
+
+## Install
+
+```sh
+npx shadcn add @petalo/f6-navigation
+```
+
+## Use in React
+
+```tsx
+import { useF6Navigation } from "@/lib/fiori-f6"
+import { Button } from "@/components/ui/button"
+
+export function Application() {
+  useF6Navigation()
+  return (
+    <div>
+      <section data-sap-ui-fastnavgroup="true" aria-label="Filters">
+        <Button>Apply filters</Button>
+      </section>
+      <section data-sap-ui-fastnavgroup="true" aria-label="Results">
+        <Button>Open selected result</Button>
+      </section>
+    </div>
+  )
+}
+```
+
+F6 moves to the next group; Shift+F6 moves to the previous group. Ctrl+Alt+ArrowDown/ArrowUp (or Meta+Alt on macOS) are equivalent. Tab still moves within a group. Components such as Bar, Toolbar, List and Table mark their own groups; add a group only for a new application area that contains focusable content.
+
+## Scoped roots and cleanup
+
+```ts
+import { installF6Navigation } from "@/lib/fiori-f6"
+
+const root = document.querySelector<HTMLElement>("#application")!
+const uninstall = installF6Navigation(root)
+// Call when the application root is removed:
+uninstall()
+```
+
+The root may be a Document, HTMLElement or ShadowRoot. `useF6Navigation(root)` installs and cleans up with the React lifecycle; passing `null` disables installation. The hook's default document is resolved inside its effect, so server rendering is safe. Duplicate installations share one document listener and are reference counted.
+
+## Accessibility
+
+Navigation follows DOM order and existing component-owned focus restoration. Empty, hidden, inert or disabled destinations do not receive focus. A popup's `data-sap-ui-fastnavgroup-container="true"` confines F6 to its open surface. Keep named controls and normal Tab order; this shortcut complements them.
+
+## Localization
+
+There are no default user-visible strings. Name application groups and actions for the target locale. The DOM order also determines group order in RTL; each component retains its own directional arrow-key model.
+
+Source: `registry/lib/fiori-f6.ts`, ported from installed UI5 2.28 F6Navigation/Keys utilities.

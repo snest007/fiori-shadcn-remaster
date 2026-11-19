@@ -46,6 +46,9 @@ const useTabs = (part: string) => {
 }
 const slug = (v: string) => v.replace(/[^\w-]/g, "_")
 
+/**
+ * @accessibility Name TabsList with aria-label and icon-only TabsTrigger with aria-label. The component owns tab, tabpanel, aria-selected and aria-controls relationships. One Tab stop enters the header; arrows and Home/End move, Enter/Space selects. Overflow selection restores header focus.
+ */
 type TabsProps = Omit<React.ComponentProps<"div">, "defaultValue" | "dir"> & {
   value?: string
   defaultValue?: string

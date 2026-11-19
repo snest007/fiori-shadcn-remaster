@@ -33,6 +33,7 @@ const defaultCloseText: Record<MessageStripDesign, string> = {
   "color-set-2": "Close custom message strip",
 }
 
+/** @accessibility The strip announces its design, content and closability through a note. closeButtonText names the close button; designText and closableText override hidden announcements. onClose requests dismissal; the caller removes the strip and must leave a reachable next action. */
 type MessageStripProps = React.ComponentProps<"div"> & {
   design?: MessageStripDesign
   /** For the color-set designs: which of SAP's 10 indication colours. Default 1. */
