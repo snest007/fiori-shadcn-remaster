@@ -5,7 +5,7 @@ import { fn } from "storybook/test"
 import { Panel } from "@/components/ui/panel"
 import { Button } from "@/components/ui/button"
 import { Text } from "@/components/ui/text"
-import { Title } from "@/components/ui/title"
+import { Title, type TitleLevel } from "@/components/ui/title"
 import { DocsPage } from "../_lib/DocsPage"
 import { fioriMeta } from "../_lib/meta"
 
@@ -20,12 +20,21 @@ const textDefaults = [
 ]
 
 const base = fioriMeta({ name: "panel", component: Panel })
+// PanelTemplate/headingWrapperAriaLevel uses the supplied level; the story owns
+// the surrounding document hierarchy, as an application using the panel would.
+const headingContext: { level: TitleLevel; text: string }[] = [
+  { level: "H1", text: "Purchase order" },
+  { level: "H2", text: "Fulfillment" },
+  { level: "H3", text: "Supplier deliveries" },
+  { level: "H4", text: "This week" },
+  { level: "H5", text: "Main warehouse" },
+]
 const meta = {
   ...base,
   parameters: { ...base.parameters, docs: { page: () => <><DocsPage /><section aria-label="Component localization text keys"><h2>Localization text keys</h2><table><thead><tr><th>Text prop / key</th><th>UI5 key / source</th><th>English default</th></tr></thead><tbody>{textDefaults.map((entry) => <tr key={entry.prop}><td><code>{entry.prop}</code></td><td>{entry.key}</td><td>{entry.value}</td></tr>)}</tbody></table></section></> } },
   args: { headerText: "Delivery details", collapsed: false, fixed: false, noAnimation: false, stickyHeader: false, headerLevel: 2, accessibleRole: "region", onToggle: fn(), children: "Deliver the order to the main warehouse before Friday." },
   argTypes: { ...base.argTypes, children: { control: "text", table: { disable: false } }, headerText: { control: "text" }, collapsed: { control: "boolean" }, fixed: { control: "boolean" }, noAnimation: { control: "boolean" }, stickyHeader: { control: "boolean" }, headerLevel: { control: "select", options: [1, 2, 3, 4, 5, 6] }, accessibleRole: { control: "select", options: ["form", "region", "complementary"] }, accessibleName: { control: "text" }, toggleButtonText: { control: "text" }, header: { control: false }, onToggle: { control: false }, contentClassName: { table: { disable: true } } },
-  render: function DeliveryPanel(args) { const [, updateArgs] = useArgs(); return <Panel {...args} className="max-w-xl" onToggle={(collapsed) => { args.onToggle?.(collapsed); updateArgs({ collapsed }) }}><Text>{args.children}</Text></Panel> },
+  render: function DeliveryPanel(args) { const [, updateArgs] = useArgs(); return <div className="grid max-w-xl gap-2">{headingContext.filter(({ level }) => Number(level.slice(1)) < (args.header ? 2 : args.headerLevel ?? 2)).map(({ level, text }) => <Title key={level} level={level} size={level}>{text}</Title>)}<Panel {...args} onToggle={(collapsed) => { args.onToggle?.(collapsed); updateArgs({ collapsed }) }}><Text>{args.children}</Text></Panel></div> },
 } satisfies Meta<typeof Panel>
 export default meta
 type Story = StoryObj<typeof meta>
@@ -35,8 +44,8 @@ export const Expanded: Story = { args: {} }
 export const Collapsed: Story = { args: { collapsed: true } }
 export const Fixed: Story = { args: { fixed: true } }
 export const LongHeader: Story = { args: { headerText: "Delivery details for purchase orders from international suppliers", collapsed: true } }
-export const CustomHeader: Story = { args: { headerText: undefined, accessibleName: "Delivery details", header: <div className="flex w-full items-center justify-between"><Title level="H3" size="H6">Delivery details</Title><Button variant="transparent" onClick={fn()}>Edit</Button></div> } }
-export const CustomHeaderCollapsed: Story = { args: { headerText: undefined, collapsed: true, accessibleName: "Delivery details", header: <div className="flex w-full items-center justify-between"><Title level="H3" size="H6">Delivery details</Title><Button variant="transparent" onClick={fn()}>Edit</Button></div> } }
+export const CustomHeader: Story = { args: { headerText: undefined, accessibleName: "Delivery details", header: <div className="flex w-full items-center justify-between"><Title level="H2" size="H6">Delivery details</Title><Button variant="transparent" onClick={fn()}>Edit</Button></div> } }
+export const CustomHeaderCollapsed: Story = { args: { headerText: undefined, collapsed: true, accessibleName: "Delivery details", header: <div className="flex w-full items-center justify-between"><Title level="H2" size="H6">Delivery details</Title><Button variant="transparent" onClick={fn()}>Edit</Button></div> } }
 export const NoAnimation: Story = { args: { noAnimation: true } }
 export const StickyHeader: Story = { args: { stickyHeader: true } }
 export const CustomTexts: Story = { args: { toggleButtonText: "Show or hide delivery details" } }

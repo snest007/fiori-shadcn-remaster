@@ -2,16 +2,25 @@ import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { useArgs } from "storybook/preview-api"
 import { fn } from "storybook/test"
-import { Title } from "@/components/ui/title"
+import { Title, type TitleLevel } from "@/components/ui/title"
 import { fioriMeta } from "../_lib/meta"
 
 
 const base = fioriMeta({ name: "title", component: Title })
+// UI5 TitleBaseTemplate renders the requested heading level. The example supplies
+// its application hierarchy, including when live Controls select a deeper level.
+const headingContext: { level: TitleLevel; text: string }[] = [
+  { level: "H1", text: "Purchasing" },
+  { level: "H2", text: "Orders" },
+  { level: "H3", text: "Supplier deliveries" },
+  { level: "H4", text: "This week" },
+  { level: "H5", text: "Main warehouse" },
+]
 const meta = {
   ...base,
   args: { children: "Purchase orders", level: "H2", size: "H5", wrappingType: "Normal" },
   argTypes: { ...base.argTypes, children: { control: "text", table: { disable: false } }, level: { control: "select", options: ["H1", "H2", "H3", "H4", "H5", "H6"] }, size: { control: "select", options: ["H1", "H2", "H3", "H4", "H5", "H6"] }, wrappingType: { control: "inline-radio", options: ["Normal", "None"] } },
-  render: (args) => <div className="max-w-xs"><Title {...args} /></div>,
+  render: (args) => <div className="grid max-w-xs gap-2">{headingContext.filter(({ level }) => Number(level.slice(1)) < Number((args.level ?? "H2").slice(1))).map(({ level, text }) => <Title key={level} level={level} size={level}>{text}</Title>)}<Title {...args} /></div>,
 } satisfies Meta<typeof Title>
 export default meta
 type Story = StoryObj<typeof meta>

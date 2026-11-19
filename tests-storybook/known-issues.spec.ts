@@ -136,7 +136,9 @@ for (const primary of [false, true]) for (const theme of ["sap_horizon", "sap_ho
     const closed = await classifyViolations(page, raw, context)
     expect(closed.known).toEqual([])
     await canvas.evaluate((node) => node.setAttribute("data-fiori-args", JSON.stringify({ open: true })))
-    await opener.evaluate((node) => node.setAttribute("aria-controls", "foreign-playground-dialog"))
+    // The open modal intentionally aria-hides its opener. Resolve the exact
+    // component-owned trigger through DOM here so the negative case still runs.
+    await canvas.locator('[data-slot="dialog-trigger"]').evaluate((node) => node.setAttribute("aria-controls", "foreign-playground-dialog"))
     expect(await classifyS3UnnamedModeControl(mode, context)).toBe(false)
     const foreign = await classifyViolations(page, raw, context)
     expect(foreign.known).toEqual([])

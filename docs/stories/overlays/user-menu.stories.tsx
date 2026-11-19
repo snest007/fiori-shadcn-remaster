@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs, useState } from "storybook/preview-api"
+import { useArgs, useCallback, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { UserMenu, UserMenuItem, type UserMenuProps } from "@/components/ui/user-menu"
 import { Avatar } from "@/components/ui/avatar"
@@ -53,9 +53,12 @@ const meta = {
   render: function AccountMenu(args: Args) {
     const [, updateArgs] = useArgs<Args>()
     const [opener, setOpener] = useState<HTMLElement | null>(null)
+    // Storybook useStateLike creates a new setter per render. Keep the React
+    // callback ref stable so detach/attach does not schedule an endless render.
+    const attachOpener = useCallback((node: HTMLElement | null) => setOpener(node), [])
     const [last, setLast] = useState("No action selected")
     const { icons, ...props } = args
-    return <div className="grid gap-3"><Avatar interactive accessibleName="Open account menu" initials="JD" ref={setOpener} onClick={() => updateArgs({ open: !args.open })} /><UserMenu {...props} opener={opener} onOpenChange={(open) => { args.onOpenChange?.(open); updateArgs({ open }) }} onAvatarClick={() => { args.onAvatarClick?.(); setLast("Profile") }} onManageAccountClick={() => { args.onManageAccountClick?.(); setLast("Manage account") }} onSignOutClick={(event) => { args.onSignOutClick?.(event); setLast("Sign out") }} onItemClick={(value, event) => { args.onItemClick?.(value, event); setLast(value) }}><UserMenuItem value="settings" icon={icons ? actionSettings : undefined}>Settings</UserMenuItem><UserMenuItem value="language" icon={icons ? globe : undefined} additionalText="English">Language</UserMenuItem><UserMenuItem value="help" icon={icons ? sysHelp : undefined}>Help</UserMenuItem></UserMenu><output>{last}</output></div>
+    return <div className="grid gap-3"><Avatar interactive accessibleName="Open account menu" initials="JD" ref={attachOpener} onClick={() => updateArgs({ open: !args.open })} /><UserMenu {...props} opener={opener} onOpenChange={(open) => { args.onOpenChange?.(open); updateArgs({ open }) }} onAvatarClick={() => { args.onAvatarClick?.(); setLast("Profile") }} onManageAccountClick={() => { args.onManageAccountClick?.(); setLast("Manage account") }} onSignOutClick={(event) => { args.onSignOutClick?.(event); setLast("Sign out") }} onItemClick={(value, event) => { args.onItemClick?.(value, event); setLast(value) }}><UserMenuItem value="settings" icon={icons ? actionSettings : undefined}>Settings</UserMenuItem><UserMenuItem value="language" icon={icons ? globe : undefined} additionalText="English">Language</UserMenuItem><UserMenuItem value="help" icon={icons ? sysHelp : undefined}>Help</UserMenuItem></UserMenu><output>{last}</output></div>
   },
 } satisfies Meta<Args>
 export default meta
