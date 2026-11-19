@@ -19,9 +19,9 @@ jobs:
   # transferring generated source + dist would not avoid Playwright's server build.
   build:
     runs-on: ubuntu-latest
-    # E6 targets about 12 minutes per job; this is only the hard kill. `playwright install --with-deps`
-    # (apt) sometimes takes 8 minutes on a slow runner, which cancelled jobs whose tests were all passing.
-    timeout-minutes: 20
+    # E7's first container run met the timing target (slowest job 10m54s, whole run 10m59s).
+    # Keep three minutes of headroom over the 12-minute job target to catch real hangs.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -34,13 +34,13 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    # Match scripts/ci-local.sh: browsers, system packages and fonts are already in the image.
-    # Keep Playwright's CI container options and the existing pixel-rendering launch flags.
+    # Match scripts/ci-local.sh: browsers and system libraries come from the image.
+    # Restore the runner's monospace font below; keep the existing pixel-rendering launch flags.
     container: &playwright-container
       image: mcr.microsoft.com/playwright:v1.64.1-noble
       options: --init --ipc=host
-    # E7 measures at 20 minutes first; lower to 15 once CI meets the 12-minute job target.
-    timeout-minutes: 20
+    # E7 round 1: slowest job 10m54s; 15 minutes leaves headroom without hiding a hang.
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       # Main run 44480683049: non-visual phases 332/150/212/155s; visual phases
@@ -71,6 +71,17 @@ jobs:
           path: ~/.ui5
           key: ${{ runner.os }}-ui5-${{ hashFiles('sapui5/ui5.yaml') }}
       - run: pnpm install --frozen-lockfile
+      - &restore-monospace-font
+        name: Restore main CI's monospace font
+        run: |
+          # The Noble image defaults monospace to WenQuanYi; ubuntu-latest uses DejaVu Sans Mono.
+          # This changes the existing delayed-font wrapping test. Restore only that font, without apt.
+          # Keep this checksum-pinned extraction identical to scripts/ci-local.sh.
+          curl -fsSL https://archive.ubuntu.com/ubuntu/pool/main/f/fonts-dejavu/fonts-dejavu-mono_2.37-8_all.deb -o /tmp/dejavu-mono.deb
+          echo '8a599d6553307db7ecb795d2f0e5a301e03234afc75c7358b0ba43466454c89a  /tmp/dejavu-mono.deb' | sha256sum -c -
+          dpkg-deb -x /tmp/dejavu-mono.deb /
+          fc-cache -f
+          fc-match monospace
       - &verify-playwright
         name: Verify bundled Playwright Chromium
         run: |
@@ -94,7 +105,13 @@ jobs:
         run: echo "started=$(date +%s)" >> "$GITHUB_OUTPUT"
       - name: Non-visual shard ${{ matrix.shard }}/${{ strategy.job-total }}
         run: |
-          mapfile -t specs < <(git ls-files 'tests/*.spec.ts' | grep -vE '/visual(-sapui5|-phone|-interaction)?\.spec\.ts$')
+          # Checkout's safe.directory lives in its action HOME, not this container shell's HOME.
+          # Scope trust to this checkout and reject an empty list so visual phases cannot run here.
+          mapfile -t specs < <(git -c safe.directory="$GITHUB_WORKSPACE" ls-files 'tests/*.spec.ts' | grep -vE '/visual(-sapui5|-phone|-interaction)?\.spec\.ts$')
+          if (( ${#specs[@]} == 0 )); then
+            echo '::error::No non-visual specs found; refusing to run an unfiltered suite.'
+            exit 1
+          fi
           pnpm test:summary "${specs[@]}" --shard=${{ matrix.shard }}/${{ strategy.job-total }} --retries=0
           mkdir -p "$RUNNER_TEMP/non-visual-results"
           cp -a test-results/. "$RUNNER_TEMP/non-visual-results/"
@@ -124,8 +141,9 @@ jobs:
   storybook:
     runs-on: ubuntu-latest
     container: *playwright-container
-    # E7 measures at 20 minutes first; lower to 15 once CI meets the 12-minute job target.
-    timeout-minutes: 20
+    # E7 round 1: five shards took 7m28s–9m47s (tests at most 8m19s).
+    # Fifteen minutes leaves headroom over the 12-minute job target to catch real hangs.
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       # Main run 44480683049: 3193 tests, three shards took 826/531/782s.
@@ -144,6 +162,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - *restore-monospace-font
       - *verify-playwright
       - run: pnpm generate && pnpm storybook:build
       - *start-test-timer
