@@ -19,3 +19,14 @@ for (const [label, cell] of [
     await expect(expectNamedControls(page)).rejects.toThrow(/toHaveAccessibleName/)
   })
 }
+
+// Focusable movement handles (role=img, tabindex=0) need a name only while they are in the accessibility tree.
+test("a focusable image handle hidden by a modal needs no name", async ({ page }) => {
+  await page.setContent('<div aria-hidden="true"><div role="img" tabindex="0"></div></div><div role="alertdialog" aria-label="Warning"></div>')
+  await expectNamedControls(page)
+})
+
+test("a visible focusable image handle still needs a name", async ({ page }) => {
+  await page.setContent('<div role="img" tabindex="0"></div>')
+  await expect(expectNamedControls(page)).rejects.toThrow(/toHaveAccessibleName/)
+})
