@@ -14,7 +14,9 @@ jobs:
   # transferring generated source + dist would not avoid Playwright's server build.
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # E6 targets about 12 minutes per job; this is only the hard kill. `playwright install --with-deps`
+    # (apt) sometimes takes 8 minutes on a slow runner, which cancelled jobs whose tests were all passing.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -27,7 +29,9 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # E6 targets about 12 minutes per job; this is only the hard kill. `playwright install --with-deps`
+    # (apt) sometimes takes 8 minutes on a slow runner, which cancelled jobs whose tests were all passing.
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       # Main's measured visual test totals: phone 321s, desktop 257s,
@@ -86,7 +90,9 @@ jobs:
 
   storybook:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # E6 targets about 12 minutes per job; this is only the hard kill. `playwright install --with-deps`
+    # (apt) sometimes takes 8 minutes on a slow runner, which cancelled jobs whose tests were all passing.
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       # S4 raised the suite from 1280 to 2011 tests; at two shards one shard's tests took 11m19s and the
