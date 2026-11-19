@@ -7,7 +7,7 @@ import { expect, test, type FrameLocator, type Page } from "@playwright/test"
 const DOCS = "/?path=/docs/forms-select--docs"
 const CHILD = "iframe[id='iframe--forms-select--open']"
 
-async function pickTheme(page: Page, docs: FrameLocator, title: string, value: string) {
+async function pickTheme(page: Page, docs: FrameLocator, title: string, value: string, childHost = CHILD) {
   await page.getByRole("button", { name: /Horizon theme/ }).click()
   await page.getByRole("button", { name: title, exact: true }).or(page.getByText(title, { exact: true })).first().click()
   await expect(docs.locator("html")).toHaveAttribute("data-theme", value)
@@ -15,7 +15,7 @@ async function pickTheme(page: Page, docs: FrameLocator, title: string, value: s
   // Wait for that re-render to settle before touching them: the docs content is back and
   // the child host is attached in the new tree.
   await expect(docs.locator(".sbdocs-content").first()).toBeVisible()
-  await expect(docs.locator(CHILD)).toBeAttached()
+  await expect(docs.locator(childHost)).toBeAttached()
 }
 
 async function mountedChild(docs: FrameLocator, theme: string) {
@@ -53,4 +53,41 @@ test("a standalone story keeps its own URL globals", async ({ page }) => {
   await page.goto("/iframe.html?viewMode=story&id=forms-select--open&globals=theme:sap_horizon_hcw")
   await expect(page.locator("[data-fiori-story]")).toHaveAttribute("data-theme", "sap_horizon_hcw")
   await expect(page.locator("html")).toHaveAttribute("data-theme", "sap_horizon_hcw")
+})
+
+test("switching the theme with a mounted docs child raises no preview errors", async ({ page }) => {
+  // A child re-rendered outside Storybook's own render cycle loses its hooks context
+  // ("Storybook preview hooks can only be called inside decorators and story functions").
+  // Collect errors from every frame, including the lazy child.
+  const errors: string[] = []
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()) })
+  page.on("pageerror", (error) => errors.push(error.message))
+  await page.goto(DOCS)
+  const docs = page.frameLocator("#storybook-preview-iframe")
+  await expect(docs.locator(".sbdocs-content").first()).toBeVisible()
+  await pickTheme(page, docs, "High Contrast Black", "sap_horizon_hcb")
+  await mountedChild(docs, "sap_horizon_hcb")
+  await pickTheme(page, docs, "Evening Horizon", "sap_horizon_dark")
+  await mountedChild(docs, "sap_horizon_dark")
+  expect(errors.filter((text) => /hooks can only be called|Error rendering story/.test(text))).toEqual([])
+})
+
+test("a docs child story keeps its own explicit globals and inherits the rest", async ({ page }) => {
+  // Dialog RTL declares `globals: { dir: "rtl" }` and renders `inline: false`. Story globals
+  // win over the docs frame's toolbar values; the toolbar still supplies the theme.
+  const RTL_CHILD = "iframe[id='iframe--overlays-dialog--rtl']"
+  await page.goto("/?path=/docs/overlays-dialog--docs")
+  const docs = page.frameLocator("#storybook-preview-iframe")
+  await expect(docs.locator(".sbdocs-content").first()).toBeVisible()
+  await pickTheme(page, docs, "High Contrast Black", "sap_horizon_hcb", RTL_CHILD)
+  const child = docs.frameLocator(RTL_CHILD)
+  await expect(async () => {
+    await docs.locator(RTL_CHILD).scrollIntoViewIfNeeded({ timeout: 1000 })
+    await expect(child.locator("[data-fiori-story]")).toHaveAttribute("data-theme", "sap_horizon_hcb", { timeout: 1000 })
+  }).toPass()
+  await expect(child.locator("[data-fiori-story]")).toHaveAttribute("dir", "rtl")
+  await expect(child.locator("html")).toHaveAttribute("dir", "rtl")
+  await expect(child.locator("html")).toHaveAttribute("data-theme", "sap_horizon_hcb")
+  // The docs page itself stays on the toolbar direction.
+  await expect(docs.locator("html")).toHaveAttribute("dir", "ltr")
 })

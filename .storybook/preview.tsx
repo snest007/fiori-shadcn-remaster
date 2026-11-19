@@ -13,15 +13,23 @@ import { DocsPage } from "../docs/stories/_lib/DocsPage"
 // Docs pages render `inline: false` stories in their own lazy iframe (addon-docs
 // IFrame + getStoryHref: `iframe.html?viewMode=story&id=…`, without globals). That
 // child preview boots with initialGlobals (Morning) and its SET_GLOBALS /
-// GLOBALS_UPDATED also reach the docs frame's channel. Two fixes:
+// GLOBALS_UPDATED also reach the docs frame's channel. Three rules:
 // 1. A frame only applies globals its own Preview emitted (Channel stamps every event
 //    `from: sender`), so a child's boot payload can't reset the Docs document.
 // 2. A child story iframe inside a same-origin docs frame takes theme/density/dir from
 //    that docs frame — locally, without a channel message: the child channel's only
 //    transport is its parent, so UPDATE_GLOBALS would re-render the docs page and
-//    remount the child.
+//    remount the child. The story's own `globals` (e.g. an RTL story's `dir: "rtl"`)
+//    still win: Storybook's StoryStore.getStoryContext puts storyGlobals over userGlobals,
+//    and the docs frame only stands in for the user's toolbar values.
+// 3. When the docs frame's globals change, the child re-renders through Storybook's own
+//    StoryRender.rerender (preview/runtime.js), never through a React state update: story
+//    render functions call Storybook hooks (useArgs, preview-api useState), which throw
+//    "hooks can only be called inside decorators and story functions" when React re-renders
+//    them outside Storybook's hooks context.
 type ThemeGlobals = { theme?: string; density?: string; dir?: string }
 type DocsHost = Window & { __petaloDocsGlobals?: () => ThemeGlobals | undefined }
+type PreviewWindow = Window & { __STORYBOOK_PREVIEW__?: { storyRenders: { rerender: () => Promise<void> }[] } }
 const channel = addons.getChannel()
 // Channel.sender is private in Storybook's typings; every Channel event carries `from: this.sender`.
 const ownSender = () => (channel as unknown as { sender?: string }).sender
@@ -39,15 +47,17 @@ const docsHost = (): DocsHost | undefined => {
     return undefined // cross-origin parent (composed Storybook): keep own globals
   }
 }
-const inheritedGlobals = (): ThemeGlobals | undefined => {
+const inheritedGlobals = (): ThemeGlobals => {
   const g = docsHost()?.__petaloDocsGlobals?.()
-  return g && { theme: g.theme, density: g.density, dir: g.dir }
+  return Object.fromEntries(Object.entries({ theme: g?.theme, density: g?.density, dir: g?.dir }).filter(([, v]) => v))
 }
+/** Toolbar globals < docs frame (stands in for the toolbar in a child) < the story's own globals. */
+const effectiveGlobals = (globals: ThemeGlobals, storyGlobals: ThemeGlobals = {}): ThemeGlobals =>
+  ({ ...globals, ...inheritedGlobals(), ...storyGlobals })
 
 let documentGlobals: ThemeGlobals | undefined
 const DOCS_GLOBALS_EVENT = "petalo:docs-globals"
-const applyDocumentGlobals = ({ globals }: { globals: ThemeGlobals }) => {
-  const effective = { ...globals, ...inheritedGlobals() }
+const applyDocumentGlobals = (effective: ThemeGlobals) => {
   documentGlobals = effective
   document.documentElement.dataset.theme = effective.theme ?? "sap_horizon"
   document.documentElement.dataset.density = effective.density ?? "cozy"
@@ -55,32 +65,23 @@ const applyDocumentGlobals = ({ globals }: { globals: ThemeGlobals }) => {
   window.dispatchEvent(new Event(DOCS_GLOBALS_EVENT))
 }
 ;(window as DocsHost).__petaloDocsGlobals = () => documentGlobals
-function onOwnGlobals(this: { from?: string } | undefined, payload: { globals: ThemeGlobals }) {
-  if (isOwnEvent(this)) applyDocumentGlobals(payload)
+function onOwnGlobals(this: { from?: string } | undefined, payload: { globals: ThemeGlobals; storyGlobals?: ThemeGlobals }) {
+  if (isOwnEvent(this)) applyDocumentGlobals(effectiveGlobals(payload.globals, payload.storyGlobals))
 }
 channel.on(SET_GLOBALS, onOwnGlobals)
 channel.on(GLOBALS_UPDATED, onOwnGlobals)
+
+// Rule 3: a child story follows its docs frame's theme/density/dir via Storybook's own rerender.
+const host = docsHost()
+const rerenderStories = () => {
+  for (const render of (window as PreviewWindow).__STORYBOOK_PREVIEW__?.storyRenders ?? []) void render.rerender()
+}
+host?.addEventListener(DOCS_GLOBALS_EVENT, rerenderStories)
 import.meta.hot?.dispose(() => {
   channel.off(SET_GLOBALS, onOwnGlobals)
   channel.off(GLOBALS_UPDATED, onOwnGlobals)
+  host?.removeEventListener(DOCS_GLOBALS_EVENT, rerenderStories)
 })
-
-/** Re-render a child story when its docs frame's theme/density/dir change. */
-const subscribeDocsHost = (onChange: () => void) => {
-  const host = docsHost()
-  host?.addEventListener(DOCS_GLOBALS_EVENT, onChange)
-  return () => host?.removeEventListener(DOCS_GLOBALS_EVENT, onChange)
-}
-const docsHostSnapshot = () => JSON.stringify(inheritedGlobals() ?? null)
-const useInheritedGlobals = (): ThemeGlobals | undefined => {
-  const snapshot = React.useSyncExternalStore(subscribeDocsHost, docsHostSnapshot, docsHostSnapshot)
-  return React.useMemo(() => JSON.parse(snapshot) ?? undefined, [snapshot])
-}
-function FioriCanvas({ globals, children }: { globals: Record<string, string>; children: (effective: Record<string, string>) => React.ReactNode }) {
-  const inherited = useInheritedGlobals()
-  const effective = inherited ? { ...globals, ...Object.fromEntries(Object.entries(inherited).filter(([, v]) => v)) } : globals
-  return <>{children(effective as Record<string, string>)}</>
-}
 
 const preview: Preview = {
   globalTypes: {
@@ -94,27 +95,26 @@ const preview: Preview = {
     dir: { description: "Text direction", toolbar: { title: "Direction", icon: "transfer", dynamicTitle: true, items: ["ltr", "rtl"] } },
   },
   initialGlobals: { theme: "sap_horizon", density: "cozy", dir: "ltr" },
-  decorators: [(Story, context) => (
-    <FioriCanvas globals={context.globals}>{(globals) => {
-      // Match docs/src/main.tsx: tokens and portaled overlays inherit the root attributes.
-      if (context.viewMode === "story") applyDocumentGlobals({ globals })
-      // DocsPage owns the docs landmark. Full-page stories own theirs too: axe-core's
-      // landmark-main-is-top-level / landmark-no-duplicate-main also match [role=main].
-      const ownsLandmarks = context.parameters.fiori?.ownsLandmarks
-      const role = context.viewMode === "story" && !ownsLandmarks ? "main" : undefined
-      const headingId = ownsLandmarks ? `fiori-story-heading-${context.id}` : undefined
-      const heading = context.viewMode === "story" && <h1 id={headingId} className="sr-only">{context.title}: {context.name}</h1>
-      const controlArgs = Object.fromEntries(Object.entries(context.args).filter(([, value]) => ["string", "number", "boolean"].includes(typeof value)))
-      // axe-core regionEvaluate/findRegionlessElms counts accessible hidden headings.
-      // Name a region around this heading alone; the story's main stays its sibling.
-      // UI5 2.28 ListTemplate renders native header/footer (TreeList inherits List).
-      // axe-core landmarkHasBodyContextMatches excludes native headers/footers only
-      // beneath article/aside/main/nav/section. An unnamed section stays generic and keeps
-      // component roles intact; owned full-page landmarks and Docs stay unwrapped.
-      const story = role === "main" ? <section><Story /></section> : <Story />
-      return <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={globals.theme} data-density={globals.density} dir={globals.dir}>{context.viewMode === "story" && ownsLandmarks ? <section aria-labelledby={headingId}>{heading}</section> : heading}{story}</div>
-    }}</FioriCanvas>
-  )],
+  decorators: [(Story, context) => {
+    const globals = effectiveGlobals(context.globals, context.storyGlobals)
+    // Match docs/src/main.tsx: tokens and portaled overlays inherit the root attributes.
+    if (context.viewMode === "story") applyDocumentGlobals(globals)
+    // DocsPage owns the docs landmark. Full-page stories own theirs too: axe-core's
+    // landmark-main-is-top-level / landmark-no-duplicate-main also match [role=main].
+    const ownsLandmarks = context.parameters.fiori?.ownsLandmarks
+    const role = context.viewMode === "story" && !ownsLandmarks ? "main" : undefined
+    const headingId = ownsLandmarks ? `fiori-story-heading-${context.id}` : undefined
+    const heading = context.viewMode === "story" && <h1 id={headingId} className="sr-only">{context.title}: {context.name}</h1>
+    const controlArgs = Object.fromEntries(Object.entries(context.args).filter(([, value]) => ["string", "number", "boolean"].includes(typeof value)))
+    // axe-core regionEvaluate/findRegionlessElms counts accessible hidden headings.
+    // Name a region around this heading alone; the story's main stays its sibling.
+    // UI5 2.28 ListTemplate renders native header/footer (TreeList inherits List).
+    // axe-core landmarkHasBodyContextMatches excludes native headers/footers only
+    // beneath article/aside/main/nav/section. An unnamed section stays generic and keeps
+    // component roles intact; owned full-page landmarks and Docs stay unwrapped.
+    const story = role === "main" ? <section><Story /></section> : <Story />
+    return <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={globals.theme} data-density={globals.density} dir={globals.dir}>{context.viewMode === "story" && ownsLandmarks ? <section aria-labelledby={headingId}>{heading}</section> : heading}{story}</div>
+  }],
   parameters: {
     docs: { page: DocsPage, source: { type: "code" } },
     controls: { sort: "requiredFirst" },

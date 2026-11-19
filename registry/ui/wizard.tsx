@@ -70,6 +70,9 @@ const defaultTexts: WizardTexts = {
 
 type StepChange = { previousStep: string | undefined; withScroll: boolean }
 
+/**
+ * @accessibility accessibleName names the wizard region; texts names progress navigation, step lists and content regions. Arrow keys and Home/End move through enabled steps; Enter/Space activates. Disabled future steps stay unavailable; grouped narrow steps use a named popover.
+ */
 type WizardProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   /** Value of the selected step (controlled). */
   selectedStep?: string

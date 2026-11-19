@@ -110,7 +110,8 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 - [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
 - [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S2.md` top section; retained on `codex/S2`)
 - [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S3.md` top section; retained on `codex/S3`)
-- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S4.md` top section; retained on `codex/S4`)
+- [x] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (accepted through S4b on 2026-11-19; retained on `codex/S4` for owner review)
+- [x] [S4b Finish S4: the last 11 Storybook failures + acceptance](tasks/S4b-finish-s4-failures.md) — S (accepted 2026-11-19; Storybook and main each pass twice; no push or merge)
 - [x] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/SX-storybook-landmarks.md) — S (unblocks S4)
 - [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
 

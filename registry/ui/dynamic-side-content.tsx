@@ -35,6 +35,9 @@ type LayoutChange = {
 
 type AreaAttributes = { role?: React.AriaRole; ariaLabel?: string }
 
+/**
+ * @accessibility accessibilityAttributes applies role and ariaLabel to the main and side areas. Default roles are main and complementary; use named regions when embedded in an existing main. Keep a keyboard-accessible toggle for small-screen alternate content.
+ */
 type DynamicSideContentProps = Omit<React.ComponentProps<"div">, "ref"> & {
   ref?: React.Ref<DynamicSideContentHandle>
   sideContent?: React.ReactNode
