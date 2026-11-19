@@ -5,7 +5,9 @@ interface Entry { id: string; type: string; title: string; name: string }
 const entries = Object.values(JSON.parse(readFileSync(new URL("../storybook-static/index.json", import.meta.url), "utf8")).entries) as Entry[]
 
 for (const name of ["button", "input", "select", "calendar", "data-table", "dialog"]) {
-  const primary = entries.find((entry) => entry.type === "story" && entry.id.endsWith(`-${name}--playground`))!
+  // Match the whole component segment (`<category>-<component>--playground`): a suffix match on "-dialog--playground"
+  // also hits "overlays-adapt-filters-dialog--playground".
+  const primary = entries.find((entry) => entry.type === "story" && new RegExp(`^[a-z]+-${name}--playground$`).test(entry.id))!
   const stories = entries.filter((entry) => entry.type === "story" && entry.title === primary.title)
 
   test(`${name} docs renders every variant with its actual JSX source`, async ({ page }) => {

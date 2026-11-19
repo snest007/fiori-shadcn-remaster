@@ -6,7 +6,9 @@ import { attachKnown, classifyViolations } from "./known-issues"
 interface Entry { id: string; type: string; title: string; name: string }
 const entries = Object.values(JSON.parse(readFileSync(new URL("../storybook-static/index.json", import.meta.url), "utf8")).entries) as Entry[]
 const pilots = ["button", "input", "select", "calendar", "data-table", "dialog"]
-const playground = (name: string) => entries.find((entry) => entry.type === "story" && entry.name === "Playground" && entry.id.endsWith(`-${name}--playground`))!
+// Story ids are `<category>-<component>--<story>` and categories are one word. Match the whole component segment:
+// a suffix match on "-dialog--playground" also hit "overlays-adapt-filters-dialog--playground" once S3 added it.
+const playground = (name: string) => entries.find((entry) => entry.type === "story" && entry.name === "Playground" && new RegExp(`^[a-z]+-${name}--playground$`).test(entry.id))!
 const docsId = (name: string) => playground(name).id.replace(/--playground$/, "--docs")
 const appearance = (node: Element) => {
   const owner = node.closest(".fiori-field") ?? node
