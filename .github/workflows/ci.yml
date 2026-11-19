@@ -89,9 +89,10 @@ jobs:
     timeout-minutes: 12
     strategy:
       fail-fast: false
-      # Main's 1280 tests took 12m35s; two shards keep this parallel job below 12m.
+      # S4 raised the suite from 1280 to 2011 tests; at two shards one shard's tests took 11m19s and the
+      # job hit its 12m limit. Three shards keep each job well below it.
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3]
     env:
       PORT: 4320
     steps:
@@ -110,7 +111,7 @@ jobs:
           key: ${{ runner.os }}-chromium-${{ steps.playwright-version.outputs.version }}
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm generate && pnpm storybook:build
-      - run: pnpm test:summary -c playwright.storybook.config.ts --shard=${{ matrix.shard }}/2 --retries=0
+      - run: pnpm test:summary -c playwright.storybook.config.ts --shard=${{ matrix.shard }}/3 --retries=0
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
