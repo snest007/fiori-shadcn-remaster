@@ -85,3 +85,60 @@ test("S4 unrelated Manage changes preserve the selected view's unsaved state", a
   await expect(page.locator(".fiori-vm-list").getByRole("button", { name: "Save", exact: true })).toBeVisible()
   await testInfo.attach("controlled-surviving-view-state.json", { body: JSON.stringify(await readArgs(page), null, 2), contentType: "application/json" })
 })
+
+// S4: exercise exact production-story nodes. A marker must reject a changed
+// structure/name and leave another node with the same axe rule unexpected.
+const defectCases = [
+  { story: "navigation-search--open", rule: "aria-allowed-role", mutation: "group" },
+  { story: "navigation-search--deletable-suggestion", rule: "nested-interactive", mutation: "delete" },
+  { story: "navigation-notification-list--growing-button-loading", rule: "nested-interactive", mutation: "growing" },
+  { story: "navigation-side-navigation--flat", rule: "label-content-name-mismatch", mutation: "tag" },
+  { story: "navigation-side-navigation--open", rule: "aria-required-children", mutation: "menu" },
+  { story: "navigation-variant-management--empty-list", rule: "empty-heading", mutation: "heading" },
+  { story: "floorplans-list-report--playground", rule: "landmark-banner-is-top-level", mutation: "banner" },
+  { story: "floorplans-object-page--playground", rule: "landmark-unique", mutation: "region" },
+] as const
+
+for (const defect of defectCases) {
+  test("S4 " + defect.mutation + " defect marker rejects changed or foreign owned nodes", async ({ page }, testInfo) => {
+    await page.goto("/iframe.html?viewMode=story&id=" + defect.story)
+    await expect(page.locator('#storybook-root [data-fiori-story="' + defect.story + '"] [data-slot]').first()).toBeAttached()
+    await waitForStoryFinished(page)
+    const context = { story: defect.story, theme: "sap_horizon" }
+    const raw = (await axeViolations(page, context.theme)).filter(v => v.id === defect.rule)
+    expect(raw.length).toBe(1)
+    const initial = await classifyViolations(page, raw, context)
+    expect(initial.unexpected).toEqual([])
+    expect(initial.known.flatMap(v => v.nodes).length).toBeGreaterThan(0)
+    // Story and rule are independently protected, even for identical DOM.
+    expect((await classifyViolations(page, raw, { ...context, story: "actions-button--playground" })).known).toEqual([])
+    expect((await classifyViolations(page, raw.map(v => ({ ...v, id: "s4-unapproved-rule" })), context)).known).toEqual([])
+    await page.evaluate(mutation => {
+      const button = () => { const node = document.createElement("button"); node.textContent = "Foreign action"; return node }
+      if (mutation === "group") {
+        const group = document.querySelector('[data-slot="search-item-group"]')!
+        const foreign = document.createElement("li"); foreign.id = "s4-foreign-group"; foreign.setAttribute("role", "group"); foreign.textContent = "Foreign group"
+        group.parentElement!.append(foreign)
+      } else if (mutation === "delete") document.querySelector('[data-slot="search-item"]')!.append(button())
+      else if (mutation === "growing") document.querySelector('[data-nli-growing]')!.append(button())
+      else if (mutation === "tag") document.querySelector('.fiori-sn-item__tag [data-slot="tag"]')!.textContent = "Sale"
+      else if (mutation === "menu") document.querySelector('[data-sn-overflow-menu]')!.append(button())
+      else if (mutation === "heading") {
+        const foreign = document.createElement("h2"); foreign.id = "s4-foreign-heading"; document.querySelector("#storybook-root")!.append(foreign)
+      } else if (mutation === "banner") {
+        const foreign = document.createElement("header"); foreign.id = "s4-foreign-banner"; foreign.setAttribute("role", "banner"); foreign.setAttribute("aria-label", "Foreign header")
+        document.querySelector('.fiori-dynamic-page__root[role="main"]')!.append(foreign)
+      } else {
+        const foreign = document.createElement("section"); foreign.id = "s4-foreign-region"; foreign.setAttribute("aria-label", "General Information"); foreign.textContent = "Another region"
+        document.querySelector("#storybook-root")!.append(foreign)
+      }
+    }, defect.mutation)
+    const changed = (await axeViolations(page, context.theme)).filter(v => v.id === defect.rule)
+    const audit = await classifyViolations(page, changed, context)
+    await attachAudit(testInfo, "s4-" + defect.mutation + "-adversarial", audit)
+    expect(audit.unexpected.flatMap(v => v.nodes).length).toBeGreaterThan(0)
+    if (["group", "heading", "banner"].includes(defect.mutation)) {
+      expect(audit.unexpected.flatMap(v => v.nodes).some(node => JSON.stringify(node.target).includes("s4-foreign"))).toBe(true)
+    } else expect(audit.known).toEqual([])
+  })
+}

@@ -10,7 +10,9 @@ const meta = {
   parameters: { fiori: { name: "app-shell", ownsLandmarks: true }, layout: "fullscreen", docs: { page: BlockDocs, story: { inline: false, height: "720px" } } },
   argTypes: { children: { control: false, table: { disable: true } }, sideNavigation: { control: false, table: { disable: true } } },
   // The real default block owns its main landmark.
-  render: () => <AppShell />,
+  // The canvas supplies H1. The default block's welcome card is H3, so give
+  // this example its H2 context without replacing the real default block/data.
+  render: () => <><section aria-labelledby="s4-app-shell-context"><h2 id="s4-app-shell-context" className="sr-only">Application workspace</h2></section><AppShell /></>,
 } satisfies Meta<typeof AppShell>
 export default meta
 type Story = StoryObj<typeof meta>

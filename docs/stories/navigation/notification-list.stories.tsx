@@ -46,7 +46,8 @@ export const GrowingButtonChildLoading: Story = { args: { growing: "button", chi
 export const GrowingScrollLoading: Story = { args: { growing: "scroll", loading: true } }
 export const GrowingCollapsed: Story = { args: { growing: "button", collapsed: true } }
 export const Empty: Story = { args: { empty: true, noDataText: "No order notifications" } }
-export const CustomTexts: Story = { args: { texts: { list: "Order updates", close: "Dismiss update", actions: "Update actions", more: "Read full update", less: "Collapse update", growingButton: "Load older updates", important: "Priority" }, growing: "button", withActions: true } }
+// Custom visible action text and its spoken label must describe the same action.
+export const CustomTexts: Story = { args: { texts: { list: "Order updates", close: "Dismiss update", actions: "Update actions", more: "Read full update", less: "Collapse update", moreLabel: "Read full update. Show the full texts", lessLabel: "Collapse update. Show the texts with truncation", growingButton: "Load older updates", important: "Priority" }, growing: "button", withActions: true } }
 export const RTL: Story = { globals: { dir: "rtl" } }
 
 // Source-backed defaults from registry/ui/notification-list.tsx and the installed UI5 bundles.

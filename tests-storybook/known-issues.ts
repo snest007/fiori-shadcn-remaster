@@ -38,6 +38,166 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return nodes.length === 1 ? nodes[0] : null
         }
 
+        // S4
+        // component defect, fixed by E4 — see docs/plan/handoff/S4-a11y-candidates
+        // Paired ordinary React/UI5 fixtures and standalone blocks are recorded
+        // in fifth-20261119/classification-oracles.json and classification-extra.json.
+        // These are exact owned nodes in explicit stories, never rule-wide waivers.
+        if (!context.primary) {
+          if (rule === "aria-allowed-role" && ["navigation-search--open", "navigation-search--suggestions-loading"].includes(context.story)) {
+            // UI5 SearchItemGroup.js uses ListBoxItemGroupTemplate's UL role=group.
+            // The React host is an LI with the same role, which HTML does not allow.
+            const group = unique('[data-slot="search-item-group"].fiori-search-group', document)
+            const list = unique('.fiori-search__list[role="listbox"]', document)
+            const label = group?.getAttribute('aria-labelledby')
+            const header = group?.querySelector(':scope > .fiori-search-group__header')
+            const items = group?.querySelector(':scope > ul[role="none"].fiori-search__list')
+            return actual === group && group?.tagName === 'LI' && group.getAttribute('role') === 'group'
+              && visible(group) && !!list && list.contains(group) && !!header && !!items
+              && group.children.length === 2 && !!label && header.id === label && header.textContent?.trim() === 'Products'
+              && items.children.length === 1 && items.firstElementChild?.matches('[data-slot="search-item"][role="option"]') === true
+              && items.textContent?.trim() === 'Laptop bag'
+          }
+          if (rule === "nested-interactive" && context.story === "navigation-search--deletable-suggestion") {
+            // SearchItemTemplate.js similarly nests its delete Button in role=option
+            // when hover/focus makes that Button visible. Preserve both in the candidate.
+            const list = unique('.fiori-search__list[role="listbox"]', document)
+            const item = list ? unique('[data-slot="search-item"].fiori-search-item[role="option"]', list) : null
+            const remove = item ? unique('button[data-slot="button"][aria-label="Remove Suggestion"]', item) : null
+            return actual === item && !!item && visible(item) && item.tagName === 'LI'
+              && item.getAttribute('tabindex') === '-1' && !!remove && visible(remove)
+              && remove.getAttribute('tabindex') === '-1' && item.querySelectorAll('button,a,input,select,textarea,[tabindex]').length === 1
+              && item.querySelector('.fiori-search-item__text')?.textContent === 'Laptop'
+              && remove.querySelector('[data-slot="icon"]') !== null
+          }
+          if (rule === "nested-interactive" && context.story === "navigation-notification-list--growing-button-loading") {
+            // NotificationListGroupList/ListTemplate nest the inline BusyIndicator
+            // inside the load-more role=button; installed UI5 reproduces the same defect.
+            const group = unique('[data-slot="notification-list-group-item"][data-growing="button"][data-loading]')
+            const more = group ? unique('[data-nli-growing][role="button"]', group) : null
+            const busy = more ? unique('.fiori-nli-group__growing-busy[data-slot="busy-indicator"][data-busy]', more) : null
+            const progress = busy ? unique('[role="progressbar"][tabindex="0"][aria-label="Please wait"]', busy) : null
+            const label = more?.getAttribute('aria-labelledby')
+            return actual === more && !!more && visible(more) && more.getAttribute('tabindex') === '0'
+              && !!busy && !!progress && visible(progress) && !!label
+              && more.children.length === 2 && more.querySelectorAll('button,a,input,select,textarea,[tabindex]').length === 1
+              && more.querySelector('.fiori-list__growing-text')?.id === label
+              && document.getElementById(label)?.textContent === 'More'
+          }
+          if (rule === "label-content-name-mismatch" && ["navigation-side-navigation--flat", "navigation-side-navigation--parent-selected"].includes(context.story)) {
+            // SideNavigationItemTemplate labels only the text and describes the tag;
+            // React and UI5 both omit the visible New tag from the default name.
+            const items = [...canvas.querySelectorAll('[data-slot="side-navigation-item"][role="treeitem"]')]
+            const item = items.find(node => node.querySelector('.fiori-sn-item__text')?.textContent === 'Products')
+            const text = item?.querySelector(':scope > .fiori-sn-item__text')
+            const tag = item?.querySelector(':scope > .fiori-sn-item__tag')
+            return actual === item && !!item && visible(item) && item.getAttribute('data-level') === '1'
+              && !!text && !!tag && item.getAttribute('aria-labelledby') === text.id
+              && item.getAttribute('aria-describedby') === tag.id && !item.hasAttribute('aria-label')
+              && tag.textContent === 'New' && tag.children.length === 1 && tag.firstElementChild?.getAttribute('data-slot') === 'tag'
+              && item.querySelectorAll('.fiori-sn-item__tag').length === 1
+          }
+          if (rule === "aria-required-children" && context.story === "navigation-side-navigation--open") {
+            // React puts tabbable boundary dummies inside role=menu. UI5's
+            // ListTemplate puts its dummies outside the menu UL; its own
+            // aria-required-children finding concerns role=none item hosts.
+            const trigger = unique('[data-slot="side-navigation-overflow"][role="menuitem"][aria-expanded="true"]')
+            const menu = unique('[data-sn-overflow-menu][data-slot="menu-content"][role="menu"][aria-label="Additional Navigation Items"]', document)
+            const boundaries = menu ? [...menu.querySelectorAll('[data-sn-focus-boundary]')] : []
+            const rows = menu ? [...menu.querySelectorAll('[data-sn-menu-row][role="menuitem"]')] : []
+            if (actual !== menu || !menu || !trigger || !visible(menu) || menu.getAttribute('aria-orientation') !== 'vertical'
+              || boundaries.length !== 2 || rows.length === 0
+              || boundaries.some(node => node.getAttribute('role') !== 'none' || node.getAttribute('tabindex') !== '0' || node.children.length !== 0 || node.textContent !== '')) return false
+            return [...menu.querySelectorAll('button,a,input,select,textarea,[tabindex]')].every(node => boundaries.includes(node) || rows.includes(node))
+              && [...menu.querySelectorAll('[role]')].every(node => boundaries.includes(node) || rows.includes(node) || node.matches('[data-slot="menu-group"][role="group"]'))
+          }
+          if (rule === "empty-heading" && context.story === "navigation-variant-management--empty-list") {
+            // OpenUI5 VariantManagement also emits its H2 Title with no selected
+            // text. The candidate keeps the trigger but omits an empty heading host.
+            const root = unique('[data-slot="variant-management"]')
+            const heading = root ? unique('.fiori-vm-title[data-slot="title"]', root) : null
+            const trigger = root ? unique('.fiori-vm-trigger', root) : null
+            const arrow = trigger ? unique('button.fiori-vm-arrow[aria-label="View ."]', trigger) : null
+            return actual === heading && !!heading && visible(heading) && heading.tagName === 'H2'
+              && heading.children.length === 0 && heading.textContent === '' && !!trigger && trigger.contains(heading) && !!arrow
+              && JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}').selectedKey === ''
+              && JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}').items?.length === 0
+          }
+          const reportStory = ['floorplans-list-report--playground', 'floorplans-list-report--rtl'].includes(context.story)
+          const objectStory = ['floorplans-object-page--playground', 'floorplans-object-page--rtl'].includes(context.story)
+          if ((reportStory || objectStory) && rule === "landmark-banner-is-top-level") {
+            // The real blocks assign root=main but leave DynamicPage's default
+            // header=banner. UI5's same accessibilityAttributes produce this nesting.
+            const owner = unique(reportStory ? '#list-report[data-slot="dynamic-page"]' : '#object-page-block[data-slot="dynamic-page"]')
+            const main = owner ? unique('.fiori-dynamic-page__root[role="main"]', owner) : null
+            const header = main ? unique('.fiori-dynamic-page__title-header[role="banner"]', main) : null
+            return actual === header && !!header && visible(header) && !!main
+              && main.getAttribute('aria-label') === (reportStory ? 'Manage Products' : 'Sales Order')
+              && header.getAttribute('aria-label') === 'Header Expanded' && header.closest('[role="main"]') === main
+          }
+          if (objectStory && rule === "landmark-unique") {
+            // ObjectPage's section and the default block's grouped Form each own
+            // a region named General Information; the block repeats that name.
+            const owner = unique('#object-page-block[data-slot="dynamic-page"]')
+            const section = owner ? unique('section[data-slot="object-page-section"][data-section="general"][aria-labelledby]', owner) : null
+            const form = section ? unique('.fiori-form__root[role="region"][aria-label="General Information"]', section) : null
+            const label = section?.getAttribute('aria-labelledby')
+            const named = [...document.querySelectorAll('[role="region"],section[aria-label],section[aria-labelledby]')].filter(node => visible(node)
+              && (node.getAttribute('aria-label') ?? (node.getAttribute('aria-labelledby') ?? '').split(' ').map(id => document.getElementById(id)?.textContent ?? '').join(' ')).trim() === 'General Information')
+            return actual === section && !!section && !!form && !!label
+              && document.getElementById(label)?.textContent === 'General Information'
+              && named.length === 2 && named.includes(section) && named.includes(form)
+          }
+        }
+        // component defect, fixed by E4 — see docs/plan/handoff/S4-a11y-candidates
+        // FlexibleColumnLayoutTemplate.js nests arrowStart's Button under its
+        // role=separator. The docs demo and real UI5 2.28 instance both
+        // reproduce nested-interactive. Approve only this existing semantic host,
+        // with its one owned arrow. End-expanded layouts hide the grip and omit
+        // resize ARIA/tabindex; axe still treats the separator role as interactive.
+        // Arrowless/hidden separators need no marker; other nodes remain failures.
+        if (rule === "nested-interactive" && [
+          "layout-flexible-column-layout--playground", "layout-flexible-column-layout--one-column",
+          "layout-flexible-column-layout--two-columns-start-expanded", "layout-flexible-column-layout--two-columns-mid-expanded",
+          "layout-flexible-column-layout--three-columns-mid-expanded", "layout-flexible-column-layout--three-columns-end-expanded",
+          "layout-flexible-column-layout--three-columns-start-expanded-end-hidden", "layout-flexible-column-layout--three-columns-mid-expanded-end-hidden",
+          "layout-flexible-column-layout--three-columns-start-hidden-mid-expanded", "layout-flexible-column-layout--three-columns-start-hidden-end-expanded",
+          "layout-flexible-column-layout--mid-column-full-screen", "layout-flexible-column-layout--end-column-full-screen",
+          "layout-flexible-column-layout--tablet", "layout-flexible-column-layout--phone",
+          "layout-flexible-column-layout--disable-resizing", "layout-flexible-column-layout--custom-texts",
+          "layout-flexible-column-layout--rtl", "layout-flexible-column-layout--hook-navigation",
+          "floorplans-master-detail--playground", "floorplans-master-detail--rtl",
+        ].includes(context.story)) {
+          const root = unique('[data-slot="flexible-column-layout"]')
+          const separator = root?.querySelector('[data-slot="flexible-column-layout-start-separator"][role="separator"]')
+          const arrow = separator?.querySelector(':scope > button[data-slot="button"].fiori-fcl__arrow')
+          const grip = separator?.querySelector(':scope > .fiori-fcl__grip')
+          if (!root || !separator || actual !== separator || !arrow || !grip
+            || !visible(separator) || !visible(arrow) || root.getAttribute('data-media') !== 'desktop'
+            || separator.getAttribute('aria-orientation') !== 'vertical'
+            || separator.children.length !== 2
+            || (arrow as HTMLButtonElement).disabled || (arrow as HTMLButtonElement).tabIndex !== 0
+            || separator.querySelectorAll('button,[tabindex]').length !== 1) return false
+          const layout = root.getAttribute('data-layout')
+          if (!['ThreeColumnsMidExpanded', 'ThreeColumnsEndExpanded',
+            'ThreeColumnsStartHiddenMidExpanded', 'ThreeColumnsStartHiddenEndExpanded'].includes(layout ?? '')) return false
+          const resizable = layout === 'ThreeColumnsMidExpanded' || layout === 'ThreeColumnsStartHiddenMidExpanded'
+          if (visible(grip) !== resizable) return false
+          if (resizable) {
+            const value = separator.getAttribute('aria-valuenow')
+            if (separator.getAttribute('tabindex') !== '0' || value === null || !Number.isFinite(Number(value))) return false
+          } else if (separator.hasAttribute('tabindex') || separator.hasAttribute('aria-valuenow')) return false
+          const custom = context.story === 'layout-flexible-column-layout--custom-texts'
+          if (separator.getAttribute('aria-label') !== (custom ? 'Resize orders and detail' : resizable ? 'Resize between start and mid columns' : null)
+            || arrow.getAttribute('aria-label') !== (custom ? 'Show or hide purchase orders' : 'Switch between start and middle column layouts')) return false
+          if (context.primary) {
+            const args = JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}')
+            if (context.story !== 'layout-flexible-column-layout--playground' || context.control?.prop !== 'layout'
+              || args.layout !== context.control.choice || root.getAttribute('data-layout') !== context.control.choice) return false
+          }
+          return true
+        }
+
         if (context.story === "forms-select--open" && !context.primary) {
           const trigger = unique('[data-slot="select-trigger"][role="combobox"][aria-expanded="true"][aria-label="Country"]')
           const list = unique('[data-slot="select-content"][role="listbox"][aria-label="Country choices"]', document)
@@ -144,55 +304,6 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return indicator.classList.contains('fiori-multi-combobox__checkbox')
             && actual.classList.contains('fiori-multi-combobox__item')
             && [...actual.querySelectorAll('[tabindex]')].every((element) => element === indicator)
-        }
-        // S4
-        // component defect, fixed by E4 — see docs/plan/handoff/S4-a11y-candidates
-        // FlexibleColumnLayoutTemplate.js nests arrowStart's Button under its
-        // role=separator. The docs demo and real UI5 2.28 instance both
-        // reproduce nested-interactive. Approve only this existing semantic host,
-        // with its one owned arrow. End-expanded layouts hide the grip and omit
-        // resize ARIA/tabindex; axe still treats the separator role as interactive.
-        // Arrowless/hidden separators need no marker; other nodes remain failures.
-        if (rule === "nested-interactive" && [
-          "layout-flexible-column-layout--playground", "layout-flexible-column-layout--one-column",
-          "layout-flexible-column-layout--two-columns-start-expanded", "layout-flexible-column-layout--two-columns-mid-expanded",
-          "layout-flexible-column-layout--three-columns-mid-expanded", "layout-flexible-column-layout--three-columns-end-expanded",
-          "layout-flexible-column-layout--three-columns-start-expanded-end-hidden", "layout-flexible-column-layout--three-columns-mid-expanded-end-hidden",
-          "layout-flexible-column-layout--three-columns-start-hidden-mid-expanded", "layout-flexible-column-layout--three-columns-start-hidden-end-expanded",
-          "layout-flexible-column-layout--mid-column-full-screen", "layout-flexible-column-layout--end-column-full-screen",
-          "layout-flexible-column-layout--tablet", "layout-flexible-column-layout--phone",
-          "layout-flexible-column-layout--disable-resizing", "layout-flexible-column-layout--custom-texts",
-          "layout-flexible-column-layout--rtl", "layout-flexible-column-layout--hook-navigation",
-          "floorplans-master-detail--playground", "floorplans-master-detail--rtl",
-        ].includes(context.story)) {
-          const root = unique('[data-slot="flexible-column-layout"]')
-          const separator = root?.querySelector('[data-slot="flexible-column-layout-start-separator"][role="separator"]')
-          const arrow = separator?.querySelector(':scope > button[data-slot="button"].fiori-fcl__arrow')
-          const grip = separator?.querySelector(':scope > .fiori-fcl__grip')
-          if (!root || !separator || actual !== separator || !arrow || !grip
-            || !visible(separator) || !visible(arrow) || root.getAttribute('data-media') !== 'desktop'
-            || separator.getAttribute('aria-orientation') !== 'vertical'
-            || separator.children.length !== 2
-            || (arrow as HTMLButtonElement).disabled || (arrow as HTMLButtonElement).tabIndex !== 0
-            || separator.querySelectorAll('button,[tabindex]').length !== 1) return false
-          const layout = root.getAttribute('data-layout')
-          if (!['ThreeColumnsMidExpanded', 'ThreeColumnsEndExpanded',
-            'ThreeColumnsStartHiddenMidExpanded', 'ThreeColumnsStartHiddenEndExpanded'].includes(layout ?? '')) return false
-          const resizable = layout === 'ThreeColumnsMidExpanded' || layout === 'ThreeColumnsStartHiddenMidExpanded'
-          if (visible(grip) !== resizable) return false
-          if (resizable) {
-            const value = separator.getAttribute('aria-valuenow')
-            if (separator.getAttribute('tabindex') !== '0' || value === null || !Number.isFinite(Number(value))) return false
-          } else if (separator.hasAttribute('tabindex') || separator.hasAttribute('aria-valuenow')) return false
-          const custom = context.story === 'layout-flexible-column-layout--custom-texts'
-          if (separator.getAttribute('aria-label') !== (custom ? 'Resize orders and detail' : resizable ? 'Resize between start and mid columns' : null)
-            || arrow.getAttribute('aria-label') !== (custom ? 'Show or hide purchase orders' : 'Switch between start and middle column layouts')) return false
-          if (context.primary) {
-            const args = JSON.parse(canvas.getAttribute('data-fiori-args') ?? '{}')
-            if (context.story !== 'layout-flexible-column-layout--playground' || context.control?.prop !== 'layout'
-              || args.layout !== context.control.choice || root.getAttribute('data-layout') !== context.control.choice) return false
-          }
-          return true
         }
         return false
       }, { target: node.target, rule: violation.id, context })
