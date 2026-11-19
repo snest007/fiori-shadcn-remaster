@@ -333,6 +333,109 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             && actual.classList.contains('fiori-multi-combobox__item')
             && [...actual.querySelectorAll('[tabindex]')].every((element) => element === indicator)
         }
+        // S2
+        // component defect, fixed by E4 — see docs/plan/handoff/S2-a11y-candidates
+        if (rule === "color-contrast" && context.theme === "sap_horizon"
+          && context.story === "data-object-number--inverted" && !context.primary) {
+          const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
+          const number = unique('[data-slot="object-number"][data-state="positive"][data-inverted][data-emphasized]')
+          const inner = number ? unique(':scope > .fiori-object-number__inner', number) : null
+          const text = inner ? unique(':scope > .fiori-object-number__text', inner) : null
+          const unit = inner ? unique(':scope > .fiori-object-number__unit', inner) : null
+          if (!number || !inner || !text || !unit || (actual !== text && actual !== unit) || !visible(actual)
+            || number.hasAttribute("data-large") || number.hasAttribute("data-active") || inner.children.length !== 2
+            || args.state !== "positive" || args.inverted !== true || args.emphasized !== true
+            || text.textContent !== "379.99" || unit.textContent !== "USD") return false
+          const css = getComputedStyle(actual), badge = getComputedStyle(inner)
+          // OpenUI5 Horizon ObjectNumber.less applies sapContent_ContrastTextShadow
+          // here; the current port omits it. Only the reproduced 12px badge is known.
+          return css.color === "rgb(255, 255, 255)" && css.fontSize === "12px" && css.fontWeight === "700"
+            && css.textShadow === "none" && badge.backgroundColor === "rgb(48, 145, 76)"
+        }
+        if (rule === "scrollable-region-focusable" && context.story === "data-table--scroll-overflow" && !context.primary) {
+          const table = unique('[data-slot="table"][data-overflow-mode="scroll"].max-w-xs')
+          const grid = table ? unique(':scope > .fiori-table__grid[role="grid"][aria-label="Products"][aria-rowcount="5"][aria-colcount="3"]', table) : null
+          if (!table || !grid || actual !== grid || !visible(grid) || grid.hasAttribute("aria-busy")
+            || (grid as HTMLElement).scrollWidth <= (grid as HTMLElement).clientWidth || grid.hasAttribute("tabindex")) return false
+          const sentinels = [...table.querySelectorAll(':scope > [data-table-sentinel][tabindex="0"]')]
+          const header = unique(':scope > [data-slot="table-header-row"][role="row"][data-table-nav-row]', grid)
+          const rows = [...grid.querySelectorAll('[data-slot="table-row"][role="row"][data-table-nav-row]')]
+          const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
+          return args.selectionMode === "none" && args.overflowMode === "scroll" && args.loading === false
+            && args.interactiveRows === false && args.withActions === false && args.groupRows === false
+            && sentinels.length === 2 && sentinels.every((node) => !grid.contains(node))
+            && header !== null && rows.length === 4 && rows.map((row) => row.getAttribute("data-row-key")).join("|") === "p1|p2|p3|p4"
+            && !grid.querySelector('[tabindex], button, input, select, textarea, a[href], [contenteditable="true"]')
+        }
+        if (rule === "color-contrast" && context.theme === "sap_horizon"
+          && (context.story === "data-object-status--indication-5" && !context.primary
+            || context.story === "data-object-status--playground" && context.primary
+              && context.control?.prop === "state" && context.control.choice === "indication5")) {
+          const standalone = context.story === "data-object-status--indication-5" && !context.primary
+          const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
+          // SX keeps ordinary story header/footer semantics beneath an unnamed
+          // native SECTION. Docs primary stories retain their unwrapped canvas.
+          const owner = standalone ? unique(":scope > section") : canvas
+          if (!owner || standalone && (owner.attributes.length !== 0 || owner.children.length !== 1)) return false
+          const status = unique(':scope > [data-slot="object-status"][data-state="indication5"]', owner)
+          const text = status ? unique(':scope > .fiori-object-status__wrapper > .fiori-object-status__text', status) : null
+          if (!status || !text || actual !== text || !visible(text) || args.state !== "indication5"
+            || status.hasAttribute("data-inverted") || status.hasAttribute("data-large") || status.hasAttribute("data-active")
+            || text.textContent !== (standalone ? "Delivery stage 5" : "Delivered")) return false
+          const css = getComputedStyle(text), surface = getComputedStyle(canvas)
+          // ObjectStatus.less uses this same SAP indication token and shadow. Only
+          // the reproduced 14px Morning text on its mandated SAP canvas is known.
+          return css.color === "rgb(0, 112, 242)" && css.fontSize === "14px" && css.fontWeight === "400"
+            && css.textShadow === "rgb(255, 255, 255) 0px 0px 2px"
+            && surface.backgroundColor === "rgb(245, 246, 247)"
+        }
+        // Foreign contexts fall through to later card blocks; only owning S2 checks return.
+        const s2OpenStories = ["dates-time-picker--open", "dates-time-picker--open-negative", "dates-time-picker--open-critical", "dates-date-time-picker--open", "dates-date-time-picker--open-negative", "dates-time-picker--twenty-four-hour-clocks"]
+        const s2PrimaryPicker = context.primary && ["dates-time-picker--playground", "dates-date-time-picker--playground"].includes(context.story)
+          && JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}").open === true
+        if (rule === "aria-allowed-role" && (s2OpenStories.includes(context.story) || s2PrimaryPicker)) {
+          const clocks = unique('[data-slot="time-selection-clocks"]', document)
+          const entity = actual.getAttribute("data-clock-button")
+          if (!clocks || !visible(clocks) || !entity || !["hours", "minutes", "seconds"].includes(entity)
+            || actual !== unique(`button[data-clock-button="${entity}"][data-slot="button"][role="spinbutton"]`, clocks)
+            || !actual.closest(".fiori-time-picker-tsc-buttons") || !visible(actual)) return false
+          const min = Number(actual.getAttribute("aria-valuemin")), max = Number(actual.getAttribute("aria-valuemax")), now = Number(actual.getAttribute("aria-valuenow"))
+          const label = actual.getAttribute("aria-label")
+          return !!label && Number.isFinite(now) && now >= min && now <= max
+            && (entity === "hours" ? (min === 1 && max === 12 || min === 0 && max === 23) : min === 0 && max === 59)
+            && actual.getAttribute("aria-valuetext") === `${now} ${label}`
+        }
+        if (context.story === "data-table--loading" && !context.primary && rule === "aria-required-children") {
+          const grid = unique('.fiori-table__grid[role="grid"][aria-label="Products"][aria-busy="true"]')
+          if (!grid || actual !== grid) return false
+          const children = [...grid.children]
+          const header = unique(':scope > [data-slot="table-header-row"][role="row"]', grid)
+          const rows = unique(":scope > .fiori-table__rows[inert]", grid)
+          const end = children.find((child) => child.getAttribute("aria-hidden") === "true")
+          const loader = unique(':scope > .fiori-table__loading[data-slot="busy-indicator"][aria-busy="true"]', grid)
+          const progress = unique('.fiori-table__loading [role="progressbar"][aria-label="Please wait"]', grid)
+          if (!header || !rows || !end || !loader || !progress || children.length !== 4
+            || children.some((child) => ![header, rows, end, loader].includes(child)) || end.children.length) return false
+          const spacer = unique(":scope > .fiori-table__spacer", rows)
+          if (!spacer || rows.children.length !== 1 || spacer.children.length !== 4
+            || [...spacer.children].some((row) => row.getAttribute("role") !== "row" || row.getAttribute("data-slot") !== "table-row")) return false
+          return [...grid.querySelectorAll("[role]")].filter((element) => !element.closest('[role="row"]')).every((element) => element === progress)
+        }
+        const s2TimelineStories = ["data-timeline--playground", "data-timeline--vertical", "data-timeline--vertical-mixed-icons", "data-timeline--none", "data-timeline--negative", "data-timeline--critical", "data-timeline--positive", "data-timeline--information", "data-timeline--growing-button", "data-timeline--growing-scroll", "data-timeline--grouped", "data-timeline--collapsed-group", "data-timeline--horizontal", "data-timeline--horizontal-mixed-icons", "data-timeline--horizontal-growing", "data-timeline--horizontal-group", "data-timeline--horizontal-collapsed-group", "data-timeline--loading", "data-timeline--with-header", "data-timeline--custom-texts", "data-timeline--rtl"]
+        if (rule === "aria-required-children" && s2TimelineStories.includes(context.story)
+          && (!context.primary || context.story === "data-timeline--playground")) {
+          const list = unique('.fiori-timeline__list[aria-live="polite"]')
+          if (!list || actual !== list || !["list", "tree"].includes(list.getAttribute("role") ?? "") || !visible(list)) return false
+          const images = [...list.querySelectorAll('.fiori-tli__icon-outer > [role="img"]')].filter(visible)
+          if (!images.length || images.some((image) => {
+            const item = image.closest('[data-slot="timeline-item"]')
+            const bubble = item ? unique('.fiori-tli__bubble[data-timeline-nav][role="listitem"], .fiori-tli__bubble[data-timeline-nav][role="treeitem"]', item) : null
+            const name = image.getAttribute("aria-label")
+            return !name || !bubble || !(bubble.getAttribute("aria-label") ?? bubble.getAttribute("aria-description") ?? "").includes(name)
+          })) return false
+          // Only existing tooltip images outside the valid item subtrees are approved.
+          return [...list.querySelectorAll("[role]")].filter((element) => visible(element) && !element.closest('[role="listitem"], [role="treeitem"]')).every((element) => images.includes(element))
+        }
         // S3
         // component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
         // Match only the enumerated story, rule and exact owned node. An added
@@ -453,6 +556,62 @@ export async function classifyS1PointerFocus(page: Page, context: { story: strin
     return (css.outlineStyle !== "none" && Number.parseFloat(css.outlineWidth) > 0)
       || (!["none", "normal"].includes(after.content) && after.display !== "none" && after.visibility !== "hidden"
         && after.borderTopStyle !== "none" && Number.parseFloat(after.borderTopWidth) > 0)
+  }, context)
+}
+
+// S2
+// component defect, fixed by E4 — see docs/plan/handoff/S2-a11y-candidates
+// P2/P2a own the initial-open draft repair. This is a value assertion marker,
+// separate from axe: no accessibility rule or other story is exempted.
+export const s2PickerDraftDefect = "component defect, fixed by E4 — see docs/plan/handoff/S2-a11y-candidates/INITIAL-OPEN-DRAFT.md"
+export async function classifyS2InitialPickerDraft(target: Locator, context: AuditContext & { rule: string }) {
+  return target.evaluate((actual, context) => {
+    const stories: Record<string, { slot: string; value: string; name: string; state: string }> = {
+      "dates-time-picker--open": { slot: "time-picker", value: "3:25:40 PM", name: "Start time", state: "none" },
+      "dates-time-picker--open-negative": { slot: "time-picker", value: "3:25:40 PM", name: "Start time", state: "negative" },
+      "dates-time-picker--open-critical": { slot: "time-picker", value: "3:25:40 PM", name: "Start time", state: "critical" },
+      "dates-date-time-picker--open": { slot: "date-time-picker", value: "Mar 12, 2024, 3:25:40 PM", name: "Meeting", state: "none" },
+      "dates-date-time-picker--open-negative": { slot: "date-time-picker", value: "Mar 12, 2024, 3:25:40 PM", name: "Meeting", state: "negative" },
+    }
+    const expected = stories[context.story]
+    if (!expected || context.rule !== "initial-open-draft" || context.primary
+      || !["sap_horizon", "sap_horizon_hcb"].includes(context.theme)
+      || document.documentElement.dataset.theme !== context.theme) return false
+    const unique = (selector: string, root: ParentNode = document) => {
+      const nodes = root.querySelectorAll(selector)
+      return nodes.length === 1 ? nodes[0] : null
+    }
+    const canvas = unique(`#storybook-root [data-fiori-story="${context.story}"]`)
+    if (!canvas) return false
+    const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
+    if (args.open !== true || args.value !== expected.value || args.valueState !== expected.state
+      || args.disabled !== false || args.readOnly !== false || args.locale !== undefined || args.formatPattern !== undefined) return false
+    const input = unique(`input[data-slot="${expected.slot}"][aria-label="${expected.name}"]`, canvas) as HTMLInputElement | null
+    const field = input?.closest('[data-slot="picker-field"][data-open]')
+    const dialog = unique('[data-slot="picker-popover"][role="dialog"][data-state="open"]')
+    const clocks = dialog ? unique('[data-slot="time-selection-clocks"]', dialog) : null
+    if (!input || input.value !== expected.value || !field || !dialog || !dialog.id || !clocks
+      || !((dialog as HTMLElement).checkVisibility()) || !((actual as HTMLElement).checkVisibility())
+      || unique('[data-slot="time-selection-clocks"]') !== clocks
+      || actual !== unique('button[data-clock-button="hours"][data-slot="button"][role="spinbutton"]', clocks)) return false
+    const now = new Date()
+    const values = { hours: now.getHours() % 12 || 12, minutes: now.getMinutes(), seconds: now.getSeconds() }
+    const labels = { hours: "Hours", minutes: "Minutes", seconds: "Seconds" }
+    if (values.hours === 3 && values.minutes === 25 && values.seconds === 40) return false
+    for (const entity of ["hours", "minutes", "seconds"] as const) {
+      const button = unique(`button[data-clock-button="${entity}"][role="spinbutton"]`, clocks)
+      if (!button || button.getAttribute("aria-label") !== labels[entity]
+        || Number(button.getAttribute("aria-valuenow")) !== values[entity]
+        || button.getAttribute("aria-valuetext") !== `${values[entity]} ${labels[entity]}`) return false
+    }
+    const period = unique('.fiori-time-picker-tsc-ampm [role="option"][aria-selected="true"]', clocks)
+    if (period?.textContent !== (now.getHours() >= 12 ? "PM" : "AM")) return false
+    if (expected.slot === "date-time-picker") {
+      const calendar = unique('[data-slot="calendar"]', dialog)
+      const submit = unique('button.fiori-dt-picker-ok[disabled]', dialog)
+      if (!calendar || !submit || calendar.querySelector('[role="gridcell"][aria-selected="true"]')) return false
+    }
+    return true
   }, context)
 }
 

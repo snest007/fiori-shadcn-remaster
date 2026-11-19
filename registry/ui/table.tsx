@@ -163,6 +163,10 @@ function navGrid(grid: HTMLElement): HTMLElement[][] {
 /* ------------------------------------------------------------------------------------------------ */
 /* Table                                                                                            */
 
+/**
+ * @accessibility aria-label / aria-labelledby name the owned grid. TableRow/TableCell own row/gridcell roles, row/column indexes, selection and navigation tabindex; custom JSX stays inside those components. texts overrides selection, growing, popin and row-action announcements.
+ * @accessibility The grid is one Tab stop. Arrows, Home/End, PageUp/Down and Ctrl/Cmd+Home/End move cells/rows. F2/Enter enters cell controls, F2/Escape returns; F7 switches row/cell. Space selects; Shift+arrows extends ranges, Ctrl/Cmd+A selects all, Ctrl/Cmd+Shift+A clears.
+ */
 type TableProps = Omit<React.ComponentProps<"div">, "onSelect"> & FioriMoveHandlers & {
   /** "scroll" (default): columns keep their width and the table scrolls horizontally. "popin": columns that don't fit move into the row as "label: value". */
   overflowMode?: "scroll" | "popin"

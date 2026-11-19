@@ -109,7 +109,7 @@ and run in parallel (each owns different `docs/stories/**` files); S5 last. Inde
 
 - [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
 - [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
-- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S2.md` top section; retained on `codex/S2`)
+- [x] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (fifth-attempt local acceptance complete 2026-11-19: Morning/HCB How review, Evening screenshots, main ×2 and Storybook ×2 clean; retained unmerged/unpushed on `codex/S2` — `returns/S2.md`)
 - [x] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (done 2026-11-19 after six attempts; the shared Dialog story lookup in `pilots.spec.ts` / `docs.spec.ts` was pinned on main at merge)
 - [x] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (accepted through S4b on 2026-11-19; retained on `codex/S4` for owner review)
 - [x] [S4b Finish S4: the last 11 Storybook failures + acceptance](tasks/S4b-finish-s4-failures.md) — S (accepted 2026-11-19; Storybook and main each pass twice; no push or merge)

@@ -24,6 +24,10 @@ type ObjectStatusState =
   | "information"
   | `indication${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10}`
 
+/**
+ * @accessibility Text and title form the status content; stateAnnouncementText supplies the hidden semantic announcement, and iconLabel names an icon-only status. active renders an inner button whose name comes from visible status content.
+ * @accessibility An active status is reachable with Tab; Enter/Space invokes onClick. Inactive status is text. Native aria-label is on the outer status span; provide non-empty text for the inner active button.
+ */
 type ObjectStatusProps = Omit<React.ComponentProps<"span">, "title"> & {
   /** Label before the text, rendered with a colon ("Status:"). */
   title?: React.ReactNode

@@ -12,6 +12,10 @@ import { cn } from "@/lib/utils"
 // ObjectIdentifier: a bold title (a link when `titleActive`) with a secondary text below, in the label color.
 // ObjectAttribute: "Title: text" in the label color; `active` turns the text into a link.
 
+/**
+ * @accessibility title/text name the object. Native aria-label / aria-labelledby land on the outer div; titleActive creates the inner link named by title. ObjectAttribute links take their name from text.
+ * @accessibility Tab reaches active title/attribute links. Enter invokes onTitlePress/onPress when no href is supplied; href enables native link navigation. titleLevel sets the title heading element.
+ */
 type ObjectIdentifierProps = Omit<React.ComponentProps<"div">, "title"> & {
   title?: React.ReactNode
   text?: React.ReactNode

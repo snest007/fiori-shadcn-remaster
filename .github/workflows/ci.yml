@@ -147,10 +147,11 @@ jobs:
     strategy:
       fail-fast: false
       # Main run 44480683049: 3193 tests, three shards took 826/531/782s.
-      # Five project the slowest to 826 * 3 / 5 = 496s (8m16s), below the 9-minute test target.
+      # S2 brings the suite to 4073 tests. Seven project the slowest to
+      # 826 * 3 * (4073 / 3193) / 7 = 452s (7m32s), below the 9-minute test target.
       # Add a shard when new tests push the slowest past 9 minutes; commands derive the total here.
       matrix:
-        shard: [1, 2, 3, 4, 5]
+        shard: [1, 2, 3, 4, 5, 6, 7]
     env:
       PORT: 4320
       PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
