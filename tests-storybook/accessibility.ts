@@ -59,6 +59,11 @@ export async function expectNamedControls(page: Page, context?: AuditContext, te
     // aria-roledescription; its individually focusable gridcells are checked above.
     if (await grid.evaluate((node) => node.hasAttribute("tabindex") || (node as HTMLElement).isContentEditable)) await expect(grid).toHaveAccessibleName(/\S/)
   }
-  // Password fields have no implicit textbox role; keyboard movement handles are images.
-  for (const control of await page.locator('input[type="password"], [role="img"][tabindex="0"]').all()) await expect(control).toHaveAccessibleName(/\S/)
+  // Password fields have no implicit textbox role; keyboard movement handles are images. Check only nodes that are
+  // in the accessibility tree: a modal (e.g. Adapt Filters' Reset confirmation) correctly hides the dialog's resize
+  // handle behind aria-hidden, and a hidden node has nothing to announce. getByRole skips hidden nodes by default.
+  for (const control of await page.locator('input[type="password"]').all()) await expect(control).toHaveAccessibleName(/\S/)
+  for (const control of await page.getByRole("img").all()) {
+    if (await control.evaluate((node) => node.getAttribute("tabindex") === "0")) await expect(control).toHaveAccessibleName(/\S/)
+  }
 }
