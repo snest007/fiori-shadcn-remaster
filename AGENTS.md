@@ -149,6 +149,7 @@ These hard limits apply to every card and every agent (Codex and Claude).
    visual fixtures. Run the full suite twice only at the end, for the definition of done. Shared files make
    `test:changed` say "run the full suite" and exit non-zero; choose affected tooling checks during implementation.
    A component without its own spec runs only its visual fixtures and prints a notice.
+   When a card adds many tests, check the CI timing warning and add a shard in the same card.
 4. **Compact output.** Never print a whole Playwright or CI log into the conversation. Use `pnpm test:summary`
    or grep for summary and failing lines, at most about 50 lines. For CI, use `gh run watch` once (no polling loops),
    then `gh run view --log-failed | grep` for the failing tests only. Full logs stay on disk.
