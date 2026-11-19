@@ -13,6 +13,9 @@ import { cn } from "@/lib/utils"
 
 type PageBackgroundDesign = "solid" | "transparent" | "list"
 
+/**
+ * @accessibility contentProps forwards native section accessibility, including aria-label and tabIndex for scrolling content without interactive children. Header and footer actions must have names. Page adds no composite keyboard model; Tab follows their normal order.
+ */
 type PageProps = React.ComponentProps<"div"> & {
   /** Page background: "solid" (--sapBackgroundColor, default), "transparent" or "list" (group content background). */
   backgroundDesign?: PageBackgroundDesign

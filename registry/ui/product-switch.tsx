@@ -20,6 +20,9 @@ const SwitchContext = React.createContext<{
   choose: (key: string) => void
 } | null>(null)
 
+/**
+ * @accessibility accessibleName names the product list. Each tile derives its name from titleText and subtitleText; provide a title even for an icon tile. One Tab stop enters; arrows navigate by tile or row and Home/End move within the row. Enter or Space activates.
+ */
 type ProductSwitchProps = React.ComponentProps<"div"> & {
   /** aria-label of the list (default "Products"). */
   accessibleName?: string
