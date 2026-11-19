@@ -1,0 +1,19 @@
+--- a/registry/ui/time-picker.tsx
++++ b/registry/ui/time-picker.tsx
+@@ -536,6 +536,16 @@
+   const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate, controlledValueWins: phone })
+   // The popover edits a copy (UI5's tempValue); OK writes it back.
+   const [temp, setTemp] = React.useState<Date>(() => new Date())
++  const wasPickerOpen = React.useRef(false)
++  React.useLayoutEffect(() => {
++    // UI5 TimePicker.js/onBeforeRendering seeds tempValue from the valid value.
++    // A public open/defaultOpen transition must initialize the draft too.
++    if (s.open && !wasPickerOpen.current) {
++      setInputsOpen(false)
++      setTemp(validate(s.text) ?? new Date())
++    }
++    wasPickerOpen.current = s.open
++  }, [s.open, s.text])
+ 
+   const commit = (text: string) => {
+     const d = validate(text)

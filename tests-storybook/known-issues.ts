@@ -559,6 +559,62 @@ export async function classifyS1PointerFocus(page: Page, context: { story: strin
   }, context)
 }
 
+// S2
+// component defect, fixed by E4 — see docs/plan/handoff/S2-a11y-candidates
+// P2/P2a own the initial-open draft repair. This is a value assertion marker,
+// separate from axe: no accessibility rule or other story is exempted.
+export const s2PickerDraftDefect = "component defect, fixed by E4 — see docs/plan/handoff/S2-a11y-candidates/INITIAL-OPEN-DRAFT.md"
+export async function classifyS2InitialPickerDraft(target: Locator, context: AuditContext & { rule: string }) {
+  return target.evaluate((actual, context) => {
+    const stories: Record<string, { slot: string; value: string; name: string; state: string }> = {
+      "dates-time-picker--open": { slot: "time-picker", value: "3:25:40 PM", name: "Start time", state: "none" },
+      "dates-time-picker--open-negative": { slot: "time-picker", value: "3:25:40 PM", name: "Start time", state: "negative" },
+      "dates-time-picker--open-critical": { slot: "time-picker", value: "3:25:40 PM", name: "Start time", state: "critical" },
+      "dates-date-time-picker--open": { slot: "date-time-picker", value: "Mar 12, 2024, 3:25:40 PM", name: "Meeting", state: "none" },
+      "dates-date-time-picker--open-negative": { slot: "date-time-picker", value: "Mar 12, 2024, 3:25:40 PM", name: "Meeting", state: "negative" },
+    }
+    const expected = stories[context.story]
+    if (!expected || context.rule !== "initial-open-draft" || context.primary
+      || !["sap_horizon", "sap_horizon_hcb"].includes(context.theme)
+      || document.documentElement.dataset.theme !== context.theme) return false
+    const unique = (selector: string, root: ParentNode = document) => {
+      const nodes = root.querySelectorAll(selector)
+      return nodes.length === 1 ? nodes[0] : null
+    }
+    const canvas = unique(`#storybook-root [data-fiori-story="${context.story}"]`)
+    if (!canvas) return false
+    const args = JSON.parse(canvas.getAttribute("data-fiori-args") ?? "{}")
+    if (args.open !== true || args.value !== expected.value || args.valueState !== expected.state
+      || args.disabled !== false || args.readOnly !== false || args.locale !== undefined || args.formatPattern !== undefined) return false
+    const input = unique(`input[data-slot="${expected.slot}"][aria-label="${expected.name}"]`, canvas) as HTMLInputElement | null
+    const field = input?.closest('[data-slot="picker-field"][data-open]')
+    const dialog = unique('[data-slot="picker-popover"][role="dialog"][data-state="open"]')
+    const clocks = dialog ? unique('[data-slot="time-selection-clocks"]', dialog) : null
+    if (!input || input.value !== expected.value || !field || !dialog || !dialog.id || !clocks
+      || !((dialog as HTMLElement).checkVisibility()) || !((actual as HTMLElement).checkVisibility())
+      || unique('[data-slot="time-selection-clocks"]') !== clocks
+      || actual !== unique('button[data-clock-button="hours"][data-slot="button"][role="spinbutton"]', clocks)) return false
+    const now = new Date()
+    const values = { hours: now.getHours() % 12 || 12, minutes: now.getMinutes(), seconds: now.getSeconds() }
+    const labels = { hours: "Hours", minutes: "Minutes", seconds: "Seconds" }
+    if (values.hours === 3 && values.minutes === 25 && values.seconds === 40) return false
+    for (const entity of ["hours", "minutes", "seconds"] as const) {
+      const button = unique(`button[data-clock-button="${entity}"][role="spinbutton"]`, clocks)
+      if (!button || button.getAttribute("aria-label") !== labels[entity]
+        || Number(button.getAttribute("aria-valuenow")) !== values[entity]
+        || button.getAttribute("aria-valuetext") !== `${values[entity]} ${labels[entity]}`) return false
+    }
+    const period = unique('.fiori-time-picker-tsc-ampm [role="option"][aria-selected="true"]', clocks)
+    if (period?.textContent !== (now.getHours() >= 12 ? "PM" : "AM")) return false
+    if (expected.slot === "date-time-picker") {
+      const calendar = unique('[data-slot="calendar"]', dialog)
+      const submit = unique('button.fiori-dt-picker-ok[disabled]', dialog)
+      if (!calendar || !submit || calendar.querySelector('[role="gridcell"][aria-selected="true"]')) return false
+    }
+    return true
+  }, context)
+}
+
 // S3
 // component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
 // Owner: P4. The owner-approved third attempt extends this exact component-node

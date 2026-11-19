@@ -1,0 +1,20 @@
+--- a/registry/ui/date-time-picker.tsx
++++ b/registry/ui/date-time-picker.tsx
+@@ -123,6 +123,17 @@
+   if (current && !phone) lastValid.current = current
+   const [previewDay, setPreviewDay] = React.useState<Date | null>(null)
+   const [previewTime, setPreviewTime] = React.useState<Date>(() => new Date())
++  const wasPickerOpen = React.useRef(false)
++  React.useLayoutEffect(() => {
++    // UI5 DateTimePicker.js/_calendarSelectedDates and _timeSelectionValue use
++    // the valid value even when the public open property is initially true.
++    if (s.open && !wasPickerOpen.current) {
++      const base = validate(s.text) ?? lastValid.current
++      setPreviewDay(base ? startOfDay(base) : null)
++      setPreviewTime(base ?? new Date())
++    }
++    wasPickerOpen.current = s.open
++  }, [s.open, s.text])
+   const fieldRef = React.useRef<HTMLInputElement>(null)
+ 
+   const commit = (text: string) => {
