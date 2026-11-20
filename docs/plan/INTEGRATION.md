@@ -31,7 +31,12 @@ For every pending branch, in backlog order (A1, A2, … see `docs/plan/README.md
    including every number/limit/text the card mentions. Also check that each bullet has a test.
    Record mismatches in the report as `mismatch: <behaviour> — ours <x>, reference <y> (<file>:<line>)`.
    A mismatch that changes behaviour blocks the merge of that branch; cosmetic ones go in the report.
-3. Look for forbidden shortcuts: `tolerance` raised, `skipCompare` without a concrete reason comment, `retries`,
+3. Re-run **tier 2** before merging: `pnpm test:changed --repeat-each=2` + `pnpm test:smoke` once (about 5 minutes).
+   A **shared-file card** (anything `test:changed` reports as shared, including `.storybook/**`, Storybook helpers,
+   shared styles/libs, Playwright configs, docs entry points or CI) runs full main and Storybook once through
+   `test:summary` instead; the second full verification is the milestone/CI. Old "main ×2, Storybook ×2" card text
+   means tier 2 under this rule. Tier 1 while implementing is `pnpm test:changed` (specs, visuals, stories; 1–3 minutes).
+4. Look for forbidden shortcuts: `tolerance` raised, `skipCompare` without a concrete reason comment, `retries`,
    `waitForTimeout`/sleeps in tests, `test.skip`, `!important` added outside harness files, hard-coded colours/sizes that
    have a `--sap*`/`--fiori-*` variable (`grep -nE '#[0-9a-f]{3,6}\b|[0-9]+px' <changed files>`).
 
@@ -58,14 +63,23 @@ Follow AGENTS.md's verification budget: at most two local fix hypotheses per fai
 authorized, and about two hours per task. Stop and write `docs/plan/returns/<card>.md` when a limit is reached.
 Keep logs on disk and report compact summaries; background long runs and notify only on completion.
 
+**Tier 3** is the reviewer's job at the end of a wave, every 3–5 merged cards, or a release: full main + Storybook
+once, then push + CI when authorized (about 20 minutes local / 12 minutes CI).
+
 ```bash
-node scripts/integrate.mjs verify                # install, generate, typecheck, registry, 2 full runs (retries off), smoke install
+node scripts/integrate.mjs verify                # milestone, main + Storybook once; then installed consumer + recorded pages
+node scripts/integrate.mjs verify --runs=2       # release: both suites twice
+# Direct milestone verification, without merging or network consumer installation:
+pnpm test:milestone
 ```
 
-It writes `.integration/REPORT.md` and per-run logs (`run-N.log`). PASS requires both runs green and the
-smoke install green. Run it with the **default workers** (no `--workers` flag). `--workers=1` is only a diagnostic for
-cause 6 — a final PASS obtained with `--workers=1` doesn't count, because parallel runs are what the owner uses (the
-suite takes ~3 min in parallel, ~13 min with one worker).
+`verify` installs frozen dependencies, delegates to `pnpm test:milestone` (`--runs` defaults to **1**), and preserves
+the installed-consumer smoke and recorded usage build checks. The milestone runs generate/typecheck/registry build,
+a fresh Storybook build, and both full suites through `test:summary`, with retries off. It writes
+`.integration/milestone-<date>/REPORT.md` with summaries, durations and ten slowest spec files per suite;
+`verify` also writes `.integration/REPORT.md`. PASS requires every check green and **0 failed, 0 flaky**.
+Run with the **default workers** (no `--workers` flag). `--workers=1` is only a diagnostic for cause 6;
+a final PASS with one worker doesn't count. The second full verification is milestone/CI for shared-file cards.
 
 ### When something fails after merging (it passed on each branch alone)
 
@@ -102,7 +116,7 @@ otherwise roll back with the command `merge` printed first (`git reset --hard <m
 node scripts/integrate.mjs cleanup               # deletes merged codex/* branches and their clean worktrees
 ```
 
-Also delete temp files you created. Don't push.
+Also delete temp files you created. Push + CI only when the owner has authorized this milestone.
 
 ## 5. Report (paste this back to the owner)
 

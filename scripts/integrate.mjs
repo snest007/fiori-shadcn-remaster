@@ -8,8 +8,8 @@
 //   node scripts/integrate.mjs status                 list codex/* branches, worktrees, merge state
 //   node scripts/integrate.mjs scope [branch…]        files each branch changes vs. what its card allows
 //   node scripts/integrate.mjs merge [branch…]        scope check, then merge --no-ff in the given order
-//   node scripts/integrate.mjs verify [--runs=2] [--workers=<positive integer>]
-//                                                     install, generate, typecheck, registry, N full runs, smoke install, recorded usage output build
+//   node scripts/integrate.mjs verify [--runs=1|2] [--workers=<positive integer>]
+//                                                     install, milestone (both suites, default one run), smoke install, recorded usage output build
 //   node scripts/integrate.mjs cleanup [branch…]      remove merged branches and their (clean) worktrees
 //
 // Branches default to every local codex/* branch not yet merged into main (cleanup: merged ones).
@@ -184,87 +184,40 @@ if (cmd === "prepare") {
     fail("verify --workers must be a positive integer, e.g. --workers=1.")
   }
   requireCleanMain()
-  const runs = Number(args.find((a) => a.startsWith("--runs="))?.split("=")[1] ?? 2)
-  const killPorts = () => sh(`for p in ${PORT} ${SAPUI5_PORT} 4312 4313; do lsof -ti tcp:$p | xargs kill 2>/dev/null; done; true`, { allowFail: true })
-  killPorts()
-  const steps = []
-  for (const [name, c] of [["install", "pnpm install --frozen-lockfile"], ["generate", "pnpm generate"], ["typecheck", "pnpm typecheck"], ["registry", "pnpm registry:build"]]) {
-    const r = sh(c, { allowFail: true, log: `${name}.log` })
-    steps.push({ name, ok: r.ok, detail: r.ok ? "" : r.out.split("\n").slice(-15).join("\n") })
-    if (!r.ok) break
+  const runs = args.find((a) => a.startsWith("--runs="))?.slice(7) ?? "1"
+  if (!["1", "2"].includes(runs) || args.filter((a) => a.startsWith("--runs=")).length > 1
+    || args.some((a) => !a.startsWith("--runs=") && !a.startsWith("--workers="))) {
+    fail("verify accepts --runs=1|2 (default 1) and --workers=<positive integer>.")
   }
-  const results = []
-  if (steps.every((s) => s.ok)) {
-    for (let i = 1; i <= runs; i++) {
-      killPorts()
-      // INTEGRATION.md cause 6: the serial SAPUI5 spec can still overlap unrelated specs.
-      // --workers=1 isolates reference load; omitting it preserves configured defaults.
-      const r = sh(`pnpm exec playwright test --retries=0${workers ? ` --workers=${workers}` : ""}`, { allowFail: true, env: { PORT, SAPUI5_PORT }, log: `run-${i}.log` })
-      const summary = r.out.split("\n").filter((l) => /^\s+\d+ (passed|failed|flaky|skipped|did not run)/.test(l)).map((l) => l.trim()).join(", ")
-      const failing = [...new Set(r.out.split("\n").filter((l) => l.includes("✘")).map((l) => l.replace(/^\s*✘\s+\d+\s+/, "").replace(/\s+\(retry #\d+\).*|\s+\([\d.]+m?s\)$/, "").trim()))]
-      results.push({ run: i, ok: r.ok, summary: summary || "(no summary line — see log)", failing })
-      if (!r.ok) break
-    }
-  }
-  // Worst visual cell across both oracles.
-  const cells = []
-  for (const dir of ["test-results/visual", "test-results/visual-sapui5"]) {
-    if (!existsSync(dir)) continue
-    for (const sub of readdirSync(dir)) {
-      const f = join(dir, sub, "report.json")
-      if (existsSync(f)) for (const [k, v] of Object.entries(JSON.parse(readFileSync(f, "utf8")))) cells.push({ k: `${dir.split("/").pop()}/${k}`, r: v.ratio })
-    }
-  }
-  cells.sort((a, b) => b.r - a.r)
-  const testsOk = results.length === runs && results.every((r) => r.ok)
+  const install = sh("pnpm install --frozen-lockfile", { allowFail: true, log: "install.log" })
+  // The milestone entry point owns fresh builds, both full suites, compact summaries and timings.
+  const milestone = install.ok ? sh(`pnpm test:milestone --runs=${runs}${workers ? ` --workers=${workers}` : ""}`, {
+    allowFail: true, env: { PORT, SAPUI5_PORT }, log: "milestone.log",
+  }) : { ok: false, out: "skipped (install failed)" }
   let smoke = { ok: false, out: "skipped (earlier step failed)" }
   let usageBuild = { ok: false, out: "skipped (earlier step failed)" }
-  if (testsOk) {
-    killPorts()
-    smoke = sh("node scripts/smoke-install.mjs", { allowFail: true, log: "smoke.log" })
-  }
-  if (testsOk && smoke.ok) {
-    usageBuild = sh("node scripts/eval-skill-build.mjs", { allowFail: true, log: "eval-build.log" })
-  }
-  killPorts()
-  // PASS includes routing/import/compile/build/browser evidence for all six recorded pages.
-  const ok = steps.every((s) => s.ok) && testsOk && smoke.ok && usageBuild.ok
+  if (milestone.ok) smoke = sh("node scripts/smoke-install.mjs", { allowFail: true, log: "smoke.log" })
+  if (smoke.ok) usageBuild = sh("node scripts/eval-skill-build.mjs", { allowFail: true, log: "eval-build.log" })
+  // Preserve installed-consumer and recorded-page evidence at integration milestones.
+  const ok = install.ok && milestone.ok && smoke.ok && usageBuild.ok
+  const date = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Shanghai", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date())
   const report = [
-    `# Integration report — ${new Date().toISOString().slice(0, 16).replace("T", " ")}`,
-    "",
+    `# Integration report — ${date}`, "",
     `main: ${git("rev-parse --short main")} — ${git("log -1 --format=%s main")}`,
-    `Result: **${ok ? "PASS" : "FAIL"}**`,
-    "",
+    `Result: **${ok ? "PASS" : "FAIL"}**`, "",
     `main before merging: ${existsSync(join(OUT, "main-before.txt")) ? readFileSync(join(OUT, "main-before.txt"), "utf8").trim() : "(unknown)"}`,
-    "",
-    "## Branches merged in this integration",
+    "", "## Branches merged in this integration", "",
     existsSync(join(OUT, "merged.txt")) ? readFileSync(join(OUT, "merged.txt"), "utf8").trim().split("\n").map((b) => `- ${b}`).join("\n") : "- (none recorded)",
-    "",
-    "## Steps",
-    ...steps.map((s) => `- ${s.ok ? "✔" : "✖"} ${s.name}${s.detail ? "\n```\n" + s.detail + "\n```" : ""}`),
-    "",
-    `## Full test runs (retries off, ${runs} required)`,
-    `Playwright workers: ${workers ?? "configured default"}.`,
-    "",
-    ...results.map((r) => `- run ${r.run}: ${r.ok ? "✔" : "✖"} ${r.summary}${r.failing.length ? "\n" + r.failing.map((f) => `  - ✘ ${f}`).join("\n") : ""}`),
-    "",
-    "## Visual diff (worst cells)",
-    ...(cells.length ? cells.slice(0, 5).map((c) => `- ${(c.r * 100).toFixed(2)}% ${c.k}`) : ["- (no reports)"]),
-    "",
-    "## Smoke install",
-    "```",
-    smoke.out.split("\n").slice(-25).join("\n"),
-    "```",
-    "",
-    "## Recorded usage outputs",
-    "```",
-    usageBuild.out.split("\n").slice(-25).join("\n"),
-    "```",
-    "",
-    "## Notes from the integrating agent",
-    "(fill in: conflicts resolved, fixes made with file list and reason, anything needing the owner's decision)",
+    "", "## Verification", "",
+    `- install: ${install.ok ? "PASS" : "FAIL"} | Log: .integration/install.log`,
+    milestone.out,
+    `- Milestone details and ten slowest specs per suite: [REPORT.md](milestone-${date}/REPORT.md)`,
+    `- installed consumer: ${smoke.ok ? "PASS" : "FAIL"} | Log: .integration/smoke.log`,
+    `- recorded usage outputs: ${usageBuild.ok ? "PASS" : "FAIL"} | Log: .integration/eval-build.log`,
+    "", "## Notes from the integrating agent", "",
+    "(fill in: conflicts resolved, fixes made with file list and reason, anything needing the owner's decision)", "",
   ].join("\n")
-  writeFileSync(join(OUT, "REPORT.md"), report + "\n")
+  writeFileSync(join(OUT, "REPORT.md"), report)
   console.log(report)
   process.exit(ok ? 0 : 1)
 } else if (cmd === "cleanup") {

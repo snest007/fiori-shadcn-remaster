@@ -31,7 +31,11 @@ pnpm build                         # docs site → dist/
 PORT=4310 pnpm exec playwright test                      # full suite (builds + serves on PORT)
 PORT=4310 pnpm exec playwright test tests/<name>.spec.ts # one spec
 PORT=4310 pnpm test:summary tests/<name>.spec.ts          # compact result + full log on disk
-PORT=4310 pnpm test:changed                             # committed component changes vs main
+PORT=4310 pnpm test:changed                             # changed main specs, visual fixtures and stories vs main
+PORT=4310 pnpm test:changed --repeat-each=2             # tier 2: scoped verification twice
+pnpm test:smoke                                       # tier 2: shared-path smoke once
+pnpm test:milestone                                   # tier 3: both full suites once + report
+pnpm test:milestone --runs=2                          # release: both full suites twice
 VISUAL_ONLY=<prefix>[,<prefix>…] PORT=4310 pnpm test:summary tests/visual.spec.ts # affected fixtures
 scripts/ci-local.sh tests/toolbar.spec.ts                # Linux CI reproduction in Docker
 PORT=4310 pnpm exec playwright test tests/visual.spec.ts # pixel diff vs UI5, 4 themes × 2 densities
@@ -39,6 +43,7 @@ pnpm check                         # everything above, in order
 pnpm storybook                     # component stories at http://localhost:6006
 pnpm storybook:build               # static Storybook → storybook-static/
 PORT=4320 pnpm test:storybook       # separate Storybook render, globals, Controls and axe checks
+STORYBOOK_ONLY=toolbar PORT=4320 pnpm test:summary -c playwright.storybook.config.ts tests-storybook/storybook.spec.ts # whole component story ids
 pnpm dev                           # http://localhost:5173 (docs), /?fixtures, /ui5.html, /block.html?name=<block>
 node scripts/smoke-install.mjs     # fresh consumer app: shadcn init + add every block, build, render
 node scripts/integrate.mjs …       # merging card branches — see docs/plan/INTEGRATION.md
@@ -148,11 +153,19 @@ These hard limits apply to every card and every agent (Codex and Claude).
    third round happens. This limit does not authorize pushing when the card forbids it.
 2. **Local fix attempts: at most 2 per failing test.** Two hypotheses tried and it still fails → commit and report
    it in the same return note, then end the run. Don't widen the search in the same run.
-3. **Inner loop = affected specs only.** Use `pnpm test:changed` while working (it reads committed changes against
-   `main...HEAD`), or `pnpm test:summary tests/<name>.spec.ts` and `VISUAL_ONLY=<prefix>[,<prefix>…]` for affected
-   visual fixtures. Run the full suite twice only at the end, for the definition of done. Shared files make
-   `test:changed` say "run the full suite" and exit non-zero; choose affected tooling checks during implementation.
-   A component without its own spec runs only its visual fixtures and prints a notice.
+3. **Tiered verification** (owner's decision, 2026-11-20):
+   - **Tier 1 — inner loop:** `pnpm test:changed` while working: changed main specs, visual fixtures and Storybook
+     stories, plus changed Storybook regression specs. Target 1–3 minutes. It includes committed changes against
+     `main...HEAD` and working-tree changes. A component without its own spec runs its visuals and prints a notice.
+   - **Tier 2 — card done:** `pnpm test:changed --repeat-each=2` (two scoped runs) + `pnpm test:smoke` once, after
+     generate/typecheck/registry build. Target about 5 minutes; the reviewer repeats tier 2 before merging.
+   - **Shared-file cards:** if `test:changed` prints "shared file changed: run the full suite", run full main and
+     Storybook suites once at card done instead. This includes `.storybook/**`, Storybook helpers, shared styles/libs,
+     Playwright configs, docs entry points and CI. The second full verification is the milestone/CI. Choose affected
+     tooling checks during implementation; don't run full suites in the inner loop.
+   - **Tier 3 — milestone:** the reviewer's job at the end of a wave, every 3–5 merged cards, or a release:
+     `pnpm test:milestone` once (fresh builds, full main + Storybook, report), then push + CI when authorized.
+     `--runs=2` is available for a release. Targets: about 20 minutes local / 12 minutes CI.
    When a card adds many tests, check the CI timing warning and add a shard in the same card.
 4. **Compact output.** Never print a whole Playwright or CI log into the conversation. Use `pnpm test:summary`
    or grep for summary and failing lines, at most about 50 lines. For CI, use `gh run watch` once (no polling loops),
@@ -174,7 +187,10 @@ These hard limits apply to every card and every agent (Codex and Claude).
 ## Definition of done (every card)
 
 - `pnpm generate && pnpm typecheck && pnpm registry:build` succeed.
-- `PORT=4310 pnpm exec playwright test` passes with **0 failed and 0 flaky**; run it twice.
+- **Tier 2:** `PORT=4310 pnpm test:changed --repeat-each=2` passes (two scoped runs), then `pnpm test:smoke`
+  passes once, with **0 failed and 0 flaky**. Shared-file cards run the full main and Storybook suites **once**
+  instead; use `pnpm test:summary` for each. The second full run belongs to the reviewer's tier 3 milestone/CI,
+  not the card. Old card text saying "main ×2, Storybook ×2" means tier 2 under these rules.
 - A new visual state or prop also gets a story in `docs/stories/<category-lowercase>/<name>.stories.tsx`.
 - The card's own acceptance checks all hold.
 - Accessibility (rule 9): new or changed states have fixtures on both sides so `tests/a11y-tree.spec.ts` compares them;
@@ -188,7 +204,7 @@ These hard limits apply to every card and every agent (Codex and Claude).
   left an uncommitted draft and a stray branch there.
 - SAPUI5 fixtures share one reference page: a popup you open must not stay painted outside its own cell (hide parents
   you replace, re-pin after `_applyPosition`), and it must not close because another fixture took focus.
-- Final message states how many CI rounds and how many full-suite runs the task used.
+- Final message states tier 2 summary lines, how many CI rounds and how many full-suite runs the task used.
 - Final message: what changed (files), test summary lines (copy them), anything skipped or deferred and why,
   any shared file you touched.
 

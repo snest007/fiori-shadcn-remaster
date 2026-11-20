@@ -26,8 +26,8 @@ Run [`node scripts/plan-check.mjs`](../../scripts/plan-check.mjs) after editing 
 2. Update the **Status** table above and the README "Not done yet" list if a wave changed.
 3. Check that rules agreed with the owner since the last milestone are in AGENTS.md (and RUN.md / INTEGRATION.md if
    they describe the same step), and that open cards still match them (dependencies, file names, test counts).
-4. Run the heavy verification once (full main + Storybook suites, then push + CI) and record the summary lines in the
-   commit message.
+4. Run tier 3: `pnpm test:milestone` once (full main + Storybook, fresh builds and timing report), then push + CI
+   when authorized. Record the summary lines in the commit message. `--runs=2` is available for a release.
 5. Delete merged `codex/*` branches and worktrees that `plan-check` lists, once the owner agrees.
 
 ## How to run a card (for Codex)
@@ -35,9 +35,11 @@ Run [`node scripts/plan-check.mjs`](../../scripts/plan-check.mjs) after editing 
 ```bash
 git switch main && git switch -c codex/<card-id>      # or the worktree the card names
 pnpm install --frozen-lockfile && pnpm generate
-# … implement the card; while working: pnpm test:changed (affected specs only) …
+# tier 1 while working: pnpm test:changed (main specs + visuals + stories)
 pnpm typecheck && pnpm registry:build
-# card done: see AGENTS.md "Definition of done" and "Verification budget"
+# tier 2 card done (reviewer repeats it):
+pnpm test:changed --repeat-each=2 && pnpm test:smoke
+# shared-file cards: full main + Storybook once instead (through test:summary)
 git add -A && git commit -m "<card-id>: <summary>"
 ```
 
@@ -48,6 +50,14 @@ Follow its budget and acceptance checks exactly.`
 them, 2 local fix hypotheses per failing test, about 2 hours, compact output, background long runs, headless
 browsers. At a limit: stop, commit and write `returns/<card>.md`. Don't push or merge; the owner's reviewer merges
 reviewed branches into main and runs push + CI at milestones (end of a wave, every 3–5 merged cards, or a release).
+
+**Three tiers:** tier 1 is the affected inner loop (1–3 minutes); tier 2 is two scoped runs plus one smoke run
+(about 5 minutes), repeated by the reviewer; tier 3 is the reviewer's milestone, full main + Storybook once, then
+push + CI (about 20 minutes local / 12 minutes CI). `pnpm test:milestone --runs=2` is available for releases.
+If `test:changed` reports a shared file (`.storybook/**`, Storybook helpers, shared styles/libs, Playwright configs,
+docs entry points or CI), the card runs full main and Storybook suites **once** instead; the second full verification
+is the milestone/CI. Existing card requirements saying "main ×2, Storybook ×2" now mean **tier 2**, subject to this
+shared-file rule; do not rewrite old cards. Follow any additional card-specific acceptance checks and tighter budget.
 
 One card per branch. Cards in the same wave touch disjoint files and can run in parallel (separate worktrees/branches);
 later waves depend on earlier ones. Optional orchestration: [RUN.md](RUN.md) (one Codex session with sub-agents) or
