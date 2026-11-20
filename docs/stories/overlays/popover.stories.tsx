@@ -31,3 +31,8 @@ export const WithoutArrow: Story = { args: { open: true, hideArrow: true } }
 export const Modal: Story = { args: { open: true, modal: true } }
 export const LongText: Story = { args: { open: true, content: "Review the receiving address, contact person and unloading instructions before submitting your purchase order. The warehouse accepts deliveries from Monday to Friday and requires a confirmed appointment." } }
 export const RTL: Story = { args: { open: true }, globals: { dir: "rtl" } }
+
+export const CustomHost: Story = { render: () => <Popover open><PopoverContent asChild portal={false} aria-label="Custom host popover" hideArrow><section><PopoverBody>Popover content</PopoverBody></section></PopoverContent></Popover> }
+function ChildrenOnlyHost({ children }: React.ComponentProps<"div">) { return <section>{children}</section> }
+export const ReactHost: Story = { render: () => <Popover open><PopoverContent asChild portal={false} aria-label="React host popover" hideArrow><ChildrenOnlyHost role="presentation" tabIndex={13}><PopoverBody>Popover content</PopoverBody></ChildrenOnlyHost></PopoverContent></Popover> }
+export const RTLReactHost: Story = { ...ReactHost, globals: { dir: "rtl" } }

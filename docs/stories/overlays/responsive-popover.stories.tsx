@@ -54,3 +54,5 @@ export const FieldSurface: Story = { args: { open: true, phone: true, phoneField
 export const CustomTexts: Story = { args: { open: true, phone: true, headerText: "Receiving information", closeLabel: "Close receiving information" } }
 export const RTL: Story = { args: { open: true }, globals: { dir: "rtl" } }
 export const PhoneRTL: Story = { args: { open: true, phone: true }, globals: { dir: "rtl" } }
+
+export const CustomHost: Story = { render: () => <ResponsivePopover open><ResponsivePopoverContent asChild portal={false} aria-label="Custom responsive popup" headerText="Responsive title" phoneHeader={<span>Custom header</span>} phoneFooter={<button>Continue</button>}><section>Responsive content</section></ResponsivePopoverContent></ResponsivePopover> }

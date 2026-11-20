@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 
 // UI5 2.28 List fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -27,6 +28,87 @@ type ListItemHighlight = "none" | "negative" | "critical" | "positive" | "inform
 type ListSeparators = "all" | "inner" | "none"
 type ListGrowing = "none" | "button" | "scroll"
 type ListAdditionalTextState = "none" | "negative" | "critical" | "positive" | "information"
+type ListAccessibleRole = "list" | "listbox" | "menu" | "tree"
+
+type ListTexts = {
+  selected: string; notSelected: string; active: string; customItem: string
+  required: string; disabled: string; readonly: string; empty: string
+  singleControl: string; multipleControls: string; buttonType: string; linkType: string
+  listDescription: string; groupHeader: string; selectable: string; multiSelectable: string; deletable: string
+  checkboxLabel: string; radioLabel: string; loadMore: string; delete: string
+  inactive: string; navigation: string; detail: string
+  groupDescription: (groups: number, items: number) => string
+  listboxGroupDescription: (groups: number) => string
+}
+const defaultListTexts: ListTexts = {
+  selected: "Selected", // UI5 LIST_ITEM_SELECTED
+  notSelected: "Not Selected", // UI5 LIST_ITEM_NOT_SELECTED
+  active: "Is Active", // UI5 LIST_ITEM_ACTIVE
+  customItem: "List Item", // UI5 LISTITEMCUSTOM_TYPE_TEXT
+  required: "Required", // UI5 ACC_STATE_REQUIRED
+  disabled: "Disabled", // UI5 ACC_STATE_DISABLED
+  readonly: "Read Only", // UI5 ACC_STATE_READONLY
+  empty: "Empty", // UI5 ACC_STATE_EMPTY
+  singleControl: "Includes element", // UI5 ACC_STATE_SINGLE_CONTROL
+  multipleControls: "Includes elements", // UI5 ACC_STATE_MULTIPLE_CONTROLS
+  buttonType: "Button", // UI5 BUTTON_ROLE_DESCRIPTION
+  linkType: "Link", // UI5 LINK_ROLE_DESCRIPTION
+  listDescription: "List with interactive items. To move to the content, press F2.", // UI5 LIST_ROLE_DESCRIPTION
+  groupHeader: "Group Header", // UI5 GROUP_HEADER_TEXT
+  selectable: "Contains Selectable Items", // UI5 ARIA_LABEL_LIST_SELECTABLE
+  multiSelectable: "Contains Multi-Selectable Items", // UI5 ARIA_LABEL_LIST_MULTISELECTABLE
+  deletable: "Contains Deletable Items", // UI5 ARIA_LABEL_LIST_DELETABLE
+  checkboxLabel: "Multiple Selection Mode", // UI5 ARIA_LABEL_LIST_ITEM_CHECKBOX
+  radioLabel: "Item Selection.", // UI5 ARIA_LABEL_LIST_ITEM_RADIO_BUTTON
+  loadMore: "More", // UI5 LOAD_MORE_TEXT
+  delete: "Delete", // UI5 DELETE
+  // UI5 ListItemStandardTemplate.js:listItemContent announces enum values (no i18n key).
+  inactive: "Inactive", navigation: "Navigation", detail: "Detail",
+  groupDescription: (groups, items) => `contains ${formatListCount(groups)} sub groups with ${formatListCount(items)} items`, // UI5 LIST_ROLE_LIST_GROUP_DESCRIPTION
+  listboxGroupDescription: (groups) => `contains ${formatListCount(groups)} sub groups`, // UI5 LIST_ROLE_LISTBOX_GROUP_DESCRIPTION
+}
+function formatListCount(count: number) { return new Intl.NumberFormat(typeof navigator === "undefined" ? "en" : navigator.language).format(count) }
+
+type CustomAccessibilityInfo = {
+  type?: string; description?: string; required?: boolean; disabled?: boolean; readonly?: boolean; children?: Node[]
+}
+/** Port CustomAnnouncement.js:getCustomAnnouncement. Custom DOM hosts can expose
+ * accessibilityInfo, or data-ui5-acc-text, exactly as native custom content does.
+ */
+function getCustomAnnouncement(element: Node | null, texts: ListTexts = defaultListTexts, options: { lessDetails?: boolean; rootInfo?: CustomAccessibilityInfo } = {}, root = true): string {
+  if (!element) return ""
+  if (element.nodeType === Node.TEXT_NODE) return element.textContent?.trim() ?? ""
+  if (!(element instanceof HTMLElement)) return ""
+  if (element.hasAttribute("data-ui5-acc-text")) return element.getAttribute("data-ui5-acc-text") ?? ""
+  if (element.ariaHidden === "true" || !(element.checkVisibility() || getComputedStyle(element).display === "contents")) return root ? texts.empty : ""
+  const supplied = options.rootInfo ?? (element as HTMLElement & { accessibilityInfo?: CustomAccessibilityInfo }).accessibilityInfo
+  // Button.js:accessibilityInfo supplies its type, disabled state and text slot.
+  // Native HTML alone has no such hook; recognize the owning Fiori Button host.
+  const info = supplied ?? (element.dataset.slot === "button" ? {
+    type: element.getAttribute("role") === "link" ? texts.linkType : texts.buttonType, disabled: (element as HTMLButtonElement).disabled,
+    description: element.getAttribute("aria-description") ?? undefined,
+    children: [...element.childNodes],
+  } : undefined)
+  const parts: string[] = []
+  if (info?.type) parts.push(info.type)
+  if (info?.description) parts.push(info.description)
+  if (!options.lessDetails) {
+    if (info?.required) parts.push(texts.required)
+    if (info?.disabled) parts.push(texts.disabled)
+    if (info?.readonly) parts.push(texts.readonly)
+  }
+  const children = info ? info.children ?? [] : (element.localName === "slot" ? (element as HTMLSlotElement).assignedNodes({ flatten: true }) : [...(element.shadowRoot?.childNodes ?? element.childNodes)])
+  for (const child of children) {
+    const description = getCustomAnnouncement(child, texts, { lessDetails: options.lessDetails }, false)
+    if (description) parts.push(description)
+  }
+  if (root && (!parts.length || !options.lessDetails)) {
+    const tabbables = [...element.querySelectorAll<HTMLElement>(TABBABLE)].filter((node) => node.checkVisibility() && node.ariaHidden !== "true" && node.getAttribute("tabindex") !== "-1")
+    const tail = tabbables.length === 1 ? texts.singleControl : tabbables.length > 1 ? texts.multipleControls : !parts.length ? texts.empty : ""
+    if (tail) { if (parts.length) parts.push("."); parts.push(tail) }
+  }
+  return parts.join(" ").trim()
+}
 
 const PAGE_SIZE = 10
 const SINGLE_MODES: ListSelectionMode[] = ["single", "singleStart", "singleEnd", "singleAuto"]
@@ -37,7 +119,7 @@ const TABBABLE =
 type ListCore = {
   rootRef: React.RefObject<HTMLDivElement | null>
   mode: ListSelectionMode
-  itemRole: "listitem" | "option" | "treeitem"
+  itemRole: "listitem" | "option" | "treeitem" | "menuitem"
   isSelected: (value: string) => boolean
   /** source "component": the radio / check box was pressed (no item-click). */
   select: (value: string, selected: boolean) => void
@@ -51,6 +133,7 @@ type ListCore = {
   deleteText: string
   selectedText: string
   notSelectedText: string
+  texts?: ListTexts
 }
 
 const ListCoreContext = React.createContext<ListCore | null>(null)
@@ -89,6 +172,7 @@ type CoreOptions = {
   deleteText: string
   selectedText: string
   notSelectedText: string
+  announceSelection?: (selected: boolean) => void
   growingButtonRef?: React.RefObject<HTMLDivElement | null>
 }
 
@@ -128,6 +212,9 @@ function useListCoreValue(opts: CoreOptions) {
   const commit = React.useCallback((next: string[], item: string, isSel: boolean) => {
     if (optsRef.current.value === undefined) setInner(next)
     optsRef.current.onValueChange?.(next, { item, selected: isSel })
+    // List.js:onSelectionRequested announces only an actual selection change;
+    // reselecting Single or toggling to the existing Multiple value returns above.
+    optsRef.current.announceSelection?.(isSel)
   }, [])
 
   const select = React.useCallback(
@@ -274,6 +361,9 @@ function handleNavigationKey(e: React.KeyboardEvent, core: ListCore, opts?: { gr
  * @accessibility Items form one Tab stop. Up/Down, Home/End and PageUp/Down move items. Enter/Space activates or selects; Delete requests deletion. Tab enters custom controls and returns to list navigation; movable items request order changes with Ctrl/Cmd+arrows or Home/End.
  */
 type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & FioriMoveHandlers & {
+  texts?: Partial<ListTexts>
+  /** Locale used by the default group-count descriptions. */
+  locale?: string
   selectionMode?: ListSelectionMode
   /** Values of the selected items (controlled). Every mode uses an array; single modes hold at most one. */
   value?: string[]
@@ -295,11 +385,15 @@ type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> 
   stickyHeader?: boolean
   growing?: ListGrowing
   growingButtonText?: string
+  /** aria-label on the growing button (UI5 accessibilityAttributes.growingButton.name). */
+  growingButtonName?: string
+  /** aria-description on the growing button (UI5 accessibilityAttributes.growingButton.description). */
+  growingButtonDescription?: string
   onLoadMore?: () => void
   loading?: boolean
   loadingDelay?: number
-  /** "listbox" renders options (aria-selected); "list" renders list items (default, as UI5). */
-  accessibleRole?: "list" | "listbox"
+  /** Role on the inner ul; inherited item roles follow UI5 List.js:LIST_ACCESSIBLE_ROLE_TO_ITEM_ROLE. */
+  accessibleRole?: ListAccessibleRole
   /** Tooltip of the delete buttons (default "Delete"). */
   deleteText?: string
   /** Screen-reader texts used to announce selection on list items. */
@@ -307,11 +401,10 @@ type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> 
   notSelectedText?: string
 }
 
-const modeLabel: Partial<Record<ListSelectionMode, string>> = {
-  multiple: "Contains Multi-Selectable Items",
-  delete: "Contains Deletable Items",
-}
-
+/** Native aria-label/aria-labelledby apply to the inner ul (UI5 ListTemplate.js).
+ * aria-description and resolved aria-describedby text compose its aria-description
+ * with the component-owned descriptions (UI5 List.js:ariaDescriptionText).
+ */
 function List({
   selectionMode = "none",
   value,
@@ -329,18 +422,24 @@ function List({
   indent,
   stickyHeader,
   growing = "none",
-  growingButtonText = "More",
+  growingButtonText,
+  growingButtonName,
+  growingButtonDescription,
   onLoadMore,
   loading,
   loadingDelay = 1000,
   accessibleRole = "list",
-  deleteText = "Delete",
-  selectedText = "Selected",
-  notSelectedText = "Not Selected",
+  deleteText,
+  selectedText,
+  notSelectedText,
+  texts,
+  locale,
   className,
   children,
   "aria-label": ariaLabel,
   "aria-labelledby": ariaLabelledBy,
+  "aria-description": ariaDescription,
+  "aria-describedby": ariaDescriptionRef,
   onDragStart,
   onDragEnd,
   onDragEnter,
@@ -350,21 +449,40 @@ function List({
   ...props
 }: ListProps) {
   const id = React.useId()
+  const t = React.useMemo(() => {
+    const number = new Intl.NumberFormat(locale ?? (typeof navigator === "undefined" ? "en" : navigator.language))
+    return { ...defaultListTexts,
+      groupDescription: (groups: number, items: number) => `contains ${number.format(groups)} sub groups with ${number.format(items)} items`, // UI5 LIST_ROLE_LIST_GROUP_DESCRIPTION
+      listboxGroupDescription: (groups: number) => `contains ${number.format(groups)} sub groups`, // UI5 LIST_ROLE_LISTBOX_GROUP_DESCRIPTION
+      ...texts, ...(selectedText === undefined ? {} : { selected: selectedText }), ...(notSelectedText === undefined ? {} : { notSelected: notSelectedText }) }
+  }, [locale, texts, selectedText, notSelectedText])
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
+  const announceSelection = (selected: boolean) => setAnnouncement((old) => ({ text: selected ? t.selected : t.notSelected, sequence: old.sequence + 1 }))
   const growingRef = React.useRef<HTMLDivElement>(null)
   const { core, focusArea } = useListCoreValue({
     mode: selectionMode,
-    itemRole: accessibleRole === "listbox" ? "option" : "listitem",
+    itemRole: accessibleRole === "listbox" ? "option" : accessibleRole === "tree" ? "treeitem" : accessibleRole === "menu" ? "menuitem" : "listitem",
     separators,
     value,
     defaultValue,
     onValueChange,
     onItemClick,
     onItemDelete,
-    deleteText,
-    selectedText,
-    notSelectedText,
+    deleteText: deleteText ?? t.delete,
+    selectedText: t.selected,
+    notSelectedText: t.notSelected,
+    announceSelection,
     growingButtonRef: growing === "button" ? growingRef : undefined,
   })
+  core.texts = t
+  React.useEffect(() => setAnnouncementTarget(core.rootRef.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? document.body), [])
+  React.useEffect(() => {
+    if (!announcement.text) return
+    // InvisibleMessage.js:announce clears the announcement after 3000 ms.
+    const timer = setTimeout(() => setAnnouncement((old) => old.sequence === announcement.sequence ? { ...old, text: "" } : old), 3000)
+    return () => clearTimeout(timer)
+  }, [announcement])
   const dragAndDrop = useFioriDragAndDrop({
     rootRef: core.rootRef,
     kind: "list",
@@ -375,9 +493,43 @@ function List({
     dragHandlers: { onDragStart, onDragEnd, onDragEnter, onDragLeave, onDragOver, onDrop },
   })
   const hasData = React.Children.toArray(children).length > 0
+  const [structure, setStructure] = React.useState({ groups: 0, items: 0, interactive: false })
+  React.useLayoutEffect(() => {
+    const root = core.rootRef.current
+    if (!root) return
+    const update = () => {
+      const groups = [...root.querySelectorAll<HTMLElement>('[data-slot="list-item-group"]')].filter((group) => group.closest('[data-slot="list"]') === root)
+      const items = [...root.querySelectorAll<HTMLElement>('[data-slot="list-item"]')].filter((item) => item.closest('[data-slot="list"]') === root)
+      // List.js:_hasInteractiveItems / _getDescriptionForGroups inspect slotted
+      // content; custom React children retain the same generated descriptions.
+      const next = { groups: groups.length, items: groups.reduce((count, group) => count + items.filter((item) => item.closest('[data-slot="list-item-group"]') === group).length, 0),
+        interactive: selectionMode === "delete" || items.some((item) => item.dataset.itemType === "detail" || item.hasAttribute("data-custom") && tabbablesIn(item).some((control) => control.checkVisibility())) }
+      setStructure((old) => old.groups === next.groups && old.items === next.items && old.interactive === next.interactive ? old : next)
+    }
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled", "tabindex", "data-item-type", "data-custom"] })
+    return () => observer.disconnect()
+  }, [selectionMode, core.rootRef])
+  const [referencedDescription, setReferencedDescription] = React.useState("")
+  React.useLayoutEffect(() => {
+    if (!ariaDescriptionRef) { setReferencedDescription(""); return }
+    const root = core.rootRef.current?.getRootNode() as Document | ShadowRoot | undefined
+    if (!root) return
+    const update = () => setReferencedDescription(ariaDescriptionRef.trim().split(/\s+/).map((target) => root.getElementById(target)?.textContent?.trim()).filter(Boolean).join(" "))
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["id"] })
+    return () => observer.disconnect()
+  }, [ariaDescriptionRef, core.rootRef])
   const headerId = `${id}-header`
   const modeId = `${id}-mode`
-  const modeText = hasData ? (isSingle(selectionMode) ? "Contains Selectable Items" : modeLabel[selectionMode]) : undefined
+  const modeText = hasData ? (isSingle(selectionMode) ? t.selectable : selectionMode === "multiple" ? t.multiSelectable : selectionMode === "delete" ? t.deletable : undefined) : undefined
+  const contentDescription = accessibleRole === "list" && structure.interactive ? t.listDescription : undefined
+  const groupDescription = structure.groups ? accessibleRole === "list" ? t.groupDescription(structure.groups, structure.items) : accessibleRole === "listbox" ? t.listboxGroupDescription(structure.groups) : undefined : undefined
+  // List.js:ariaDescriptionText resolves accessibleDescriptionRef before composing
+  // the list's owned interactive/group text on ListTemplate.js's ul aria-description.
+  const description = [contentDescription, referencedDescription || ariaDescription, groupDescription].filter(Boolean).join(" ") || undefined
   const labelledBy =
     ariaLabelledBy ?? (ariaLabel ? undefined : cn(modeText && modeId, !header && headerText && headerId) || undefined)
 
@@ -428,6 +580,7 @@ function List({
           role={accessibleRole}
           aria-label={ariaLabel}
           aria-labelledby={labelledBy}
+          aria-description={description}
           aria-multiselectable={accessibleRole === "listbox" && selectionMode === "multiple" ? true : undefined}
           className="fiori-list__ul"
           onKeyDown={(e) => {
@@ -436,7 +589,7 @@ function List({
         >
           {children}
           {!hasData && noDataText && (
-            <li tabIndex={0} role={accessibleRole === "listbox" ? "option" : "listitem"} className="fiori-list__nodata">
+            <li tabIndex={0} role={core.itemRole} className="fiori-list__nodata">
               <div className="fiori-list__nodata-text">{noDataText}</div>
             </li>
           )}
@@ -448,7 +601,9 @@ function List({
               id={`${id}-growing`}
               role="button"
               tabIndex={0}
-              aria-labelledby={`${id}-growing-text`}
+              aria-label={growingButtonName}
+              aria-labelledby={growingButtonName ? undefined : `${id}-growing-text`}
+              aria-describedby={growingButtonDescription ? `${id}-growing-description` : undefined}
               data-active={moreActive ? "" : undefined}
               className="fiori-list__growing-inner"
               onClick={loadMore}
@@ -478,9 +633,10 @@ function List({
             >
               {loading && <BusyIndicator active delay={loadingDelay} size="M" className="fiori-list__growing-busy" />}
               <span id={`${id}-growing-text`} className="fiori-list__growing-text">
-                {growingButtonText}
+                {growingButtonText ?? t.loadMore}
               </span>
             </div>
+            {growingButtonDescription && <span id={`${id}-growing-description`} className="sr-only">{growingButtonDescription}</span>}
           </div>
         )}
         {footerText && <footer className="fiori-list__footer">{footerText}</footer>}
@@ -513,6 +669,7 @@ function List({
         )}
         {dragAndDrop.indicator}
       </div>
+      {announcementTarget && createPortal(<span data-slot="list-announcement" data-owner={props.id} className="sr-only" role="alert" aria-live="polite" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>, announcementTarget)}
     </ListCoreContext.Provider>
   )
 }
@@ -638,15 +795,23 @@ function SelectionElement({
 }) {
   const mode = core.mode
   const off = inactive || disabled
+  const texts = core.texts ?? defaultListTexts
   if (isSingle(mode) && mode !== "single" && mode !== "singleAuto") {
     // Drawn like ui5-radio-button but not focusable: the item is the focus stop (UI5 tabindex -1).
     return (
       <span
-        aria-hidden
+        // ListItemTemplate.js:selectionElement exposes the inner radio at tabindex=-1.
+        role="radio"
+        aria-label={texts.radioLabel}
+        aria-checked={selected}
+        aria-disabled={off || undefined}
+        tabIndex={-1}
         data-li-selection=""
         data-state={selected ? "checked" : "unchecked"}
         data-disabled={off ? "" : undefined}
         className="fiori-radio fiori-li__selection"
+        onKeyDown={(event) => { if (event.key === " ") event.preventDefault(); if (!off && event.key === "Enter") core.select(value, true) }}
+        onKeyUp={(event) => { if (!off && event.key === " ") core.select(value, true) }}
         onClick={(e) => {
           e.stopPropagation()
           if (!off) core.select(value, true)
@@ -664,11 +829,20 @@ function SelectionElement({
   if (mode === "multiple") {
     return (
       <span
-        aria-hidden
+        // ListItemTemplate.js:selectionElement exposes the checkbox, including required=false.
+        role="checkbox"
+        aria-label={texts.checkboxLabel}
+        aria-checked={selected}
+        aria-disabled={off || undefined}
+        aria-required={false}
+        tabIndex={-1}
         data-li-selection=""
         data-state={selected ? "checked" : "unchecked"}
         data-disabled={off ? "" : undefined}
         className="fiori-checkbox fiori-li__selection"
+        // CheckBox.js:_onkeydown toggles Enter, _onkeyup toggles Space.
+        onKeyDown={(event) => { if (event.key === " ") event.preventDefault(); if (!off && event.key === "Enter") core.select(value, !selected) }}
+        onKeyUp={(event) => { if (!off && event.key === " ") core.select(value, !selected) }}
         onClick={(e) => {
           e.stopPropagation()
           if (!off) core.select(value, !selected)
@@ -703,6 +877,10 @@ function SelectionElement({
 }
 
 type ListItemBaseProps = Omit<React.ComponentProps<"li">, "value" | "type" | "content"> & {
+  /** Native aria-* apply to the li: role overrides the inherited role, aria-label
+   * maps to UI5 accessibleName, and aria-posinset/aria-setsize map to accessibilityAttributes.
+   * Description refs are combined with the component-owned selection description.
+   */
   /** Identifies the item for selection, click and delete callbacks. */
   value?: string
   type?: ListItemType
@@ -719,6 +897,8 @@ type ListItemBaseProps = Omit<React.ComponentProps<"li">, "value" | "type" | "co
 }
 
 type ItemRenderOptions = ListItemBaseProps & {
+  /** Explicit native-state fixture paint; roles, selection and tabindex remain owned. */
+  "data-active"?: string
   /** data-* layout flags for the root (UI5 host attributes). */
   flags: Record<string, string | undefined>
   content: React.ReactNode
@@ -748,7 +928,12 @@ function ListItemRoot({
   onKeyUp,
   onClick,
   onFocus,
+  onBlur,
   onPointerDown,
+  "aria-label": accessibleName,
+  "aria-labelledby": externalNameRef,
+  "aria-describedby": externalDescriptionRef,
+  "data-active": activeFlag,
   ...props
 }: ItemRenderOptions) {
   const { core, value, selected, active, actionable, inactive, handlers } = useListItemBehaviour({
@@ -763,15 +948,24 @@ function ListItemRoot({
   })
   const contentId = React.useId()
   const descId = React.useId()
+  const nameId = React.useId()
+  const customId = React.useId()
+  const [customText, setCustomText] = React.useState("")
+  const t = core.texts ?? defaultListTexts
+  const custom = flags["data-custom"] !== undefined
+  const nameText = [accessibleName, type === "active" && t.active].filter(Boolean).join(" ")
   const mode = core.mode
   // UI5: only Multiple / Single / SingleStart / SingleEnd announce selection (not SingleAuto).
   const ariaSelected = mode === "multiple" || (isSingle(mode) && mode !== "singleAuto") ? selected : undefined
+  const effectiveRole = props.role ?? core.itemRole
   const before = mode === "multiple" || mode === "singleStart"
   const after = mode === "singleEnd" || mode === "delete"
   const sel = <SelectionElement core={core} value={value} selected={selected} inactive={inactive} disabled={disabled} />
   return (
     <li
+      {...props}
       data-slot="list-item"
+      data-item-type={type}
       // UI5 ListItemTemplate uses movable independently of disabled; List._moveItem accepts programmatic focus moves.
       data-movable={movable ? "" : undefined}
       draggable={movable}
@@ -779,21 +973,38 @@ function ListItemRoot({
       data-li-row=""
       data-selected={selected ? "" : undefined}
       data-actionable={actionable && !disabled ? "" : undefined}
-      data-active={active && actionable ? "" : undefined}
+      // Preserve the existing native-state fixture flag when spreading other
+      // consumer attributes before the component-owned accessibility channels.
+      data-active={activeFlag ?? (active && actionable ? "" : undefined)}
       data-has-border={core.hasBorder(value) ? "" : undefined}
       data-disabled={disabled ? "" : undefined}
       data-highlight={highlight !== "none" ? highlight : undefined}
       data-mode={mode}
       data-pad-selection={padSelection ? "" : undefined}
       {...flags}
-      role={core.itemRole}
-      tabIndex={disabled ? -1 : core.currentKey === value ? 0 : -1}
-      aria-selected={core.itemRole === "option" ? ariaSelected : undefined}
+      role={effectiveRole}
+      tabIndex={props.tabIndex ?? (disabled ? -1 : core.currentKey === value ? 0 : -1)}
+      // ListItem.js:_ariaSelected derives state from mode, and _accInfo uses
+      // the effective item role. A caller's valid Option/TreeItem role keeps it.
+      aria-selected={effectiveRole === "option" || effectiveRole === "treeitem" ? ariaSelected : undefined}
       aria-disabled={disabled || undefined}
-      aria-describedby={ariaSelected !== undefined && core.itemRole === "listitem" ? descId : undefined}
+      aria-labelledby={cn(customText && customId, externalNameRef, !custom && !accessibleName && !externalNameRef && contentId, nameId)}
+      aria-describedby={cn(externalDescriptionRef, descId)}
       className={cn("fiori-li", className)}
       {...handlers}
-      {...props}
+      onFocus={(event) => {
+        handlers.onFocus?.(event)
+        // ListItemCustom.js:_onfocusin prepends CustomAnnouncement to the
+        // existing labelled-by targets, and _onfocusout clears it again.
+        if (custom && !accessibleName && !event.currentTarget.hasAttribute("data-moving")) {
+          const content = event.currentTarget.querySelector<HTMLElement>(".fiori-li__content")
+          // ListItemCustom.js:accessibilityInfo includes default-slot content and
+          // _getDeleteButtonNodes; selection/detail controls are not content nodes.
+          const deleteButtons = event.currentTarget.querySelectorAll<HTMLElement>(".fiori-li__deletebtn [data-slot='button']")
+          setCustomText(getCustomAnnouncement(event.currentTarget, t, { rootInfo: { type: t.customItem, children: [...(content?.childNodes ?? []), ...deleteButtons] } }))
+        }
+      }}
+      onBlur={(event) => { onBlur?.(event); if (custom && !accessibleName && !event.currentTarget.hasAttribute("data-moving")) setCustomText("") }}
     >
       {before && sel}
       {highlight !== "none" && <div className="fiori-li__highlight" />}
@@ -820,11 +1031,9 @@ function ListItemRoot({
       {type === "navigation" && <Icon icon={slimArrowRight} className="fiori-li__nav-icon" />}
       {navigated && <div className="fiori-li__navigated" />}
       {after && sel}
-      {ariaSelected !== undefined && core.itemRole === "listitem" && (
-        <span id={descId} className="sr-only">
-          {selected ? core.selectedText : core.notSelectedText}
-        </span>
-      )}
+      <span id={nameId} className="sr-only">{nameText}</span>
+      {customText && <span id={customId} hidden>{customText}</span>}
+      <span id={descId} className="sr-only">{ariaSelected === undefined ? "" : selected ? core.selectedText : core.notSelectedText}</span>
     </li>
   )
 }
@@ -863,6 +1072,7 @@ function ListItemStandard({
   image,
   ...props
 }: ListItemStandardProps) {
+  const texts = useListCore().texts ?? defaultListTexts
   const title = text ?? children
   const hasTitle = title != null && title !== ""
   const additional = additionalText ? <AdditionalText text={additionalText} state={additionalTextState} /> : null
@@ -888,6 +1098,10 @@ function ListItemStandard({
                 {additional}
               </div>
             )}
+            {/* ListItemStandardTemplate.js:listItemContent includes the non-active type hint.
+             * Separate its text from the title in React's inline DOM as Chromium does
+             * when composing the native shadow content's accessible name. */}
+            {props.type && props.type !== "active" && props.type !== "inactiveSelectable" && <span className="sr-only"> {texts[props.type]}</span>}
           </div>
           {!description && additional}
         </>
@@ -907,20 +1121,27 @@ function ListItemCustom({ children, ...props }: ListItemCustomProps) {
 type ListItemGroupHeaderProps = Omit<React.ComponentProps<"li">, "value"> & {
   /** Identifies the header for keyboard navigation. */
   value?: string
+  /** UI5 accessibleName is appended to the visible title on the header li. Native aria-label overrides it. */
+  accessibleName?: string
 }
 
 /** ui5-li-group-header: focusable in the arrow-key order, never selectable. */
-function ListItemGroupHeader({ value: valueProp, className, children, onFocus, ...props }: ListItemGroupHeaderProps) {
+function ListItemGroupHeader({ value: valueProp, className, children, onFocus, accessibleName, ownedGroup, ...props }: ListItemGroupHeaderProps & { ownedGroup?: { id: string; label: string } }) {
   const core = useListCore()
   const autoId = React.useId()
   const key = valueProp ?? autoId
+  const titleRef = React.useRef<HTMLSpanElement>(null)
+  const [titleText, setTitleText] = React.useState(typeof children === "string" ? children : "")
+  React.useLayoutEffect(() => { setTitleText(titleRef.current?.textContent ?? "") }, [children])
   return (
     <li
       data-slot="list-item-group-header"
       data-nav-key={key}
       data-has-border={core.hasBorder(key) ? "" : undefined}
       role={core.itemRole === "option" ? undefined : "listitem"}
-      aria-roledescription="Group Header"
+      // ListItemGroupHeaderTemplate.js names the visible title plus accessibleName.
+      aria-label={[titleText, accessibleName].filter(Boolean).join(" ") || undefined}
+      aria-roledescription={(core.texts ?? defaultListTexts).groupHeader}
       tabIndex={core.currentKey === key ? 0 : -1}
       className={cn("fiori-li-group-header", className)}
       onFocus={(e) => {
@@ -936,8 +1157,10 @@ function ListItemGroupHeader({ value: valueProp, className, children, onFocus, .
       {...props}
     >
       <div className="fiori-li-group-header__content">
-        <span className="fiori-li-group-header__title">{children}</span>
+        <span ref={titleRef} className="fiori-li-group-header__title">{children}</span>
       </div>
+      {/* ListItemGroupTemplate.js: the header owns a named sub-list of sibling items. */}
+      {ownedGroup && <div role="list" aria-label={ownedGroup.label} aria-owns={ownedGroup.id} />}
     </li>
   )
 }
@@ -952,6 +1175,7 @@ type ListItemGroupProps = Omit<React.ComponentProps<"li">, "value"> & {
 function ListItemGroup({ headerText, header, className, children, ...props }: ListItemGroupProps) {
   const core = useListCore()
   const headerId = React.useId()
+  const contentId = React.useId()
   const listbox = core.itemRole === "option"
   const hasHeader = !!(header ?? headerText)
   return (
@@ -963,8 +1187,8 @@ function ListItemGroup({ headerText, header, className, children, ...props }: Li
       {...props}
     >
       <ul role="none" className="fiori-li-group__ul">
-        {hasHeader && <ListItemGroupHeader id={headerId}>{header ?? headerText}</ListItemGroupHeader>}
-        {children}
+        {hasHeader && <ListItemGroupHeader id={headerId} ownedGroup={listbox ? undefined : { id: contentId, label: headerText ?? "" }}>{header ?? headerText}</ListItemGroupHeader>}
+        <div id={contentId}>{children}</div>
       </ul>
     </li>
   )
@@ -997,5 +1221,9 @@ export {
   type ListSeparators,
   type ListGrowing,
   type ListAdditionalTextState,
+  type ListAccessibleRole,
   type ListCore,
+  type ListTexts,
+  type CustomAccessibilityInfo,
+  getCustomAnnouncement,
 }

@@ -61,14 +61,14 @@
   padding: var(--fiori-token-readonly-padding);
 }
 /* Focus: UI5 draws it on the (desktop) wrapper for any focus. */
-.fiori-token:focus {
+.fiori-token:focus-visible {
   outline-offset: var(--fiori-token-outline-offset);
   outline: var(--fiori-token-focus-outline);
 }
-.fiori-token[aria-selected="true"]:focus {
+.fiori-token[aria-selected="true"]:focus-visible {
   outline: var(--fiori-token-selected-focus-outline);
 }
-.fiori-token:focus::after {
+.fiori-token:focus-visible::after {
   content: var(--fiori-token-focus-pseudo-element-content);
   position: absolute;
   z-index: 2;

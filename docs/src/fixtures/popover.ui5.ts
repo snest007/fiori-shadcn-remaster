@@ -7,10 +7,10 @@ import { defineUi5, h } from "../fixture-types"
 import { body, showPopupInPlace } from "./ui5-popup-in-place"
 import set from "./popover"
 
-export default defineUi5(set, ({ title, footer, arrow }) => {
+export default defineUi5(set, ({ title, footer, arrow, rtl, reactHost }) => {
   const popover = h(
     "ui5-popover",
-    { "header-text": title ? "Popover title" : undefined, "hide-arrow": !arrow },
+    { "header-text": title ? "Popover title" : undefined, "accessible-description": reactHost ? "Popover description" : undefined, "hide-arrow": !arrow, dir: rtl ? "rtl" : undefined },
     body("Popover content text."),
     ...(footer
       ? [h("ui5-bar", { slot: "footer", design: "Footer" }, h("ui5-button", { slot: "endContent", design: "Emphasized" }, "OK"))]

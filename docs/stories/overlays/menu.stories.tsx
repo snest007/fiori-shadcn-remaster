@@ -78,3 +78,5 @@ export const OwnerRTLWithLTROpenerAncestor: Story = { args: { open: true, opener
 export const OwnerLTRWithRTLOpenerAncestor: Story = { args: { open: true, openerAncestorDirection: "rtl" } }
 export const ExplicitLTR: Story = { args: { open: true, dir: "ltr", openerDirection: "rtl" }, decorators: [(Story) => <div dir="rtl"><Story /></div>] }
 export const ExplicitRTL: Story = { args: { open: true, dir: "rtl", openerDirection: "ltr" } }
+
+export const CustomHost: Story = { render: () => <Menu open modal={false}><MenuContent portal={false} aria-label="Custom host actions" preventInitialFocus><MenuItem asChild><div>Custom action</div></MenuItem></MenuContent></Menu> }

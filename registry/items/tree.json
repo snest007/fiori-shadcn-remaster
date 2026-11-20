@@ -1,5 +1,6 @@
 {
   "title": "Tree",
+  "dependencies": ["react-dom"],
   "registryDependencies": [
     "@petalo/icons",
     "@petalo/list"

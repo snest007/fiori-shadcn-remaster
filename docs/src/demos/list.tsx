@@ -124,6 +124,9 @@ function ListDemo() {
           </div>
         </ListItemCustom>
       </List>
+      <List id="list-text-overrides" headerText="Produce" selectionMode="multiple" texts={{ multiSelectable: "Produce choices", active: "Available", selected: "Produce selected", notSelected: "Produce deselected", checkboxLabel: "Select produce", listDescription: "Grouped produce. Edit from a row.", groupDescription: (groups, items) => `${groups} categories, ${items} produce rows` }}>
+        <ListItemGroup headerText="Fruit"><ListItemStandard value="apple">Apples</ListItemStandard><ListItemCustom value="pear" aria-label="Pears"><Button>Edit</Button></ListItemCustom></ListItemGroup>
+      </List>
     </div>
   )
 }

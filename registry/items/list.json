@@ -7,7 +7,7 @@
     "@petalo/checkbox",
     "@petalo/radio-group"
   ],
-  "description": "Fiori list: standard / custom items, groups, selection modes (single, multiple, delete…), growing, roving focus.",
+  "description": "Fiori list: standard / custom items, groups, selection modes (single, multiple, delete\u2026), growing, roving focus.",
   "files": [
     {
       "path": "registry/lib/fiori-drag-and-drop.ts",
@@ -37,7 +37,7 @@
         ]
       },
       {
-        "when": "Choose one field value: Select covers 2–12 fixed options without typing (sort alphabetically above 8), and ComboBox covers type-ahead across 20–200.",
+        "when": "Choose one field value: Select covers 2\u201312 fixed options without typing (sort alphabetically above 8), and ComboBox covers type-ahead across 20\u2013200.",
         "use": [
           "select",
           "combobox"
@@ -57,5 +57,8 @@
       }
     ],
     "source": "sap-fiori-guidelines"
-  }
+  },
+  "dependencies": [
+    "react-dom"
+  ]
 }

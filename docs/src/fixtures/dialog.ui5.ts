@@ -13,10 +13,10 @@ import { body, showPopupInPlace } from "./ui5-popup-in-place"
 import { ui5State } from "./ui5-helpers"
 import set from "./dialog"
 
-export default defineUi5(set, ({ state, footer, draggable, resizable, rtl }) => {
+export default defineUi5(set, ({ state, footer, draggable, resizable, rtl, reactHost }) => {
   const dialog = h(
     "ui5-dialog",
-    { "header-text": "Dialog title", state: ui5State(state), draggable, resizable, dir: rtl ? "rtl" : undefined },
+    { "header-text": "Dialog title", "accessible-description": reactHost ? "Dialog description" : undefined, state: ui5State(state), draggable, resizable, dir: rtl ? "rtl" : undefined },
     body("Dialog content text."),
     ...(footer
       ? [

@@ -36,7 +36,7 @@ function MenuFrame({ interaction, children }: { interaction?: boolean; children:
 // The menu surface is rendered open, in place (non-modal, no portal) with a fixed width (content-sized
 // widths are fractional and would shift later cells off whole pixels). UI5's side shows ui5-menu's
 // internal popover in place (menu.ui5.ts). Submenus open on demand and are covered by tests/menu.spec.ts.
-export default defineFixtures<Props>({
+const fixtureSet = defineFixtures<Props>({
   name: "menu",
   cases: [
     { id: "menu", props: {} },
@@ -93,4 +93,21 @@ function staticMenu({ icons, checkMode, disabledSubmenu, interaction }: Props) {
       </Menu>
     </MenuFrame>
   )
+}
+
+
+// E4: consumer host replacement changes the DOM host while the component keeps
+// the owning semantics. The native renderer uses the same underlying state.
+function customHost(node: React.ReactNode): React.ReactNode {
+  if (Array.isArray(node)) return node.map(customHost)
+  if (!React.isValidElement<{ children?: React.ReactNode }>(node)) return node
+  const children = customHost(node.props.children)
+  if (node.type === MenuItem || node.type === MenuSubTrigger) return React.cloneElement(node, { asChild: true } as Partial<typeof node.props>, <div data-custom-host="menu" role="presentation" tabIndex={13} id="menu-caller-host">{children}</div>)
+  return node.props.children === undefined ? node : React.cloneElement(node, {}, children)
+}
+const baseCase = fixtureSet.cases.find((entry) => entry.id === "menu-check-multiple")!
+export default {
+  ...fixtureSet,
+  cases: [...fixtureSet.cases, { id: "menu-custom-host", props: { ...baseCase.props, customHost: true } }],
+  react: (props: typeof baseCase.props & { customHost?: boolean }) => props.customHost ? customHost(fixtureSet.react(props)) : fixtureSet.react(props),
 }

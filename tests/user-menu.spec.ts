@@ -66,3 +66,17 @@ test("user-menu: clicking the opener closes it instead of reopening", async ({ p
   await opener(page).click()
   await expect(menu(page)).toHaveCount(0)
 })
+
+test("user-menu: custom outer host retains popup and action menu semantics", async ({ page }) => {
+  await page.goto('/index.html?fixtures&only=user-menu-custom-host')
+  await page.waitForSelector("html[data-ready=true]")
+  const holder = page.locator('[data-fixture="user-menu-custom-host"]')
+  const host = holder.locator('[data-custom-host="user-menu"]')
+  await expect(host).toHaveAttribute("role", "dialog")
+  await expect(host).toHaveAttribute("tabindex", "-1")
+  await expect(host).toHaveAccessibleName("User menu for John Doe")
+  const item = host.getByRole("menuitem", { name: "Settings", exact: true })
+  await item.focus(); await expect(item).toBeFocused()
+  await page.keyboard.press("ArrowDown")
+  await expect(host.getByRole("menuitem", { name: "Language", exact: true })).toBeFocused()
+})

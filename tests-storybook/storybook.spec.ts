@@ -165,7 +165,7 @@ test("Calendar CustomTexts names its header without altering owned grid states",
   await render(page, storyId("Dates/Calendar", "Custom Texts"), undefined, "initialPicker:year")
   const range = page.locator('[data-slot="calendar-year-range-button"]')
   await expect(range).toHaveAttribute("aria-label", "Delivery years from 2015 to 2034")
-  await expect(range).toHaveAccessibleName("Delivery years from 2015 to 2034")
+  await expect(range).toHaveAccessibleName("2015 - 2034 Delivery years from 2015 to 2034")
   const checkRange = async (phase: string) => {
     const audit = await classifyViolations(page, await axeViolations(page, "sap_horizon"), {
       story: "dates-calendar--custom-texts", theme: "sap_horizon", yearMode: true,
@@ -176,7 +176,7 @@ test("Calendar CustomTexts names its header without altering owned grid states",
   await checkRange("initial")
   await page.getByRole("button", { name: "Next Year Range", exact: true }).click()
   await expect(range).toHaveAttribute("aria-label", "Delivery years from 2035 to 2054")
-  await expect(range).toHaveAccessibleName("Delivery years from 2035 to 2054")
+  await expect(range).toHaveAccessibleName("2035 - 2054 Delivery years from 2035 to 2054")
   await checkRange("paged")
   await range.focus()
   await expect(range).toBeFocused()

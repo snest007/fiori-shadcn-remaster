@@ -147,3 +147,147 @@ test("calendar: RTL retains UI5's chronological horizontal keys", async ({ page 
     await expect(month).toHaveText(original!)
   }
 })
+
+
+test("Calendar year header keeps visible range and purpose through paging", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=calendar-year-picker")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="calendar-year-picker"]')
+  const range = cell.locator('[data-slot="calendar-year-range-button"]')
+  for (let step = 0; step < 2; step++) {
+    const visible = await range.locator('span').first().innerText()
+    const purpose = await range.getAttribute("aria-label")
+    await expect(range).toHaveAccessibleName(`${visible} ${purpose}`)
+    await expect(range).toHaveAccessibleDescription(purpose!)
+    const ids = (await range.getAttribute("aria-labelledby"))!.split(" ")
+    expect(ids).toHaveLength(2)
+    for (const id of ids) expect(await page.locator(`[id="${id}"]`).count()).toBe(1)
+    if (!step) await cell.getByRole("button", { name: "Next Year Range", exact: true }).click()
+  }
+  await range.focus()
+  await expect(range).toBeFocused()
+  await page.keyboard.press("Enter")
+  await expect(cell.locator('[data-picker="yearrange"]')).toBeVisible()
+})
+
+test("Calendar header arrows preserve UI5 descriptions and localized shortcuts in every picker and direction", async ({ page }) => {
+  for (const dir of ["ltr", "rtl"]) for (const picker of ["single", "month-picker", "year-picker", "yearrange-picker"]) for (const native of [false, true]) {
+    const id = `calendar-${picker === "yearrange-picker" ? "year-picker" : picker}`
+    await page.goto(native ? `/ui5.html?dir=${dir}&only=${id}` : `/index.html?fixtures&dir=${dir}&only=${id}`)
+    await page.waitForSelector("html[data-ready=true]")
+    const cell = page.locator(`[data-fixture="${id}"]`)
+    if (picker === "yearrange-picker") await cell.locator(native ? '[data-ui5-cal-header-btn-year-range]' : '[data-slot="calendar-year-range-button"]').click()
+    for (const [direction, shortcut] of [["previous", "Pagedown"], ["next", "Pageup"]]) {
+      const button = cell.locator(native ? `[data-ui5-cal-header-btn-${direction === "previous" ? "prev" : "next"}]` : `[data-slot="calendar-${direction}"]`)
+      const label = await button.getAttribute("aria-label")
+      await expect(button).toHaveAccessibleDescription(label!)
+      await expect(button).toHaveAttribute("aria-keyshortcuts", shortcut)
+      await expect(button).toHaveAttribute("title", `${label} (${shortcut})`)
+    }
+  }
+})
+
+for (const id of ["calendar-multiple", "calendar-range", "calendar-special"]) test(`calendar: ${id} preserves native grid selection channels and legend day names`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?${native ? "" : "fixtures&"}only=${id}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const cell = current.locator(`[data-fixture="${id}"]`)
+      const grid = cell.getByRole("grid")
+      await expect(grid).not.toHaveAttribute("aria-multiselectable")
+      if (id === "calendar-special") {
+        for (const [name, description] of [["March 4, 2024 Holiday", "Holiday"], ["March 13, 2024 Training", "Training"]]) {
+          const day = grid.getByRole("gridcell", { name, exact: true })
+          await expect(day).toHaveAccessibleDescription(description)
+          await expect(day).toHaveAttribute("title", description)
+        }
+      } else await expect(grid.getByRole("gridcell", { selected: true })).toHaveCount(id === "calendar-range" ? 10 : 3)
+    }
+  } finally { await reference.close() }
+})
+
+for (const direction of ["ltr", "rtl"]) for (const mode of ["single", "range", "multiple"]) test(`Calendar ${direction} ${mode} selection announces with native conditions and assertive politeness`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  const id = mode === "range" ? "calendar-announcement-range-start" : `calendar-${mode}`
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?fixtures&only=${id}&dir=${direction}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const holder = current.locator(`[data-fixture="${id}"]`)
+      const day = holder.locator(native ? `[role="gridcell"][data-sap-timestamp="${Date.UTC(2024, 2, 13) / 1000}"]` : '[role="gridcell"][data-date="20240313"]')
+      const region = current.locator(native ? '.ui5-invisiblemessage-assertive' : '[data-slot="calendar-announcement"]')
+      await expect(region).toHaveAttribute("aria-live", "assertive")
+      await expect(region).toHaveAttribute("role", "alert")
+      await day.focus(); await expect(day).toBeFocused()
+      await current.keyboard.press("Enter")
+      await expect(day).toHaveAttribute("aria-selected", "true")
+      await expect(region).toHaveText("Selected")
+      // Negative conditions use mutation counts: no sleeps and no stale text
+      // mistaken for a fresh announcement. Selection state settles first.
+      await region.evaluate((node) => { (window as any).__calendarAnnouncements = 0; new MutationObserver(() => (window as any).__calendarAnnouncements++).observe(node, { childList: true, subtree: true, characterData: true }) })
+      await current.keyboard.press("Enter")
+      await expect(day).toHaveAttribute("aria-selected", mode === "multiple" ? "false" : "true")
+      if (mode === "multiple") {
+        expect(await current.evaluate(() => (window as any).__calendarAnnouncements)).toBe(0)
+        await current.keyboard.press("Shift+Enter")
+        await expect(day).toHaveAttribute("aria-selected", "true")
+        await expect.poll(() => current.evaluate(() => (window as any).__calendarAnnouncements)).toBeGreaterThan(0)
+        await current.evaluate(() => (window as any).__calendarAnnouncements = 0)
+        const outside = holder.getByRole("gridcell", { name: "March 25, 2024", exact: true })
+        await outside.focus(); await expect(outside).toBeFocused()
+        await current.keyboard.press("Shift+Enter")
+        await expect(outside).toHaveAttribute("aria-selected", "true")
+        expect(await current.evaluate(() => (window as any).__calendarAnnouncements)).toBe(0)
+        await current.keyboard.press("Shift+Space")
+        await expect(holder.getByRole("gridcell", { name: "March 26, 2024", exact: true })).toHaveAttribute("aria-selected", "true")
+        expect(await current.evaluate(() => (window as any).__calendarAnnouncements)).toBe(0)
+      } else await expect.poll(() => current.evaluate(() => (window as any).__calendarAnnouncements)).toBeGreaterThan(0)
+    }
+  } finally { await reference.close() }
+})
+
+test("Calendar selection text override reaches the assertive announcement", async ({ page }) => {
+  await page.goto('/index.html?fixtures&only=calendar-announcement-override')
+  await page.waitForSelector("html[data-ready=true]")
+  const day = page.locator('[data-fixture="calendar-announcement-override"]').getByRole("gridcell", { name: "March 13, 2024", exact: true })
+  await day.click()
+  await expect(day).toHaveAttribute("aria-selected", "true")
+  await expect(page.locator('[data-slot="calendar-announcement"]')).toHaveText("Delivery date selected")
+})
+
+for (const dir of ["ltr", "rtl"]) test(`Calendar ${dir} repeated Selected keeps UI5's earlier clear timer`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?fixtures&only=calendar-single&dir=${dir}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const now = new Date("2024-03-13T12:00:00Z")
+      await current.clock.install({ time: now })
+      await current.clock.pauseAt(now)
+      // UI5's selected cell name changes after activation; keep the owning date
+      // locator stable while asserting the state and announcement independently.
+      const day = current.locator('[data-fixture="calendar-single"]').locator(native ? `[role="gridcell"][data-sap-timestamp="${Date.UTC(2024, 2, 13) / 1000}"]` : '[role="gridcell"][data-date="20240313"]')
+      const region = current.locator(native ? ".ui5-invisiblemessage-assertive" : '[data-slot="calendar-announcement"]')
+      await day.focus(); await expect(day).toBeFocused()
+      await day.press("Enter")
+      await current.clock.runFor(20)
+      await expect(day).toHaveAttribute("aria-selected", "true")
+      await expect(region).toHaveText("Selected")
+      await current.clock.runFor(1000)
+      await day.press("Enter")
+      await current.clock.runFor(20)
+      await expect(region).toHaveText("Selected")
+      await current.clock.runFor(2100)
+      await expect(region).toBeEmpty()
+      // Once both outstanding timers have fired, a fresh selection has its own
+      // full lifetime. Time is virtual; no wall-clock sleeps or retries.
+      await current.clock.runFor(1000)
+      await day.press("Enter")
+      await current.clock.runFor(20)
+      await expect(region).toHaveText("Selected")
+      await current.clock.runFor(3100)
+      await expect(region).toBeEmpty()
+    }
+  } finally { await reference.close() }
+})

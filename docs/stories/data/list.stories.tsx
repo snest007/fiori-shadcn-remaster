@@ -2,7 +2,7 @@ import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { useArgs, useRef as useStoryRef } from "storybook/preview-api"
 import { fn } from "storybook/test"
-import { List, ListItemCustom, ListItemGroup, ListItemStandard, type ListProps, type ListItemStandardProps } from "@/components/ui/list"
+import { List, ListItemCustom, ListItemGroup, ListItemGroupHeader, ListItemStandard, type ListProps, type ListItemStandardProps } from "@/components/ui/list"
 import { Avatar } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { calendar, email, product, settings } from "@/lib/fiori-icons"
@@ -144,3 +144,15 @@ function S2DocsPage() {
 ]
   return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>Override these props to translate built-in labels and announcements. English defaults below describe the current component API.</p><table><thead><tr><th>Text prop / key</th><th>UI5 reference key</th><th>English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.prop}><td><code>{text.prop}</code></td><td>{text.key}</td><td>{text.text}</td></tr>)}</tbody></table></section></>
 }
+
+export const CustomFocusDescription: Story = { render: () => <List aria-label="Custom produce" texts={{ customItem: "Produce row", singleControl: "Contains one action", selected: "Produce selected", notSelected: "Produce deselected" }} selectionMode="multiple"><ListItemCustom value="apple"><span>Apples</span><Button>Edit</Button></ListItemCustom></List> }
+export const RTLCustomFocusDescription: Story = { ...CustomFocusDescription, globals: { dir: "rtl" } }
+export const GrowingAccessibility: Story = { render: () => <List aria-label="Produce" growing="button" growingButtonText="Load produce" growingButtonName="Load produce" growingButtonDescription="Fetch additional fruit"><ListItemStandard value="apple">Apples</ListItemStandard></List> }
+export const AccessibilityGroups: Story = { render: () => <List aria-label="Produce"><ListItemGroup headerText="Fruit"><ListItemStandard value="apple">Apples</ListItemStandard><ListItemStandard value="pear">Pears</ListItemStandard></ListItemGroup></List> }
+export const RTLGroups: Story = { ...AccessibilityGroups, globals: { dir: "rtl" } }
+export const HeaderAccessibility: Story = { render: () => <List aria-label="Produce"><ListItemGroupHeader accessibleName="Produce categories">Fruit group</ListItemGroupHeader><ListItemStandard value="apple" type="inactive">Apples</ListItemStandard></List> }
+export const ItemAccessibility: Story = { render: () => <List aria-label="Produce" accessibleRole="listbox" selectionMode="single" defaultValue={["apple"]}><ListItemCustom value="apple" aria-label="Apples produce row" aria-posinset={2} aria-setsize={7}><span>Apples</span></ListItemCustom></List> }
+export const RoleMenu: Story = { render: () => <List aria-label="Produce actions" accessibleRole="menu"><ListItemStandard value="buy" type="navigation">Buy produce</ListItemStandard></List> }
+export const RoleTree: Story = { render: () => <List aria-label="Produce tree" accessibleRole="tree"><ListItemStandard value="fruit" type="inactive">Fruit</ListItemStandard></List> }
+export const SelectedCustomOption: Story = { render: () => <List aria-label="Produce" accessibleRole="listbox" selectionMode="single" defaultValue={["apple"]}><ListItemCustom value="apple" role="option" aria-label="Apples"><span>Apples</span></ListItemCustom></List> }
+export const RTLSelectedCustomOption: Story = { ...SelectedCustomOption, globals: { dir: "rtl" } }

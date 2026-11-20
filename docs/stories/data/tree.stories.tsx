@@ -91,3 +91,10 @@ function S2DocsPage() {
 ]
   return <><DocsPage /><section aria-label="Localization text keys"><h2>Localization text keys</h2><p>Override these props to translate built-in labels and announcements. English defaults below describe the current component API.</p><table><thead><tr><th>Text prop / key</th><th>UI5 reference key</th><th>English default</th></tr></thead><tbody>{textKeys.map((text) => <tr key={text.prop}><td><code>{text.prop}</code></td><td>{text.key}</td><td>{text.text}</td></tr>)}</tbody></table></section></>
 }
+
+export const AccessibleDescription: Story = { render: () => <Tree aria-label="Files" aria-description="Browse company documents"><TreeItem value="docs" text="Documents" aria-label="Documents collection" aria-haspopup="dialog" /></Tree> }
+export const RTLAccessibleDescription: Story = { ...AccessibleDescription, globals: { dir: "rtl" } }
+export const CustomContentSelection: Story = { render: () => <Tree aria-label="Files" selectionMode="singleStart"><TreeItemCustom value="docs" content={<span>Custom documents</span>} defaultExpanded><TreeItem value="report" text="Report.pdf" /></TreeItemCustom></Tree> }
+export const RTLCustomContentSelection: Story = { ...CustomContentSelection, globals: { dir: "rtl" } }
+export const SelectionTexts: Story = { render: () => <Tree aria-label="Files" selectionMode="multiple" texts={{ treeItem: "File node", active: "Opens a file", selected: "File selected", notSelected: "File deselected", expandText: "Open folder", collapseText: "Close folder" }}><TreeItem value="docs" text="Documents"><TreeItem value="report" text="Report.pdf" /></TreeItem></Tree> }
+export const RTLCustomTexts: Story = { ...SelectionTexts, globals: { dir: "rtl" } }

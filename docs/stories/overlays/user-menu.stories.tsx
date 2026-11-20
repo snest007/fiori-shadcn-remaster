@@ -73,3 +73,5 @@ export const WithoutFooter: Story = { args: { open: true, footer: null } }
 export const CustomFooter: Story = { args: { open: true, footer: <Button onClick={fn()}>Account security</Button> } }
 export const CustomTexts: Story = { args: { open: true, texts: { accessibleName: "Account options for", heading: "Account options", actions: "Account actions", manageAccount: "Manage profile", signOut: "End session" } } }
 export const RTL: Story = { args: { open: true }, globals: { dir: "rtl" } }
+
+export const CustomHost: Story = { render: () => <UserMenu asChild open portal={false} hideArrow account={{ titleText: "John Doe", avatarInitials: "JD" }}><section><UserMenuItem>Settings</UserMenuItem><UserMenuItem>Help</UserMenuItem></section></UserMenu> }

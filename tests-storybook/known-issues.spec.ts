@@ -40,6 +40,28 @@ test("Loading's E4 record does not hide a new invalid grid node or an unapproved
   expect(changed.unexpected.find((rule) => rule.id === "aria-required-children")?.nodes.map((node) => node.target)).toContainEqual([".fiori-table__grid"])
 })
 
+test("Listbox story selection marker rejects another control in the same option", async ({ page }, testInfo) => {
+  const context = { story: "data-list--listbox", theme: "sap_horizon" }
+  await page.goto(`/iframe.html?id=${context.story}&viewMode=story&globals=theme:${context.theme}`)
+  const option = page.locator('li[data-nav-key="apples"][role="option"]')
+  await expect(option.locator(':scope > [data-li-selection][role="checkbox"]')).toBeVisible()
+  await waitForStoryFinished(page)
+  await option.evaluate((row) => {
+    const other = document.createElement("button")
+    other.type = "button"
+    other.tabIndex = -1
+    other.textContent = "Edit delivery"
+    row.querySelector(".fiori-li__content")!.append(other)
+  })
+
+  const audit = await classifyViolations(page, await axeViolations(page, context.theme), context)
+  await attachAudit(testInfo, "listbox-foreign-button", audit)
+  expect(audit.known.find((rule) => rule.id === "nested-interactive")?.nodes).toHaveLength(2)
+  expect(audit.unexpected.find((rule) => rule.id === "nested-interactive")?.nodes.map((node) => node.target)).toEqual([
+    ['li[data-nav-key="apples"]'],
+  ])
+})
+
 // S3
 // component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
 const s3ModeStories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]

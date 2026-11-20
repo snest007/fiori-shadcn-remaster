@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 
 test.describe("TextArea", () => {
@@ -51,3 +52,76 @@ test.describe("TextArea", () => {
     await expect(ta).toHaveValue("first")
   })
 })
+
+
+test("textarea: sap_horizon pointer origin and canceled pointer preserve keyboard reentry", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=textarea-value&theme=sap_horizon")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="textarea-value"]')
+  const target = cell.locator('textarea').first()
+  const owner = cell.locator('[data-slot="textarea"] .fiori-textarea__wrapper').first()
+  const painted = () => owner.evaluate((node) => {
+    const css = getComputedStyle(node, "::after")
+    return !["none", "normal"].includes(css.content) && css.display !== "none" && css.borderTopStyle !== "none" && Number.parseFloat(css.borderTopWidth) > 0
+  })
+  await target.click()
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "textarea-e4-before"; before.textContent = "Before field"
+    node.before(before); before.focus()
+  })
+  const before = page.locator("#textarea-e4-before")
+  await expect(before).toBeFocused()
+  // A canceled pointer action changes modality without moving focus. The next
+  // real Tab must independently restore keyboard origin before field reentry.
+  await before.hover()
+  await page.mouse.down(); await page.mouse.up()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})
+
+test("textarea: sap_horizon_hcb pointer origin and canceled pointer preserve keyboard reentry", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=textarea-value&theme=sap_horizon_hcb")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="textarea-value"]')
+  const target = cell.locator('textarea').first()
+  const owner = cell.locator('[data-slot="textarea"] .fiori-textarea__wrapper').first()
+  const painted = () => owner.evaluate((node) => {
+    const css = getComputedStyle(node, "::after")
+    return !["none", "normal"].includes(css.content) && css.display !== "none" && css.borderTopStyle !== "none" && Number.parseFloat(css.borderTopWidth) > 0
+  })
+  await target.click()
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "textarea-e4-before"; before.textContent = "Before field"
+    node.before(before); before.focus()
+  })
+  const before = page.locator("#textarea-e4-before")
+  await expect(before).toBeFocused()
+  // A canceled pointer action changes modality without moving focus. The next
+  // real Tab must independently restore keyboard origin before field reentry.
+  await before.hover()
+  await page.mouse.down(); await page.mouse.up()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})
+
+
+for (const theme of ["sap_horizon", "sap_horizon_hcb"]) for (const state of ["negative", "critical"]) for (const surface of ["", "-application"]) {
+  test(`TextArea ${state} counter has text contrast on ${surface || "content"} ${theme}`, async ({ page }) => {
+    const id = `textarea-counter-${state}${surface}`
+    await page.goto(`/index.html?fixtures&only=${id}&theme=${theme}`)
+    await page.waitForSelector("html[data-ready=true]")
+    const cell = page.locator(`[data-fixture="${id}"]`)
+    const field = cell.getByRole("textbox", { name: "Description" })
+    const counter = cell.locator('.fiori-textarea__counter')
+    await expect(counter).toBeVisible()
+    expect((await field.getAttribute("aria-describedby"))?.split(" ")).toContain(await counter.getAttribute("id"))
+    const result = await new AxeBuilder({ page }).include(`[data-fixture="${id}"]`).withRules(["color-contrast"]).analyze()
+    expect(result.violations).toEqual([])
+  })
+}

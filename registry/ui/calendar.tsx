@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 
 // UI5 2.28 Calendar fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -89,6 +90,18 @@ const defaultLabels: CalendarLabels = {
   yearRangePicker: "Year Range Picker",
 }
 
+type CalendarTexts = {
+  selected: string
+  previousButtonShortcut: string
+  nextButtonShortcut: string
+}
+
+const defaultTexts: CalendarTexts = {
+  selected: "Selected", // UI5 LIST_ITEM_SELECTED
+  previousButtonShortcut: "Pagedown", // UI5 CALENDAR_HEADER_MONTH_PREVIOUS_BUTTON_SHORTCUT (pinned English bundle)
+  nextButtonShortcut: "Pageup", // UI5 CALENDAR_HEADER_MONTH_NEXT_BUTTON_SHORTCUT (pinned English bundle)
+}
+
 /**
  * @accessibility Native aria-label / aria-labelledby / aria-describedby reach the calendar root. labels names header buttons, picker grids, week numbers and range/day descriptions; generated gridcells retain aria-selected and aria-disabled.
  * @accessibility Tab visits the header and one roving gridcell. Arrows move by day/week; Home/End move within the row; PageUp/Down changes month; Shift+PageUp/Down changes year. Enter/Space selects; F4 opens months and Shift+F4 opens years/year ranges. The current day-picker horizontal keys still use LTR order in RTL.
@@ -127,6 +140,8 @@ type CalendarProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChang
   autoFocus?: boolean
   /** Override header-button, picker, week-number and selected-range names on their owning buttons/grids/cells. */
   labels?: Partial<CalendarLabels>
+  /** Override the localized shortcuts on the owning previous/next buttons and their tooltips. */
+  texts?: Partial<CalendarTexts>
 }
 
 const MIN_DATE = (() => {
@@ -167,11 +182,13 @@ function Calendar({
   initialPicker = selectionLevel === "day" ? "day" : selectionLevel,
   autoFocus,
   labels: labelsProp,
+  texts: textsProp,
   className,
   onKeyDown,
   ...props
 }: CalendarProps) {
   const labels = { ...defaultLabels, ...labelsProp }
+  const texts = { ...defaultTexts, ...textsProp }
   const [selectedInner, setSelectedInner] = React.useState<Date[]>(defaultSelectedDates ?? [])
   const selected = selectedProp ?? selectedInner
   const today = startOfDay(new Date())
@@ -182,6 +199,47 @@ function Calendar({
   const [secondDate, setSecondDate] = React.useState<Date | null>(null)
   const [legendType, setLegendType] = React.useState<string | null>(null)
   const rootRef = React.useRef<HTMLDivElement>(null)
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
+  React.useEffect(() => setAnnouncementTarget(rootRef.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? document.body), [])
+  const announcementTimers = React.useRef(new Set<ReturnType<typeof setTimeout>>())
+  React.useEffect(() => () => {
+    for (const timer of announcementTimers.current) clearTimeout(timer)
+    announcementTimers.current.clear()
+  }, [])
+  const announceSelected = () => {
+    const message = texts.selected
+    setAnnouncement((old) => ({ text: message, sequence: old.sequence + 1 }))
+    // DayPicker.js:_updateSelectedDates/_toggleTimestampInSelection call
+    // InvisibleMessage.js:announce: each call keeps its own 3000 ms timer and
+    // clears only if the current text still equals that call's message. Repeating
+    // Selected must not cancel the first clear; a different message survives it.
+    const timer = setTimeout(() => {
+      announcementTimers.current.delete(timer)
+      setAnnouncement((old) => old.text === message ? { ...old, text: "" } : old)
+    }, 3000)
+    announcementTimers.current.add(timer)
+  }
+  const [legendTexts, setLegendTexts] = React.useState<Record<string, string>>({})
+  React.useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    const update = () => {
+      // Calendar.js:_specialCalendarDates finds each real legend item's type
+      // and propagates its text to DayPicker's tooltip and accessible name.
+      const next: Record<string, string> = {}
+      for (const item of root.querySelectorAll<HTMLElement>('[data-slot="calendar-legend-item"]')) {
+        const type = item.dataset.type
+        if (type && next[type] === undefined) next[type] = item.querySelector('.fiori-calendar-legend-item-text')?.textContent ?? ""
+      }
+      setLegendTexts((previous) => JSON.stringify(previous) === JSON.stringify(next) ? previous : next)
+    }
+    update()
+    const observer = new MutationObserver(update)
+    observer.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["data-type"] })
+    return () => observer.disconnect()
+  }, [legend])
+  const yearRangeLabelId = React.useId()
   const focusPending = React.useRef(!!autoFocus)
 
   // Year picker page start: the focused year is 10th on first show; paging keeps 20-year steps (UI5 _currentYearRange).
@@ -247,12 +305,26 @@ function Calendar({
         for (let d = startOfDay(from); dayKey(d) <= dayKey(to); d = addDays(d, 1)) {
           const inSel = next.some((s) => isSameDay(s, d))
           if (toggle && inSel) next = next.filter((s) => !isSameDay(s, d))
-          else if (!inSel && !isDisabled(d)) next.push(d)
+          else if (!inSel && !isDisabled(d)) {
+            next.push(d)
+            // DayPicker.js:_multipleSelection uses _toggleTimestampInSelection
+            // inside the selected span: every newly toggled-on day announces.
+            // Extending outside that span uses _addTimestampToSelection silently.
+            if (toggle) announceSelected()
+          }
         }
         setSelected(next)
-      } else setSelected(has(day) ? selected.filter((s) => !isSameDay(s, day)) : [...selected, day])
+      } else {
+        // DayPicker.js:_toggleTimestampInSelection announces only additions.
+        // _selectWeek deliberately does not announce.
+        if (!has(day)) announceSelected()
+        setSelected(has(day) ? selected.filter((s) => !isSameDay(s, day)) : [...selected, day])
+      }
       return
     }
+    // DayPicker.js:_updateSelectedDates announces every Single/Range activation,
+    // including a repeated selection and either endpoint, assertively.
+    announceSelected()
     if (selectionMode === "range" && selected.length === 1) {
       const [a, b] = [selected[0], day].sort((x, y) => dayKey(x) - dayKey(y))
       setSecondDate(null)
@@ -315,14 +387,19 @@ function Calendar({
   const arrow = (dir: 1 | -1) => {
     const disabled = dir < 0 ? !hasPrev : !hasNext
     const label = dir < 0 ? prevLabel : nextLabel
+    const shortcut = dir < 0 ? texts.previousButtonShortcut : texts.nextButtonShortcut
     return (
       <div
         data-slot={dir < 0 ? "calendar-previous" : "calendar-next"}
         role="button"
         tabIndex={disabled ? -1 : 0}
         aria-label={label}
+        // CalendarHeaderTemplate.js:previousButton/nextButton and Calendar.js:accInfo
+        // expose the same label as description and the i18n shortcut for every picker.
+        aria-description={label}
+        aria-keyshortcuts={shortcut}
         aria-disabled={disabled || undefined}
-        title={label}
+        title={`${label} (${shortcut})`}
         className={cn("fiori-calheader-arrowbtn", disabled && "fiori-calheader-arrowbtn-disabled")}
         onMouseDown={(e) => {
           e.preventDefault()
@@ -359,6 +436,8 @@ function Calendar({
                   tabIndex={0}
                   hidden={picker !== "day" || selectionLevel !== "day"}
                   aria-label={labels.monthButton(monthText)}
+                  // UI5 CalendarHeaderTemplate.js gives the purpose as both name and description.
+                  aria-description={labels.monthButton(monthText)}
                   title={`${labels.monthButton(monthText)} (F4)`}
                   aria-keyshortcuts="F4"
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
@@ -373,6 +452,7 @@ function Calendar({
                   tabIndex={0}
                   hidden={(picker !== "day" && picker !== "month") || selectionLevel === "year"}
                   aria-label={labels.yearButton(yearText)}
+                  aria-description={labels.yearButton(yearText)}
                   title={`${labels.yearButton(yearText)} (Shift + F4)`}
                   aria-keyshortcuts="Shift+F4"
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
@@ -387,13 +467,17 @@ function Calendar({
                   tabIndex={0}
                   hidden={picker !== "year"}
                   aria-label={labels.yearRangeButton(...rangeText)}
+                  aria-description={labels.yearRangeButton(...rangeText)}
+                  // UI5 CalendarHeaderTemplate.js / CALENDAR_HEADER_YEAR_RANGE_BUTTON: retain the purpose text while including the visible range in the name.
+                  aria-labelledby={`${yearRangeLabelId}-value ${yearRangeLabelId}-purpose`}
                   title={`${labels.yearRangeButton(...rangeText)} (Shift + F4)`}
                   aria-keyshortcuts="Shift+F4"
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
                   onClick={() => showPicker("yearrange")}
                   {...headerButton(() => showPicker("yearrange"))}
                 >
-                  <span>{`${rangeText[0]} - ${rangeText[1]}`}</span>
+                  <span id={`${yearRangeLabelId}-value`}>{`${rangeText[0]} - ${rangeText[1]}`}</span>
+                  <span id={`${yearRangeLabelId}-purpose`} className="sr-only">{labels.yearRangeButton(...rangeText)}</span>
                 </div>
               </div>
               {arrow(1)}
@@ -410,7 +494,7 @@ function Calendar({
                 locale={locale}
                 firstDayOfWeek={firstDayOfWeek}
                 hideWeekNumbers={hideWeekNumbers}
-                specialDates={specialDates}
+                specialDates={specialDates?.map((special) => ({ ...special, tooltip: special.tooltip ?? legendTexts[special.type] }))}
                 legendType={legendType}
                 isDisabled={isDisabled}
                 labels={labels}
@@ -507,6 +591,7 @@ function Calendar({
         </div>
         {legend}
       </div>
+      {announcementTarget && createPortal(<span data-slot="calendar-announcement" data-owner={props.id} className="sr-only" role="alert" aria-live="assertive" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>, announcementTarget)}
     </LegendContext.Provider>
   )
 }
@@ -653,7 +738,9 @@ function DayPicker({
         if (d && !isSameDay(d, secondDate)) setSecondDate(d)
       }}
     >
-      <div role="grid" aria-roledescription="Gregorian calendar" aria-multiselectable={selectionMode !== "single" || undefined} className="fiori-dp-content">
+      {/* DayPickerTemplate.js exposes selection on each cell, with no
+          aria-multiselectable on the grid even for Multiple/Range. */}
+      <div role="grid" aria-roledescription="Gregorian calendar" className="fiori-dp-content">
         <div role="row" className="fiori-dp-days-names-container">
           {!hideWeekNumbers && (
             <div role="columnheader" className="fiori-dp-dayname">
@@ -925,5 +1012,6 @@ export {
   type CalendarPicker,
   type CalendarProps,
   type CalendarSelectionMode,
+  type CalendarTexts,
   type SpecialDate,
 }

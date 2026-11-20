@@ -54,6 +54,7 @@ type PopoverContentProps = React.ComponentProps<typeof PopoverPrimitive.Content>
 function PopoverContent({
   className,
   children,
+  asChild,
   side = "right",
   align = "center",
   sideOffset = 0,
@@ -67,8 +68,25 @@ function PopoverContent({
   const [hasTitle, setHasTitle] = React.useState(false)
   const titleCtx = React.useMemo(() => ({ id: titleId, register: () => setHasTitle(true) }), [titleId])
 
+  const custom = asChild ? React.Children.only(children) as React.ReactElement<React.ComponentProps<"div">> : undefined
+  const content = custom ? custom.props.children : children
+  // PopupTemplate.js owns role, name references and focus on the outer section.
+  // Slot must receive the actual custom DOM host, never Arrow/Context.Provider.
+  const body = <>
+    {!hideArrow && <PopoverPrimitive.Arrow asChild width={16} height={8}><span className="fiori-popover-arrow" /></PopoverPrimitive.Arrow>}
+    <PopoverTitleContext.Provider value={titleCtx}><div ref={rangeRef} className="fiori-popup__root">{content}</div></PopoverTitleContext.Provider>
+  </>
+  const hostProps = custom ? { ...custom.props } : undefined
+  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-labelledby", "aria-describedby", "aria-modal"]) {
+    if ((hostProps as Record<string, unknown>)[key] !== undefined && process.env.NODE_ENV !== "production") console.warn("Popover.Content: ignored custom host ownership prop", key)
+    delete (hostProps as Record<string, unknown>)[key]
+  }
+  if (hostProps && props["aria-label"] !== undefined) {
+    if (hostProps["aria-label"] !== undefined && process.env.NODE_ENV !== "production") console.warn("Popover.Content: ignored custom host ownership prop", "aria-label")
+    delete hostProps["aria-label"]
+  }
   const surface = (
-    <PopoverPrimitive.Content
+    <PopoverPrimitive.Content asChild={asChild}
       data-slot="popover-content"
       data-media-range={range}
       data-hide-arrow={hideArrow ? "" : undefined}
@@ -83,16 +101,12 @@ function PopoverContent({
       )}
       {...props} data-sap-ui-fastnavgroup-container="true"
     >
-      {!hideArrow && (
-        <PopoverPrimitive.Arrow asChild width={16} height={8}>
-          <span className="fiori-popover-arrow" />
-        </PopoverPrimitive.Arrow>
-      )}
-      <PopoverTitleContext.Provider value={titleCtx}>
-        <div ref={rangeRef} className="fiori-popup__root">
-          {children}
-        </div>
-      </PopoverTitleContext.Provider>
+      {custom ? typeof custom.type === "string"
+        ? React.createElement(custom.type, { ...hostProps, key: custom.key }, body)
+        // PopupTemplate.js owns the outer section. A React child may consume only
+        // children and drop Slot's props/ref, so keep those on our own DOM host.
+        : <div>{React.createElement(custom.type, { ...hostProps, key: custom.key }, body)}</div>
+        : body}
     </PopoverPrimitive.Content>
   )
   return portal ? <PopoverPrimitive.Portal>{surface}</PopoverPrimitive.Portal> : surface

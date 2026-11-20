@@ -176,3 +176,21 @@ for (const { id, direction, openerDirection } of [
     }
   })
 }
+
+test("menu: custom item and submenu hosts keep owned roles checked states tabindex and keyboard focus", async ({ page }) => {
+  await page.goto('/index.html?fixtures&only=menu-custom-host')
+  await page.waitForSelector("html[data-ready=true]")
+  const holder = page.locator('[data-fixture="menu-custom-host"]')
+  const item = holder.getByRole("menuitemcheckbox", { name: "Alpha", exact: false })
+  await expect(item).toHaveAttribute("data-custom-host", "menu")
+  await expect(item).toHaveAttribute("aria-checked", "true")
+  await expect(item).toHaveAttribute("tabindex", "-1")
+  await item.focus(); await expect(item).toBeFocused()
+  await page.keyboard.press("ArrowDown")
+  await expect(holder.getByRole("menuitemcheckbox", { name: "Beta", exact: true })).toBeFocused()
+  const nested = holder.getByRole("menuitemcheckbox", { name: "Nested", exact: true })
+  await expect(nested).toHaveAttribute("aria-haspopup", "menu")
+  await expect(nested).toHaveAttribute("aria-expanded", "false")
+  await nested.focus(); await page.keyboard.press("ArrowRight")
+  await expect(page.getByRole("menuitem", { name: "Child", exact: true })).toBeFocused()
+})

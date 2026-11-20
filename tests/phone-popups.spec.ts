@@ -533,7 +533,7 @@ test.describe("D1b phone native contracts", () => {
       await expect(selected).toHaveAttribute(native ? "data-scope-value" : "data-nav-key", "products")
       // Native text is assigned through a slot; its shadow subtree also contains
       // the accessibility helper "Is Active". Check the actual option text node.
-      await expect(selected).toHaveJSProperty("textContent", "Products")
+      await expect(native ? selected : selected.locator(".fiori-li__title")).toHaveJSProperty("textContent", "Products")
       await scopeList.getByRole("button", { name: "Decline", exact: true }).click(); await settled(holder, native)
       await expect(dialogs(page, native)).toHaveCount(kind === "shellbar-search" ? 1 : 0)
       if (kind === "shellbar-search") await surface(page, holder, native).getByRole("button", { name: "Cancel", exact: true }).click()

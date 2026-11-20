@@ -10,6 +10,22 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
 
+// UI5 TextArea.js _onfocusin / generated/themes/TextArea.css.js paints pointer focus too.
+// AGENTS rule 5 requires keyboard origin, including focus in a newly mounted popup.
+const textareaFocusModality = new WeakMap<Document, { keyboard: boolean }>()
+function getTextareaFocusModality(owner: Document) {
+  let state = textareaFocusModality.get(owner)
+  if (!state) {
+    state = { keyboard: true }
+    const current = state
+    owner.addEventListener("keydown", () => { current.keyboard = true }, true)
+    owner.addEventListener("pointerdown", () => { current.keyboard = false }, true)
+    textareaFocusModality.set(owner, current)
+  }
+  return state
+}
+if (typeof document !== "undefined") getTextareaFocusModality(document)
+
 type CounterMode = "none" | "always" | "auto"
 
 /**
@@ -94,6 +110,19 @@ function TextArea({
 
   return (
     <div
+      onPointerDownCapture={(event) => {
+        event.currentTarget.setAttribute("data-pointer-focus", "")
+      }}
+      onFocusCapture={(event) => {
+        if (getTextareaFocusModality(event.currentTarget.ownerDocument).keyboard) event.currentTarget.removeAttribute("data-pointer-focus")
+        else event.currentTarget.setAttribute("data-pointer-focus", "")
+      }}
+      onKeyDownCapture={(event) => {
+        event.currentTarget.removeAttribute("data-pointer-focus")
+      }}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute("data-pointer-focus")
+      }}
       data-slot="textarea"
       data-value-state={valueState !== "none" ? valueState : undefined}
       data-disabled={disabled ? "" : undefined}

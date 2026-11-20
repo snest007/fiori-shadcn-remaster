@@ -53,3 +53,8 @@ export const LabelledField: Story = { render: function CountryField() {
   const [country, setCountry] = React.useState("de")
   return <div className="grid max-w-md gap-2"><Label htmlFor="select-country" showColon>Country</Label><Select value={country} onValueChange={setCountry}><SelectTrigger id="select-country"><SelectValue /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="de">Germany</SelectItem><SelectItem value="fr">France</SelectItem><SelectItem value="cn">China</SelectItem></SelectGroup></SelectContent></Select></div>
 } }
+
+export const AccessibleRoleDescription: Story = { render: () => <Select defaultValue="de" texts={{ roleDescription: "Country selector", optionsInGroups: (count, groups) => `${count} choices in ${groups} regions`, itemPosition: (position, count) => `Choice ${position} from ${count}` }}><SelectTrigger aria-label="Country"><SelectValue /></SelectTrigger><SelectContent><SelectGroup><SelectItem value="de">Germany</SelectItem><SelectItem value="fr">France</SelectItem></SelectGroup><SelectGroup><SelectItem value="cn">China</SelectItem></SelectGroup></SelectContent></Select> }
+export const RTLAccessibleRoleDescription: Story = { ...AccessibleRoleDescription, globals: { dir: "rtl" } }
+export const ReferencedFieldName: Story = { render: () => <><span id="select-shipping-name">Shipping country</span><Select defaultValue="de"><SelectTrigger aria-labelledby="select-shipping-name"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="de">Germany</SelectItem><SelectItem value="fr" asChild><div role="menuitem" aria-selected={false} tabIndex={9}>France</div></SelectItem></SelectContent></Select></> }
+export const RTLReferencedFieldName: Story = { ...ReferencedFieldName, globals: { dir: "rtl" } }
