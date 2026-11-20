@@ -6,8 +6,10 @@ import {
   List,
   ListItemCustom,
   ListItemGroup,
+  ListItemGroupHeader,
   ListItemStandard,
   type ListAdditionalTextState,
+  type ListAccessibleRole,
   type ListGrowing,
   type ListItemHighlight,
   type ListItemType,
@@ -37,6 +39,11 @@ export type ItemSpec = {
   active?: boolean
   /** ListItemCustom with a text and a button. */
   custom?: boolean
+  accessibleName?: string
+  itemRole?: "listitem" | "option" | "treeitem" | "menuitem"
+  position?: number
+  setSize?: number
+  noControl?: boolean
 }
 export type GroupSpec = { group: string; items: ItemSpec[] }
 export type Props = {
@@ -48,6 +55,13 @@ export type Props = {
   separators?: ListSeparators
   growing?: ListGrowing
   dropPlacement?: "Before" | "After" | "On"
+  focusFirst?: boolean
+  channel?: "name" | "name-ref" | "description" | "description-ref"
+  growingA11y?: boolean
+  listbox?: boolean
+  role?: ListAccessibleRole
+  groupHeaderA11y?: boolean
+  rtl?: boolean
 }
 
 export const LIST_WIDTH = "20rem"
@@ -62,6 +76,18 @@ const states = ["none", "negative", "critical", "positive", "information"] as co
 const richMovable: ItemSpec = { text: "Laptop", description: "Dell XPS 15", icon: "product", additionalText: "In stock", selected: true, movable: true }
 
 const cases: FixtureCase<Props>[] = [
+  { id: "list-a11y-item-option-selected", props: { items: [{ text: "Apples", custom: true, noControl: true, accessibleName: "Apples", itemRole: "option", selected: true }], mode: "single" } },
+  { id: "list-a11y-item-option-selected-rtl", props: { items: [{ text: "Apples", custom: true, noControl: true, accessibleName: "Apples", itemRole: "option", selected: true }], mode: "single", rtl: true } },
+  ...(["list", "listbox", "menu", "tree"] as const).map((role) => ({ id: `list-a11y-root-${role}`, props: { items: [{ text: "Apples", type: "inactive" as const }], role } })),
+  { id: "list-a11y-standard-name", props: { items: [{ text: "Apples", accessibleName: "Produce row" }] } },
+  { id: "list-a11y-custom-name", props: { items: [{ text: "Apples", custom: true, noControl: true, accessibleName: "Produce row", selected: true, position: 2, setSize: 7, itemRole: "option" }], role: "listbox", mode: "single" } },
+  { id: "list-a11y-group-header-name", props: { items: [{ text: "Apples", type: "inactive" }], groupHeaderA11y: true } },
+  { id: "list-a11y-selection-rtl", props: { items: three, mode: "multiple", rtl: true } },
+  { id: "list-groups-rtl", props: { items: [{ group: "Fruit", items: three }], rtl: true } },
+  ...(["name", "name-ref", "description", "description-ref"] as const).map((channel) => ({ id: `list-a11y-${channel}`, props: { items: [{ text: "Apples", type: "inactive" as const }], channel } })),
+  { id: "list-a11y-role", props: { items: [{ text: "Apples", type: "inactive" }], listbox: true } },
+  { id: "list-a11y-growing", props: { items: [{ text: "Apples", type: "inactive" }], growing: "button", growingA11y: true } },
+  { id: "list-custom-focused", props: { items: [{ text: "Custom item", custom: true }], focusFirst: true } },
   { id: "list-drop-indicator-before", props: { items: three, dropPlacement: "Before" } },
   { id: "list-drop-indicator-after", props: { items: three, dropPlacement: "After" } },
   { id: "list-drop-indicator-on", props: { items: three, dropPlacement: "On" } },
@@ -147,10 +173,10 @@ const cases: FixtureCase<Props>[] = [
 function renderItem(it: ItemSpec, i: number) {
   if (it.custom) {
     return (
-      <ListItemCustom key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled} movable={it.movable} data-moving={it.moving ? "" : undefined} {...(it.active === undefined ? {} : { "data-active": it.active ? "" : undefined })}>
+      <ListItemCustom aria-label={it.accessibleName} role={it.itemRole} aria-posinset={it.position} aria-setsize={it.setSize} key={i} value={String(i)} highlight={it.highlight} type={it.type} disabled={it.disabled} movable={it.movable} data-moving={it.moving ? "" : undefined} {...(it.active === undefined ? {} : { "data-active": it.active ? "" : undefined })}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
           <span>{it.text}</span>
-          <Button>Edit</Button>
+          {!it.noControl && <Button>Edit</Button>}
         </div>
       </ListItemCustom>
     )
@@ -159,6 +185,10 @@ function renderItem(it: ItemSpec, i: number) {
     <ListItemStandard
       key={i}
       value={String(i)}
+      aria-label={it.accessibleName}
+      role={it.itemRole}
+      aria-posinset={it.position}
+      aria-setsize={it.setSize}
       text={it.text}
       description={it.description}
       icon={it.icon && listIcons[it.icon]}
@@ -195,15 +225,1035 @@ function StaticListDrop({ children, placement }: { children: React.ReactNode; pl
   return <div ref={ref} style={{ width: LIST_WIDTH, position: "relative" }}>{children}{elements && <FioriDropIndicator ownerReference={elements.owner} targetReference={elements.target} placement={placement} />}</div>
 }
 
+function FocusedListFixture({ focused, children, rtl }: { focused?: boolean; children: React.ReactNode; rtl?: boolean }) {
+  const root = React.useRef<HTMLDivElement>(null)
+  React.useLayoutEffect(() => {
+    if (!focused) return
+    const item = root.current?.querySelector<HTMLElement>('[data-slot="list-item"]')
+    item?.focus()
+    // INTEGRATION cause 3: later popup fixtures steal document focus. Preserve
+    // only this already-focused fixture's paint for the full-page pixel capture;
+    // its isolated AX/behavior checks still require real owning keyboard focus.
+    if (item && item === document.activeElement && item.matches(":focus-visible")) item.setAttribute("data-fixture-keyboard-focus", "")
+  }, [focused])
+  return <div ref={root} dir={rtl ? "rtl" : undefined}>
+    {focused && <style>{`[data-fixture="list-custom-focused"] .fiori-li[data-fixture-keyboard-focus]::after {
+      content: ""; border: var(--sapContent_FocusWidth) var(--sapContent_FocusStyle) var(--sapContent_FocusColor);
+      position: absolute; inset: .125rem; pointer-events: none;
+    }`}</style>}
+    {children}
+  </div>
+}
+
 export default defineFixtures<Props>({
   name: "list",
+  a11yDiff: {
+    "list-a11y-custom-name": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-description": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-description-ref": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-group-header-name": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-growing": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-name": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-name-ref": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-role": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-root-list": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-root-listbox": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-root-menu": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-root-tree": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-selection-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/1/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/2/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-standard-name": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-additional-text": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/4/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/4/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/4/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-avatar": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/1/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/1/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/1/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-basic": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-custom": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/1/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/1/children/1/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-custom-focused": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/1/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-custom-multiple": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/0/children/2/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/1/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/1/children/2/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-custom-single-start": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/0/children/2/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/1/children/2/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-description": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-drop-indicator-after": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/1",
+        "/ui5/ax/0/children/0/children/0/children/1/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-drop-indicator-before": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/1",
+        "/ui5/ax/0/children/0/children/0/children/1/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-drop-indicator-on": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/1",
+        "/ui5/ax/0/children/0/children/0/children/1/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-groups": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1/children/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1/children/0/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/1/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/1/children/1/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-groups-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1/children/0/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/1/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-growing": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-header-footer": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-highlight": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/3",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/3",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/1/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/2/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/3/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-icons": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-mode-delete": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-mode-multiple": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/1/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/2/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-mode-multiple-description": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/2/children/1/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-mode-single": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-mode-single-auto": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-mode-single-end": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-mode-single-start": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/1/children/3",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/2/children/2/children/3",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-movable-active-moving-rich": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-movable-active-rich": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-movable-disabled": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-movable-moving": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-movable-rich": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-no-data": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-selected": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-separators-inner": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-separators-none": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-types": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/0/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/1/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/2/children/3",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/3/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/4/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/4/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/4/children/2",
+        "/ours/ax/0/children/0/children/0/children/1/children/4/children/3",
+        "/ours/ax/0/children/0/children/0/children/1/children/5/children/0",
+        "/ours/ax/0/children/0/children/0/children/1/children/5/children/1",
+        "/ours/ax/0/children/0/children/0/children/1/children/5/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1/children/4/children/2"
+      ],
+      "reason": "React/DOM difference in list: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
+    },
+    "list-a11y-item-option-selected-rtl": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these literal capture-proven paths unwrap only unnamed, description-free, value-free generic nodes with no properties, preserving every descendant role/name/state/order."
+    },
+    "list-a11y-item-option-selected": {
+      "ignore": [
+        "/ours/ax/0",
+        "/ours/ax/0/children/0",
+        "/ours/ax/0/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/0",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/1",
+        "/ours/ax/0/children/0/children/0/children/2/children/0/children/2",
+        "/ui5/ax/0",
+        "/ui5/ax/0/children/0",
+        "/ui5/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0"
+      ],
+      "reason": "React/DOM difference in list: these literal capture-proven paths unwrap only unnamed, description-free, value-free generic nodes with no properties, preserving every descendant role/name/state/order."
+    }
+  },
   cases,
-  react: ({ items, mode, headerText, footerText, noDataText, separators, growing, dropPlacement }) => {
+  react: ({ items, mode, headerText, footerText, noDataText, separators, growing, dropPlacement, focusFirst, channel, growingA11y, listbox, role, groupHeaderA11y, rtl }) => {
     let n = 0
-    return (
+    const targetId = `list-a11y-${channel}-target`
+    const attributes = {
+      "aria-label": channel === "name" ? "Produce" : channel === "name-ref" ? undefined : "List",
+      "aria-labelledby": channel === "name-ref" ? targetId : undefined,
+      "aria-description": channel === "description" ? "Fresh fruit" : undefined,
+      "aria-describedby": channel === "description-ref" ? targetId : undefined,
+    }
+    return (<FocusedListFixture focused={focusFirst} rtl={rtl}>
+      {channel && <span hidden id={targetId}>{channel.startsWith("name") ? "Produce" : "Fresh fruit"}</span>}
       <StaticListDrop placement={dropPlacement}>
         <List
-          aria-label="List"
+          {...attributes}
+          accessibleRole={role ?? (listbox ? "listbox" : undefined)}
+          growingButtonName={growingA11y ? "Load produce" : undefined}
+          growingButtonDescription={growingA11y ? "Fetch additional fruit" : undefined}
           selectionMode={mode}
           defaultValue={selectedValues(items)}
           headerText={headerText}
@@ -212,6 +1262,7 @@ export default defineFixtures<Props>({
           separators={separators}
           growing={growing}
         >
+          {groupHeaderA11y && <ListItemGroupHeader accessibleName="Produce categories">Fruit group</ListItemGroupHeader>}
           {items.map((x, gi) =>
             "group" in x ? (
               <ListItemGroup key={`g${gi}`} headerText={x.group}>
@@ -223,6 +1274,6 @@ export default defineFixtures<Props>({
           )}
         </List>
       </StaticListDrop>
-    )
+      </FocusedListFixture>)
   },
 })

@@ -60,3 +60,8 @@
   color: var(--sapContent_LabelColor);
   font-size: var(--sapFontSize);
 }
+
+/* UI5 multi-input paints pointer focus; AGENTS rule 5 keeps the ring keyboard-only. */
+.fiori-field[data-slot="multi-input"][data-pointer-focus]::after {
+  content: none;
+}

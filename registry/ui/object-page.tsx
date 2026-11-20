@@ -35,6 +35,9 @@ const ObjectPageContext = React.createContext<ObjectPageContextValue | null>(nul
 
 const slug = (v: string) => v.replace(/[^\w-]/g, "_")
 
+/**
+ * @accessibility anchorBarLabel names section navigation; section ids and titleText own tab-to-section relationships. Arrow keys, Home/End and Enter/Space follow Tabs. accessibilityAttributes names the dynamic page areas; texts names header controls. Anchor navigation and scroll spy update selectedSection.
+ */
 type ObjectPageProps = Omit<DynamicPageProps, "subheader"> & {
   mode?: ObjectPageMode
   /** Selected section id (controlled). */

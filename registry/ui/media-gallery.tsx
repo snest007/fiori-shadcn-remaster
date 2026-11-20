@@ -20,6 +20,7 @@ type MediaGalleryItemProps = React.ComponentProps<"div"> & {
   thumbnail?: React.ReactNode
 }
 type MediaGalleryItemElement = HTMLDivElement & { selected: boolean; disabled: boolean; layout: MediaGalleryItemLayout }
+/** @accessibility accessibleName names the display and thumbnail navigation; item image alt or aria-label supplies each option name. Thumbnails own aria-checked and roving focus. Arrow keys and Home/End navigate and select; Enter/Space activate. carouselProps names paged thumbnail arrows and overflowText labels more items. */
 type MediaGalleryProps = React.ComponentProps<"div"> & {
   showAllThumbnails?: boolean
   interactiveDisplayArea?: boolean

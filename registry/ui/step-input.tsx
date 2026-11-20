@@ -13,6 +13,22 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 
+// UI5 NumericInputTemplate.js / generated/themes/NumericInput.css.js paints pointer focus too.
+// AGENTS rule 5 requires keyboard origin, including focus in a newly mounted popup.
+const stepinputFocusModality = new WeakMap<Document, { keyboard: boolean }>()
+function getStepInputFocusModality(owner: Document) {
+  let state = stepinputFocusModality.get(owner)
+  if (!state) {
+    state = { keyboard: true }
+    const current = state
+    owner.addEventListener("keydown", () => { current.keyboard = true }, true)
+    owner.addEventListener("pointerdown", () => { current.keyboard = false }, true)
+    stepinputFocusModality.set(owner, current)
+  }
+  return state
+}
+if (typeof document !== "undefined") getStepInputFocusModality(document)
+
 /**
  * @accessibility Native aria-label, aria-labelledby and aria-describedby reach the spinbutton input. decrementLabel and incrementLabel name the internal buttons; valueStateMessage supplies a linked validation description.
  * @accessibility Up/Down step. Shift+PageUp/PageDown or Ctrl+Shift+Up/Down jump to bounds; Enter or blur commit and Escape restores the focus value. Internal buttons do not add tab stops.
@@ -267,6 +283,19 @@ function StepInput({
         data-disabled={disabled ? "" : undefined}
         data-readonly={readOnly ? "" : undefined}
         data-open=""
+        onPointerDownCapture={(event) => {
+          event.currentTarget.setAttribute("data-pointer-focus", "")
+        }}
+        onFocusCapture={(event) => {
+          if (getStepInputFocusModality(event.currentTarget.ownerDocument).keyboard) event.currentTarget.removeAttribute("data-pointer-focus")
+          else event.currentTarget.setAttribute("data-pointer-focus", "")
+        }}
+        onKeyDownCapture={(event) => {
+          event.currentTarget.removeAttribute("data-pointer-focus")
+        }}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute("data-pointer-focus")
+        }}
         className="fiori-field fiori-step-input__field"
       >
         <input

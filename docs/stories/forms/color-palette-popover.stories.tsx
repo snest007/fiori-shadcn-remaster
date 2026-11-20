@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useRef } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { ColorPalettePopover, type ColorPalettePopoverProps } from "@/components/ui/color-palette-popover"
 import { ColorPaletteItem } from "@/components/ui/color-palette"
@@ -70,7 +70,7 @@ const meta = {
 }, story: { inline: false, height: "520px" } } },
   render: function ChartColorMenu(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const opener = React.useRef<HTMLButtonElement>(null)
+    const opener = useRef<HTMLButtonElement | null>(null)
     const { colors, hiddenIndices = [], ...props } = args
     return <div className="flex min-h-80 items-start justify-center gap-2"><Button ref={opener} onClick={() => updateArgs({ open: !args.open })}>Choose chart color</Button>
       <ColorPalettePopover {...props} opener={opener} onOpenChange={(open) => { args.onOpenChange?.(open); updateArgs({ open }) }}>

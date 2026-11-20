@@ -10,6 +10,22 @@ import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
 import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 
+// UI5 FileUploader.js _onfocusin / generated/themes/FileUploader.css.js paints pointer focus too.
+// AGENTS rule 5 requires keyboard origin, including focus in a newly mounted popup.
+const fileuploaderFocusModality = new WeakMap<Document, { keyboard: boolean }>()
+function getFileUploaderFocusModality(owner: Document) {
+  let state = fileuploaderFocusModality.get(owner)
+  if (!state) {
+    state = { keyboard: true }
+    const current = state
+    owner.addEventListener("keydown", () => { current.keyboard = true }, true)
+    owner.addEventListener("pointerdown", () => { current.keyboard = false }, true)
+    fileuploaderFocusModality.set(owner, current)
+  }
+  return state
+}
+if (typeof document !== "undefined") getFileUploaderFocusModality(document)
+
 type FileSizeExceed = { fileName: string; fileSize: number }
 
 /**
@@ -84,6 +100,10 @@ function FileUploader({
   className,
   style,
   children,
+  onPointerDownCapture,
+  onFocusCapture,
+  onKeyDownCapture,
+  onBlurCapture,
   "aria-label": ariaLabel,
   ...props
 }: FileUploaderProps) {
@@ -157,6 +177,23 @@ function FileUploader({
 
   return (
     <div
+      onPointerDownCapture={(event) => {
+        event.currentTarget.setAttribute("data-pointer-focus", "")
+        onPointerDownCapture?.(event)
+      }}
+      onFocusCapture={(event) => {
+        if (getFileUploaderFocusModality(event.currentTarget.ownerDocument).keyboard) event.currentTarget.removeAttribute("data-pointer-focus")
+        else event.currentTarget.setAttribute("data-pointer-focus", "")
+        onFocusCapture?.(event)
+      }}
+      onKeyDownCapture={(event) => {
+        event.currentTarget.removeAttribute("data-pointer-focus")
+        onKeyDownCapture?.(event)
+      }}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.removeAttribute("data-pointer-focus")
+        onBlurCapture?.(event)
+      }}
       data-slot="file-uploader"
       data-hide-input={hideInput ? "" : undefined}
       data-value-state={hasState && !hideInput ? valueState : undefined}

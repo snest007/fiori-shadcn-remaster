@@ -1,0 +1,42 @@
+--- a/registry/ui/notification-list.tsx
++++ b/registry/ui/notification-list.tsx
+@@ -873,6 +873,10 @@
+           </ul>
+           {growing === "button" && (
+             <div className="fiori-list__growing fiori-nli-group__growing">
++              {/* UI5 ListTemplate.js/moreRow nests BusyIndicator in its button.
++                  Keep the progressbar and action as siblings to avoid that UI5 bug. */}
++{loading && <BusyIndicator active delay={loadingDelay} title={texts.busyTitle} className="fiori-nli-group__growing-busy" onKeyDownCapture={stopBusyKeyboardEvent} onKeyUpCapture={stopBusyKeyboardEvent} />}
++
+               <div
+                 role="button"
+                 tabIndex={0}
+@@ -917,7 +921,6 @@
+                   if (e.key === " ") requestRef.current()
+                 }}
+               >
+-                {loading && <BusyIndicator active delay={loadingDelay} title={texts.busyTitle} className="fiori-nli-group__growing-busy" onKeyDownCapture={stopBusyKeyboardEvent} onKeyUpCapture={stopBusyKeyboardEvent} />}
+                 <span id={`${id}-growing-text`} className="fiori-list__growing-text">{texts.growingButton}</span>
+               </div>
+             </div>
+--- a/registry/styles/components/notification-list.css
++++ b/registry/styles/components/notification-list.css
+@@ -278,6 +278,9 @@
+ }
+ .fiori-nli-group__growing {
+   border: none;
++  display: flex;
++  align-items: center;
++  justify-content: center;
+ }
+ .fiori-nli-group__growing-inner {
+   margin: var(--fiori-x-notification-item-margin);
+@@ -302,7 +305,7 @@
+ .fiori-nli-group__growing-busy:not([data-busy]) {
+   display: none;
+ }
+-.fiori-nli-group__growing-busy[data-busy] + .fiori-list__growing-text {
++.fiori-nli-group__growing-busy[data-busy] + .fiori-nli-group__growing-inner .fiori-list__growing-text {
+   padding-left: 0.5rem;
+ }
+ .fiori-nli-group__start-marker,

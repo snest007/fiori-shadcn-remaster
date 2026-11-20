@@ -11,6 +11,13 @@ import { attachAudit, classifyViolations } from "./known-issues"
 interface StoryEntry { id: string; type: "story" | "docs"; title: string; name: string }
 const entries = Object.values(JSON.parse(readFileSync(new URL("../storybook-static/index.json", import.meta.url), "utf8")).entries) as StoryEntry[]
 const stories = entries.filter((entry) => entry.type === "story")
+const storybookOnly = process.env.STORYBOOK_ONLY
+const components = storybookOnly === undefined ? undefined : storybookOnly.split(",").map((name) => name.trim()).filter(Boolean)
+// Like pilots.spec.ts (562a4dc), match the entire component segment after the one-word category.
+// A suffix match for dialog would also select adapt-filters-dialog.
+const selectedStories = components === undefined ? stories : stories.filter((story) =>
+  /^[a-z]+-/.test(story.id) && components.includes(story.id.slice(story.id.indexOf("-") + 1).split("--")[0]))
+if (components !== undefined && !selectedStories.length) throw new Error(`STORYBOOK_ONLY=${storybookOnly}: no stories matched whole component ids`)
 const storyId = (title: string, name = "Playground") => {
   const story = stories.find((story) => story.title === title && story.name === name)
   if (!story) throw new Error(`Missing ${title}/${name} story`)
@@ -39,14 +46,14 @@ async function tokenColor(page: Page, token: string) {
   }, token)
 }
 
-for (const story of stories) {
-  test(`${story.title}/${story.name} renders named controls without errors`, async ({ page }) => {
+for (const story of selectedStories) {
+  test(`${story.title}/${story.name} renders named controls without errors`, async ({ page }, testInfo) => {
     const errors: string[] = []
     page.on("pageerror", (error) => errors.push(error.message))
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()) })
     await render(page, story.id)
     await expect(page.locator("#storybook-root [data-slot]").first()).toBeAttached()
-    await expectNamedControls(page)
+    await expectNamedControls(page, { story: story.id, theme: "sap_horizon" }, testInfo)
     expect(errors).toEqual([])
   })
   for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
@@ -62,6 +69,8 @@ for (const story of stories) {
   }
 }
 
+// Cross-component smoke/interaction checks remain in the full suite; a scoped run visits only its stories.
+if (storybookOnly === undefined) {
 test("toolbar globals set root attributes and Horizon canvas color", async ({ page }) => {
   await render(page, storyId("Actions/Button"), "theme:sap_horizon_dark;density:compact;dir:rtl")
   await expect(page.locator("html")).toHaveAttribute("data-theme", "sap_horizon_dark")
@@ -161,7 +170,7 @@ test("Calendar CustomTexts names its header without altering owned grid states",
   await render(page, storyId("Dates/Calendar", "Custom Texts"), undefined, "initialPicker:year")
   const range = page.locator('[data-slot="calendar-year-range-button"]')
   await expect(range).toHaveAttribute("aria-label", "Delivery years from 2015 to 2034")
-  await expect(range).toHaveAccessibleName("Delivery years from 2015 to 2034")
+  await expect(range).toHaveAccessibleName("2015 - 2034 Delivery years from 2015 to 2034")
   const checkRange = async (phase: string) => {
     const audit = await classifyViolations(page, await axeViolations(page, "sap_horizon"), {
       story: "dates-calendar--custom-texts", theme: "sap_horizon", yearMode: true,
@@ -172,13 +181,14 @@ test("Calendar CustomTexts names its header without altering owned grid states",
   await checkRange("initial")
   await page.getByRole("button", { name: "Next Year Range", exact: true }).click()
   await expect(range).toHaveAttribute("aria-label", "Delivery years from 2035 to 2054")
-  await expect(range).toHaveAccessibleName("Delivery years from 2035 to 2054")
+  await expect(range).toHaveAccessibleName("2035 - 2054 Delivery years from 2035 to 2054")
   await checkRange("paged")
   await range.focus()
   await expect(range).toBeFocused()
   await page.keyboard.press("Enter")
   await expect(page.locator('[data-picker="yearrange"]')).toBeVisible()
 })
+}
 
 test("locale toolbar localizes StepInput and Calendar and Arabic direction", async ({ page }) => {
   const de = JSON.parse(readFileSync(new URL("../registry/i18n/de.json", import.meta.url), "utf8"))

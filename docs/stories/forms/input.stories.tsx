@@ -48,3 +48,6 @@ export const LabelledField: Story = { render: function CompanyField() {
   const [value, setValue] = React.useState("")
   return <div className="grid max-w-md gap-2"><Label htmlFor="input-company" required showColon>Company</Label><Input id="input-company" required value={value} onChange={(event) => setValue(event.target.value)} placeholder="Company name" /></div>
 } }
+
+export const AccessibleDescription: Story = { args: { "aria-description": "Use the supplier number" } }
+export const RTLAccessibleDescription: Story = { args: { "aria-description": "Use the supplier number" }, globals: { dir: "rtl" } }

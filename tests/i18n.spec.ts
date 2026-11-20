@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { execFileSync } from "node:child_process"
-import { devices, expect, test, type Page } from "@playwright/test"
+import { devices, expect, test, type Locator, type Page } from "@playwright/test"
 import pixelmatch from "pixelmatch"
 import { PNG } from "pngjs"
 import { formatNumber, formatPercent, parseNumber } from "../registry/lib/fiori-numbers"
@@ -15,7 +15,7 @@ import { Card, CardContent } from "../registry/ui/card"
 const de = JSON.parse(readFileSync("registry/i18n/de.json", "utf8"))
 const locales = ["de-DE", "zh-CN", "ar-EG"]
 const components = ["calendar", "date-picker", "date-time-picker", "time-picker", "step-input", "slider"]
-const e5Evidence = ".integration/E5-evidence/fourth-20261118"
+const e5Evidence = process.env.E5_EVIDENCE ?? "test-results/i18n"
 
 interface AuditGroup { component: string; owner: string; rows: { key: string; status: string; english: string; englishSource: string; triage?: string }[] }
 type AuditBaseline = Record<string, { owner: string; gapCount: number; okKeys: string[] }>
@@ -177,7 +177,7 @@ for (const locale of ["de-DE", "ar-EG"]) test(`Select translates role, grouped c
   await trigger.press("F4")
   const choices = page.getByRole("listbox", { name: "Grouped choices", exact: true })
   await expect(choices.getByRole("option", { name: "Standalone", exact: true })).toBeFocused()
-  const announcement = owner.locator('[data-slot="select-announcement"]')
+  const announcement = page.getByRole("dialog").locator('[data-slot="select-announcement"]')
   await expect(announcement).toHaveAttribute("role", "alert")
   await expect(announcement).toHaveAttribute("aria-live", "polite")
   await expect(announcement).toHaveText(`Standalone ${formatSapText(translations.LIST_ITEM_POSITION, [1, 4])}`)
@@ -195,7 +195,7 @@ for (const locale of ["de-DE", "ar-EG"]) test(`Select translates role, grouped c
   await expect(customTrigger).toHaveAccessibleDescription("Choices 2; categories 1")
   await customTrigger.press("F4")
   await expect(page.getByRole("option", { name: "Alpha", exact: true })).toBeFocused()
-  await expect(custom.locator('[data-slot="select-announcement"]')).toHaveText("Alpha Entry 1 among 2")
+  await expect(page.getByRole("dialog").locator('[data-slot="select-announcement"]')).toHaveText("Alpha Entry 1 among 2")
 })
 
 test("Tag composes translated hidden descriptions and preserves complete legacy overrides", async ({ page }) => {
@@ -214,11 +214,12 @@ test("closed Select Home and End change selection silently like UI5", async ({ b
       const trigger = cell.getByRole("combobox")
       await trigger.focus()
       await expect(trigger).toBeFocused()
-      const message = page.locator(native ? ".ui5-invisiblemessage-polite" : '[data-fixture="select-grouped"] [data-slot="select-announcement"]')
+      const message = page.locator(native ? ".ui5-invisiblemessage-polite" : '[data-slot="select-announcement"]')
       for (const [key, value] of [["End", "Gamma"], ["Home", "Standalone"]]) {
         await trigger.press(key)
         await expect(trigger).toHaveText(value)
-        await expect(message).toHaveText("")
+        if (native) await expect(message).toHaveText("")
+        else await expect(message).toHaveCount(0)
       }
       await trigger.press("ArrowDown")
       await expect(trigger).toHaveText("Alpha")
@@ -241,7 +242,7 @@ for (const component of ["select", "segmented-button"]) test(`${component} live 
       const frozen = new Date()
       await page.clock.install({ time: frozen })
       await page.clock.pauseAt(frozen)
-      const message = page.locator(native ? `.ui5-invisiblemessage-${component === "select" ? "polite" : "assertive"}` : `[data-fixture="${id}"] [data-slot="${component}-announcement"]`)
+      const message = page.locator(native ? `.ui5-invisiblemessage-${component === "select" ? "polite" : "assertive"}` : `[data-slot="${component}-announcement"]`)
       const activate = async () => {
         if (component === "select") {
           const trigger = cell.getByRole("combobox")
@@ -275,7 +276,7 @@ for (const locale of ["de-DE", "ar-EG"]) test(`SegmentedButton announces selecti
   await page.goto(`/?locale=${locale}#/i18n`)
   const owner = page.locator("#i18n-segmented")
   const beta = owner.getByRole("option", { name: "Beta", exact: true })
-  const announcement = owner.locator('[data-slot="segmented-button-announcement"]')
+  const announcement = page.locator('[data-slot="segmented-button-announcement"][data-owner="Localized views"]')
   await expect(announcement).toHaveText("")
   await beta.focus()
   await expect(beta).toBeFocused()
@@ -290,29 +291,34 @@ for (const locale of ["de-DE", "ar-EG"]) test(`SegmentedButton announces selecti
   expect(await message!.evaluate(node => node.isConnected), "deselection must not replace the live message").toBe(true)
   const custom = page.locator("#i18n-segmented-override")
   await custom.getByRole("option", { name: "Beta", exact: true }).click()
-  await expect(custom.locator('[data-slot="segmented-button-announcement"]')).toHaveText("Component selection")
+  await expect(page.locator('[data-slot="segmented-button-announcement"][data-owner="Custom views"]')).toHaveText("Component selection")
   const controlled = page.locator("#i18n-segmented-controlled")
   await controlled.getByRole("option", { name: "Beta", exact: true }).click()
   await expect(controlled.getByRole("option", { name: "Beta", exact: true })).toHaveAttribute("aria-selected", "true")
-  await expect(controlled.locator('[data-slot="segmented-button-announcement"]')).toHaveText(translations.LIST_ITEM_SELECTED)
+  await expect(page.locator('[data-slot="segmented-button-announcement"][data-owner="Controlled views"]')).toHaveText(translations.LIST_ITEM_SELECTED)
   await expect(controlled.getByTestId("i18n-segmented-callback")).toHaveText("")
   const rejected = page.locator("#i18n-segmented-rejected")
   await rejected.getByRole("option", { name: "Beta", exact: true }).click()
   await expect(rejected.getByTestId("i18n-segmented-rejected-attempts")).toHaveText("1")
   await expect(rejected.getByRole("option", { name: "Alpha", exact: true })).toHaveAttribute("aria-selected", "true")
   await expect(rejected.getByRole("option", { name: "Beta", exact: true })).toHaveAttribute("aria-selected", "false")
-  await expect(rejected.locator('[data-slot="segmented-button-announcement"]')).toHaveText("")
+  await expect(page.locator('[data-slot="segmented-button-announcement"][data-owner="Rejected views"]')).toHaveText("")
   await rejected.getByRole("option", { name: "Prevented", exact: true }).click()
   await expect(rejected.getByTestId("i18n-segmented-rejected-attempts")).toHaveText("1")
-  await expect(rejected.locator('[data-slot="segmented-button-announcement"]')).toHaveText("")
+  await expect(page.locator('[data-slot="segmented-button-announcement"][data-owner="Rejected views"]')).toHaveText("")
 })
 
 test("ComboBox navigation announces translated groups and item positions with overridable texts", async ({ page }) => {
   await page.goto("/?locale=de-DE#/i18n")
   const owner = page.locator("#i18n-combobox-announcements")
   const input = owner.getByRole("combobox")
-  const status = owner.locator('[data-slot="combobox-announcement"]')
+  const announcement = async (input: Locator) => {
+    const listId = await input.getAttribute("aria-controls")
+    return page.locator(`[data-slot="combobox-announcement"][data-owner="${listId?.replace(/-list$/, "")}"]`)
+  }
   await input.press("F4")
+  await expect(input).toHaveAttribute("aria-controls", /-list$/)
+  const status = await announcement(input)
   await expect(status).toHaveText(`A ${formatSapText(de.LIST_ITEM_POSITION, [1, 3])}`)
   await input.press("ArrowUp")
   await expect(status).toHaveText(`${de.LIST_ITEM_GROUP_HEADER} {0}x`)
@@ -322,10 +328,13 @@ test("ComboBox navigation announces translated groups and item positions with ov
   await expect(status).toHaveText(`B ${formatSapText(de.LIST_ITEM_POSITION, [2, 3])}`)
   await input.press("Escape")
   const custom = page.locator("#i18n-combobox-announcements-override")
-  await custom.getByRole("combobox").press("F4")
-  await expect(custom.locator('[data-slot="combobox-announcement"]')).toHaveText("A Count 2; position 1")
+  const customInput = custom.getByRole("combobox")
+  await customInput.press("F4")
+  await expect(customInput).toHaveAttribute("aria-controls", /-list$/)
+  const customAnnouncement = await announcement(customInput)
+  await expect(customAnnouncement).toHaveText("A Count 2; position 1")
   await custom.getByRole("combobox").press("ArrowUp")
-  await expect(custom.locator('[data-slot="combobox-announcement"]')).toHaveText("Category {0}x")
+  await expect(customAnnouncement).toHaveText("Category {0}x")
 })
 
 test.describe("phone locale selection paths", () => {
@@ -581,6 +590,7 @@ test("editable tooltip number keys retain native spinbutton behavior in localize
   }
   expect(values.react).toEqual(values.ui5)
   expect(values.localized).toEqual(values.ui5)
+  mkdirSync(`${e5Evidence}/oracles`, { recursive: true })
   writeFileSync(`${e5Evidence}/oracles/tooltip-number-keys.json`, JSON.stringify(values, null, 2))
 })
 
@@ -638,8 +648,7 @@ test("packs regenerate deterministically and contain only audited rendered keys"
   const before = files()
   execFileSync(process.execPath, ["scripts/build-i18n-packs.mjs"])
   expect(files()).toEqual(before)
-  const audit = JSON.parse(readFileSync(`${e5Evidence}/audit.json`, "utf8"))
-  const rendered = new Set(audit.audit.flatMap((group: any) => group.rows.filter((row: any) => row.status !== "gap").map((row: any) => row.key)))
+  const rendered = new Set(readSourceAudit().flatMap(group => group.rows.filter(row => row.status !== "gap").map(row => row.key)))
   const packs = readdirSync("registry/i18n").filter(name => name.endsWith(".json") && name !== "registry-items.json")
   expect(packs).toHaveLength(48)
   for (const name of packs) for (const key of Object.keys(JSON.parse(readFileSync(`registry/i18n/${name}`, "utf8")))) expect(rendered.has(key), `${name}/${key}`).toBe(true)
@@ -888,5 +897,6 @@ test("editable RangeSlider swaps endpoints and input focus like native UI5, and 
     await context.close()
   }
   expect(results.react).toEqual(results.ui5)
+  mkdirSync(`${e5Evidence}/oracles`, { recursive: true })
   writeFileSync(`${e5Evidence}/oracles/range-tooltip.json`, JSON.stringify(results, null, 2))
 })

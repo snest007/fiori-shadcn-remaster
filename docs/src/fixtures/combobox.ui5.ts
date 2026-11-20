@@ -10,11 +10,11 @@ import { ui5State } from "./ui5-helpers"
 import { placeInPlace } from "./ui5-popup-in-place"
 import set, { COUNTRIES, CB_GROUPS } from "./combobox"
 
-export default defineUi5(set, ({ value, placeholder, valueState, disabled, readOnly, list }) => {
+export default defineUi5(set, ({ value, placeholder, valueState, disabled, readOnly, list, announcement }) => {
   const el = h(
     "ui5-combobox",
-    { value, placeholder, "value-state": ui5State(valueState), disabled, readonly: readOnly },
-    ...(list ? CB_GROUPS.map((group) => h("ui5-cb-item-group", { "header-text": group.headerText }, ...group.items.map((c) => h("ui5-cb-item", { text: c })))) : COUNTRIES.map((c) => h("ui5-cb-item", { text: c })))
+    { value, placeholder, "no-typeahead": announcement, "value-state": ui5State(valueState), disabled, readonly: readOnly },
+    ...(announcement ? [h("ui5-cb-item-group", { "header-text": "Europe" }, h("ui5-cb-item", { text: "Denmark", "additional-text": "DK" }), h("ui5-cb-item", { text: "Estonia", "additional-text": "EE" }), h("ui5-cb-item", { text: "France", "additional-text": "FR" })), h("ui5-cb-item", { text: "Ecuador", "additional-text": "EC" })] : list ? CB_GROUPS.map((group) => h("ui5-cb-item-group", { "header-text": group.headerText }, ...group.items.map((c) => h("ui5-cb-item", { text: c })))) : COUNTRIES.map((c) => h("ui5-cb-item", { text: c })))
   )
   if (!list) {
     el.style.width = FIELD_WIDTH

@@ -27,4 +27,5 @@ export const LongText: Story = { args: { children: "Registered company name for 
 export const Truncated: Story = { args: { children: "Registered company name for the international procurement division", truncate: true }, decorators: [(Story) => <div className="max-w-xs"><Story /></div>] }
 export const RTL: Story = { globals: { dir: "rtl" } }
 
+export const CustomHost: Story = { render: () => <div><Label asChild htmlFor="label-custom-host-input" required showColon><label htmlFor="wrong-field">Company name</label></Label><Input id="label-custom-host-input" required /></div> }
 export const ColonText: Story = { args: { showColon: true, texts: { colon: "：" } } }

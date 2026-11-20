@@ -6,6 +6,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/** @accessibility Text remains readable body content; maxLines only limits its visual presentation. Supply meaningful text through children and retain label/description relationships in surrounding compositions. */
 type TextProps = React.ComponentProps<"span"> & {
   /** Truncate after this many lines with an ellipsis. Default: unlimited. */
   maxLines?: number

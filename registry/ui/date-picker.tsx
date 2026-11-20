@@ -31,6 +31,10 @@ import { examplePlaceholder, PickerField } from "@/components/ui/picker-field"
 // year. In the calendar the Calendar keyboard applies; Enter/Space/click select and close; Escape closes.
 // Gregorian calendar only.
 
+/**
+ * @accessibility Native aria-label / aria-labelledby / aria-describedby land on the input; id connects a Label. pickerLabel names the popup, calendarLabels names calendar navigation and dates, and valueStateMessage describes focused input.
+ * @accessibility F4 or Alt+Down/Up opens the calendar; Escape or Alt+Down/Up closes and returns focus to the input. PageUp/Down changes day, Shift adds month, Ctrl/Cmd+Shift adds year; calendar arrows and Enter/Space select.
+ */
 type DatePickerProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "size" | "min" | "max"> & {
   /** The value as text in `formatPattern`. */
   value?: string

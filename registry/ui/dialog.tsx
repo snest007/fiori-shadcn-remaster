@@ -104,7 +104,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 // Dialog.js STEP_SIZE is an interaction constant, independent of density and root font size.
 const MOVEMENT_STEP = 16
 
-function DialogContent({ className, children, state = "none", portal = true, draggable = false, resizable = false,
+function DialogContent({ className, children, asChild, state = "none", portal = true, draggable = false, resizable = false,
   movementTexts, style, ref, "aria-describedby": describedBy, ...props }: DialogContentProps) {
   const { modal, open } = React.useContext(DialogContext)
   const [rangeRef, range] = usePopupMediaRange<HTMLDivElement>()
@@ -282,8 +282,36 @@ function DialogContent({ className, children, state = "none", portal = true, dra
     }
   }
   const alert = state === "negative" || state === "critical"
+  const custom = asChild ? React.Children.only(children) as React.ReactElement<React.ComponentProps<"div">> : undefined
+  const content = custom ? custom.props.children : children
+  // PopupTemplate.js keeps the dialog role, name/description references and
+  // focus trap on the outer section. Context providers cannot be Slot hosts.
+  const hostProps = custom ? { ...custom.props } : undefined
+  if (hostProps) for (const key of ["role", "id", "tabIndex", "aria-labelledby", "aria-describedby", "aria-modal"]) {
+    if ((hostProps as Record<string, unknown>)[key] !== undefined && process.env.NODE_ENV !== "production") console.warn("Dialog.Content: ignored custom host ownership prop", key)
+    delete (hostProps as Record<string, unknown>)[key]
+  }
+  if (hostProps && props["aria-label"] !== undefined) {
+    if (hostProps["aria-label"] !== undefined && process.env.NODE_ENV !== "production") console.warn("Dialog.Content: ignored custom host ownership prop", "aria-label")
+    delete hostProps["aria-label"]
+  }
+  const body = (
+      <DialogStateContext.Provider value={state}>
+        <DialogDragContext.Provider value={startDrag}>
+          <div ref={rangeRef} className="fiori-popup__root">
+            {content}
+            {resizable && movable && <div data-slot="dialog-resize-handle" className="fiori-dialog__resize-handle" title={texts.resizeHandleTooltip} onMouseDown={startResize}><Icon icon={resizeCorner} /></div>}
+            {movable && <>
+              <span data-slot="dialog-movement-handle" className="fiori-dialog__movement-handle sr-only" tabIndex={0} role="img" aria-roledescription={texts.handleRoleDescription} aria-label={handleLabel} aria-describedby={`${movementId}-movement-description`} onKeyDown={moveWithKey} />
+              <span id={`${movementId}-movement-description`} className="sr-only" aria-hidden="true">{description}</span>
+              <span id={`${movementId}-dialog-description`} className="sr-only" aria-hidden="true">{reachDescription}</span>
+            </>}
+          </div>
+        </DialogDragContext.Provider>
+      </DialogStateContext.Provider>
+  )
   const surface = (
-    <DialogPrimitive.Content
+    <DialogPrimitive.Content asChild={asChild}
       ref={contentRef}
       data-slot="dialog-content"
       data-media-range={range}
@@ -303,19 +331,12 @@ function DialogContent({ className, children, state = "none", portal = true, dra
       )}
       {...props} data-sap-ui-fastnavgroup-container="true"
     >
-      <DialogStateContext.Provider value={state}>
-        <DialogDragContext.Provider value={startDrag}>
-          <div ref={rangeRef} className="fiori-popup__root">
-            {children}
-            {resizable && movable && <div data-slot="dialog-resize-handle" className="fiori-dialog__resize-handle" title={texts.resizeHandleTooltip} onMouseDown={startResize}><Icon icon={resizeCorner} /></div>}
-            {movable && <>
-              <span data-slot="dialog-movement-handle" className="fiori-dialog__movement-handle sr-only" tabIndex={0} role="img" aria-roledescription={texts.handleRoleDescription} aria-label={handleLabel} aria-describedby={`${movementId}-movement-description`} onKeyDown={moveWithKey} />
-              <span id={`${movementId}-movement-description`} className="sr-only" aria-hidden="true">{description}</span>
-              <span id={`${movementId}-dialog-description`} className="sr-only" aria-hidden="true">{reachDescription}</span>
-            </>}
-          </div>
-        </DialogDragContext.Provider>
-      </DialogStateContext.Provider>
+      {custom ? typeof custom.type === "string"
+        ? React.createElement(custom.type, { ...hostProps, key: custom.key }, body)
+        // PopupTemplate.js owns the outer section. A React child may consume only
+        // children and drop Slot's props/ref, so keep those on our own DOM host.
+        : <div>{React.createElement(custom.type, { ...hostProps, key: custom.key }, body)}</div>
+        : body}
     </DialogPrimitive.Content>
   )
   if (!portal) return surface

@@ -3,7 +3,8 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
-import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
+import { useFioriTexts } from "@/lib/fiori-locale"
+import { createPortal } from "react-dom"
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
@@ -30,13 +31,24 @@ function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, expli
  * @accessibility Name the root listbox with aria-label or aria-labelledby; each option uses its text or an icon-only aria-label.
  * @accessibility Tab enters one enabled item. Arrows, Home and End move focus without wrapping; Space or Enter select. Horizontal arrows follow inherited RTL direction.
  */
+type SegmentedButtonTexts = {
+  selected: string
+  itemDescription: string
+}
+const defaultTexts: SegmentedButtonTexts = {
+  selected: "Selected", // UI5 LIST_ITEM_SELECTED
+  itemDescription: "Press SPACE or ENTER to select an item", // UI5 SEGMENTEDBUTTON_ARIA_DESCRIBEDBY
+}
+
+const defaultTextsKeys = { selected: "LIST_ITEM_SELECTED", itemDescription: "SEGMENTEDBUTTON_ARIA_DESCRIBEDBY" } as const
+
 type Common = Omit<React.ComponentProps<"div">, "defaultValue" | "dir"> & {
+  /** Native aria-label/aria-labelledby name the root listbox; aria-description/aria-describedby describe it. */
+  texts?: Partial<SegmentedButtonTexts>
   dir?: "ltr" | "rtl"
   disabled?: boolean
   /** Items take their content width instead of sharing the width equally (ui5 `items-fit-content`). */
   itemsFitContent?: boolean
-  /** Assertive announcement emitted when an item is selected. */
-  texts?: Partial<SegmentedButtonTexts>
 }
 type SegmentedButtonProps =
   | (Common & {
@@ -56,15 +68,75 @@ type SegmentedButtonProps =
 
 // Mirrors ui5-segmented-button: a listbox of options with one tab stop. Arrow keys / Home / End move
 // focus without wrapping, Space or Enter select. In single mode the selected item can't be deselected.
-type SegmentedButtonTexts = { selected: string }
-const defaultSegmentedButtonTexts: SegmentedButtonTexts = { selected: "Selected" } // UI5 LIST_ITEM_SELECTED
-const defaultSegmentedButtonTextsKeys = { selected: "LIST_ITEM_SELECTED" } as const
+function SegmentedButton({ className, selectionMode = "single", itemsFitContent, children, style, value, defaultValue, onValueChange, dir, ref, texts, disabled, ...props }: SegmentedButtonProps) {
+  const owner = React.useRef<HTMLDivElement>(null)
+  React.useImperativeHandle(ref, () => owner.current!, [])
+  const direction = useInheritedDirection(owner, dir)
+  // SegmentedButton.js:onBeforeRendering/normalizeSelection operate on actual
+  // slotted items. Register rendered hosts so Fragments and function wrappers
+  // cannot become phantom options or remove a real option from navigation.
+  const registry = React.useRef(new Map<string, { value: string; node: HTMLElement; disabled: boolean }>())
+  const [items, setItems] = React.useState<Array<{ id: string; value: string; node: HTMLElement; disabled: boolean; hidden: boolean }>>([])
+  const synchronize = React.useCallback(() => {
+    const ordered = [...registry.current].filter(([, item]) => item.node.isConnected)
+      .sort(([, a], [, b]) => a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
+      .map(([id, item]) => ({ id, ...item, hidden: item.node.hidden }))
+    setItems((previous) => previous.length === ordered.length && previous.every((item, i) =>
+      item.id === ordered[i].id && item.value === ordered[i].value && item.node === ordered[i].node &&
+      item.disabled === ordered[i].disabled && item.hidden === ordered[i].hidden) ? previous : ordered)
+  }, [])
+  const register = React.useCallback((id: string, value: string, node: HTMLElement | null, disabled: boolean) => {
+    if (node) registry.current.set(id, { value, node, disabled })
+    else registry.current.delete(id)
+    synchronize()
+  }, [synchronize])
+  React.useLayoutEffect(() => {
+    synchronize()
+    const observer = new MutationObserver(synchronize)
+    if (owner.current) observer.observe(owner.current, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] })
+    return () => observer.disconnect()
+  }, [synchronize])
+  const visibleItems = items.filter((item) => !item.hidden)
+  const count = visibleItems.length
+  const t = useFioriTexts(defaultTexts, defaultTextsKeys, texts)
+  const common = {
+    ...props,
+    disabled,
+    ref: owner,
+    dir: direction,
+    "data-slot": "segmented-button",
+    "data-fit-content": itemsFitContent ? "" : undefined,
+    role: "listbox",
+    // SegmentedButtonTemplate.js leaves its listbox nonfocusable. Radix's
+    // internal tabindex=-1 is unnecessary; retain an explicitly supplied tabindex.
+    tabIndex: props.tabIndex,
+    "aria-multiselectable": selectionMode === "multiple",
+    "aria-orientation": "horizontal" as const,
+    // Own the item tab stop: Radix initializes every child at -1 and depends
+    // on its focusable root, while SegmentedButtonTemplate.js has no root stop.
+    rovingFocus: false,
+    className: cn("fiori-segmented-button", className),
+    style: { "--fiori-x-segmented-btn-items-count": count, ...style } as React.CSSProperties,
+    children,
+  }
 
-function SegmentedButton({ className, selectionMode = "single", itemsFitContent, children, style, value, defaultValue, onValueChange, dir, ref, texts, ...props }: SegmentedButtonProps) {
-  const resolvedTexts = useFioriTexts(defaultSegmentedButtonTexts, defaultSegmentedButtonTextsKeys, texts)
-  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
-  const announcementTimers = React.useRef(new Set<ReturnType<typeof setTimeout>>())
-  React.useEffect(() => () => { announcementTimers.current.forEach(clearTimeout) }, [])
+  const [inner, setInner] = React.useState<string | string[]>(defaultValue ?? (selectionMode === "multiple" ? [] : ""))
+  const current = value ?? inner
+  const selected = selectionMode === "multiple" ? (Array.isArray(current) ? current : [])
+    : [items.find((item) => item.value === current)?.value ?? items[0]?.value].filter((item): item is string => item !== undefined)
+  React.useLayoutEffect(() => {
+    // Native normalizeSelection selects the first actual item without emitting
+    // selection-change, including a hidden/disabled first item.
+    if (selectionMode === "single" && value === undefined && items.length && !items.some((item) => item.value === inner)) setInner(items[0].value)
+  }, [items, selectionMode, value, inner])
+  const [lastFocusedValue, setLastFocusedValue] = React.useState<string>()
+  // Native navigatableItems excludes disabled items; hidden items remain in
+  // ItemNavigation's collection, although the browser cannot focus them.
+  const enabledValues = disabled ? [] : items.filter((item) => !item.disabled).map((item) => item.value)
+  // SegmentedButton.js:_onfocusin enters the selected item on first focus and
+  // subsequently preserves the last focused item through ItemNavigation.
+  const tabStop = lastFocusedValue && enabledValues.includes(lastFocusedValue) ? lastFocusedValue
+    : selected.find((item) => enabledValues.includes(item)) ?? enabledValues[0]
   const pendingActivation = React.useRef<string | undefined>(undefined)
   const [completedActivation, setCompletedActivation] = React.useState<{ value: string; sequence: number } | undefined>(undefined)
   const completeActivation = () => {
@@ -72,39 +144,23 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
     pendingActivation.current = undefined
     if (activated !== undefined) setCompletedActivation(previous => ({ value: activated, sequence: (previous?.sequence ?? 0) + 1 }))
   }
-  const owner = React.useRef<HTMLDivElement>(null)
-  React.useImperativeHandle(ref, () => owner.current!, [])
-  const direction = useInheritedDirection(owner, dir)
-  const count = React.Children.toArray(children).filter(React.isValidElement).length
-  const common = {
-    ref: owner,
-    dir: direction,
-    "data-slot": "segmented-button",
-    "data-fit-content": itemsFitContent ? "" : undefined,
-    role: "listbox",
-    "aria-multiselectable": selectionMode === "multiple",
-    "aria-orientation": "horizontal" as const,
-    loop: false,
-    className: cn("fiori-segmented-button", className),
-    style: { "--fiori-x-segmented-btn-items-count": count, ...style } as React.CSSProperties,
-    children,
-    ...props,
-  }
-
-  const [inner, setInner] = React.useState<string | string[]>(defaultValue ?? (selectionMode === "multiple" ? [] : ""))
-  const current = value ?? inner
-  const selected = Array.isArray(current) ? current : current ? [current] : []
   const set = (v: string | string[]) => {
     if (value === undefined) setInner(v)
     ;(onValueChange as ((v: string | string[]) => void) | undefined)?.(v)
     completeActivation()
   }
+
+  const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const announcementTimers = React.useRef(new Set<ReturnType<typeof setTimeout>>())
+  React.useEffect(() => () => { announcementTimers.current.forEach(clearTimeout) }, [])
+  const [portalTarget, setPortalTarget] = React.useState<HTMLElement | null>(null)
+  React.useEffect(() => setPortalTarget(owner.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? document.body), [])
   React.useLayoutEffect(() => {
     // SegmentedButton.js/_selectItem fires selection-change before inspecting
     // target.selected. Wait for the callback's controlled value to commit, so a
     // rejected/reverted selection and multiple deselection cannot be announced.
     if (completedActivation && selected.includes(completedActivation.value)) {
-      const text = resolvedTexts.selected
+      const text = t.selected
       setAnnouncement(previous => ({ text, sequence: previous.sequence + 1 }))
       // UI5 util/InvisibleMessage.js/announce clears matching text after 3000 ms,
       // including repeated identical messages; different newer text survives.
@@ -116,8 +172,10 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
     }
   }, [completedActivation])
 
+  const itemValues = visibleItems.map((item) => item.value)
+
   return (
-    <SegmentedButtonContext.Provider value={{ selected, activate: (value) => { pendingActivation.current = value } }}>
+    <SegmentedButtonContext.Provider value={{ selected, itemValues, register, tabStop, setTabStop: setLastFocusedValue, itemDescription: t.itemDescription, disabled: !!disabled, activate: (value: string) => { pendingActivation.current = value } }}>
       {selectionMode === "multiple" ? (
         <ToggleGroupPrimitive.Root type="multiple" value={selected} onValueChange={set} {...common} />
       ) : (
@@ -129,45 +187,93 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
           {...common}
         />
       )}
-      {/* SegmentedButton.js/_selectItem announces LIST_ITEM_SELECTED assertively
-          whenever the activated item is selected; deselection emits nothing.
-          InvisibleMessage.js/createAnnouncementSpans supplies role=alert. */}
-      <span data-slot="segmented-button-announcement" role="alert" aria-live="assertive" aria-atomic="true" className="sr-only"><span key={announcement.sequence}>{announcement.text}</span></span>
+      {/* SegmentedButton.js:_selectItem announces LIST_ITEM_SELECTED assertively only
+          when the activated item is selected. UI5's shared InvisibleMessage lives
+          outside the listbox, so this region must not become a listbox child. */}
+      {portalTarget && createPortal(<span data-slot="segmented-button-announcement" data-owner={props.id ?? props["aria-label"]} className="sr-only" role="alert" aria-live="assertive" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>, portalTarget)}
     </SegmentedButtonContext.Provider>
   )
 }
 
-const SegmentedButtonContext = React.createContext<{ selected: string[]; activate: (value: string) => void }>({ selected: [], activate: () => {} })
+const SegmentedButtonContext = React.createContext({ selected: [] as string[], itemValues: [] as string[], register: (_id: string, _value: string, _node: HTMLElement | null, _disabled: boolean) => {}, tabStop: undefined as string | undefined, setTabStop: (_value: string) => {}, itemDescription: defaultTexts.itemDescription, disabled: false, activate: (_value: string) => {} })
 
 type SegmentedButtonItemProps = React.ComponentProps<typeof ToggleGroupPrimitive.Item> & {
   /** Leading icon (an <Icon />). With no text children the item becomes icon-only; give it an aria-label. */
   icon?: React.ReactNode
+  /** aria-label/aria-labelledby name the option host, including an asChild host.
+   * aria-description/aria-describedby describe that host; UI5's selection hint is appended. */
+  texts?: Partial<Pick<SegmentedButtonTexts, "itemDescription">>
   selectionHint?: string
 }
 
-function SegmentedButtonItem({ className, icon, children, value, selectionHint, "aria-description": description, ...props }: SegmentedButtonItemProps) {
-  const { t, hasProvider } = useFioriLocale()
-  // UI5 SegmentedButtonItem.js/ariaDescriptionText appends the selection shortcut hint.
-  const hint = selectionHint ?? (hasProvider ? t("SEGMENTEDBUTTON_ARIA_DESCRIBEDBY", "Press SPACE or ENTER to select an item") : undefined)
+function SegmentedButtonItem({ className, icon, children, value, asChild, texts, selectionHint, disabled, id, ref, "aria-description": description, "aria-describedby": descriptionRef, ...props }: SegmentedButtonItemProps) {
   const context = React.useContext(SegmentedButtonContext)
   const selected = context.selected.includes(value)
+  const generatedId = React.useId()
+  const itemId = id ?? generatedId
+  const hintId = `${itemId}-hint`
+  const effectiveDisabled = disabled || context.disabled
+  const register = context.register
+  const hostRef = React.useCallback((node: HTMLButtonElement | null) => {
+    register(generatedId, value, node, !!effectiveDisabled)
+    const cleanup = typeof ref === "function" ? ref(node) : undefined
+    if (ref && typeof ref !== "function") ref.current = node
+    return () => {
+      register(generatedId, value, null, !!effectiveDisabled)
+      if (typeof cleanup === "function") cleanup()
+      else if (typeof ref === "function") ref(null)
+      else if (ref) ref.current = null
+    }
+  }, [register, generatedId, value, effectiveDisabled, ref])
+  const hint = selectionHint ?? texts?.itemDescription ?? context.itemDescription
+  const owned = {
+    "data-slot": "segmented-button-item", "data-value": value,
+    id: itemId, role: "option", "aria-selected": selected, "aria-checked": undefined, "aria-pressed": undefined,
+    tabIndex: !effectiveDisabled && context.tabStop === value ? 0 : -1,
+    "aria-posinset": context.itemValues.includes(value) ? context.itemValues.indexOf(value) + 1 : undefined,
+    "aria-setsize": context.itemValues.includes(value) ? context.itemValues.length : undefined,
+    "aria-disabled": !!effectiveDisabled, "aria-description": [description, hint].filter(Boolean).join(" "),
+    "aria-describedby": descriptionRef ? `${descriptionRef} ${hintId}` : undefined,
+  }
+  const handleFocus: React.FocusEventHandler<HTMLButtonElement> = (event) => {
+    context.setTabStop(value)
+    props.onFocus?.(event)
+  }
+  // Slot merges the child's props last. Rebuild the asChild host with owned
+  // semantics and tabindex, preserving consumer focus callbacks exactly once.
+  const custom = asChild ? React.Children.only(children) : undefined
+  let customHost: React.ReactNode
+  if (React.isValidElement<Record<string, unknown>>(custom)) {
+    const childProps = { ...custom.props }
+    for (const key of ["tabIndex", "role", "aria-selected", "aria-checked", "aria-pressed", "aria-posinset", "aria-setsize", "aria-disabled", "aria-description", "aria-describedby", "id"]) delete childProps[key]
+    customHost = React.createElement(custom.type, { ...childProps, ...owned, disabled: effectiveDisabled,
+      onFocus: (event: React.FocusEvent<HTMLButtonElement>) => { handleFocus(event); (custom.props.onFocus as React.FocusEventHandler<HTMLButtonElement> | undefined)?.(event) },
+    }, custom.props.children as React.ReactNode, descriptionRef && <span hidden id={hintId}>{hint}</span>)
+  }
   const iconOnly = !!icon && (children == null || children === "")
   return (
     <ToggleGroupPrimitive.Item
+      {...props}
+      {...owned}
+      ref={hostRef}
+      asChild={asChild}
+      disabled={effectiveDisabled}
       data-slot="segmented-button-item"
-      aria-description={[description, hint].filter(Boolean).join(" ") || undefined}
+      data-value={value}
       data-icon-only={iconOnly ? "" : undefined}
-      // ui5 semantics are listbox/option, not Radix's radio / pressed-button ones.
-      role="option"
-      aria-selected={selected}
-      aria-checked={undefined}
-      aria-pressed={undefined}
+      // SegmentedButtonItemTemplate.js owns option role, position, disabled,
+      // selected and ariaDescriptionText regardless of custom content.
       value={value}
       className={cn("fiori-segmented-button__item", className)}
-      {...props}
+      onFocus={asChild ? undefined : handleFocus}
       onClick={(event) => {
         props.onClick?.(event)
-        if (!event.defaultPrevented && !props.disabled) context.activate(value)
+        if (!event.defaultPrevented && !effectiveDisabled) {
+          // SegmentedButton.js:_selectItem restores ItemNavigation's current
+          // item even when reactivating the already selected item.
+          context.setTabStop(value)
+          context.activate(value)
+        }
       }}
       onKeyDown={(e) => {
         props.onKeyDown?.(e)
@@ -178,17 +284,21 @@ function SegmentedButtonItem({ className, icon, children, value, selectionHint, 
         const rtl = getComputedStyle(e.currentTarget).direction === "rtl"
         const steps: Record<string, number> = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1, ArrowDown: 1, ArrowUp: -1 }
         if (!(e.key in steps) && e.key !== "Home" && e.key !== "End") return
+        // ItemNavigation.js:_canNavigate requires its current item to be the
+        // actual active element. A hidden-item focus attempt changes tabindex
+        // but cannot move DOM focus; activation above restores navigation.
+        if (context.tabStop !== value) return
         e.preventDefault()
         const root = e.currentTarget.closest('[data-slot="segmented-button"]')
-        const items = [...(root?.querySelectorAll<HTMLButtonElement>('[data-slot="segmented-button-item"]') ?? [])].filter((i) => !i.disabled)
+        const items = [...(root?.querySelectorAll<HTMLButtonElement>('[data-slot="segmented-button-item"]') ?? [])].filter((i) => !i.disabled && i.getAttribute("aria-disabled") !== "true")
         const i = items.indexOf(e.currentTarget)
         const target =
           e.key === "Home" ? items[0] : e.key === "End" ? items[items.length - 1] : items[Math.min(Math.max(i + steps[e.key], 0), items.length - 1)]
+        if (target) context.setTabStop(target.getAttribute("data-value") ?? value)
         target?.focus()
       }}
     >
-      {icon}
-      {!iconOnly && <span className="fiori-segmented-button__text">{children}</span>}
+      {asChild ? customHost : <>{icon}{!iconOnly && <span className="fiori-segmented-button__text">{children}</span>}{descriptionRef && <span hidden id={hintId}>{hint}</span>}</>}
     </ToggleGroupPrimitive.Item>
   )
 }

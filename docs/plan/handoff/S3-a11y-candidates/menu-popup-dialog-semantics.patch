@@ -1,0 +1,27 @@
+--- a/registry/ui/menu.tsx
++++ b/registry/ui/menu.tsx
+@@ -266,11 +266,13 @@
+ type MenuContentProps = React.ComponentProps<typeof MenuPrimitive.Content> & {
+   /** Render in place instead of in a portal on document.body. */ portal?: boolean
+   /** Don't move focus into the menu on open. UI5 normally focuses the first item for mouse too. */ preventInitialFocus?: boolean
++  /** Name of the desktop popup wrapper (UI5 MENU_POPOVER_ACCESSIBLE_NAME). */
++  popupLabel?: string
+   /** Phone MenuTemplate title and footer action. */
+   headerText?: string
+   cancelLabel?: string
+ }
+-function MenuContent({ className, side = "bottom", align = "start", sideOffset = 0, collisionPadding = 10, portal = true, preventInitialFocus = false, headerText = "", cancelLabel = "Cancel", ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: MenuContentProps) {
++function MenuContent({ className, side = "bottom", align = "start", sideOffset = 0, collisionPadding = 10, portal = true, preventInitialFocus = false, headerText = "", cancelLabel = "Cancel", popupLabel = "Select an option from the menu", ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: MenuContentProps) {
+   const root = React.useContext(MenuContext)
+   const { surface, setRef, hover } = useSurface(false, () => root?.setOpen(false))
+   surface.escape = onEscapeKeyDown
+@@ -291,5 +293,8 @@
+     onOpenAutoFocus={(event) => event.preventDefault()} onCloseAutoFocus={(event) => { event.preventDefault(); root.trigger.current?.focus() }}>
+     {content}
+   </ResponsivePopoverContent>
+-  return portal ? <MenuPrimitive.Portal>{content}</MenuPrimitive.Portal> : content
++  // UI5 MenuTemplate.js uses ResponsivePopover; PopupTemplate.js gives its
++  // outer surface role=dialog and Menu.accessibleNameText supplies this name.
++  const desktop = <div role="dialog" aria-label={popupLabel}>{content}</div>
++  return portal ? <MenuPrimitive.Portal>{desktop}</MenuPrimitive.Portal> : desktop
+ }

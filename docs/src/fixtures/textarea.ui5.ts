@@ -4,8 +4,9 @@ import { defineUi5, FIELD_WIDTH, h } from "../fixture-types"
 import { ui5State } from "./ui5-helpers"
 import set from "./textarea"
 
-export default defineUi5(set, ({ value, placeholder, valueState, disabled, readOnly, rows, growing, growingMaxRows, maxLength, counter }) => {
+export default defineUi5(set, ({ value, placeholder, valueState, disabled, readOnly, rows, growing, growingMaxRows, maxLength, counter, applicationSurface }) => {
   const el = h("ui5-textarea", {
+    "accessible-name": "Description",
     placeholder,
     "value-state": ui5State(valueState),
     disabled,
@@ -18,5 +19,8 @@ export default defineUi5(set, ({ value, placeholder, valueState, disabled, readO
   })
   ;(el as any).value = value ?? ""
   el.style.width = FIELD_WIDTH
+  if (applicationSurface) {
+    const surface = document.createElement("div"); surface.style.backgroundColor = "var(--sapBackgroundColor)"; surface.append(el); return surface
+  }
   return el
 })

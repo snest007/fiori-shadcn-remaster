@@ -43,7 +43,7 @@ export const YearPicker: Story = { args: { initialPicker: "year" } }
 export const YearRangePicker: Story = { args: { initialPicker: "yearrange" } }
 export const DisabledDates: Story = { args: { isDateDisabled: (date) => date.getDay() === 0 || date.getDay() === 6 } }
 export const Localized: Story = { args: { locale: "en-GB" } }
-export const CustomTexts: Story = { args: { labels: { nextMonth: "Next delivery month", previousMonth: "Previous delivery month", monthButton: (month) => `Delivery month ${month}`, yearRangeButton: (from, to) => `Delivery years from ${from} to ${to}` } } }
+export const CustomTexts: Story = { args: { texts: { selected: "Delivery date selected", previousButtonShortcut: "PageUp", nextButtonShortcut: "PageDown" }, labels: { nextMonth: "Next delivery month", previousMonth: "Previous delivery month", monthButton: (month) => `Delivery month ${month}`, yearRangeButton: (from, to) => `Delivery years from ${from} to ${to}` } } }
 export const RTL: Story = { globals: { dir: "rtl" } }
 
 export const German: Story = { globals: { locale: "de" } }

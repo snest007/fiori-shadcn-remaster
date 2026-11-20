@@ -70,6 +70,9 @@ type DynamicPageContextValue = {
 }
 const DynamicPageContext = React.createContext<DynamicPageContextValue | null>(null)
 
+/**
+ * @accessibility accessibilityAttributes names and sets roles on root, header, content and footer; use named regions when embedding in an existing main. The title is a button with aria-expanded and a toggle description while a header exists. Enter/Space, expand and pin controls update header state and preserve focus.
+ */
 type DynamicPageProps = Omit<React.ComponentProps<"div">, "title"> & {
   /** A <DynamicPageTitle>. */
   title?: React.ReactNode

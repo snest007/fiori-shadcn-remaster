@@ -18,6 +18,9 @@ import { Popover, PopoverContent, PopoverTrigger, type PopoverContentProps } fro
 // Home/End jump to the first/last; Enter or Space activates a link.
 type BreadcrumbsSeparator = "slash" | "double-slash" | "back-slash" | "double-back-slash" | "greater-than" | "double-greater-than"
 
+/**
+ * @accessibility The nav receives native aria-label. Links retain aria-current and positionText. One Tab stop enters the trail; Arrow keys, Home and End move, Enter or Space activates, F4 or Alt+Arrow opens overflowing locations and Escape returns focus.
+ */
 type BreadcrumbsProps = Omit<React.ComponentProps<"nav">, "children"> & {
   design?: "standard" | "no-current-page"
   separators?: BreadcrumbsSeparator

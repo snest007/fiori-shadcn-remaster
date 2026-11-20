@@ -49,7 +49,7 @@
 .fiori-field:not([data-readonly]):not([data-value-state]):focus-within:not([data-open]):hover {
   box-shadow: none;
 }
-.fiori-field:focus-within:not([data-open])::after {
+.fiori-field:focus-within:not([data-open]):not(:where([data-slot="input"][data-pointer-focus]))::after {
   content: "";
   position: absolute;
   z-index: 2;

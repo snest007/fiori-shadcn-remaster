@@ -45,7 +45,7 @@ test("variant-management: modified title, selected-view announcement and list se
   await expect(title(page)).toContainText("*")
   await expect(trigger(page)).toHaveAccessibleName("Modified view Sales Orders.")
   const dialog = await openList(page)
-  const list = dialog.getByRole("listbox", { name: "List of assigned Views" })
+  const list = dialog.getByRole("listbox", { name: "List of Assigned Views" })
   await expect(list.getByRole("option", { selected: true })).toHaveText("Sales Orders")
   await list.getByRole("option", { name: "Operations", exact: true }).click()
   await expect(dialog).toHaveCount(0)
@@ -561,4 +561,29 @@ test("variant-management: RTL Manage keyboard resize keeps OpenUI5's physical ar
   await expect.poll(async () => (await dialog.boundingBox())!.width).toBeCloseTo(before.width, 1)
   await handle.press("ArrowRight")
   await expect.poll(async () => (await dialog.boundingBox())!.x).toBeCloseTo(before.x + 16, 1)
+})
+
+
+test("variant-management: assigned-view options preserve OpenUI5 names, positions and controlled selection", async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    await page.goto("/index.html?fixtures-sapui5&only=variant-management-list-search")
+    await reference.goto(`http://localhost:${Number(process.env.SAPUI5_PORT ?? 4174)}/index.html?only=variant-management-list-search`)
+    const names = ["Standard", ...Array.from({ length: 10 }, (_, index) => `View ${String(index + 1).padStart(2, "0")}`)]
+    for (const current of [page, reference]) {
+      await current.waitForSelector("html[data-ready=true]")
+      const list = current.locator('[data-fixture="variant-management-list-search"] [role="listbox"]')
+      await expect(list).toHaveAccessibleName("List of Assigned Views")
+      await test.info().attach(`vm-options-${current === page ? "react" : "native"}-dom`, { body: JSON.stringify(await current.evaluate(() => ({ url: location.href, cell: document.querySelector('[data-fixture="variant-management-list-search"]')?.outerHTML, lists: [...document.querySelectorAll('[role="listbox"]')].map(el => ({ html: el.outerHTML, fixture: el.closest('[data-fixture]')?.getAttribute('data-fixture') })) }))), contentType: "application/json" })
+      await expect(list.getByRole("option")).toHaveCount(names.length)
+      for (const [index, name] of names.entries()) {
+        const option = list.getByRole("option", { name, exact: true })
+        await expect(option).toHaveAttribute("aria-posinset", String(index + 1))
+        await expect(option).toHaveAttribute("aria-setsize", String(names.length))
+        await expect(option).toHaveAttribute("aria-selected", String(index === 0))
+      }
+      await list.getByRole("option", { name: "Standard", exact: true }).focus()
+      await expect(list.getByRole("option", { name: "Standard", exact: true })).toBeFocused()
+    }
+  } finally { await reference.close() }
 })

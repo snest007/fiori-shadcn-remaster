@@ -15,7 +15,7 @@ import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTi
 import { Icon } from "@/components/ui/icon"
 import { IllustratedMessage } from "@/components/ui/illustrated-message"
 import { Input, InputIcon } from "@/components/ui/input"
-import { List, ListItemCustom } from "@/components/ui/list"
+import { List, useListItemBehaviour } from "@/components/ui/list"
 import { Popover, PopoverContent, PopoverFooter, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Table, TableCell, TableHeaderCell, TableHeaderRow, TableRow } from "@/components/ui/table"
@@ -23,6 +23,18 @@ import { Title, type TitleLevel } from "@/components/ui/title"
 import { Toolbar } from "@/components/ui/toolbar"
 
 type VariantContexts = { role?: string[]; [context: string]: unknown }
+function VariantListOption({ item, index, count }: { item: { key: string; title: string }; index: number; count: number }) {
+  const { core, selected, active, handlers } = useListItemBehaviour({ value: item.key, type: "active" })
+  // OpenUI5 VariantManagement.js:_createVariantList uses SelectList, whose
+  // SelectListRenderer.renderItem/writeItemAccessibilityState name the option
+  // from its title and own selection/positions, without WC CustomAnnouncement.
+  return <li data-slot="list-item" data-li-row="" data-nav-key={item.key}
+    data-selected={selected ? "" : undefined} data-active={active ? "" : undefined}
+    role="option" aria-selected={selected} aria-posinset={index + 1} aria-setsize={count}
+    tabIndex={core.currentKey === item.key ? 0 : -1} className="fiori-li fiori-vm-list-item" {...handlers}>
+    <div className="fiori-li__content">{item.title}</div>
+  </li>
+}
 type VariantItem = {
   key: string
   title: string
@@ -79,7 +91,8 @@ const variantManagementTexts = {
   VISIBILITY_NON_RESTRICTED: "All Users", VISIBILITY_RESTRICTED: "Restricted",
   VISIBILITY_ICON_TT: "To change visibility, press space.", SELECTROLES_DIALOG: "Select Roles",
   CREATETILE: "Create Tile", NO_DEFAULT_ON_RESTRICTED_VIEWS: "The visibility of this view is based on a role. You can't select it as the default view.",
-  VIEW_LIST: "List of assigned Views", SEARCH: "Search", SEARCH_RESET: "Reset", SELECTED: "Selected", NOT_SELECTED: "Not Selected",
+  // OpenUI5 sap/m/messagebundle_en.properties: VARIANT_MANAGEMENT_VIEW_LIST.
+  VIEW_LIST: "List of Assigned Views", SEARCH: "Search", SEARCH_RESET: "Reset", SELECTED: "Selected", NOT_SELECTED: "Not Selected",
   DRAG_RESIZE_LABEL: "Drag and resize dialog", DRAG_RESIZE_DESCRIPTION: "Use Arrow keys to move, Shift+Arrow keys to resize",
   RESIZE_LABEL: "Resize popover", RESIZE_DESCRIPTION: "Use Shift+Arrow keys to resize",
   RESIZE_TOOLTIP: "Drag handle to resize (Shift+Arrow)", HANDLE_ROLE: "Handle",
@@ -88,6 +101,9 @@ type TextKey = keyof typeof variantManagementTexts
 type VariantManagementTexts = Partial<Record<TextKey | `VARIANT_MANAGEMENT_${TextKey}`, string>>
 type VariantRole = { key: string; title: string }
 type Surface = "list" | "save" | "manage"
+/**
+ * @accessibility The selected view title and texts.SEL_VARIANT name the trigger; texts names Save, Manage, validation and role dialogs. The component owns list/grid selection and dialog focus. Keyboard shortcuts follow OpenUI5 VariantManagement, with Ctrl/Cmd+S and Ctrl/Cmd+Enter for saving; dialogs return focus to the opener.
+ */
 type VariantManagementProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
   items: VariantItem[]
   selectedKey?: string
@@ -505,10 +521,10 @@ function VariantManagement({
         {inErrorState ? <div className="fiori-vm-error"><Icon icon={messageError} /><Title size="H2">{t("ERROR_TEXT1")}</Title><p>{t("ERROR_TEXT2")}</p></div> : <>
           {favorites.length > 9 && searchField()}
           <div className="fiori-vm-list-body">
-            {listItems.length ? <List accessibleRole="listbox" selectionMode="single" separators="none" value={[selectedKey]}
+            {listItems.length ? <List accessibleRole="listbox" selectionMode="none" separators="none" value={[selectedKey]}
               aria-label={t("VIEW_LIST")} data-vm-list={id} className="fiori-vm-view-list" selectedText={t("SELECTED")} notSelectedText={t("NOT_SELECTED")}
               onItemClick={(key) => { setSurface(undefined); onSelect?.({ key }) }}>
-              {listItems.map((item) => <ListItemCustom key={item.key} value={item.key} className="fiori-vm-list-item">{item.title}</ListItemCustom>)}
+              {listItems.map((item, index) => <VariantListOption key={item.key} item={item} index={index} count={listItems.length} />)}
             </List> : empty(!!query)}
           </div>
           {showFooter && <PopoverFooter className="fiori-vm-footer">

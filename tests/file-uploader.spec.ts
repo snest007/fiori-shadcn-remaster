@@ -60,3 +60,27 @@ test("file-uploader: dropping files selects them", async ({ page }) => {
   await page.locator("#file-uploader-demo").dispatchEvent("drop", { dataTransfer: dt })
   await expect(page.locator("#file-uploader-demo-files")).toHaveText("dropped.png")
 })
+
+
+for (const theme of ["sap_horizon", "sap_horizon_hcb"]) test(`FileUploader ${theme} paints only keyboard focus`, async ({ page }) => {
+  await page.goto(`/index.html?fixtures&only=file-uploader&theme=${theme}`)
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="file-uploader"]')
+  const target = cell.locator('input[type="file"]')
+  const owner = cell.locator('[data-slot="file-uploader"]')
+  const painted = () => owner.evaluate((node) => !["none", "normal"].includes(getComputedStyle(node, "::after").content))
+  const chooser = page.waitForEvent("filechooser")
+  await page.evaluate(() => 0)
+  await owner.click()
+  await chooser
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "file-uploader-e4-before"; before.textContent = "Before uploader"
+    node.before(before); before.focus()
+  })
+  await expect(page.locator("#file-uploader-e4-before")).toBeFocused()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})

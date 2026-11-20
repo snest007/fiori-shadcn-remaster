@@ -44,6 +44,7 @@ function ResponsivePopoverAnchor({ children, asChild, ref, ...props }: React.Com
   const Host = asChild ? Slot.Root : "div"
   return <Host {...props} ref={ownerRef} style={asChild ? props.style : { ...props.style, display: "contents" }}>{children}</Host>
 }
+/** @accessibility The desktop popover and phone dialog require headerText or aria-label on the surface. The phone close button uses closeLabel. Tab stays in the phone dialog, Escape closes it, and focus returns to the opener unless preventFocusRestore is set. */
 type ResponsivePopoverContentProps = PopoverContentProps & {
   /** Phone title; callers with a custom header still get an accessible dialog title. */
   headerText?: string
@@ -60,14 +61,28 @@ type ResponsivePopoverContentProps = PopoverContentProps & {
   phoneOwnerRef?: React.RefObject<HTMLElement | null>
 }
 function ResponsivePopoverContent({ headerText = "", closeLabel: closeLabelProp, phoneHeader, phoneFooter,
-  phoneField, phoneClassName, preventFocusRestore, phoneOwnerRef, children, className, portal = true,
+  phoneField, phoneClassName, preventFocusRestore, phoneOwnerRef, children, asChild, className, portal = true,
   onCloseAutoFocus, onOpenAutoFocus, onEscapeKeyDown, onInteractOutside, onPointerDownOutside,
   onFocusOutside, ref, style, ...props }: ResponsivePopoverContentProps) {
   const { t } = useFioriLocale()
   const closeLabel = closeLabelProp ?? t("RESPONSIVE_POPOVER_CLOSE_DIALOG_BUTTON", "Decline") // UI5 RESPONSIVE_POPOVER_CLOSE_DIALOG_BUTTON
 
   const { phone, close, dir, owner } = React.useContext(ResponsiveContext)
+  const titleId = React.useId()
   const [ownerDirection, setOwnerDirection] = React.useState<"ltr" | "rtl">("ltr")
+  const [hasExplicitName, setHasExplicitName] = React.useState(false)
+  React.useLayoutEffect(() => {
+    if (!phone) return
+    const update = () => {
+      const referenced = props["aria-labelledby"]?.split(/\s+/).some((id) => document.getElementById(id)?.textContent?.trim())
+      setHasExplicitName(!!(referenced || props["aria-label"]?.trim()))
+    }
+    update()
+    if (!props["aria-labelledby"]) return
+    const observer = new MutationObserver(update)
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["id"] })
+    return () => observer.disconnect()
+  }, [phone, props["aria-label"], props["aria-labelledby"]])
   React.useLayoutEffect(() => {
     if (!phone) return
     const node = phoneOwnerRef?.current ?? owner.current
@@ -77,7 +92,7 @@ function ResponsivePopoverContent({ headerText = "", closeLabel: closeLabelProp,
     for (let parent = node; parent; parent = parent.parentElement) observer.observe(parent, { attributes: true, attributeFilter: ["dir", "style", "class"] })
     return () => observer.disconnect()
   }, [phone, phoneOwnerRef, owner])
-  if (!phone) return <PopoverContent {...props} dir={props.dir ?? dir} ref={ref} style={style} className={className} portal={portal}
+  if (!phone) return <PopoverContent {...props} asChild={asChild} dir={props.dir ?? dir} ref={ref} style={style} className={className} portal={portal}
     onOpenAutoFocus={onOpenAutoFocus} onCloseAutoFocus={onCloseAutoFocus} onEscapeKeyDown={onEscapeKeyDown}
     onInteractOutside={onInteractOutside} onPointerDownOutside={onPointerDownOutside} onFocusOutside={onFocusOutside}>{children}</PopoverContent>
   // ResponsivePopoverTemplate.js: a stretch Dialog; custom header replaces the
@@ -85,8 +100,24 @@ function ResponsivePopoverContent({ headerText = "", closeLabel: closeLabelProp,
   const { side: _side, align: _align, sideOffset: _offset, alignOffset: _alignOffset,
     avoidCollisions: _avoid, collisionPadding: _padding, collisionBoundary: _boundary,
     sticky: _sticky, hideWhenDetached: _hide, hideArrow: _arrow, draggable: _draggable, ...dialogProps } = props
-  return <DialogContent {...dialogProps} dir={props.dir ?? dir ?? ownerDirection} ref={ref} portal={portal} aria-describedby={props["aria-describedby"]}
-    {...(props["aria-label"] && props["aria-labelledby"] === undefined ? { "aria-labelledby": undefined } : {})}
+  const custom = asChild ? React.Children.only(children) as React.ReactElement<{ children?: React.ReactNode }> : undefined
+  // ResponsivePopoverTemplate.js places header/content/footer inside its owning
+  // phone Dialog. Keep the consumer host around that body before forwarding Slot.
+  const body = <>
+    {/* ResponsivePopoverTemplate.js replaces its fallback Title with a custom
+        header slot. DatePickerPopoverTemplate.js:defaultHeader supplies a span;
+        SelectPopoverTemplate.js supplies one Title. An explicitly named dialog
+        must not expose an additional internal heading. Keep the title when it
+        is still the only fallback naming channel. */}
+    {phoneHeader !== undefined ? <><DialogTitle id={titleId} className="sr-only" aria-hidden={hasExplicitName || undefined}>{headerText}</DialogTitle><DialogHeader className="fiori-responsive-popover__field-header">{phoneHeader}</DialogHeader></> :
+      <DialogHeader className="fiori-responsive-popover__default-header"><DialogTitle id={titleId}>{headerText}</DialogTitle><Button variant="transparent" aria-label={closeLabel} onClick={close}><Icon icon={decline} /></Button></DialogHeader>}
+    <div data-slot="responsive-popover-body" className="fiori-popup__content">{custom ? custom.props.children : children}</div>
+    {phoneFooter != null && <div data-slot="responsive-popover-footer" className="fiori-popup__footer fiori-responsive-popover__footer">{phoneFooter}</div>}
+  </>
+  return <DialogContent {...dialogProps} asChild={asChild} dir={props.dir ?? dir ?? ownerDirection} ref={ref} portal={portal} aria-describedby={props["aria-describedby"]}
+    // Dialog.js:_ariaLabelledBy binds the header title when no explicit name
+    // is supplied. Own the binding even across the responsive Root switch.
+    aria-labelledby={props["aria-labelledby"] ?? (props["aria-label"]?.trim() ? undefined : titleId)}
     style={style} className={cn("fiori-responsive-popover h-full w-full max-h-full max-w-full min-h-0 min-w-0 rounded-none", phoneField && "fiori-responsive-popover--field", className, phoneClassName)}
     onOpenAutoFocus={onOpenAutoFocus} onCloseAutoFocus={(event) => {
       onCloseAutoFocus?.(event)
@@ -94,10 +125,7 @@ function ResponsivePopoverContent({ headerText = "", closeLabel: closeLabelProp,
       else if (!event.defaultPrevented && owner.current) { event.preventDefault(); owner.current.focus() }
     }} onEscapeKeyDown={onEscapeKeyDown} onInteractOutside={(event) => { event.preventDefault(); onInteractOutside?.(event) }}
     onPointerDownOutside={(event) => { event.preventDefault(); onPointerDownOutside?.(event) }} onFocusOutside={onFocusOutside}>
-    {phoneHeader !== undefined ? <><DialogTitle className="sr-only">{headerText}</DialogTitle><DialogHeader className="fiori-responsive-popover__field-header">{phoneHeader}</DialogHeader></> :
-      <DialogHeader className="fiori-responsive-popover__default-header"><DialogTitle>{headerText}</DialogTitle><Button variant="transparent" aria-label={closeLabel} onClick={close}><Icon icon={decline} /></Button></DialogHeader>}
-    <div data-slot="responsive-popover-body" className="fiori-popup__content">{children}</div>
-    {phoneFooter != null && <div data-slot="responsive-popover-footer" className="fiori-popup__footer fiori-responsive-popover__footer">{phoneFooter}</div>}
+    {custom ? React.cloneElement(custom, {}, body) : body}
   </DialogContent>
 }
 export { ResponsivePopover, ResponsivePopoverTrigger, ResponsivePopoverAnchor, ResponsivePopoverContent, type ResponsivePopoverContentProps, type ResponsivePopoverProps }

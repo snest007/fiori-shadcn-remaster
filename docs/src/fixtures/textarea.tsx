@@ -14,6 +14,7 @@ type Props = {
   growingMaxRows?: number
   maxLength?: number
   counter?: boolean
+  applicationSurface?: boolean
 }
 const states = ["negative", "critical", "positive", "information"] as const
 const lines = (n: number) => Array.from({ length: n }, (_, i) => `Line ${i + 1}`).join("\n")
@@ -34,8 +35,12 @@ export default defineFixtures<Props>({
     { id: "textarea-counter", props: { value: "SAP SE", maxLength: 20, counter: true } },
     { id: "textarea-counter-over", props: { value: "SAP SE Walldorf Germany", maxLength: 20, counter: true } },
     { id: "textarea-counter-negative", props: { value: "SAP SE", maxLength: 20, counter: true, valueState: "negative" } },
+    { id: "textarea-counter-critical", props: { value: "SAP SE", maxLength: 20, counter: true, valueState: "critical" } },
+    { id: "textarea-counter-negative-application", props: { value: "SAP SE", maxLength: 20, counter: true, valueState: "negative", applicationSurface: true } },
+    { id: "textarea-counter-critical-application", props: { value: "SAP SE", maxLength: 20, counter: true, valueState: "critical", applicationSurface: true } },
   ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "textarea-rtl" }] : [fixture]),
-  react: ({ value, counter, ...p }) => (
+  react: ({ value, counter, applicationSurface, ...p }) => (
+    <div style={applicationSurface ? { backgroundColor: "var(--sapBackgroundColor)" } : undefined}>
     <TextArea
       wrapperClassName="w-(--w)"
       defaultValue={value}
@@ -44,5 +49,6 @@ export default defineFixtures<Props>({
       aria-label="Description"
       {...p}
     />
+    </div>
   ),
 })

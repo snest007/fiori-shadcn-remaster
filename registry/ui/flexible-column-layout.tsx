@@ -142,6 +142,9 @@ type FCLLayoutChangeDetail = {
 
 type FCLLayoutConfigurationChangeDetail = { layout: FCLLayout; media: FCLMedia; columnLayout: FCLColumnLayout }
 
+/**
+ * @accessibility accessibilityAttributes names columns, separators and the start arrow. Separators retain orientation, current value and keyboard resizing, mirrored in RTL. Column actions must remain named and preserve list/detail selection as layouts change.
+ */
 type FlexibleColumnLayoutProps = Omit<React.ComponentProps<"div">, "children"> & {
   layout?: FCLLayout
   defaultLayout?: FCLLayout

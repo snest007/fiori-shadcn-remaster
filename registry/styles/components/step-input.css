@@ -137,7 +137,7 @@
 }
 
 /* Focus ring, drawn over the whole inner field */
-.fiori-step-input__field:focus-within::after {
+.fiori-step-input__field:focus-within:not([data-pointer-focus])::after {
   content: "";
   position: absolute;
   z-index: 1;
@@ -146,23 +146,23 @@
   border-radius: var(--fiori-numeric-input-input-border-radius-focused-after);
   pointer-events: none;
 }
-.fiori-step-input[data-readonly] .fiori-step-input__field:focus-within::after {
+.fiori-step-input[data-readonly] .fiori-step-input__field:focus-within:not([data-pointer-focus])::after {
   inset: var(--fiori-input-readonly-focus-offset);
   border-radius: var(--fiori-input-readonly-focus-border-radius);
   border-color: var(--sapContent_FocusColor);
 }
-.fiori-step-input[data-value-state="information"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within::after {
+.fiori-step-input[data-value-state="information"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within:not([data-pointer-focus])::after {
   border-color: var(--fiori-numeric-input-input-information-border-color-focused-after);
   top: var(--fiori-numeric-input-input-border-top-information-focused-after);
   bottom: var(--fiori-numeric-input-input-border-bottom-information-focused-after);
 }
-.fiori-step-input[data-value-state="critical"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within::after {
+.fiori-step-input[data-value-state="critical"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within:not([data-pointer-focus])::after {
   border-color: var(--fiori-numeric-input-input-warning-border-color-focused-after);
 }
-.fiori-step-input[data-value-state="positive"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within::after {
+.fiori-step-input[data-value-state="positive"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within:not([data-pointer-focus])::after {
   border-color: var(--fiori-numeric-input-input-success-border-color-focused-after);
 }
-.fiori-step-input[data-value-state="negative"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within::after {
+.fiori-step-input[data-value-state="negative"]:not([data-readonly]):not([data-disabled]) .fiori-step-input__field:focus-within:not([data-pointer-focus])::after {
   border-color: var(--fiori-numeric-input-input-error-border-color-focused-after);
 }
 

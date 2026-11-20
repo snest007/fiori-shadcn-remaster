@@ -90,6 +90,9 @@ const SearchItemContext = React.createContext<{
   focusItem: (text: string) => void
 } | null>(null)
 
+/**
+ * @accessibility accessibleName names the field and search landmark. texts names search, clear, scopes and suggestions. ArrowDown enters suggestions, ArrowUp from the first returns to the field, Enter searches and Escape closes while restoring typed text. inputProps forwards native input accessibility.
+ */
 type SearchProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onInput" | "onChange"> & {
   value?: string
   defaultValue?: string
@@ -398,8 +401,9 @@ function useSearchCore(props: SearchProps, collapsedApi?: { collapsed: boolean; 
           {!!scopes?.length && (
             <>
               {phone ? <Popover open={scopeOpen} onOpenChange={setScopeOpen}><PopoverAnchor asChild><Button variant="transparent" aria-label={scopeValue ? `${texts.scope}, ${scopes.find((scope) => scope.value === scopeValue)?.text ?? ""}` : texts.scope} title={scopeValue ? `${texts.scope}, ${scopes.find((scope) => scope.value === scopeValue)?.text ?? ""}` : texts.scope} aria-haspopup="dialog" aria-expanded={scopeOpen} className="fiori-search-phone__scope-button" onClick={() => setScopeOpen(true)}><Icon icon={slimArrowDown} /></Button></PopoverAnchor>
-                {/* SearchFieldScopePopoverTemplate.js uses an ordinary List with no separators. */}
-                <PopoverContent phoneField headerText="" closeLabel={texts.scopeClose} aria-label={texts.scope} phoneClassName="fiori-search-phone-scope"><List className="fiori-search-phone__scope-list" separators="none" value={scopeValue ? [scopeValue] : []} onItemClick={(value) => { if (scopeProp === undefined) setScopeState(value); onScopeChange?.(value); setScopeOpen(false) }}>{scopes.map((scope) => <ListItem key={scope.value} value={scope.value}>{scope.text}</ListItem>)}</List></PopoverContent>
+                {/* SearchFieldScopePopoverTemplate.js leaves List.selectionMode=None
+                    while each item's selected property tracks scopeValue. */}
+                <PopoverContent phoneField headerText="" closeLabel={texts.scopeClose} aria-label={texts.scope} phoneClassName="fiori-search-phone-scope"><List className="fiori-search-phone__scope-list" selectionMode="none" separators="none" value={scopeValue ? [scopeValue] : []} onItemClick={(value) => { if (scopeProp === undefined) setScopeState(value); onScopeChange?.(value); setScopeOpen(false) }}>{scopes.map((scope) => <ListItem key={scope.value} value={scope.value}>{scope.text}</ListItem>)}</List></PopoverContent>
               </Popover> : <Select
                 value={scopeValue}
                 onValueChange={(v) => {

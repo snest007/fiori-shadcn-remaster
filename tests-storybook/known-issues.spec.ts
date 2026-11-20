@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
-import { axeViolations } from "./accessibility"
-import { attachAudit, classifyViolations } from "./known-issues"
+import { axeViolations, expectNamedControls, waitForStoryFinished } from "./accessibility"
+import { attachAudit, classifyS3UnnamedModeControl, classifyViolations } from "./known-issues"
 
 test("Loading's E4 record does not hide a new invalid grid node or an unapproved story", async ({ page }, testInfo) => {
   await page.goto("/iframe.html?id=data-data-table--loading&viewMode=story")
@@ -38,4 +38,169 @@ test("Loading's E4 record does not hide a new invalid grid node or an unapproved
   await attachAudit(testInfo, "changed-owned-grid-guard", changed)
   expect(changed.known).toEqual([])
   expect(changed.unexpected.find((rule) => rule.id === "aria-required-children")?.nodes.map((node) => node.target)).toContainEqual([".fiori-table__grid"])
+})
+
+test("Listbox story selection marker rejects another control in the same option", async ({ page }, testInfo) => {
+  const context = { story: "data-list--listbox", theme: "sap_horizon" }
+  await page.goto(`/iframe.html?id=${context.story}&viewMode=story&globals=theme:${context.theme}`)
+  const option = page.locator('li[data-nav-key="apples"][role="option"]')
+  await expect(option.locator(':scope > [data-li-selection][role="checkbox"]')).toBeVisible()
+  await waitForStoryFinished(page)
+  await option.evaluate((row) => {
+    const other = document.createElement("button")
+    other.type = "button"
+    other.tabIndex = -1
+    other.textContent = "Edit delivery"
+    row.querySelector(".fiori-li__content")!.append(other)
+  })
+
+  const audit = await classifyViolations(page, await axeViolations(page, context.theme), context)
+  await attachAudit(testInfo, "listbox-foreign-button", audit)
+  expect(audit.known.find((rule) => rule.id === "nested-interactive")?.nodes).toHaveLength(2)
+  expect(audit.unexpected.find((rule) => rule.id === "nested-interactive")?.nodes.map((node) => node.target)).toEqual([
+    ['li[data-nav-key="apples"]'],
+  ])
+})
+
+// S3
+// component defect, fixed by E4 — see docs/plan/handoff/S3-a11y-candidates
+const s3ModeStories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]
+for (const variant of s3ModeStories) for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
+  test(`S3 ${variant} mode-name marker accepts only its linked component node (${theme})`, async ({ page }, testInfo) => {
+    const story = `overlays-view-settings-dialog--${variant}`
+    await page.goto(`/iframe.html?id=${story}&viewMode=story&globals=theme:${theme}`)
+    const mode = page.locator('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]')
+    await expect(mode).toBeVisible()
+    await waitForStoryFinished(page)
+    await expect(mode).toHaveAccessibleName("")
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(true)
+    await expectNamedControls(page, { story, theme }, testInfo)
+    expect(await classifyS3UnnamedModeControl(mode, { story: "overlays-view-settings-dialog--playground", theme })).toBe(false)
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme, primary: true })).toBe(false)
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme: "sap_horizon_dark" })).toBe(false)
+    // UI5 SegmentedButtonItemTemplate.js: the Tab stop is the selected option, never the listbox. The old shape
+    // (tabindex=0 on the listbox) and a Tab stop on an unselected option are both rejected.
+    const options = mode.locator('[role="option"]')
+    await mode.evaluate((node) => node.setAttribute("tabindex", "0"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(false)
+    await mode.evaluate((node) => node.removeAttribute("tabindex"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(true)
+    const unselected = options.and(page.locator('[aria-selected="false"]')).first()
+    await unselected.evaluate((node) => node.setAttribute("tabindex", "0"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(false)
+    await unselected.evaluate((node) => node.setAttribute("tabindex", "-1"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(true)
+    const opener = page.locator(`#storybook-root [data-fiori-story="${story}"] [data-slot="dialog-trigger"]`)
+    await opener.evaluate((node) => node.setAttribute("aria-controls", "foreign-dialog-id"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(false)
+  })
+}
+
+test("S3 name marker rejects a matching foreign dialog and foreign node", async ({ page }) => {
+  const context = { story: "overlays-view-settings-dialog--open", theme: "sap_horizon" }
+  await page.goto(`/iframe.html?id=${context.story}&viewMode=story`)
+  const mode = page.locator('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]')
+  await expect(mode).toBeVisible()
+  await waitForStoryFinished(page)
+  const ownedId = await page.locator('.fiori-vsd[role="dialog"]').getAttribute("id")
+  await mode.evaluate((node) => {
+    const foreign = node.cloneNode(true) as HTMLElement
+    foreign.id = "s3-foreign-mode"
+    node.closest('[role="dialog"]')!.append(foreign)
+  })
+  expect(await classifyS3UnnamedModeControl(page.locator("#s3-foreign-mode"), context)).toBe(false)
+  await page.locator("#s3-foreign-mode").evaluate((node) => node.remove())
+  await page.locator('.fiori-vsd[role="dialog"]').evaluate((node) => {
+    const foreign = node.cloneNode(true) as HTMLElement
+    foreign.id = "s3-foreign-dialog"
+    foreign.querySelector('[data-slot="dialog-title"]')!.id = "s3-foreign-title"
+    foreign.setAttribute("aria-labelledby", "s3-foreign-title")
+    node.parentElement!.append(foreign)
+  })
+  const foreign = page.locator('#s3-foreign-dialog .fiori-vsd__sub-header [role="listbox"]')
+  expect(await classifyS3UnnamedModeControl(foreign, context)).toBe(false)
+  await page.locator(`[id="${ownedId}"]`).evaluate((node) => node.remove())
+  // Only one identical foreign portal remains, but the owned trigger still
+  // points at the removed portal. Matching markup never proves ownership.
+  expect(await classifyS3UnnamedModeControl(foreign, context)).toBe(false)
+})
+
+for (const story of ["overlays-view-settings-dialog--open", "overlays-view-settings-dialog--playground"]) {
+test(`S3 ${story} marker keeps strict names for unrelated controls and unnamed foreign listboxes`, async ({ page }) => {
+  const context = { story, theme: "sap_horizon" }
+  await page.setContent(`<html data-theme="sap_horizon"><body><div id="storybook-root"><div data-fiori-story="${context.story}"><button id="s3-unnamed-button"></button><div id="s3-unnamed-list" role="listbox" tabindex="0"></div></div></div></body></html>`)
+  expect(await classifyS3UnnamedModeControl(page.locator("#s3-unnamed-button"), context)).toBe(false)
+  expect(await classifyS3UnnamedModeControl(page.locator("#s3-unnamed-list"), context)).toBe(false)
+  await expect(expectNamedControls(page, context)).rejects.toThrow(/toHaveAccessibleName/)
+  await page.locator("#s3-unnamed-button").evaluate((node) => node.setAttribute("aria-label", "Named negative control"))
+  await expect(expectNamedControls(page, context)).rejects.toThrow(/toHaveAccessibleName/)
+})
+}
+
+// S3 Playground is deliberately separate from the six existing mode stories.
+for (const primary of [false, true]) for (const theme of ["sap_horizon", "sap_horizon_hcb"]) {
+  test(`S3 Playground-open marker binds its live ${primary ? "primary docs" : "story"} canvas (${theme})`, async ({ page }, testInfo) => {
+    const story = "overlays-view-settings-dialog--playground"
+    const context = { story, theme, primary }
+    await page.goto(`/iframe.html?id=${primary ? "overlays-view-settings-dialog--docs" : story}&viewMode=${primary ? "docs" : "story"}&globals=theme:${theme}`)
+    const canvas = page.locator(`${primary ? "#storybook-docs [data-fiori-primary]" : "#storybook-root"} [data-fiori-story="${story}"]`)
+    const opener = canvas.getByRole("button", { name: "Configure product view", exact: true })
+    await expect(opener).toBeVisible()
+    await expect.poll(async () => JSON.parse(await canvas.getAttribute("data-fiori-args") ?? "{}").open).toBe(false)
+    // A real supported interaction opens the component and updates its own args.
+    await opener.press("Enter")
+    const dialog = page.locator('.fiori-vsd[role="dialog"]')
+    const mode = dialog.locator('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]')
+    await expect(mode).toBeVisible()
+    await expect.poll(async () => JSON.parse(await canvas.getAttribute("data-fiori-args") ?? "{}").open).toBe(true)
+    await waitForStoryFinished(page)
+    expect(await classifyS3UnnamedModeControl(mode, context)).toBe(true)
+    await expectNamedControls(page, context, testInfo)
+    // Primary docs also contain independent story iframes. Audit this live
+    // component portal with every axe rule; their own story tests audit the frames.
+    const raw = await axeViolations(page, theme, primary ? '.fiori-vsd[role="dialog"]' : undefined)
+    const audit = await classifyViolations(page, raw, context)
+    await attachAudit(testInfo, "S3-live-playground-open", audit)
+    expect(audit.known.find((rule) => rule.id === "aria-input-field-name")?.nodes).toHaveLength(1)
+    expect(audit.unexpected).toEqual([])
+    expect(await classifyS3UnnamedModeControl(mode, { ...context, story: "overlays-view-settings-dialog--open" })).toBe(false)
+    expect(await classifyS3UnnamedModeControl(mode, { ...context, primary: !primary })).toBe(false)
+    await canvas.evaluate((node) => node.setAttribute("data-fiori-args", JSON.stringify({ open: false })))
+    expect(await classifyS3UnnamedModeControl(mode, context)).toBe(false)
+    const closed = await classifyViolations(page, raw, context)
+    expect(closed.known).toEqual([])
+    await canvas.evaluate((node) => node.setAttribute("data-fiori-args", JSON.stringify({ open: true })))
+    // The open modal intentionally aria-hides its opener. Resolve the exact
+    // component-owned trigger through DOM here so the negative case still runs.
+    await canvas.locator('[data-slot="dialog-trigger"]').evaluate((node) => node.setAttribute("aria-controls", "foreign-playground-dialog"))
+    expect(await classifyS3UnnamedModeControl(mode, context)).toBe(false)
+    const foreign = await classifyViolations(page, raw, context)
+    expect(foreign.known).toEqual([])
+  })
+}
+
+test("S3 Playground rejects a foreign primary canvas and an unrelated unnamed node", async ({ page }) => {
+  const context = { story: "overlays-view-settings-dialog--playground", theme: "sap_horizon", primary: true }
+  await page.goto("/iframe.html?id=overlays-view-settings-dialog--docs&viewMode=docs")
+  const canvas = page.locator(`#storybook-docs [data-fiori-primary] [data-fiori-story="${context.story}"]`)
+  await canvas.getByRole("button", { name: "Configure product view", exact: true }).press("Enter")
+  const mode = page.locator('.fiori-vsd__sub-header > [data-slot="segmented-button"][role="listbox"]')
+  await expect(mode).toBeVisible()
+  await expect.poll(async () => JSON.parse(await canvas.getAttribute("data-fiori-args") ?? "{}").open).toBe(true)
+  await mode.evaluate((node) => {
+    const foreign = node.cloneNode(true) as HTMLElement
+    foreign.id = "s3-unrelated-playground-mode"
+    node.closest('[role="dialog"]')!.append(foreign)
+  })
+  expect(await classifyS3UnnamedModeControl(page.locator("#s3-unrelated-playground-mode"), context)).toBe(false)
+  await page.locator("#s3-unrelated-playground-mode").evaluate((node) => node.remove())
+  await canvas.evaluate((node) => {
+    const foreignPrimary = document.createElement("div")
+    foreignPrimary.setAttribute("data-fiori-primary", "")
+    document.body.append(foreignPrimary)
+    foreignPrimary.append(node)
+  })
+  expect(await classifyS3UnnamedModeControl(mode, context)).toBe(false)
+  const audit = await classifyViolations(page, await axeViolations(page, "sap_horizon", '.fiori-vsd[role="dialog"]'), context)
+  expect(audit.known).toEqual([])
 })

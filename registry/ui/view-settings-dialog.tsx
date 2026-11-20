@@ -78,6 +78,7 @@ const defaultTexts: Required<ViewSettingsTexts> = {
   filterItemLabel: (text, count) => `${text}, Counter ${count},`, // UI5 VSD_FILTER_ITEM_LABEL_TEXT; preserve existing no-provider punctuation
 }
 
+/** @accessibility texts.title names the dialog; texts names mode buttons, lists, order choices, reset and footer actions. Each list is one Tab stop: Arrow Up/Down and Home/End move, Enter/Space select. Escape cancels staged changes and returns focus to DialogTrigger. */
 type ViewSettingsDialogProps = {
   open?: boolean
   defaultOpen?: boolean

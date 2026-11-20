@@ -9,12 +9,19 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
+  # Shard counts are defined only by the matrices below; commands use strategy.job-total.
   # Main CI spent only 18s generating/checking/building. Rebuild in each job:
   # transferring generated source + dist would not avoid Playwright's server build.
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # E7's first container run met the timing target (slowest job 10m54s, whole run 10m59s).
+    # Keep three minutes of headroom over the 12-minute job target to catch real hangs.
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -27,12 +34,17 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # Match scripts/ci-local.sh: browsers and system libraries come from the image.
+    # Restore the runner's monospace font below; keep the existing pixel-rendering launch flags.
+    container: &playwright-container
+      image: mcr.microsoft.com/playwright:v1.64.1-noble
+      options: --init --ipc=host
+    # E7 round 1: slowest job 10m54s; 15 minutes leaves headroom without hiding a hang.
+    timeout-minutes: 15
     strategy:
       fail-fast: false
-      # Main's measured visual test totals: phone 321s, desktop 257s,
-      # interaction 82s, SAPUI5 77s. Give each one its own sequential phase,
-      # after four balanced non-visual shards, so reference passes never overlap.
+      # Main run 44480683049: non-visual phases 332/150/212/155s; visual phases
+      # 311/254/74/78s. Keep four shards and one serial reference phase per runner.
       matrix:
         include:
           - shard: 1
@@ -46,6 +58,7 @@ jobs:
     env:
       PORT: 4310
       SAPUI5_PORT: 4311
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -58,23 +71,64 @@ jobs:
           path: ~/.ui5
           key: ${{ runner.os }}-ui5-${{ hashFiles('sapui5/ui5.yaml') }}
       - run: pnpm install --frozen-lockfile
-      - id: playwright-version
-        run: echo "version=$(pnpm exec playwright --version | cut -d ' ' -f2)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-chromium-${{ steps.playwright-version.outputs.version }}
-      - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm generate && pnpm registry:build
-      - name: Non-visual shard ${{ matrix.shard }}/4
-        shell: bash
+      - &restore-monospace-font
+        name: Restore main CI's monospace font
         run: |
-          mapfile -t specs < <(git ls-files 'tests/*.spec.ts' | grep -vE '/visual(-sapui5|-phone|-interaction)?\.spec\.ts$')
-          pnpm test:summary "${specs[@]}" --shard=${{ matrix.shard }}/4 --retries=0
+          # The Noble image defaults monospace to WenQuanYi; ubuntu-latest uses DejaVu Sans Mono.
+          # This changes the existing delayed-font wrapping test. Restore only that font, without apt.
+          # Keep this checksum-pinned extraction identical to scripts/ci-local.sh.
+          curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 https://archive.ubuntu.com/ubuntu/pool/main/f/fonts-dejavu/fonts-dejavu-mono_2.37-8_all.deb -o /tmp/dejavu-mono.deb
+          echo '8a599d6553307db7ecb795d2f0e5a301e03234afc75c7358b0ba43466454c89a  /tmp/dejavu-mono.deb' | sha256sum -c -
+          dpkg-deb -x /tmp/dejavu-mono.deb /
+          fc-cache -f
+          fc-match monospace
+      - &verify-playwright
+        name: Verify bundled Playwright Chromium
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs')
+          const version = require('@playwright/test/package.json').version
+          const workflow = fs.readFileSync('.github/workflows/ci.yml', 'utf8')
+          const local = fs.readFileSync('scripts/ci-local.sh', 'utf8')
+          const imageVersion = /mcr\.microsoft\.com\/playwright:v([\d.]+)-noble/
+          if (workflow.match(imageVersion)?.[1] !== version || local.match(imageVersion)?.[1] !== version) {
+            throw new Error('CI and ci-local.sh images must match the installed @playwright/test version')
+          }
+          const executable = require('@playwright/test').chromium.executablePath()
+          if (!fs.existsSync(executable)) throw new Error(`Bundled Chromium is missing: ${executable}`)
+          console.log(`Playwright ${version}: bundled Chromium available; no browser or system-package install`)
+          NODE
+      - run: pnpm generate && pnpm registry:build
+      - &start-test-timer
+        name: Start test timer
+        id: test-timer
+        run: echo "started=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - name: Non-visual shard ${{ matrix.shard }}/${{ strategy.job-total }}
+        run: |
+          # Checkout's safe.directory lives in its action HOME, not this container shell's HOME.
+          # Scope trust to this checkout and reject an empty list so visual phases cannot run here.
+          mapfile -t specs < <(git -c safe.directory="$GITHUB_WORKSPACE" ls-files 'tests/*.spec.ts' | grep -vE '/visual(-sapui5|-phone|-interaction)?\.spec\.ts$')
+          if (( ${#specs[@]} == 0 )); then
+            echo '::error::No non-visual specs found; refusing to run an unfiltered suite.'
+            exit 1
+          fi
+          pnpm test:summary "${specs[@]}" --shard=${{ matrix.shard }}/${{ strategy.job-total }} --retries=0
           mkdir -p "$RUNNER_TEMP/non-visual-results"
           cp -a test-results/. "$RUNNER_TEMP/non-visual-results/"
       - name: Serial ${{ matrix.visual }} comparisons
         run: pnpm test:summary tests/${{ matrix.visual }}.spec.ts --shard=1/1 --workers=1 --retries=0
+      - &report-test-duration
+        name: Report test duration
+        if: ${{ always() && steps.test-timer.outputs.started != '' }}
+        env:
+          TEST_STARTED: ${{ steps.test-timer.outputs.started }}
+          TEST_JOB: ${{ github.job }} (${{ matrix.shard }}/${{ strategy.job-total }})
+        run: |
+          elapsed=$(( $(date +%s) - TEST_STARTED ))
+          printf '%s tests: %dm%02ds (%ds)\n' "$TEST_JOB" "$((elapsed / 60))" "$((elapsed % 60))" "$elapsed"
+          if (( elapsed > 600 )); then
+            echo "::warning title=CI test duration::$TEST_JOB tests exceeded 10 minutes ($elapsed seconds); add or rebalance a shard in this card."
+          fi
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -86,14 +140,21 @@ jobs:
 
   storybook:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    container: *playwright-container
+    # E7 round 1: five shards took 7m28s–9m47s (tests at most 8m19s).
+    # Fifteen minutes leaves headroom over the 12-minute job target to catch real hangs.
+    timeout-minutes: 15
     strategy:
       fail-fast: false
-      # Main's 1280 tests took 12m35s; two shards keep this parallel job below 12m.
+      # Main run 44480683049: 3193 tests, three shards took 826/531/782s.
+      # S2 brings the suite to 4073 tests. Seven project the slowest to
+      # 826 * 3 * (4073 / 3193) / 7 = 452s (7m32s), below the 9-minute test target.
+      # Add a shard when new tests push the slowest past 9 minutes; commands derive the total here.
       matrix:
-        shard: [1, 2]
+        shard: [1, 2, 3, 4, 5, 6, 7]
     env:
       PORT: 4320
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -102,15 +163,12 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - id: playwright-version
-        run: echo "version=$(pnpm exec playwright --version | cut -d ' ' -f2)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-chromium-${{ steps.playwright-version.outputs.version }}
-      - run: pnpm exec playwright install --with-deps chromium
+      - *restore-monospace-font
+      - *verify-playwright
       - run: pnpm generate && pnpm storybook:build
-      - run: pnpm test:summary -c playwright.storybook.config.ts --shard=${{ matrix.shard }}/2 --retries=0
+      - *start-test-timer
+      - run: pnpm test:summary -c playwright.storybook.config.ts --shard=${{ matrix.shard }}/${{ strategy.job-total }} --retries=0
+      - *report-test-duration
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

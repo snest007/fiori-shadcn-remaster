@@ -1,5 +1,36 @@
 import { expect, test, type Locator, type Page } from "@playwright/test"
 
+test.describe("ResponsivePopover paired phone custom host", () => {
+test.use({ viewport: { width: 375, height: 667 }, hasTouch: true })
+for (const rtl of [false, true]) test(`ResponsivePopover phone ${rtl ? "RTL" : "LTR"} custom host retains native dialog role title and keyboard focus`, async ({ page, browser }) => {
+  const reference = await browser.newPage({ viewport: { width: 375, height: 667 }, hasTouch: true })
+  try {
+    const id = `responsive-popover-host-phone${rtl ? "-rtl" : ""}`
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&only=${id}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const popup = current.getByRole("dialog", { name: "Country", exact: true })
+      await expect(popup).toBeVisible()
+      await expect(popup).toHaveAttribute("aria-modal", "true")
+      if (!native) {
+        await expect(popup).toHaveAttribute("data-custom-host", "responsive-popover-phone")
+        await expect(popup).toHaveAttribute("tabindex", "-1")
+        await expect(popup).toHaveAttribute("aria-label", "Country")
+      }
+      // UI5 projects buttons through Popup/ResponsivePopover slots; its AX
+      // dialog contains them, while their DOM remains under the fixture holder.
+      const controls = native ? current.locator("#responsive-popover-host-phone-demo") : popup
+      const done = controls.getByRole("button", { name: "Done", exact: true })
+      await done.focus(); await expect(done).toBeFocused()
+      await current.keyboard.press("Shift+Tab")
+      await expect(controls.getByRole("button", { name: "Decline", exact: true })).toBeFocused()
+      await current.keyboard.press("Escape")
+      await expect(popup).toHaveCount(0)
+    }
+  } finally { await reference.close() }
+})
+})
+
 async function visit(page: Page, kind: string, native = false, suffix = "") {
   await page.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&interactive&only=${kind}-phone${suffix}`)
   await page.waitForSelector("html[data-ready=true]")
@@ -171,7 +202,7 @@ test.describe("D1a phone popup contracts", () => {
       const holder = await visit(page, "multi-combobox", native)
       await openField(page, holder, "multi-combobox", native)
       const option = native ? holder.locator("ui5-mcb-item").filter({ hasText: "" }).filter({ has: page.getByRole("option", { name: /Germany/ }) }).getByRole("option") : surface(page, holder, false).getByRole("option", { name: /Germany/ })
-      const checkbox = native ? option.locator("ui5-checkbox") : option.getByRole("checkbox", { includeHidden: true })
+      const checkbox = native ? option.locator("ui5-checkbox") : option.locator(".fiori-multi-combobox__checkbox")
       await checkbox.click()
       await expect(option).toHaveAttribute("aria-selected", "true")
       await expect(holder.locator('[data-slot="phone-events"]')).toHaveText("[]")
@@ -220,7 +251,7 @@ test.describe("D1a phone popup contracts", () => {
       await expect(fieldInput(holder, "multi-combobox", native)).not.toBeFocused()
       await openField(page, holder, "multi-combobox", native)
       await expect(option("Australia")).toHaveAttribute("aria-selected", "true")
-      await (native ? option("Germany").locator("ui5-checkbox") : option("Germany").getByRole("checkbox", { includeHidden: true })).click()
+      await (native ? option("Germany").locator("ui5-checkbox") : option("Germany").locator(".fiori-multi-combobox__checkbox")).click()
       await expect(option("Germany")).toHaveAttribute("aria-selected", "true")
       await page.keyboard.press("Escape")
       await expect(dialog(page, native)).toHaveCount(0)
@@ -267,7 +298,7 @@ test.describe("D1a phone popup contracts", () => {
       await expect(fieldInput(holder, "multi-combobox", native)).toHaveValue("Australia")
       const option = native ? holder.locator("ui5-mcb-item").filter({ has: page.getByRole("option", { name: /Australia/ }) }).getByRole("option") : dialog(page, false).getByRole("option", { name: /Australia/ })
       await expect(option).toHaveAttribute("aria-selected", "true")
-      await (native ? option.locator("ui5-checkbox") : option.getByRole("checkbox", { includeHidden: true })).click()
+      await (native ? option.locator("ui5-checkbox") : option.locator(".fiori-multi-combobox__checkbox")).click()
       await expect(option).toHaveAttribute("aria-selected", "false")
       await fillPhone(page, holder, native, "Germany")
       await expect(fieldInput(holder, "multi-combobox", native)).toHaveValue("Germany")
@@ -818,7 +849,7 @@ test.describe("D1a reviewed phone keyboard and consumer contracts", () => {
         await openField(page, holder, "multi-combobox", native)
         const row = mcbRow(page, holder, native, "Argentina")
         await expect(row).toHaveAttribute("aria-selected", "false")
-        await (native ? row.locator("ui5-checkbox") : row.getByRole("checkbox", { includeHidden: true })).click()
+        await (native ? row.locator("ui5-checkbox") : row.locator(".fiori-multi-combobox__checkbox")).click()
         await expect(row).toHaveAttribute("aria-selected", "true")
         await expect(holder.locator('[data-slot="phone-events"]')).toHaveText(JSON.stringify([`selection:${proposed.join(",")}`]))
         await surface(page, holder, native).getByRole("button", { name: "OK", exact: true }).click()
@@ -866,5 +897,33 @@ test.describe("D1a reviewed phone keyboard and consumer contracts", () => {
     await expect(holder.locator('[data-slot="phone-content-ref"]')).toHaveText("null")
     await expect(holder.locator('[data-slot="phone-content-events"]')).toHaveText('["open","escape","close"]')
     await expect(holder.getByRole("combobox").first()).not.toBeFocused()
+  })
+})
+
+test.describe("responsive-popover: phone custom header accessibility", () => {
+  test.use({ viewport: { width: 375, height: 667 }, hasTouch: true })
+  test("custom Select and DatePicker headers replace the redundant title; unnamed custom headers retain fallback naming", async ({ page, browser }) => {
+    const reference = await browser.newPage({ viewport: { width: 375, height: 667 }, hasTouch: true })
+    try {
+      for (const [current, native] of [[page, false], [reference, true]] as const) {
+        await current.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&only=select-a11y-phone-name`)
+        await current.waitForSelector("html[data-ready=true]")
+        await expect(current.getByRole("dialog", { name: "Select: Shipping country", exact: true })).toBeVisible()
+        await expect(current.getByRole("heading", { name: "All Items", exact: true })).toHaveCount(1)
+        await current.goto(`/${native ? "ui5" : "index"}.html?fixtures-phone&only=date-picker-phone`)
+        await current.waitForSelector("html[data-ready=true]")
+        await expect(current.getByRole("dialog")).toBeVisible()
+        await expect(current.getByRole("heading")).toHaveCount(0)
+      }
+      // Our pre-existing headerText fallback must remain when the custom header
+      // supplies no explicit dialog naming channel. This control intentionally
+      // checks that API guarantee independently of native's unnamed custom slot.
+      await page.goto("/index.html?fixtures-phone&only=select-a11y-phone-name&header-fallback")
+      await page.waitForSelector("html[data-ready=true]")
+      const fallback = page.getByRole("dialog", { name: "Fallback dialog", exact: true })
+      await expect(fallback).toBeVisible()
+      await expect(fallback.getByRole("heading", { name: "Fallback dialog", exact: true })).toHaveCount(1)
+      await expect(fallback.getByRole("heading", { name: "Custom header", exact: true })).toHaveCount(1)
+    } finally { await reference.close() }
   })
 })

@@ -1,68 +1,103 @@
-# Backlog (Phase 4: completeness and hardening)
+# Backlog
 
-Phases 0–3 are done (73 components, 7 blocks, 600 pixel-compared fixtures, 391 tests). This backlog closes the gaps
-listed in README "Not done yet". Each task is a self-contained card in `tasks/`. Read `/AGENTS.md` first.
+Phases 0–3 built the library (73 components, 7 blocks, 600 pixel-compared fixtures). This backlog closes the gaps
+since then. Each task is a self-contained card: **open cards are in `tasks/`, finished cards in `tasks/done/`**.
+Read [`/AGENTS.md`](../../AGENTS.md) first.
+
+## Status (updated at each milestone)
+
+| Wave | Done | Open | Next |
+|---|---|---|---|
+| A–D, F, G (features, platform, personalization, usage guidance) | all | — | — |
+| E (quality infrastructure) | E1–E4, E4b, E6–E8 | E5 (returned 2026-11-18), E5b | **E5b** |
+| S (Storybook) | S0–S4, S4b, SX | S5 | S5 (any time) |
+| P (a11y/l10n parity) | — | P1–P6, P2a | after E4 + E5 |
+| X (extension rollout) | X0 (design) | X1–X40 (cards written per group) | after each group's P card |
+| H (issue #1) | — | H0–H10 | H0 after E4 + E5 |
+
+Returned cards keep their branch and worktree; their notes are in [`returns/`](returns/). Component defects found
+while writing stories are handed to E4 / the P cards as unapplied patches in [`handoff/`](handoff/).
+Run [`node scripts/plan-check.mjs`](../../scripts/plan-check.mjs) after editing this file.
+
+## Milestone checklist (reviewer, at the end of a wave or every 3–5 merged cards)
+
+1. Merge the reviewed card branches into main; `node scripts/plan-check.mjs --fix` moves ticked cards (and their
+   return notes) to `done/` and fixes links. `plan-check` must report 0 errors.
+2. Update the **Status** table above and the README "Not done yet" list if a wave changed.
+3. Check that rules agreed with the owner since the last milestone are in AGENTS.md (and RUN.md / INTEGRATION.md if
+   they describe the same step), and that open cards still match them (dependencies, file names, test counts).
+4. Run tier 3: `pnpm test:milestone` once (full main + Storybook, fresh builds and timing report), then push + CI
+   when authorized. Record the summary lines in the commit message. `--runs=2` is available for a release.
+5. Delete merged `codex/*` branches and worktrees that `plan-check` lists, once the owner agrees.
 
 ## How to run a card (for Codex)
 
 ```bash
-git switch main && git switch -c codex/<card-id>
+git switch main && git switch -c codex/<card-id>      # or the worktree the card names
 pnpm install --frozen-lockfile && pnpm generate
-# … implement the card; use pnpm test:changed / affected test:summary specs while working …
+# tier 1 while working: pnpm test:changed (main specs + visuals + stories)
 pnpm typecheck && pnpm registry:build
-PORT=4310 pnpm test:summary           # twice only at the end; 0 failed, 0 flaky
+# tier 2 card done (reviewer repeats it):
+pnpm test:changed --repeat-each=2 && pnpm test:smoke
+# shared-file cards: full main + Storybook once instead (through test:summary)
 git add -A && git commit -m "<card-id>: <summary>"
 ```
 
-Suggested prompt: `Read AGENTS.md, then implement docs/plan/tasks/<card-id>.md. Follow its acceptance checks exactly.`
+Suggested prompt: `Read AGENTS.md (including the Verification budget), then implement docs/plan/tasks/<card-id>.md.
+Follow its budget and acceptance checks exactly.`
 
-Follow [AGENTS.md](../../AGENTS.md) "Verification budget": at most 2 CI pushes when authorized, 2 local fix
-hypotheses per failing test, and about 2 hours. Stop, commit and write `returns/<card>.md` when a limit is reached.
-Keep logs on disk, print at most about 50 summary/failure lines, use `gh run watch` once without polling loops,
-and background long runs with one completion notification. Report CI rounds and full-suite run counts.
+[AGENTS.md](../../AGENTS.md) "Verification budget" applies to every card: at most 2 CI pushes when a card authorizes
+them, 2 local fix hypotheses per failing test, about 2 hours, compact output, background long runs, headless
+browsers. At a limit: stop, commit and write `returns/<card>.md`. Don't push or merge; the owner's reviewer merges
+reviewed branches into main and runs push + CI at milestones (end of a wave, every 3–5 merged cards, or a release).
+
+**Three tiers:** tier 1 is the affected inner loop (1–3 minutes); tier 2 is two scoped runs plus one smoke run
+(about 5 minutes), repeated by the reviewer; tier 3 is the reviewer's milestone, full main + Storybook once, then
+push + CI (about 20 minutes local / 12 minutes CI). `pnpm test:milestone --runs=2` is available for releases.
+If `test:changed` reports a shared file (`.storybook/**`, Storybook helpers, shared styles/libs, Playwright configs,
+docs entry points or CI), the card runs full main and Storybook suites **once** instead; the second full verification
+is the milestone/CI. Existing card requirements saying "main ×2, Storybook ×2" now mean **tier 2**, subject to this
+shared-file rule; do not rewrite old cards. Follow any additional card-specific acceptance checks and tighter budget.
+`test:changed` ignores only bookkeeping in `docs/plan/README.md`, `docs/plan/tasks/**`, `docs/plan/returns/**`,
+and `docs/plan/handoff/**`; bookkeeping-only branches print "bookkeeping only: no tests needed" and exit 0.
+All other `docs/plan/` files stay shared, including the Storybook-read `a11y-audit.md` and `i18n-audit.md`.
 
 One card per branch. Cards in the same wave touch disjoint files and can run in parallel (separate worktrees/branches);
-later waves depend on earlier ones.
-
-**Easiest: one Codex session runs everything** with sub-agents (a worker per card, a fresh reviewer per card, then
-integration) — [RUN.md](RUN.md): `Read AGENTS.md and docs/plan/RUN.md, then run cards F3.`
-
-Or by hand: merging in a separate session with [INTEGRATION.md](INTEGRATION.md):
-`Read AGENTS.md and docs/plan/INTEGRATION.md, then integrate the pending codex/* branches.`
-It reviews scope and fidelity, merges, runs `node scripts/integrate.mjs verify` (2 full runs + smoke install),
-cleans up and prints `.integration/REPORT.md` — paste that report to the owner/Claude for sign-off.
+later waves depend on earlier ones. Optional orchestration: [RUN.md](RUN.md) (one Codex session with sub-agents) or
+[INTEGRATION.md](INTEGRATION.md) (a separate merge session); today the owner runs one Codex session per card and a
+Claude session reviews and merges.
 
 Sizes: S ≈ <300 changed lines, M ≈ 300–900, L ≈ 900+.
 
 ## Wave A — overflow ("More") behaviour (independent)
 
-- [x] [A1 Tabs overflow](tasks/A1-tabs-overflow.md) — M
-- [x] [A2 Toolbar overflow](tasks/A2-toolbar-overflow.md) — M
-- [x] [A3 Breadcrumbs overflow](tasks/A3-breadcrumbs-overflow.md) — S
-- [x] [A4 AvatarGroup overflow "+N"](tasks/A4-avatar-group-overflow.md) — S
-- [x] [A5 SideNavigation overflow item](tasks/A5-side-navigation-overflow.md) — M
+- [x] [A1 Tabs overflow](tasks/done/A1-tabs-overflow.md) — M
+- [x] [A2 Toolbar overflow](tasks/done/A2-toolbar-overflow.md) — M
+- [x] [A3 Breadcrumbs overflow](tasks/done/A3-breadcrumbs-overflow.md) — S
+- [x] [A4 AvatarGroup overflow "+N"](tasks/done/A4-avatar-group-overflow.md) — S
+- [x] [A5 SideNavigation overflow item](tasks/done/A5-side-navigation-overflow.md) — M
 
 ## Wave B — feature gaps in existing components (independent)
 
-- [x] [B1 Dialog draggable / resizable](tasks/B1-dialog-drag-resize.md) — M
-- [x] [B2 Menu checkable items and groups](tasks/B2-menu-check-mode.md) — S
-- [x] [B3 ComboBox / MultiComboBox item groups](tasks/B3-combobox-groups.md) — M
-- [x] [B4 Table and List drag & drop reordering](tasks/B4-drag-and-drop.md) — L
-- [x] [B5 NotificationList growing](tasks/B5-notification-growing.md) — S
+- [x] [B1 Dialog draggable / resizable](tasks/done/B1-dialog-drag-resize.md) — M
+- [x] [B2 Menu checkable items and groups](tasks/done/B2-menu-check-mode.md) — S
+- [x] [B3 ComboBox / MultiComboBox item groups](tasks/done/B3-combobox-groups.md) — M
+- [x] [B4 Table and List drag & drop reordering](tasks/done/B4-drag-and-drop.md) — L
+- [x] [B5 NotificationList growing](tasks/done/B5-notification-growing.md) — S
 
 ## Wave C — new components
 
-- [x] [C1 ColorPalette + ColorPalettePopover](tasks/C1-color-palette.md) — M
-- [x] [C2 ColorPicker](tasks/C2-color-picker.md) — M (after C1: shares the color utilities)
-- [x] [C3 MediaGallery](tasks/C3-media-gallery.md) — M
+- [x] [C1 ColorPalette + ColorPalettePopover](tasks/done/C1-color-palette.md) — M
+- [x] [C2 ColorPicker](tasks/done/C2-color-picker.md) — M (after C1: shares the color utilities)
+- [x] [C3 MediaGallery](tasks/done/C3-media-gallery.md) — M
 
 ## Wave D — platform behaviour (after waves A–C are merged; touches many components)
 
-- [x] [D1 Phone layouts for popups](tasks/D1-phone-popups.md) — L
+- [x] [D1 Phone layouts for popups](tasks/done/D1-phone-popups.md) — L
   - [x] D1a ResponsivePopover, phone detection, Select, ComboBox, MultiComboBox and MultiInput
   - [x] D1b Pickers, ValueHelpDialog, Menu and Search
-- [x] [D2 F6 fast navigation](tasks/D2-f6-navigation.md) — M
-- [x] [D3 RTL verification](tasks/D3-rtl.md) — M
+- [x] [D2 F6 fast navigation](tasks/done/D2-f6-navigation.md) — M
+- [x] [D3 RTL verification](tasks/done/D3-rtl.md) — M
 
 ## Wave F — FilterBar personalization from SAPUI5 (decided by the owner: full SAPUI5 feature set)
 
@@ -70,19 +105,23 @@ These controls don't exist in UI5 Web Components; the reference is **OpenUI5 1.1
 `sap.ui.mdc` FilterBar / Adapt Filters). F0 builds a second pixel-diff harness against real OpenUI5. Run in order;
 F1 and F2 can run in parallel after F0.
 
-- [x] [F0 SAPUI5 reference harness](tasks/F0-sapui5-reference-harness.md) — M
-- [x] [F1 VariantManagement](tasks/F1-variant-management.md) — L
-- [x] [F2 Adapt Filters dialog](tasks/F2-adapt-filters.md) — L
-- [x] [F3 Variants wired to FilterBar + List Report](tasks/F3-variants-integration.md) — M
+- [x] [F0 SAPUI5 reference harness](tasks/done/F0-sapui5-reference-harness.md) — M
+- [x] [F1 VariantManagement](tasks/done/F1-variant-management.md) — L
+- [x] [F2 Adapt Filters dialog](tasks/done/F2-adapt-filters.md) — L
+- [x] [F3 Variants wired to FilterBar + List Report](tasks/done/F3-variants-integration.md) — M
 
 ## Wave E — quality infrastructure (any time; E1 first)
 
-- [x] [E1 Interaction-state visual fixtures](tasks/E1-interaction-fixtures.md) — M
-- [x] [E2 Docs site navigation](tasks/E2-docs-navigation.md) — M
-- [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/E3-publish.md) — S (owner decided: snest007/petalo, Pages; push only, no gh; run in the main checkout, not via RUN.md)
-- [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (fourth attempt approved 2026-11-17: the five review findings + initial baselines, rule 11 exempt — `returns/E4.md` top section; retained on `codex/E4` — see the card's 2026-11-17 addendum and `returns/E4.md`. After S0; before waves P and H)
-- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt returned 2026-11-18: named repairs, ratchet and German consumer pass; main/Storybook acceptance fails — `returns/E5.md`; retained on `codex/E5`, unmerged and unpushed, rule 11 exempt. Parallel to E4; before waves P and H)
-- [x] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/E6-verification-budget.md) — M (owner's decision 2026-11-18; **after PR snest007/petalo#3 is merged**; run before further cards so they inherit the budget; max 2 CI rounds, then stop and report) — done 2026-11-18: CI ≈10 min (was 32); the returned side-navigation flake was fixed on main by waiting for the collapse in the collapsed beforeEach ([E6 note](returns/E6.md))
+- [x] [E1 Interaction-state visual fixtures](tasks/done/E1-interaction-fixtures.md) — M
+- [x] [E2 Docs site navigation](tasks/done/E2-docs-navigation.md) — M
+- [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/done/E3-publish.md) — S (owner decided: snest007/petalo, Pages; push only, no gh; run in the main checkout, not via RUN.md)
+- [x] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/done/E4-a11y-parity.md) — L (done 2026-11-20 through E4b: tree/audit baselines and ratchet live; merged)
+- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt returned 2026-11-18 on `codex/E5`; finished by **E5b**, after E4b. Before waves P and H)
+- [x] [E4b Finish E4: Label custom-host fixture, List selection-checkbox marker, acceptance](tasks/done/E4b-finish-e4.md) — S (done 2026-11-20; the S3 ViewSettingsDialog marker was updated to UI5's option Tab stop at merge)
+- [ ] [E5b Finish E5: phone time-view hang, Select Open marker, ComboBox provider text, acceptance](tasks/E5b-finish-e5.md) — S (owner's decision 2026-11-20; after E4b; continues on `codex/E5`; ticks E5 and E5b)
+- [x] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/done/E6-verification-budget.md) — M (done 2026-11-18: CI ≈10 min, verification budget in AGENTS.md — [E6 note](returns/done/E6.md))
+- [x] [E7 CI back under 12 minutes: Playwright container or cached system packages, time-based shards, timing warning](tasks/done/E7-ci-speed.md) — S (done 2026-11-19: Playwright container, time-based shards, timing warning; CI ≈11 min)
+- [x] [E8 Tiered verification: per-card tests in minutes, full suites at milestones](tasks/done/E8-tiered-verification.md) — S (owner's decision 2026-11-20; tiered verification implemented)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
@@ -91,12 +130,12 @@ for this registry's components. One `usage` object per item JSON feeds the regis
 generated agent skill `skills/petalo/`. G0 first (pipeline + pilot); G1–G4 are content-only and run in parallel
 (each touches different item JSONs; regenerate `skills/` after merge); G5 last.
 
-- [x] [G0 Schema, pipeline, docs, skill generator + pilot](tasks/G0-usage-guidance-pipeline.md) — M
-- [x] [G1 Forms and dates](tasks/G1-usage-forms-dates.md) — M (after G0)
-- [x] [G2 Data and display](tasks/G2-usage-data-display.md) — M (after G0)
-- [x] [G3 Overlays and navigation](tasks/G3-usage-overlays-navigation.md) — M (after G0)
-- [x] [G4 Layouts and floorplans](tasks/G4-usage-layout-floorplans.md) — M (after G0)
-- [x] [G5 Coverage gate, pilot rewrite, exports filter, slim SKILL.md, agent eval + build loop](tasks/G5-usage-coverage-eval.md) — L (after G1–G4)
+- [x] [G0 Schema, pipeline, docs, skill generator + pilot](tasks/done/G0-usage-guidance-pipeline.md) — M
+- [x] [G1 Forms and dates](tasks/done/G1-usage-forms-dates.md) — M (after G0)
+- [x] [G2 Data and display](tasks/done/G2-usage-data-display.md) — M (after G0)
+- [x] [G3 Overlays and navigation](tasks/done/G3-usage-overlays-navigation.md) — M (after G0)
+- [x] [G4 Layouts and floorplans](tasks/done/G4-usage-layout-floorplans.md) — M (after G0)
+- [x] [G5 Coverage gate, pilot rewrite, exports filter, slim SKILL.md, agent eval + build loop](tasks/done/G5-usage-coverage-eval.md) — L (after G1–G4)
 
 ## Wave S — Storybook (browse components: variants, live Controls, code, theme toolbar)
 
@@ -106,12 +145,13 @@ theme/density/direction toolbar, docs page with install + usage, deploy, tests, 
 and run in parallel (each owns different `docs/stories/**` files); S5 last. Independent of wave G (S0 renders
 `usage` when present).
 
-- [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/S0-storybook-setup.md) — M (adds devDependencies)
-- [x] [S1 Actions and forms](tasks/S1-stories-actions-forms.md) — M (after S0)
-- [ ] [S2 Dates and data](tasks/S2-stories-dates-data.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S2.md` top section; retained on `codex/S2`)
-- [ ] [S3 Overlays and display](tasks/S3-stories-overlays-display.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S3.md` top section; retained on `codex/S3`)
-- [ ] [S4 Navigation, layout and floorplans](tasks/S4-stories-navigation-layout-floorplans.md) — M (fourth attempt approved 2026-11-17: shared Docs theme fix is on main, finish the deferred acceptance — `returns/S4.md` top section; retained on `codex/S4`)
-- [x] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/SX-storybook-landmarks.md) — S (unblocks S4)
+- [x] [S0 Setup, theme toolbar, docs page, deploy + pilot](tasks/done/S0-storybook-setup.md) — M (adds devDependencies)
+- [x] [S1 Actions and forms](tasks/done/S1-stories-actions-forms.md) — M (after S0)
+- [x] [S2 Dates and data](tasks/done/S2-stories-dates-data.md) — M (done 2026-11-19 after five attempts; merged)
+- [x] [S3 Overlays and display](tasks/done/S3-stories-overlays-display.md) — M (done 2026-11-19 after six attempts; merged)
+- [x] [S4 Navigation, layout and floorplans](tasks/done/S4-stories-navigation-layout-floorplans.md) — M (done 2026-11-19 through S4b; merged)
+- [x] [S4b Finish S4: the last 11 Storybook failures + acceptance](tasks/done/S4b-finish-s4-failures.md) — S (done 2026-11-19; merged with S4)
+- [x] [SX Storybook shared setup: no landmark wrapper around full-page stories](tasks/done/SX-storybook-landmarks.md) — S (unblocks S4)
 - [ ] [S5 Coverage gate + docs-site handover](tasks/S5-storybook-coverage.md) — S (after S1–S4)
 
 ## Wave P — accessibility and localization parity backlog (ratchet)
@@ -151,7 +191,7 @@ We don't build those features. X0 defines one contract for every component (styl
 proves it on Calendar with a prototype, and proposes rollout cards. Calendar work in wave H (H6, H6b) waits for it;
 H1's AnalyticalTable contract must conform to it.
 
-- [x] [X0 Extension architecture: library-wide contract + Calendar pilot design](tasks/X0-extension-architecture.md) — M (design only; no `registry/` edits; any time)
+- [x] [X0 Extension architecture: library-wide contract + Calendar pilot design](tasks/done/X0-extension-architecture.md) — M (design only; no `registry/` edits; any time)
 
 **X0 approved by the owner on 2026-11-17**, with amendments (top of [the contract](../extension-contract.md)); AGENTS.md
 rule 11 is active. Rollout list below; full cards are written per group when it comes up. Every card is S or M and

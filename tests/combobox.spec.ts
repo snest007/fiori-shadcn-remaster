@@ -253,3 +253,112 @@ test.describe("ComboBox item groups", () => {
   })
 
 })
+
+
+test("combobox: sap_horizon pointer origin and canceled pointer preserve keyboard reentry", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=combobox-value&theme=sap_horizon")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="combobox-value"]')
+  const target = cell.locator('input').first()
+  const owner = cell.locator('[data-slot="combobox"]').first()
+  const painted = () => owner.evaluate((node) => {
+    const css = getComputedStyle(node, "::after")
+    return !["none", "normal"].includes(css.content) && css.display !== "none" && css.borderTopStyle !== "none" && Number.parseFloat(css.borderTopWidth) > 0
+  })
+  await target.click()
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "combobox-e4-before"; before.textContent = "Before field"
+    node.before(before); before.focus()
+  })
+  const before = page.locator("#combobox-e4-before")
+  await expect(before).toBeFocused()
+  // A canceled pointer action changes modality without moving focus. The next
+  // real Tab must independently restore keyboard origin before field reentry.
+  await before.hover()
+  await page.mouse.down(); await page.mouse.up()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})
+
+test("combobox: sap_horizon_hcb pointer origin and canceled pointer preserve keyboard reentry", async ({ page }) => {
+  await page.goto("/index.html?fixtures&only=combobox-value&theme=sap_horizon_hcb")
+  await page.waitForSelector("html[data-ready=true]")
+  const cell = page.locator('[data-fixture="combobox-value"]')
+  const target = cell.locator('input').first()
+  const owner = cell.locator('[data-slot="combobox"]').first()
+  const painted = () => owner.evaluate((node) => {
+    const css = getComputedStyle(node, "::after")
+    return !["none", "normal"].includes(css.content) && css.display !== "none" && css.borderTopStyle !== "none" && Number.parseFloat(css.borderTopWidth) > 0
+  })
+  await target.click()
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(false)
+  await cell.evaluate((node) => {
+    const before = document.createElement("button"); before.id = "combobox-e4-before"; before.textContent = "Before field"
+    node.before(before); before.focus()
+  })
+  const before = page.locator("#combobox-e4-before")
+  await expect(before).toBeFocused()
+  // A canceled pointer action changes modality without moving focus. The next
+  // real Tab must independently restore keyboard origin before field reentry.
+  await before.hover()
+  await page.mouse.down(); await page.mouse.up()
+  await page.keyboard.press("Tab")
+  await expect(target).toBeFocused()
+  expect(await painted()).toBe(true)
+})
+
+for (const direction of ["ltr", "rtl"]) test(`ComboBox ${direction} keyboard announcements use displayed rows, group headers and additional text`, async ({ page, browser }) => {
+  const reference = await browser.newPage()
+  try {
+    for (const [current, native] of [[page, false], [reference, true]] as const) {
+      await current.goto(`/${native ? "ui5" : "index"}.html?fixtures&only=combobox-announcement-groups&dir=${direction}`)
+      await current.waitForSelector("html[data-ready=true]")
+      const holder = current.locator('[data-fixture="combobox-announcement-groups"]')
+      const input = holder.getByRole("combobox")
+      const region = current.locator(native ? '.ui5-invisiblemessage-polite' : '[data-slot="combobox-announcement"]')
+      await input.focus(); await expect(input).toBeFocused()
+      await current.keyboard.press("F4")
+      await expect(input).toHaveValue("Denmark")
+      await expect(region).toHaveAttribute("aria-live", "polite")
+      await expect(region).toHaveAttribute("role", "alert")
+      await expect(region).toHaveText("DK List item 1 of 4")
+      await current.keyboard.press("ArrowUp")
+      await expect(input).toHaveValue("")
+      await expect(region).toHaveText("Group Header Europe")
+      await current.keyboard.press("ArrowDown")
+      await expect(input).toHaveValue("Denmark")
+      await expect(region).toHaveText("DK List item 1 of 4")
+      await input.fill("E")
+      await expect(current.getByRole("option")).toHaveCount(2)
+      await current.keyboard.press("ArrowDown")
+      await expect(input).toHaveValue("")
+      await expect(region).toHaveText("Group Header Europe")
+      await current.keyboard.press("ArrowDown")
+      await expect(input).toHaveValue("Estonia")
+      await expect(region).toHaveText("EE List item 1 of 2")
+      await current.keyboard.press("ArrowDown")
+      await expect(input).toHaveValue("Ecuador")
+      await expect(region).toHaveText("EC List item 2 of 2")
+      await current.keyboard.press("F4")
+      await expect(input).toHaveAttribute("aria-expanded", "false")
+      await current.keyboard.press("ArrowUp")
+      await expect(input).toHaveValue("France")
+      await expect(region).toHaveText("FR")
+    }
+  } finally { await reference.close() }
+})
+
+test("ComboBox lets callers override group and displayed-position announcement texts", async ({ page }) => {
+  await page.goto('/index.html?fixtures&only=combobox-announcement-overrides')
+  await page.waitForSelector("html[data-ready=true]")
+  const input = page.locator('[data-fixture="combobox-announcement-overrides"]').getByRole("combobox")
+  const region = page.locator('[data-slot="combobox-announcement"]')
+  await input.focus(); await page.keyboard.press("F4")
+  await expect(region).toHaveText("DK Destination 1 of 4")
+  await page.keyboard.press("ArrowUp")
+  await expect(region).toHaveText("Destination region Europe")
+})

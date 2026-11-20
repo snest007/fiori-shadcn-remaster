@@ -22,6 +22,12 @@ docker run --rm --init --ipc=host \
     (cd /tmp; grep " $archive\$" node-shasums | sha256sum -c -)
     tar -C /usr/local --strip-components=1 -xf "/tmp/$archive"
     npm install --global pnpm@10.26.2 > /results/setup.log 2>&1
+    # Match ci.yml: preserve ubuntu-latest monospace metrics without apt/system-library installation.
+    curl -fsSL --retry 5 --retry-all-errors --retry-delay 3 https://archive.ubuntu.com/ubuntu/pool/main/f/fonts-dejavu/fonts-dejavu-mono_2.37-8_all.deb -o /tmp/dejavu-mono.deb
+    echo "8a599d6553307db7ecb795d2f0e5a301e03234afc75c7358b0ba43466454c89a  /tmp/dejavu-mono.deb" | sha256sum -c - >> /results/setup.log 2>&1
+    dpkg-deb -x /tmp/dejavu-mono.deb /
+    fc-cache -f
+    fc-match monospace >> /results/setup.log 2>&1
     pnpm install --frozen-lockfile >> /results/setup.log 2>&1
     pnpm generate >> /results/setup.log 2>&1
     pnpm registry:build >> /results/setup.log 2>&1

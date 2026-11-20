@@ -32,6 +32,10 @@ type DndMode = "none" | "drag" | "drop"
 
 const draggingFiles = (e: DragEvent | React.DragEvent) => !!e.dataTransfer && Array.from(e.dataTransfer.types).includes("Files")
 
+/**
+ * @accessibility aria-label names the internal file list; roleDescription describes the upload region. File items own listitem roles and roving tabindex. File names, deleteText/retryText/terminateText and stateTexts name and describe each action/progress state.
+ * @accessibility Up/Down and Home/End move between file items; Tab enters the current item actions. Enter/Space activates; Delete requests deletion. onDropFiles exposes file drops; upload transport/progress are caller-managed.
+ */
 type UploadCollectionProps = React.ComponentProps<"div"> & {
   /** Content above the list (UI5 `header` slot), e.g. a Toolbar with a title and an upload button. */
   header?: React.ReactNode

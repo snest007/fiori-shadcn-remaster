@@ -29,6 +29,7 @@ type ToastPlacement =
   | "bottom-center"
   | "bottom-end"
 
+/** @accessibility Toast announces its children as an alert. Ctrl+Shift+M (Cmd+Shift+M on macOS) focuses the most recent toast; Escape restores prior focus. Hover or focus pauses automatic dismissal. */
 type ToastProps = Omit<React.ComponentProps<"div">, "role"> & {
   open?: boolean
   defaultOpen?: boolean

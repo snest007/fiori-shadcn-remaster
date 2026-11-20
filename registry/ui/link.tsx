@@ -11,6 +11,7 @@ import { Icon } from "@/components/ui/icon"
 
 type LinkDesign = "default" | "subtle" | "emphasized"
 
+/** @accessibility children names the link; provide aria-label for icon-only content. Enter and Space activate it, including action links without href. disabled prevents activation. designText is hidden design guidance appended to the visible text. */
 type LinkProps = React.ComponentProps<"a"> & {
   design?: LinkDesign
   /** "normal" wraps long text; "none" keeps one line and truncates. */

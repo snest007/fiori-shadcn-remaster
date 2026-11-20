@@ -1,7 +1,8 @@
 {
   "title": "Select",
   "dependencies": [
-    "radix-ui"
+    "radix-ui",
+    "react-dom"
   ],
   "registryDependencies": [
     "@petalo/icons",
@@ -10,6 +11,7 @@
     "@petalo/use-is-phone",
     "@petalo/responsive-popover",
     "@petalo/button",
+    "@petalo/title",
     "@petalo/locale"
   ],
   "description": "Fiori select with the SAP keyboard model (arrows change value while closed; F4 / Alt+\u2193 open).",

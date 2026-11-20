@@ -34,6 +34,7 @@ function Card({ accessibleName, texts: textsProp, className, children, ...props 
   )
 }
 
+/** @accessibility accessibleName names the Card region. CardHeader owns a focusable group or button named by titleText and subtitleText; additionalText describes status. Enter/Space activate an interactive header. roleDescription describes its main focus target; icon-only actions need their own aria-label. */
 type CardHeaderProps = Omit<React.ComponentProps<"div">, "title"> & {
   titleText?: React.ReactNode
   subtitleText?: React.ReactNode

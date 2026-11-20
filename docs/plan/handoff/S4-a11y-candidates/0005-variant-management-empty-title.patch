@@ -1,0 +1,16 @@
+--- a/registry/ui/variant-management.tsx
++++ b/registry/ui/variant-management.tsx
+@@ -478,8 +478,11 @@
+       <div className="fiori-vm-trigger" data-modified={modified ? "" : undefined} onClick={(event) => {
+         if (!(event.target as HTMLElement).closest("button")) { triggerRef.current?.focus(); surface === "list" ? setSurface(undefined) : open("list") }
+       }}>
+-        <Title level={level === "Auto" ? "H2" : level} size={titleStyle === "Auto" ? "H5" : titleStyle}
+-          wrappingType="None" className="fiori-vm-title">{selected?.title ?? ""}</Title>
++        {/* OpenUI5 VariantManagement emits an empty heading when no view exists.
++            Keep an empty layout host without heading semantics. */}
++        {selected?.title ? <Title level={level === "Auto" ? "H2" : level} size={titleStyle === "Auto" ? "H5" : titleStyle}
++          wrappingType="None" className="fiori-vm-title">{selected.title}</Title>
++          : <div className="fiori-vm-title" data-slot="variant-management-empty-title" />}
+         <span className="fiori-vm-modified" aria-hidden>{modified ? "*" : null}</span>
+         <PopoverTrigger asChild><Button ref={triggerRef} variant="transparent" size="icon" className="fiori-vm-arrow"
+           title={t("TRIGGER_TT")} aria-label={t(modified ? "SEL_VARIANT_MOD" : "SEL_VARIANT", selected?.title ?? "")}

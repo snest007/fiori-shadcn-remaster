@@ -1,5 +1,6 @@
 {
   "title": "Calendar",
+  "dependencies": ["react-dom"],
   "description": "Fiori calendar: day / month / year / year-range pickers, single, multiple or range selection, week numbers, special days and legend, the SAP keyboard model. Gregorian, Intl-based.",
   "registryDependencies": [
     "@petalo/icons",

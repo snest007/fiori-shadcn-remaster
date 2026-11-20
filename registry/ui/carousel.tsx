@@ -42,6 +42,7 @@ function parseItemsPerPage(spec: string, width: number | undefined) {
   return size("XL")
 }
 
+/** @accessibility accessibleName names the carousel section; listLabel names its item list. Items own positional metadata and visible tab stops. Arrow keys move items, Home/End reach boundaries, PageUp/PageDown jump pages, and F7 moves between an item and its interactive content. previousPageText and nextPageText name arrows. */
 type CarouselProps = Omit<React.ComponentProps<"div">, "onChange"> & {
   /** Wrap around at both ends. */
   cyclic?: boolean

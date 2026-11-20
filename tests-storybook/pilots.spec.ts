@@ -6,7 +6,9 @@ import { attachKnown, classifyViolations } from "./known-issues"
 interface Entry { id: string; type: string; title: string; name: string }
 const entries = Object.values(JSON.parse(readFileSync(new URL("../storybook-static/index.json", import.meta.url), "utf8")).entries) as Entry[]
 const pilots = ["button", "input", "select", "calendar", "data-table", "dialog"]
-const playground = (name: string) => entries.find((entry) => entry.type === "story" && entry.name === "Playground" && entry.id.endsWith(`-${name}--playground`))!
+// Story ids are `<category>-<component>--<story>` and categories are one word. Match the whole component segment:
+// a suffix match on "-dialog--playground" also hit "overlays-adapt-filters-dialog--playground" once S3 added it.
+const playground = (name: string) => entries.find((entry) => entry.type === "story" && entry.name === "Playground" && new RegExp(`^[a-z]+-${name}--playground$`).test(entry.id))!
 const docsId = (name: string) => playground(name).id.replace(/--playground$/, "--docs")
 const appearance = (node: Element) => {
   const owner = node.closest(".fiori-field") ?? node
@@ -101,16 +103,7 @@ for (const name of pilots) {
     await page.mouse.down()
     if (["button", "input", "dialog"].includes(name)) await expect(target).toBeFocused()
     const pointer = await target.evaluate(appearance)
-    const knownFocus: unknown[] = []
-    if (name === "input" && pointer.painted) {
-      // component defect, fixed by E4 — see docs/plan/handoff/S0-a11y-candidates
-      await expect(target).toBeFocused()
-      await expect(target).toHaveAccessibleName("Company")
-      expect(await target.evaluate((node) => node instanceof HTMLInputElement
-        && node.closest('[data-fiori-story="forms-input--playground"]') !== null
-        && node.closest('[data-slot="input"]') === document.querySelector('#storybook-root [data-slot="input"].fiori-field'))).toBe(true)
-      knownFocus.push({ story: "forms-input--playground", phase: "pointer", target: "Company native input", appearance: pointer })
-    } else expect.soft(pointer.painted, "Pointer focus must not paint the keyboard indicator").toBe(false)
+    expect.soft(pointer.painted, "Pointer focus must not paint the keyboard indicator").toBe(false)
     await page.mouse.up()
     if (name === "dialog" || name === "select") {
       await expect(page.locator(name === "dialog" ? '[data-slot="dialog-content"]' : '[data-slot="select-content"]')).toBeVisible()
@@ -135,17 +128,8 @@ for (const name of pilots) {
     await expect.poll(() => page.evaluate(() => Boolean(document.activeElement?.closest(".fiori-story-canvas")))).toBe(true)
     const keyboard = await page.locator("*:focus").evaluate(appearance)
     expect.soft(keyboard.focusVisible).toBe(true)
-    if (name === "data-table" && !keyboard.painted) {
-      // component defect, fixed by E4 — see docs/plan/handoff/S0-a11y-candidates
-      await expect(target).toBeFocused()
-      await expect(target).toHaveAttribute("aria-rowindex", "2")
-      await expect(target).toHaveAttribute("data-pointer-focus", "")
-      expect(await target.evaluate((node) => node === document.querySelector('[data-fiori-story="data-data-table--playground"] [data-slot="table-row"]')
-        && node.getAttribute("role") === "row" && node.textContent?.includes("Notebook Basic 15"))).toBe(true)
-      knownFocus.push({ story: "data-data-table--playground", phase: "keyboard-reentry", target: "Notebook Basic 15 row, aria-rowindex=2", appearance: keyboard })
-    } else expect.soft(keyboard.painted, "Tab must paint the keyboard indicator").toBe(true)
+    expect.soft(keyboard.painted, "Tab must paint the keyboard indicator").toBe(true)
     await testInfo.attach("focus-modality.json", { body: JSON.stringify({ pointer, keyboard }, null, 2), contentType: "application/json" })
-    if (knownFocus.length) await attachKnown(testInfo, "focus-modality", knownFocus)
   })
 }
 
