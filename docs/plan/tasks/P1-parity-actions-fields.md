@@ -10,23 +10,6 @@ run the full tree matrix).
 
 `button`, `segmented-button`, `toggle-button`, `label`, `input`, `textarea`, `checkbox`, `radio-group`, `switch`, `slider`, `rating-indicator`, `step-input`, `select`, `form`.
 
-## Handoff from E4 fourth attempt — 2026-11-18
-
-Both complete E4 acceptance runs found the same additional pixel issue outside its five approved repairs:
-label-custom-host has an exact-width mismatch in all nine tests/visual.spec.ts matrices (four themes ×
-two densities, plus Morning cozy RTL). Morning/Evening React is 174 px cozy / 170 px compact; HCB/HCW is
-178 px cozy / 174 px compact; UI5 is 218 px in every case. Heights match (68 px cozy / 56 px compact).
-All other paired visual cases, including E4's new Dialog/Popover React hosts, pass.
-
-Owning sources: docs/src/fixtures/label.tsx and label.ui5.ts compose a custom label over an unconstrained
-Input in a column. **Hypothesis, not a proven cause:** React Input and UI5 Input have different intrinsic
-widths, and the column inherits them. Inspect the installed UI5 Input CSS and the paired fixture sizing before
-deciding whether the repair belongs to Input's default width or the neutral comparison setup. Keep exact-size
-and 2% gates; don't add a skip/tolerance. E4 did not change Label/Input or these fixtures in its fourth attempt.
-
-Evidence: .integration/E4-evidence/fourth-20261118/main-1/ and main-2/ (full JSON, visual reports/images and logs).
-E4's fourth-attempt scope explicitly sends new findings to their P owner; this issue belongs to **P1**.
-
 ## How
 
 1. Start from the data, not from memory: `node scripts/a11y-baseline.mjs --list P1` (or filter the JSON by
