@@ -1,6 +1,9 @@
 import { createHash } from "node:crypto"
 import { readFileSync } from "node:fs"
 
+// Keep calendar Today labels on the date captured by the initial ratchet.
+export const treeBaselineDate = new Date(2026, 10, 18, 12)
+
 export type BaselineEntry = { matrix: string; caseId: string; path: string; kind: string; owner: string; fingerprint?: string }
 export type TreeBaseline = { version: 1; entries: BaselineEntry[] }
 // docs/plan/README.md wave P is the owning-card map; keep aliases explicit.

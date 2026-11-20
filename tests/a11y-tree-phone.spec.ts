@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { runInNewContext } from "node:vm"
 import { expect, test, type Page } from "@playwright/test"
 import ts from "typescript"
-import { staleCaseCoverage } from "./a11y-tree-baseline"
+import { staleCaseCoverage, treeBaselineDate } from "./a11y-tree-baseline"
 import { writeMatrixCoverage } from "./a11y-tree-coverage"
 import { allowedDifferences, compareCase, recordComparison, writeComparisonReport } from "./a11y-tree-normalize"
 
@@ -72,6 +72,7 @@ test("phone fixture definitions agree with both runtime pages", async ({ browser
   const ours = await browser.newPage(options), reference = await browser.newPage(options)
   try {
     for (const [index, page] of [ours, reference].entries()) {
+      await page.clock.setFixedTime(treeBaselineDate)
       await page.goto(`/${index ? "ui5" : "index"}.html?${query}`)
       await page.waitForSelector("html[data-ready=true]")
       const runtimeIds: string[] = await page.evaluate(() => (window as any).__fixtures.map((entry: any) => entry.id))
@@ -88,6 +89,7 @@ for (const id of [...ids, ...secondary].filter((id) => !process.env.E4_A11Y_CASE
   let stage = "React readiness"
   try {
     for (const [index, page] of [ours, reference].entries()) {
+      await page.clock.setFixedTime(treeBaselineDate)
       stage = index ? "native UI5 readiness" : "React readiness"
       const isSecondary = secondary.includes(id)
       const isTimeView = id === "date-time-picker-phone-time"

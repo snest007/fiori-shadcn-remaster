@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, writeFileSync } from "node:fs"
 import { expect, test } from "@playwright/test"
-import { staleCaseCoverage } from "./a11y-tree-baseline"
+import { staleCaseCoverage, treeBaselineDate } from "./a11y-tree-baseline"
 import { writeMatrixCoverage } from "./a11y-tree-coverage"
 import { allowedDifferences, compareCase, pageAX, writeComparisonReport } from "./a11y-tree-normalize"
 
@@ -9,6 +9,7 @@ for (const direction of ["ltr", "rtl"] as const) test(`all Web Component accessi
     const ours = await browser.newPage(), reference = await browser.newPage()
     const allowed = allowedDifferences("docs/src/fixtures")
     try {
+      await Promise.all([ours.clock.setFixedTime(treeBaselineDate), reference.clock.setFixedTime(treeBaselineDate)])
       const query = `theme=sap_horizon&density=cozy&dir=${direction}`
       await Promise.all([ours.goto(`/index.html?fixtures&${query}`), reference.goto(`/ui5.html?${query}`)])
       await Promise.all([ours.waitForSelector("html[data-ready=true]"), reference.waitForSelector("html[data-ready=true]")])
@@ -38,6 +39,7 @@ for (const direction of ["ltr", "rtl"] as const) test(`all Web Component accessi
           // mount the existing owning fixture alone and capture its real focus.
           const focusedOurs = await browser.newPage(), focusedReference = await browser.newPage()
           try {
+            await Promise.all([focusedOurs.clock.setFixedTime(treeBaselineDate), focusedReference.clock.setFixedTime(treeBaselineDate)])
             await focusedOurs.goto(`/index.html?fixtures&${query}&only=${id}`)
             await focusedOurs.waitForSelector("html[data-ready=true]")
             await expect(focusedOurs.locator(`[data-fixture="${id}"] [data-slot="list-item"]`)).toBeFocused()
