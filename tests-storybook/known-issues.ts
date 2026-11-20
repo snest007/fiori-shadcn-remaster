@@ -2,6 +2,7 @@ import { type Locator, type Page, type TestInfo } from "@playwright/test"
 import { type axeViolations } from "./accessibility"
 
 type Violations = Awaited<ReturnType<typeof axeViolations>>
+
 export interface AuditContext {
   story: string
   theme: string
@@ -389,7 +390,11 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return visible(dialog) && actual === list && !!list && visible(list)
             && !list.hasAttribute("aria-label") && !list.hasAttribute("aria-labelledby") && !list.hasAttribute("title")
             && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
-            && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === "Sort|Filter|Group"
+            // UI5 SegmentedButtonItemTemplate.js puts tabindex on each li role=option: the selected option is the one
+            // Tab stop (0), the others -1; the listbox has none.
+            && !list.hasAttribute("tabindex") && options.filter((option) => option.getAttribute("tabindex") === "0").length === 1
+            && options.every((option) => option.getAttribute("tabindex") === (option.getAttribute("aria-selected") === "true" ? "0" : "-1"))
+            && options.map((option) => option.getAttribute("aria-label")).join("|") === "Sort|Filter|Group"
             && options.length === 3 && options.every((option) => option.hasAttribute("aria-selected"))
         }
         const s3ViewSettingsStories = ["open", "sort-filter-and-group", "descending", "reset-enabled", "custom-texts", "rtl"]
@@ -410,7 +415,11 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return !!dialog && visible(dialog) && actual === list && !!list && visible(list)
             && !list.hasAttribute("aria-label") && !list.hasAttribute("aria-labelledby")
             && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
-            && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === expected
+            // UI5 SegmentedButtonItemTemplate.js puts tabindex on each li role=option: the selected option is the one
+            // Tab stop (0), the others -1; the listbox has none.
+            && !list.hasAttribute("tabindex") && options.filter((option) => option.getAttribute("tabindex") === "0").length === 1
+            && options.every((option) => option.getAttribute("tabindex") === (option.getAttribute("aria-selected") === "true" ? "0" : "-1"))
+            && options.map((option) => option.getAttribute("aria-label")).join("|") === expected
             && options.length === expected.split("|").length && options.every((option) => option.hasAttribute("aria-selected"))
         }
         return false
@@ -545,7 +554,11 @@ export async function classifyS3UnnamedModeControl(control: Locator, context: Au
     return visible(dialog) && actual === list && !!list && visible(list)
       && !list.hasAttribute("aria-label") && !list.hasAttribute("aria-labelledby") && !list.hasAttribute("title")
       && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
-      && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === expected
+      // UI5 SegmentedButtonItemTemplate.js puts tabindex on each li role=option: the selected option is the one
+            // Tab stop (0), the others -1; the listbox has none.
+            && !list.hasAttribute("tabindex") && options.filter((option) => option.getAttribute("tabindex") === "0").length === 1
+            && options.every((option) => option.getAttribute("tabindex") === (option.getAttribute("aria-selected") === "true" ? "0" : "-1"))
+            && options.map((option) => option.getAttribute("aria-label")).join("|") === expected
       && options.length === expected.split("|").length && options.every((option) => option.hasAttribute("aria-selected"))
   }, context)
 }
@@ -584,7 +597,11 @@ async function classifyS3UnnamedPlaygroundModeControl(control: Locator, context:
     return visible(dialog) && actual === list && !!list && visible(list)
       && !list.hasAttribute("aria-label") && !list.hasAttribute("aria-labelledby") && !list.hasAttribute("title")
       && list.getAttribute("aria-orientation") === "horizontal" && list.getAttribute("aria-multiselectable") === "false"
-      && list.getAttribute("tabindex") === "0" && options.map((option) => option.getAttribute("aria-label")).join("|") === "Sort|Filter|Group"
+      // UI5 SegmentedButtonItemTemplate.js puts tabindex on each li role=option: the selected option is the one
+            // Tab stop (0), the others -1; the listbox has none.
+            && !list.hasAttribute("tabindex") && options.filter((option) => option.getAttribute("tabindex") === "0").length === 1
+            && options.every((option) => option.getAttribute("tabindex") === (option.getAttribute("aria-selected") === "true" ? "0" : "-1"))
+            && options.map((option) => option.getAttribute("aria-label")).join("|") === "Sort|Filter|Group"
       && options.length === 3 && options.every((option) => option.hasAttribute("aria-selected"))
   }, context)
 }

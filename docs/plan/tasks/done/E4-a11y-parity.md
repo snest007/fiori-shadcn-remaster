@@ -4,7 +4,7 @@
 > handed-off and named defects**, not "every fixture matches UI5". The whole-library comparison found 794 of 957 paired
 > records with differences and the audit found hundreds of gap rows — that backlog moves to the per-group cards
 > **P1–P6** (`docs/plan/tasks/P*-parity-*.md`). Continue on the retained branch `codex/E4` (`ff09820`) in
-> `.worktrees/E4`: don't start over; keep every verified repair listed in `docs/plan/returns/E4.md`. Where this
+> `.worktrees/E4`: don't start over; keep every verified repair listed in `docs/plan/returns/done/E4.md`. Where this
 > addendum and the sections below conflict, **the addendum wins**.
 >
 > **Ratchet (replaces "pass for every fixture").** Add `tests/a11y-tree-baseline.json`, generated from the current

@@ -5,8 +5,8 @@ tree/audit baselines (977 records, 0 unlisted / 0 stale differences in two tree 
 failed on two checks. The owner's review (2026-11-20) found that **both failures come from E4's own changes**, so they
 are E4's to finish, not P1's/P3's. Owner's decision, 2026-11-20.
 
-Read first: `AGENTS.md` (Verification budget, tiered verification), `docs/plan/tasks/E4-a11y-parity.md`, and the
-"Fourth-attempt result — 2026-11-18" section of `docs/plan/returns/E4.md` **on branch `codex/E4`**.
+Read first: `AGENTS.md` (Verification budget, tiered verification), `docs/plan/tasks/done/E4-a11y-parity.md`, and the
+"Fourth-attempt result — 2026-11-18" section of `docs/plan/returns/done/E4.md` **on branch `codex/E4`**.
 
 ## Where
 
@@ -36,7 +36,7 @@ failure**. Remove the P1/P3 handoff text that the fourth attempt wrote for these
 
 `docs/src/fixtures/label.tsx`, `docs/src/fixtures/label.ui5.ts`, `tests-storybook/known-issues.ts` (E4's classifier
 only), `tests-storybook/known-issues.spec.ts` or `tests-storybook/html-context.spec.ts` (the negative case only),
-`docs/plan/tasks/P1-parity-actions-fields.md` / `P3-parity-data.md` (remove the two handoff notes), `docs/plan/returns/E4.md`,
+`docs/plan/tasks/P1-parity-actions-fields.md` / `P3-parity-data.md` (remove the two handoff notes), `docs/plan/returns/done/E4.md`,
 `docs/plan/README.md`, plus whatever the main merge requires. Nothing else.
 
 ## Budget (hard)
@@ -44,7 +44,7 @@ only), `tests-storybook/known-issues.spec.ts` or `tests-storybook/html-context.s
 About 2 hours. **0 CI pushes.** E4 touches shared files, so card-done verification is the shared-file rule: after the
 two fixes, `tests/a11y-tree.spec.ts` with the baseline **twice**, then the **full main suite once** and the **full
 Storybook suite once** (fresh build). Browsers headless. At a limit: commit, add a short "E4b result" section at the
-top of `docs/plan/returns/E4.md` and stop.
+top of `docs/plan/returns/done/E4.md` and stop.
 
 ## Acceptance
 

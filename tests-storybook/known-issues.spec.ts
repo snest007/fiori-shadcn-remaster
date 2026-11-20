@@ -78,6 +78,18 @@ for (const variant of s3ModeStories) for (const theme of ["sap_horizon", "sap_ho
     expect(await classifyS3UnnamedModeControl(mode, { story: "overlays-view-settings-dialog--playground", theme })).toBe(false)
     expect(await classifyS3UnnamedModeControl(mode, { story, theme, primary: true })).toBe(false)
     expect(await classifyS3UnnamedModeControl(mode, { story, theme: "sap_horizon_dark" })).toBe(false)
+    // UI5 SegmentedButtonItemTemplate.js: the Tab stop is the selected option, never the listbox. The old shape
+    // (tabindex=0 on the listbox) and a Tab stop on an unselected option are both rejected.
+    const options = mode.locator('[role="option"]')
+    await mode.evaluate((node) => node.setAttribute("tabindex", "0"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(false)
+    await mode.evaluate((node) => node.removeAttribute("tabindex"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(true)
+    const unselected = options.and(page.locator('[aria-selected="false"]')).first()
+    await unselected.evaluate((node) => node.setAttribute("tabindex", "0"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(false)
+    await unselected.evaluate((node) => node.setAttribute("tabindex", "-1"))
+    expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(true)
     const opener = page.locator(`#storybook-root [data-fiori-story="${story}"] [data-slot="dialog-trigger"]`)
     await opener.evaluate((node) => node.setAttribute("aria-controls", "foreign-dialog-id"))
     expect(await classifyS3UnnamedModeControl(mode, { story, theme })).toBe(false)

@@ -3,7 +3,7 @@
 > **Split from P2 on 2026-11-17 (owner's decision, X0 approval amendment 2).** Calendar and the date pickers go first so
 > the Calendar extension pilot (H6 → H6b → H6c) isn't blocked behind P2's other 11 components. Runs right after E4 and
 > E5; may run in parallel with P1 and P3–P6 (different files), but never with P2, H6, H6b or H6c on these files.
-> Known items for this group: the Calendar selection announcement (`returns/E4.md`, if E4 doesn't land it) and the
+> Known items for this group: the Calendar selection announcement (`returns/done/E4.md`, if E4 doesn't land it) and the
 > day/month pickers' non-mirrored horizontal arrow keys in RTL (X0 spike README). Week-number defects stay in **H6c**.
 >
 > **Baseline owners.** E4 and E5 were scoped before the split, so their baselines may label these four components'
