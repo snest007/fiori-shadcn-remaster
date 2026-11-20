@@ -474,6 +474,10 @@ function TimeSelectionClocks({
 
 /* ---------------------------------------------------------------- TimePicker */
 
+/**
+ * @accessibility Native aria-label / aria-labelledby / aria-describedby land on the input. pickerLabel names the popup; clockLabels and numericLabels name time controls; submitLabel/cancelLabel name its actions.
+ * @accessibility F4 or Alt+Down/Up toggles the popup; Escape discards the draft and returns focus. PageUp/Down changes hours, Shift minutes, Ctrl/Cmd+Shift seconds. In clocks, arrows and digits edit; colon/Space moves component, A/P picks period, Enter submits.
+ */
 type TimePickerProps = Omit<React.ComponentProps<"input">, "value" | "defaultValue" | "onChange" | "size"> & {
   /** The value as text in `formatPattern`. */
   value?: string

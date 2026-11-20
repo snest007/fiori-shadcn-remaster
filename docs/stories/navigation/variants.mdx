@@ -1,0 +1,76 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Navigation/Variant State" />
+
+# Fiori variant state
+
+`useVariantState` connects controlled FilterBar state to saved views. `localStorageAdapter` optionally persists the views in this browser. This library has no stories; use the VariantManagement and List Report examples to explore the controls.
+
+## Install
+
+```sh
+npx shadcn add @petalo/variants
+```
+
+## Connect the model
+
+```tsx
+import { FilterBar } from "@/components/ui/filter-bar"
+import { VariantManagement } from "@/components/ui/variant-management"
+import { useVariantState, type Variant } from "@/lib/fiori-variants"
+
+const initialVariants: Variant[] = [
+  {
+    key: "standard",
+    title: "All orders",
+    state: { values: {}, visibleKeys: [], search: "" },
+    default: true,
+  },
+]
+
+export function OrderViews() {
+  const views = useVariantState({ initialVariants })
+  return (
+    <FilterBar
+      state={views.state}
+      onStateChange={views.setState}
+      initialState={views.savedState}
+      variantManagement={
+        <VariantManagement
+          items={views.variants}
+          selectedKey={views.selectedKey}
+          defaultKey={views.defaultKey}
+          modified={views.modified}
+          onSelect={({ key }) => views.selectVariant(key)}
+          onSave={views.saveVariant}
+          onManage={views.manageVariants}
+        />
+      }
+    />
+  )
+}
+```
+
+Initial variants are read once. Include `key: "standard"` to choose the application's baseline and translated title. Standard always exists and cannot be renamed or removed. `state` contains condition arrays in `values`, ordered `visibleKeys`, and the basic `search` text. `savedState` is the selected view's reset baseline; editing current state updates `modified`.
+
+## Optional persistence
+
+```tsx
+import { localStorageAdapter, useVariantState } from "@/lib/fiori-variants"
+
+const storage = localStorageAdapter("purchasing-order-views")
+// Inside your component:
+const views = useVariantState({ initialVariants, storage })
+```
+
+A `VariantStorage` adapter exposes asynchronous `load(): Promise<Variant[]>` and `save(variants): Promise<void>`. Replace it with an application service when views must be shared or stored outside this browser. Prevent edits until `ready` is true, show saving activity with `saving`, and handle `error` in the application. `localStorageAdapter` validates stored records and may report invalid JSON or storage errors.
+
+## Execute and manage
+
+`onExecute(state)` runs after applying a view with `executeOnSelect`, including the initial default. Coordinate it with a live-mode FilterBar to avoid executing the same search twice. Save/Save As and sparse Manage events update the model; stable keys identify entries. Deleting the selected view restores the current default view, which is Standard unless the user chose another default.
+
+## Accessibility and localization
+
+The hook adds no DOM or keyboard shortcuts. Preserve VariantManagement's names, focus handling, and FilterBar's labels when connecting them. Translate inline view titles; override the controls' `texts` props for their default UI strings. The model stores values without formatting them for display.
+
+Source: `registry/lib/fiori-variants.ts` and the installed OpenUI5 1.154 VariantModel / VariantManagement behavior.

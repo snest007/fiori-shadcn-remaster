@@ -1,0 +1,13 @@
+--- a/registry/ui/view-settings-dialog.tsx
++++ b/registry/ui/view-settings-dialog.tsx
+@@ -444,7 +444,9 @@
+           </div>
+           {!stepTwo && pagination && (
+             <div className="fiori-vsd__sub-header">
+-              <SegmentedButton value={mode} onValueChange={(v) => setMode(v as Mode)}>
++              {/* UI5 ViewSettingsDialogTemplateHeader also leaves this listbox unnamed.
++                  Name this component-owned mode list with the overridable dialog title. */}
++              <SegmentedButton aria-label={t.title} value={mode} onValueChange={(v) => setMode(v as Mode)}>
+                 {modes.map((m) => {
+                   const tip = { sort: t.sortTooltip, filter: t.filterTooltip, group: t.groupTooltip }[m]
+                   return (

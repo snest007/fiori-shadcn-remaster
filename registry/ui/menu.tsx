@@ -266,6 +266,7 @@ function surfaceKeyDown(e: React.KeyboardEvent<HTMLDivElement>, surface: Surface
   if (next >= 0) { e.preventDefault(); e.stopPropagation(); items[next].focus({ preventScroll: true }) }
 }
 
+/** @accessibility Name MenuContent with aria-label; its menu items own roles, aria-checked and roving focus. Arrow Up/Down and Home/End move between items, Enter/Space activate, direction-aware arrows open submenus, and Escape returns focus to the trigger. */
 type MenuContentProps = React.ComponentProps<typeof MenuPrimitive.Content> & {
   /** Render in place instead of in a portal on document.body. */ portal?: boolean
   /** Don't move focus into the menu on open. UI5 normally focuses the first item for mouse too. */ preventInitialFocus?: boolean

@@ -32,6 +32,7 @@ const TITLE_SIZE: Record<Media, TitleLevel> = { base: "H5", dot: "H5", spot: "H4
 
 const mediaForWidth = (w: number): Media => BREAKPOINTS.find(([max]) => w <= max)?.[1] ?? "scene"
 
+/** @accessibility accessibleName names the illustration image; decorative hides only the illustration. titleLevel sets the semantic heading; titleText/subtitleText override the illustration defaults, and action children need accessible names. Base design hides actions. */
 type IllustratedMessageProps = Omit<React.ComponentProps<"div">, "title"> & {
   /** The illustration, e.g. `import NoData from "@/lib/fiori-illustrations/NoData"`. */
   illustration: IllustrationData

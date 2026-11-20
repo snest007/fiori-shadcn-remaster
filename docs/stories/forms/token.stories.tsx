@@ -1,6 +1,6 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { useArgs } from "storybook/preview-api"
+import { useArgs, useState } from "storybook/preview-api"
 import { fn } from "storybook/test"
 import { Token, type TokenProps } from "@/components/ui/token"
 import { Tokenizer } from "@/components/ui/tokenizer"
@@ -36,7 +36,7 @@ const meta = {
   argTypes: { ...base.argTypes, text: { control: "text" }, value: { control: "text" }, selected: { control: "boolean" }, readOnly: { control: "boolean" }, disabled: { control: "boolean", description: "Show the token in a disabled Tokenizer, as in UI5." }, deleteLabel: { control: "text" }, description: { control: "text" }, tabIndex: { control: false, table: { disable: true } }, onSelectedChange: { control: false }, onDelete: { control: false } },
   render: function CountryToken(args: Args) {
     const [, updateArgs] = useArgs<Args>()
-    const [removed, setRemoved] = React.useState(false)
+    const [removed, setRemoved] = useState(false)
     const { disabled, ...props } = args
     return <div className="flex items-center gap-3">{disabled
       ? <Tokenizer aria-label="Delivery countries" disabled><Token {...props} /></Tokenizer>

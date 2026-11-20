@@ -1,0 +1,33 @@
+--- a/registry/blocks/list-report.tsx
++++ b/registry/blocks/list-report.tsx
+@@ -147,7 +147,8 @@
+     <div className="h-screen" inert={!views.ready ? true : undefined} data-variants-ready={views.ready ? "" : undefined} data-variants-saving={views.saving ? "" : undefined} aria-busy={!views.ready || views.saving}>
+       <DynamicPage
+         id="list-report"
+-        accessibilityAttributes={{ root: { role: "main", name: "Manage Products" } }}
++        accessibilityAttributes={{ /* DynamicPageTemplate.js defaults header to banner: invalid inside main. */
++          root: { role: "main", name: "Manage Products" }, header: { role: "region" } }}
+         showFooter={selected.length > 0}
+         title={
+           <DynamicPageTitle
+--- a/registry/blocks/object-page-floorplan.tsx
++++ b/registry/blocks/object-page-floorplan.tsx
+@@ -82,7 +82,8 @@
+     <div className="h-screen">
+       <ObjectPage
+         id="object-page-block"
+-        accessibilityAttributes={{ root: { role: "main", name: "Sales Order" } }}
++        accessibilityAttributes={{ /* DynamicPageTemplate.js defaults header to banner: invalid inside main. */
++          root: { role: "main", name: "Sales Order" }, header: { role: "region" } }}
+         showFooter={editing}
+         title={
+           <DynamicPageTitle
+@@ -146,7 +147,7 @@
+       >
+         <ObjectPageSection id="general" titleText="General Information">
+           <ObjectPageSubSection>
+-            <Form layout="S1 M2 L2 XL2" labelSpan="S12 M12 L12 XL12" accessibleMode={editing ? "edit" : "display"} accessibleName="General Information">
++            <Form layout="S1 M2 L2 XL2" labelSpan="S12 M12 L12 XL12" accessibleMode={editing ? "edit" : "display"} accessibleName="General Information Form">
+               <FormGroup headerText="Order Details">{FIELDS.filter((f) => f.group === "order").map(field)}</FormGroup>
+               <FormGroup headerText="Terms">{FIELDS.filter((f) => f.group === "terms").map(field)}</FormGroup>
+             </Form>

@@ -1,0 +1,15 @@
+--- a/registry/styles/components/object-number.css
++++ b/registry/styles/components/object-number.css
+@@ -97,6 +97,12 @@
+ .fiori-object-number[data-inverted][data-state="positive"] { --fiori-x-on-inv-bg: var(--sapButton_Success_Background); --fiori-x-on-inv-border: var(--sapButton_Success_BorderColor); --fiori-x-on-inv-color: var(--sapButton_Success_TextColor); }
+ .fiori-object-number[data-inverted][data-state="information"] { --fiori-x-on-inv-bg: var(--sapButton_Information_Background); --fiori-x-on-inv-border: var(--sapButton_Information_BorderColor); --fiori-x-on-inv-color: var(--sapButton_Information_TextColor); }
+ 
++/* OpenUI5 Horizon ObjectNumber.less: objectNumberStatusMixIn(Error, Warning,
++   Success) uses sapContent_ContrastTextShadow for inverted number/unit text. */
++[data-theme="sap_horizon"] .fiori-object-number[data-inverted]:is([data-state="negative"], [data-state="critical"], [data-state="positive"]) :is(.fiori-object-number__text, .fiori-object-number__unit) {
++  text-shadow: var(--sapContent_ContrastTextShadow);
++}
++
+ /* Active */
+ .fiori-object-number[data-active] .fiori-object-number__inner {
+   cursor: pointer;

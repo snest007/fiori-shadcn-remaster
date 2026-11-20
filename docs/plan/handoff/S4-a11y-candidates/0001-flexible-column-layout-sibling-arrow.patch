@@ -1,0 +1,40 @@
+--- a/registry/ui/flexible-column-layout.tsx
++++ b/registry/ui/flexible-column-layout.tsx
+@@ -665,7 +665,12 @@
+     >
+       <div className="fiori-fcl__root">
+         {column(START)}
+-        <div {...separatorProps("start", seps[0].visible, startGrip, startValue)}>
++        {/* UI5 FlexibleColumnLayoutTemplate.js nests arrowStart under a separator.
++            Keep both focusable controls as siblings without dropping either role. */}
++        <div className="fiori-fcl__start-separator-frame relative flex shrink-0"
++          data-has-arrow={startArrow ? "" : undefined}
++          style={{ display: seps[0].visible ? "flex" : "none" }}>
++          <div {...separatorProps("start", seps[0].visible, startGrip, startValue)}>{grip(startGrip)}</div>
+           {startArrow && (
+             <Button
+               variant="transparent"
+@@ -678,7 +683,6 @@
+               <Icon icon={seps[0].arrowDirection === "backward" ? slimArrowLeft : slimArrowRight} />
+             </Button>
+           )}
+-          {grip(startGrip)}
+         </div>
+         {column(MID)}
+         <div {...separatorProps("end", seps[1].visible, endGrip, endValue)}>{grip(endGrip)}</div>
+--- a/registry/styles/components/flexible-column-layout.css
++++ b/registry/styles/components/flexible-column-layout.css
+@@ -81,10 +81,12 @@
+   background-size: 0.0625rem 100%;
+   background-position-x: calc(50% - 0.03125rem);
+ }
++.fiori-fcl__start-separator-frame:hover .fiori-fcl__grip::before,
++.fiori-fcl__start-separator-frame:hover .fiori-fcl__grip::after,
+ .fiori-fcl__separator:hover .fiori-fcl__grip::before,
+ .fiori-fcl__separator:hover .fiori-fcl__grip::after {
+   height: calc(50% - 1rem);
+ }
+-.fiori-fcl__separator:hover .fiori-fcl__arrow + .fiori-fcl__grip::before {
++.fiori-fcl__start-separator-frame[data-has-arrow]:hover .fiori-fcl__grip::before {
+   height: calc(40% - 1rem);
+ }

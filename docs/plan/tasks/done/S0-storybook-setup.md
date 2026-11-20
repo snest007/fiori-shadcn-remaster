@@ -85,7 +85,12 @@ required, stop and explain why in your final message instead of adding it.
 - **Compositions** where the component is meant to be used with others (Form with fields, Dialog with footer Bar,
   Table with Toolbar), as real-world examples — short, English, realistic data.
 - **Controlled behaviour works**: stories that need state use `useArgs()` or a small wrapper with `React.useState` so
-  typing, selecting and toggling behave as in an app.
+  typing, selecting and toggling behave as in an app. Owner's clarification (2026-11-18): a render function that
+  calls `useArgs()` uses `storybook/preview-api` hooks (`useState`, `useEffect`, `useRef`…) for its own state, never
+  React's, because Storybook throws when both are mixed. **"Show code" is copy-pasteable** means it shows the real
+  component usage (imports, props, JSX, data) a reader adapts to their app; it may contain the story's Storybook
+  state plumbing (`useArgs`, `storybook/preview-api`, `fn()`) and is not required to run unchanged outside
+  Storybook. That is how `.storybook/story-source.ts` has worked since S0; it is not a shared-setup defect.
 - **Overlays** (Dialog, Popover, Menu, pickers, value help, …): a trigger story *and* an `Open` story rendered open
   (`defaultOpen`/`open` arg) with `parameters.docs.story = { inline: false, height: "<px>" }` so the docs page shows the
   open surface without covering other stories.

@@ -356,6 +356,10 @@ function handleNavigationKey(e: React.KeyboardEvent, core: ListCore, opts?: { gr
 // ---------------------------------------------------------------------------------------------
 // List
 
+/**
+ * @accessibility aria-label / aria-labelledby name the internal list/listbox. accessibleRole chooses listitem or option semantics. ListItemCustom preserves owned roles, selection state and roving tabindex; selectedText/notSelectedText and deleteText/detailText name item actions.
+ * @accessibility Items form one Tab stop. Up/Down, Home/End and PageUp/Down move items. Enter/Space activates or selects; Delete requests deletion. Tab enters custom controls and returns to list navigation; movable items request order changes with Ctrl/Cmd+arrows or Home/End.
+ */
 type ListProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & FioriMoveHandlers & {
   texts?: Partial<ListTexts>
   /** Locale used by the default group-count descriptions. */
@@ -888,7 +892,7 @@ type ListItemBaseProps = Omit<React.ComponentProps<"li">, "value" | "type" | "co
   movable?: boolean
   /** Fired by the edit button of `type="detail"` items. */
   onDetailClick?: () => void
-  /** Tooltip / accessible description of the detail button (default "Edit"). */
+  /** Accessible name of the internal detail-action button; defaults to "Edit". API extension: UI5 ListItemTemplate renders an icon-only detail button without an i18n text key. */
   detailText?: string
 }
 

@@ -6,6 +6,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/** @accessibility Active BusyIndicator exposes aria-busy and a progressbar named by text or title. Wrapped content becomes inert while busy. Keep the loading trigger outside the busy region so keyboard users can stop or retry loading. */
 type BusyIndicatorProps = React.ComponentProps<"div"> & {
   /** Shows the indicator (after `delay`). Content passed as children is dimmed and made inert. */
   active?: boolean

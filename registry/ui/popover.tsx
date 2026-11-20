@@ -43,6 +43,7 @@ function PopoverAnchor(props: React.ComponentProps<typeof PopoverPrimitive.Ancho
   return <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
 }
 
+/** @accessibility PopoverContent is a named dialog, using PopoverTitle or aria-label on the surface. Tab reaches content, Escape dismisses it and returns focus to PopoverTrigger; modal controls the focus trap. */
 type PopoverContentProps = React.ComponentProps<typeof PopoverPrimitive.Content> & {
   /** Hide the arrow that points at the opener (ui5-popover `hide-arrow`). */
   hideArrow?: boolean

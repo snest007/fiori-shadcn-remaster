@@ -1,0 +1,135 @@
+--- a/registry/ui/side-navigation.tsx
++++ b/registry/ui/side-navigation.tsx
+@@ -3,6 +3,7 @@
+ // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
+ 
+ import * as React from "react"
++import { createPortal } from "react-dom"
+ import { isF6NavigationKey } from "@/lib/fiori-f6"
+ 
+ // UI5 2.28 SideNavigation fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
+@@ -470,13 +471,24 @@
+   return keyboard
+ }
+ 
+-function OverflowFocusBoundary() {
+-  return <div role="none" tabIndex={0} data-sn-focus-boundary="" className="fixed" onFocus={(e) => {
+-    // ListTemplate.js renders tabbable before/after dummies. List.js _onfocusin forwards
+-    // either boundary to its first focusable row when no Tab-forwarded previous row exists.
++function OverflowFocusBoundary({ menuRef, side }: { menuRef: React.RefObject<HTMLElement | null>; side: "before" | "after" }) {
++  const [container, setContainer] = React.useState<HTMLElement | null>(null)
++  React.useLayoutEffect(() => {
++    const menu = menuRef.current
++    if (!menu?.parentElement) return
++    // UI5 ListTemplate.js places its forwarding dummies outside the role=menu UL.
++    const host = document.createElement("div")
++    host.style.display = "contents"
++    host.dataset.snFocusBoundaryOwner = menu.id
++    menu.parentElement.insertBefore(host, side === "before" ? menu : menu.nextSibling)
++    setContainer(host)
++    return () => { host.remove() }
++  }, [menuRef, side])
++  return container ? createPortal(<div role="none" tabIndex={0} data-sn-focus-boundary="" className="fixed" onFocus={(e) => {
++    // List.js/_onfocusin forwards both boundary dummies to the owned first row.
+     e.stopPropagation()
+-    e.currentTarget.closest("[data-sn-overflow-menu]")?.querySelector<HTMLElement>("[data-sn-menu-row]")?.focus({ preventScroll: true })
+-  }} />
++    menuRef.current?.querySelector<HTMLElement>("[data-sn-menu-row]")?.focus({ preventScroll: true })
++  }} />, container) : null
+ }
+ 
+ function OverflowLink({ item, children }: { item: SideNavigationItemProps; children: React.ReactElement }) {
+@@ -595,7 +607,8 @@
+           onFocusOutside={(e) => {
+             // Nested Tab keeps its browser default while MenuItem.js restores its parent
+             // after rendering. Do not dismiss the root during that transient focus transfer.
+-            if (keyboard.current.restoringFocus || keyboard.current.nativeTabFocus) e.preventDefault()
++            if ((e.target as HTMLElement)?.closest("[data-sn-focus-boundary-owner]")?.getAttribute("data-sn-focus-boundary-owner") === menuRef.current?.id
++              || keyboard.current.restoringFocus || keyboard.current.nativeTabFocus) e.preventDefault()
+           }}
+           onCloseAutoFocus={(e) => {
+             // SideNavigation.js _onMenuClose: after selection focus the newly visible selected
+@@ -604,13 +617,13 @@
+             e.preventDefault()
+             if (listRef.current) listItems(listRef.current).find((item) => item.getAttribute("aria-current") === "page")?.focus({ preventScroll: true })
+           }}>
+-          <OverflowFocusBoundary />
++          <OverflowFocusBoundary menuRef={menuRef} side="before" />
+           {/* ListTemplate.js/List.css.js wrap rows in an overflow:auto scroll container,
+               which also clips the outer href anchor's native focus outline. */}
+           <MenuGroup className="overflow-auto">
+             {menuItems.map((item, i) => <OverflowMenuItem key={i} item={item} keyboard={keyboard} onSelected={() => { selectedFromMenu.current = true }} close={() => setOpen(false)} />)}
+           </MenuGroup>
+-          <OverflowFocusBoundary />
++          <OverflowFocusBoundary menuRef={menuRef} side="after" />
+         </MenuContent>
+       </Menu>
+     </div>
+@@ -755,14 +768,15 @@
+       {!item.unselectable && <span id={descriptionId} className="fiori-sn-hidden-text">{root.texts.overflowParentDescription}</span>}
+       <MenuSubContent ref={submenuRef} data-sn-overflow-menu="" aria-label={item.accessibleName || item.text} aria-labelledby={undefined} className="fiori-sn-menu"
+         onFocusOutside={(e) => {
+-          if (keyboard.current.nativeTabFocus) e.preventDefault()
++          if ((e.target as HTMLElement)?.closest("[data-sn-focus-boundary-owner]")?.getAttribute("data-sn-focus-boundary-owner") === submenuRef.current?.id
++            || keyboard.current.nativeTabFocus) e.preventDefault()
+         }}>
+-        <OverflowFocusBoundary />
++        <OverflowFocusBoundary menuRef={submenuRef} side="before" />
+         <MenuGroup className="overflow-auto">
+           {!item.unselectable && <OverflowMenuItem item={item} keyboard={keyboard} parentRow inSubmenu onSelected={onSelected} close={close} />}
+           {subs.map((sub, i) => <OverflowMenuItem key={i} item={{ ...sub, disabled: item.disabled || sub.disabled }} keyboard={keyboard} inSubmenu onSelected={onSelected} close={close} />)}
+         </MenuGroup>
+-        <OverflowFocusBoundary />
++        <OverflowFocusBoundary menuRef={submenuRef} side="after" />
+       </MenuSubContent>
+     </MenuSub>
+   )
+@@ -1181,7 +1195,7 @@
+   const external = !!href && target === "_blank"
+   const activation = useActivation({ value, disabled, unselectable, href: effectiveHref, onClick })
+   const describe = !disabled && hasSubs && !unselectable && !mode.inPopover
+-  const describedBy = [tag ? `${id}-tag` : "", describe ? `${id}-desc` : ""].filter(Boolean).join(" ") || undefined
++  const describedBy = [tag && accessibleName ? `${id}-tag` : "", describe ? `${id}-desc` : ""].filter(Boolean).join(" ") || undefined
+   // In the popover an unselectable parent is just a heading: not focusable, sub-items take focus.
+   const popoverHeading = mode.inPopover && unselectable && hasSubs
+ 
+@@ -1216,7 +1230,7 @@
+         aria-expanded={hasSubs && !mode.inPopover ? expanded : hasSubs ? true : undefined}
+         aria-owns={hasSubs && expanded ? `${id}-group` : undefined}
+         aria-label={accessibleName}
+-        aria-labelledby={accessibleName ? undefined : `${id}-text`}
++        aria-labelledby={accessibleName ? undefined : [`${id}-text`, tag ? `${id}-tag` : ""].filter(Boolean).join(" ")}
+         aria-describedby={describedBy}
+         title={tooltip}
+         href={effectiveHref}
+@@ -1376,8 +1390,8 @@
+         aria-haspopup={!disabled && hasSubs ? "tree" : undefined}
+         aria-expanded={!disabled && hasSubs ? open : undefined}
+         aria-label={accessibleName}
+-        aria-labelledby={accessibleName ? undefined : `${key}-text`}
+-        aria-describedby={tag ? `${key}-tag` : undefined}
++        aria-labelledby={accessibleName ? undefined : [`${key}-text`, tag ? `${key}-tag` : ""].filter(Boolean).join(" ")}
++        aria-describedby={tag && accessibleName ? `${key}-tag` : undefined}
+         title={tooltip}
+         href={effectiveHref}
+         target={effectiveHref ? target : undefined}
+@@ -1515,8 +1529,8 @@
+         aria-current={isSelected ? "page" : undefined}
+         aria-disabled={disabled || undefined}
+         aria-label={accessibleName}
+-        aria-labelledby={accessibleName ? undefined : `${id}-text`}
+-        aria-describedby={tag ? `${id}-tag` : undefined}
++        aria-labelledby={accessibleName ? undefined : [`${id}-text`, tag ? `${id}-tag` : ""].filter(Boolean).join(" ")}
++        aria-describedby={tag && accessibleName ? `${id}-tag` : undefined}
+         title={tooltip}
+         href={effectiveHref}
+         target={effectiveHref ? target : undefined}
+--- a/registry/items/side-navigation.json
++++ b/registry/items/side-navigation.json
+@@ -1,5 +1,6 @@
+ {
+   "title": "SideNavigation",
++  "dependencies": ["react-dom"],
+   "registryDependencies": ["@petalo/icons", "@petalo/popover", "@petalo/menu", "@petalo/f6-navigation"],
+   "description": "Fiori side navigation: groups, items and sub-items as a keyboard tree; collapsed icon mode with sub-item popovers and a height-aware overflow menu; fixed footer items (ui5-side-navigation).",
+   "usage": {

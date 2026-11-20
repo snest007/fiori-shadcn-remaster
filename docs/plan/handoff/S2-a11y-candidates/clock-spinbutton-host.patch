@@ -1,0 +1,22 @@
+--- a/registry/ui/time-picker.tsx
++++ b/registry/ui/time-picker.tsx
+@@ -404,7 +404,9 @@
+           {entities.map((ent, i) => (
+             <React.Fragment key={ent.entity}>
+               {i > 0 && <span className="fiori-time-selection-separator">:</span>}
+-              <Button
++              {/* UI5 2.28 ToggleSpinButton.effectiveAccRole and ButtonTemplate use spinbutton
++                  on button, an upstream ARIA-in-HTML defect. Keep the keyboard model/range on a valid generic host. */}
++              <Button asChild tabIndex={0}
+                 data-clock-button={ent.entity}
+                 role="spinbutton"
+                 aria-label={ent.label}
+@@ -423,7 +425,7 @@
+                 onFocus={() => i !== active && switchTo(i, false)}
+                 onClick={() => i !== active && switchTo(i, false)}
+               >
+-                {ent.stringValue}
++                <div>{ent.stringValue}</div>
+               </Button>
+             </React.Fragment>
+           ))}
