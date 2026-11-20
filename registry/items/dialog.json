@@ -1,7 +1,14 @@
 {
   "title": "Dialog",
-  "dependencies": ["radix-ui"],
-  "registryDependencies": ["@petalo/icons", "@petalo/input", "@petalo/popover"],
+  "dependencies": [
+    "radix-ui"
+  ],
+  "registryDependencies": [
+    "@petalo/icons",
+    "@petalo/input",
+    "@petalo/popover",
+    "@petalo/locale"
+  ],
   "description": "Fiori modal dialog with header/footer bars and Negative/Critical/Positive/Information states (ui5-dialog).",
   "usage": {
     "summary": "Pause the current task for a focused decision, confirmation or contained editing task.",

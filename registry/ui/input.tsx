@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 InputPopoverTemplate/Popup.onEnterDOM: the standalone value-state message is a Popup scope.
 
@@ -30,11 +31,14 @@ type ValueState = "none" | "negative" | "critical" | "positive" | "information"
 
 const valueStateIcons = { negative: error, critical: alert, positive: sysEnter2, information: information }
 const valueStateDefaultText: Record<Exclude<ValueState, "none">, string> = {
-  negative: "Invalid entry",
-  critical: "Warning issued",
-  positive: "Entry successfully validated",
-  information: "Informative entry",
+  negative: "Invalid entry", // UI5 VALUE_STATE_ERROR
+  critical: "Warning issued", // UI5 VALUE_STATE_WARNING
+  positive: "Entry successfully validated", // UI5 VALUE_STATE_SUCCESS
+  information: "Informative entry", // UI5 VALUE_STATE_INFORMATION
 }
+type InputTexts = typeof valueStateDefaultText
+const valueStateTextKeys = { negative: "VALUE_STATE_ERROR", critical: "VALUE_STATE_WARNING", positive: "VALUE_STATE_SUCCESS", information: "VALUE_STATE_INFORMATION" } as const
+function useValueStateTexts(texts?: Partial<InputTexts>) { return useFioriTexts(valueStateDefaultText, valueStateTextKeys, texts) }
 
 /**
  * @accessibility Tab reaches the inner native input. Connect Label.htmlFor to Input.id, or pass aria-label / aria-labelledby; these native ARIA props land on the input, not its visual wrapper.
@@ -51,6 +55,8 @@ type InputProps = Omit<React.ComponentProps<"input">, "size"> & {
   /** Trailing content inside the field, e.g. a value-help <InputIcon>. */
   icon?: React.ReactNode
   wrapperClassName?: string
+  /** UI5 value-state texts; explicit valueStateMessage has precedence. */
+  texts?: Partial<InputTexts>
 }
 
 // Mirrors ui5-input (Horizon): bottom-border field, inner focus ring, value states with a
@@ -60,6 +66,7 @@ function Input({
   wrapperClassName,
   valueState = "none",
   valueStateMessage,
+  texts: textsProp,
   icon,
   disabled,
   readOnly,
@@ -67,10 +74,11 @@ function Input({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: InputProps) {
+  const texts = useValueStateTexts(textsProp)
   const autoId = React.useId()
   const messageId = `${id ?? autoId}-vsm`
   const hasState = valueState !== "none"
-  const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
+  const message = valueStateMessage === undefined && hasState ? texts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
 
   return (
@@ -127,4 +135,4 @@ function InputIcon({ className, ...props }: InputIconProps) {
   return <span data-slot="input-icon" className={cn("fiori-field__icon", className)} {...props} />
 }
 
-export { Input, InputIcon, valueStateIcons, valueStateDefaultText, type InputProps, type ValueState }
+export { Input, InputIcon, useValueStateTexts, valueStateIcons, valueStateDefaultText, type InputTexts, type InputProps, type ValueState }

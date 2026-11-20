@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 import {
   createColumnHelper,
   createSortedRowModel,
@@ -127,11 +128,14 @@ function DataTable<TData extends RowData>({
   style,
   ...props
 }: DataTableProps<TData>) {
-  const texts = { ...defaultDataTableTexts, ...dataTableTexts }
+  const { locale, localized } = useFioriLocale(props.locale)
+  const collator = React.useMemo(() => new Intl.Collator(locale, { sensitivity: "base" }), [locale])
+  const texts = useFioriTexts(defaultDataTableTexts, defaultDataTableTextsKeys, dataTableTexts, props.locale)
   const [uncontrolledSorting, setUncontrolledSorting] = React.useState<SortingState>(defaultSorting ?? [])
   const sorting = sortingProp ?? uncontrolledSorting
   const table = useTable({
     features,
+    defaultColumn: localized ? { sortFn: (rowA, rowB, columnId) => { const a = rowA.getValue(columnId), b = rowB.getValue(columnId); return typeof a === "string" && typeof b === "string" ? collator.compare(a, b) : Number(a) - Number(b) } } : undefined,
     columns,
     data,
     getRowId: getRowId ? (row: TData, index: number) => getRowId(row, index) : undefined,
@@ -290,3 +294,9 @@ function SortableHeaderCell({ trigger, sorted, texts, onSort, children, classNam
 }
 
 export { DataTable, createDataTableColumnHelper, defaultDataTableTexts, type DataTableProps, type DataTableColumnDef, type DataTableColumnMeta, type DataTableFeatures, type DataTableTexts }
+
+// UI5 keys resolved at their rendered/announced owner.
+const defaultDataTableTextsKeys = {
+  "sortAscending": "TBL_SORT_ASC",
+  "sortDescending": "TBL_SORT_DESC"
+} as const

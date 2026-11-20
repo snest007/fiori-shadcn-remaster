@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 Table fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -203,6 +204,7 @@ type TableProps = Omit<React.ComponentProps<"div">, "onSelect"> & FioriMoveHandl
   /** The element with role="grid" (the scroll container in virtual mode). */
   gridRef?: React.Ref<HTMLDivElement>
   /** Override any built-in text (accessibility texts included). */
+  locale?: string
   texts?: Partial<TableTexts>
 }
 
@@ -231,6 +233,7 @@ function Table({
   virtualRows,
   gridRef,
   texts: textsProp,
+  locale: localeProp,
   className,
   style,
   children,
@@ -249,7 +252,7 @@ function Table({
   onDrop,
   ...props
 }: TableProps) {
-  const texts = React.useMemo(() => ({ ...defaultTableTexts, ...textsProp }), [textsProp])
+  const texts = useFioriTexts(defaultTableTexts, defaultTableTextsKeys, textsProp, localeProp)
   const rootRef = React.useRef<HTMLDivElement>(null)
   const gridEl = React.useRef<HTMLDivElement>(null)
   const beforeRef = React.useRef<HTMLDivElement>(null)
@@ -1667,3 +1670,28 @@ export {
   type TableRowHighlight,
   type SortIndicator,
 }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTableTextsKeys = {
+  "noData": "TABLE_NO_DATA",
+  "more": "TABLE_MORE",
+  "moreDescription": "TABLE_MORE_DESCRIPTION",
+  "selection": "TABLE_SELECTION",
+  "rowSelector": "TABLE_ROW_SELECTOR",
+  "selectAll": "TABLE_SELECT_ALL_ROWS",
+  "deselectAll": "TABLE_DESELECT_ALL_ROWS",
+  "selectAllDescription": "TABLE_COLUMNHEADER_SELECTALL_DESCRIPTION",
+  "clearAllDescription": "TABLE_COLUMNHEADER_CLEARALL_DESCRIPTION",
+  "checked": "CHECKBOX_CHECKED",
+  "notChecked": "CHECKBOX_NOT_CHECKED",
+  "disabled": "ACC_STATE_DISABLED",
+  "multiSelectable": "TABLE_MULTI_SELECTABLE",
+  "singleSelectable": "TABLE_SINGLE_SELECTABLE",
+  "rowActions": "TABLE_ROW_ACTIONS",
+  "rowPopin": "TABLE_ROW_POPIN",
+  "columnHeaderRow": "TABLE_COLUMN_HEADER_ROW",
+  "groupRow": "TABLE_GROUP_ROW",
+  "moreActions": "TABLE_ROW_OVERFLOW_BUTTON",
+  "navigation": "TABLE_NAVIGATION",
+  "colon": "LABEL_COLON"
+} as const

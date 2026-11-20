@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { DropdownMenu as MenuPrimitive, Slot } from "radix-ui"
 
@@ -16,6 +17,9 @@ import { useIsPhone } from "@/lib/use-is-phone"
 import { Button } from "@/components/ui/button"
 import { ResponsivePopover, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
 import { Icon } from "@/components/ui/icon"
+
+// Bundlers replace NODE_ENV. Browser-only registry consumers can typecheck without Node types.
+declare const process: { env: { NODE_ENV?: string } }
 
 type CheckMode = "none" | "single" | "multiple"
 type CheckProps = { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void }
@@ -274,7 +278,10 @@ type MenuContentProps = React.ComponentProps<typeof MenuPrimitive.Content> & {
   headerText?: string
   cancelLabel?: string
 }
-function MenuContent({ className, side = "bottom", align = "start", sideOffset = 0, collisionPadding = 10, portal = true, preventInitialFocus = false, headerText = "", cancelLabel = "Cancel", ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: MenuContentProps) {
+function MenuContent({ className, side = "bottom", align = "start", sideOffset = 0, collisionPadding = 10, portal = true, preventInitialFocus = false, headerText = "", cancelLabel: cancelLabelProp, ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: MenuContentProps) {
+  const { t } = useFioriLocale()
+  const cancelLabel = cancelLabelProp ?? t("MENU_CANCEL_BUTTON_TEXT", "Cancel") // UI5 MENU_CANCEL_BUTTON_TEXT
+
   const root = React.useContext(MenuContext)
   const { surface, setRef, hover } = useSurface(false, () => root?.setOpen(false))
   surface.escape = onEscapeKeyDown
@@ -432,7 +439,11 @@ function MenuSubTrigger({ className, icon, children, asChild, ref, checked: _che
 
 // MenuItemTemplate.js passes aria-label="Back" to the host; ButtonTemplate.js
 // names the rendered inner button from the nav-back icon tooltip ("Navigate Back").
-function MenuSubContent({ className, headerText, cancelLabel = "Cancel", backLabel = "Navigate Back", sideOffset = 0, alignOffset = 4, collisionPadding = 10, ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: React.ComponentProps<typeof MenuPrimitive.SubContent> & { headerText?: string; cancelLabel?: string; backLabel?: string }) {
+function MenuSubContent({ className, headerText, cancelLabel: cancelLabelProp, backLabel: backLabelProp, sideOffset = 0, alignOffset = 4, collisionPadding = 10, ref, onKeyDownCapture, onKeyDown, asChild, onFocusOutside, onEscapeKeyDown, children, ...props }: React.ComponentProps<typeof MenuPrimitive.SubContent> & { headerText?: string; cancelLabel?: string; backLabel?: string }) {
+  const { t } = useFioriLocale()
+  const cancelLabel = cancelLabelProp ?? t("MENU_CANCEL_BUTTON_TEXT", "Cancel") // UI5 MENU_CANCEL_BUTTON_TEXT
+  const backLabel = backLabelProp ?? t("DYNAMIC_DATE_RANGE_NAVIGATION_ICON_TOOLTIP", "Navigate Back") // UI5 DYNAMIC_DATE_RANGE_NAVIGATION_ICON_TOOLTIP
+
   const sub = React.useContext(MenuSubContext)
   const root = React.useContext(MenuContext)
   const close = (nativeTab = false) => {

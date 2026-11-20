@@ -1,8 +1,18 @@
 {
   "title": "ColorPalette",
   "description": "Fiori predefined color palette with the UI5 five-column keyboard model, default color and local recent colors.",
-  "registryDependencies": ["@petalo/button", "@petalo/color-picker", "@petalo/dialog"],
-  "files": [{ "path": "registry/lib/fiori-color.ts", "type": "registry:lib" }],
+  "registryDependencies": [
+    "@petalo/button",
+    "@petalo/color-picker",
+    "@petalo/dialog",
+    "@petalo/locale"
+  ],
+  "files": [
+    {
+      "path": "registry/lib/fiori-color.ts",
+      "type": "registry:lib"
+    }
+  ],
   "usage": {
     "summary": "Choose a predefined color from swatches kept visible in the page.",
     "useWhen": [

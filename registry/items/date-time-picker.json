@@ -11,7 +11,8 @@
     "@petalo/picker-field",
     "@petalo/segmented-button",
     "@petalo/responsive-popover",
-    "@petalo/use-is-phone"
+    "@petalo/use-is-phone",
+    "@petalo/locale"
   ],
   "files": [
     {

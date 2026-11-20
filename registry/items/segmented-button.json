@@ -46,5 +46,8 @@
       }
     ],
     "source": "sap-fiori-guidelines"
-  }
+  },
+  "registryDependencies": [
+    "@petalo/locale"
+  ]
 }

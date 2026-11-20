@@ -14,7 +14,8 @@
     "@petalo/popover",
     "@petalo/segmented-button",
     "@petalo/select",
-    "@petalo/toggle-button"
+    "@petalo/toggle-button",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Personalize filter fields, their order and values in a staged dialog before applying changes.",

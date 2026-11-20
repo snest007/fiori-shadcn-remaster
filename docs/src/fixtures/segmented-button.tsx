@@ -2,11 +2,15 @@ import * as React from "react"
 import { Icon } from "@/components/ui/icon"
 import { SegmentedButton, SegmentedButtonItem } from "@/components/ui/segmented-button"
 import { textAlignCenter, textAlignLeft, textAlignRight } from "@/lib/fiori-icons"
+import { FioriLocaleProvider } from "@/lib/fiori-locale"
+import de from "../../../registry/i18n/de.json"
+import zh from "../../../registry/i18n/zh-CN.json"
+import ar from "../../../registry/i18n/ar.json"
 
-import { defineFixtures } from "../fixture-types"
+import { defineFixtures, readPageOptions } from "../fixture-types"
 
 type Item = { text?: string; icon?: "text-align-left" | "text-align-center" | "text-align-right"; selected?: boolean; disabled?: boolean; hidden?: boolean }
-type Props = { items: Item[]; multiple?: boolean; custom?: boolean; composition?: "fragment" | "wrapper"; channel?: "name" | "name-ref" | "description" | "description-ref"; itemChannel?: boolean }
+type Props = { items: Item[]; multiple?: boolean; locale?: string; custom?: boolean; composition?: "fragment" | "wrapper"; channel?: "name" | "name-ref" | "description" | "description-ref"; itemChannel?: boolean }
 function ItemWrapper({ children }: { children: React.ReactNode }) { return <>{children}</> }
 const icons = { "text-align-left": textAlignLeft, "text-align-center": textAlignCenter, "text-align-right": textAlignRight }
 
@@ -209,7 +213,7 @@ export default defineFixtures<Props>({
       "reason": "React/DOM difference in segmented-button: these literal capture-proven paths unwrap only unnamed, description-free, value-free generic nodes with no properties, preserving every descendant role/name/state/order. SegmentedButtonItemTemplate.js:5 uses a li option; our native button option has Chromium implicit invalid=false. Only the exact false-versus-absence scalar paths are allowed; the runtime guard rejects every actual invalid state."
     }
   },
-  cases: [
+  cases: ([
     { id: "segmented-button-fragment", props: { composition: "fragment", items: [{ text: "Map", selected: true }, { text: "Satellite" }] } },
     { id: "segmented-button-wrapper", props: { composition: "wrapper", items: [{ text: "Map", selected: true }, { text: "Satellite" }] } },
     { id: "segmented-button-hidden", props: { items: [{ text: "Map", selected: true }, { text: "Terrain", hidden: true }, { text: "Satellite" }] } },
@@ -220,6 +224,7 @@ export default defineFixtures<Props>({
     }))),
     { id: "segmented-button-custom", props: { items: [{ text: "Map", selected: true }, { text: "Satellite" }], custom: true } },
     { id: "segmented-button", props: { items: [{ text: "Map", selected: true }, { text: "Satellite" }, { text: "Terrain" }] }, interact: { selector: '[data-slot="segmented-button-item"][aria-selected="true"]', ui5Selector: "ui5-segmented-button-item[selected]" } },
+    ...["de-DE", "zh-CN", "ar-EG"].map(locale => ({ id: `segmented-button-l10n-${locale}`, props: { locale, items: [{ text: "Map", selected: true }, { text: "Satellite" }, { text: "Terrain" }] } })),
     { id: "segmented-button-middle", props: { items: [{ text: "Day" }, { text: "Week", selected: true }, { text: "Month" }] } },
     { id: "segmented-button-disabled-item", props: { items: [{ text: "One", selected: true }, { text: "Two", disabled: true }, { text: "Three" }] } },
     {
@@ -232,8 +237,8 @@ export default defineFixtures<Props>({
     },
     { id: "segmented-button-multiple", props: { multiple: true, items: [{ text: "Bold", selected: true }, { text: "Italic", selected: true }, { text: "Underline" }] } },
     { id: "segmented-button-two", props: { items: [{ text: "On", selected: true }, { text: "Off" }] } },
-  ],
-  react: ({ items, multiple, custom, channel, itemChannel, composition }) => {
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  react: ({ items, multiple, custom, channel, itemChannel, composition, locale }) => {
     const targetId = `segmented-button-${itemChannel ? "item" : "root"}-${channel}`
     const attributes = {
       "aria-label": channel === "name" ? "Cartography" : undefined,
@@ -254,6 +259,7 @@ export default defineFixtures<Props>({
     ) : (
       <SegmentedButton id={custom ? "segmented-button-custom-owner" : undefined} defaultValue={sel[0]} {...{ "aria-label": "Segmented", ...rootAttributes }}>{children}</SegmentedButton>
     )
-    return <>{channel && <span hidden id={targetId}>{channel.startsWith("name") ? "Cartography" : "Choose a map layer"}</span>}{group}</>
+    const content = <>{channel && <span hidden id={targetId}>{channel.startsWith("name") ? "Cartography" : "Choose a map layer"}</span>}{group}</>
+    return locale ? <FioriLocaleProvider locale={locale} texts={locale === "de-DE" ? de : locale === "zh-CN" ? zh : ar}>{content}</FioriLocaleProvider> : content
   },
 })

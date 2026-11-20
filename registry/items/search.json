@@ -12,7 +12,8 @@
     "@petalo/input",
     "@petalo/responsive-popover",
     "@petalo/use-is-phone",
-    "@petalo/list"
+    "@petalo/list",
+    "@petalo/locale"
   ],
   "description": "Fiori search field with scope select, type-ahead and suggestions, plus the collapsible ShellBarSearch (ui5-search, ui5-shellbar-search).",
   "usage": {

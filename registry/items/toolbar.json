@@ -1,6 +1,16 @@
 {
   "title": "Toolbar",
-  "registryDependencies": ["@petalo/button", "@petalo/icons", "@petalo/popover", "@petalo/select", "@petalo/combobox", "@petalo/multi-combobox", "@petalo/date-picker", "@petalo/switch"],
+  "registryDependencies": [
+    "@petalo/button",
+    "@petalo/icons",
+    "@petalo/popover",
+    "@petalo/select",
+    "@petalo/combobox",
+    "@petalo/multi-combobox",
+    "@petalo/date-picker",
+    "@petalo/switch",
+    "@petalo/locale"
+  ],
   "description": "Fiori toolbar with priority-based overflow, stable arbitrary items, spacers, separators and UI5 arrow-key navigation.",
   "usage": {
     "summary": "Group related actions and controls in a horizontal row with keyboard navigation and responsive overflow.",

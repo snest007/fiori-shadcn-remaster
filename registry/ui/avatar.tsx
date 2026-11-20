@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { employee, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -79,6 +80,7 @@ function Avatar({
   onKeyUp,
   ...props
 }: AvatarProps) {
+  const { t } = useFioriLocale()
   const [imageFailed, setImageFailed] = React.useState(false)
   React.useEffect(() => setImageFailed(false), [src])
   const hasImage = !!src && !imageFailed
@@ -98,7 +100,8 @@ function Avatar({
   }, [showInitialsCandidate, initials, size])
 
   const isInteractive = interactive && !disabled
-  const label = accessibleName ?? (initials ? `Avatar ${initials}` : "Avatar")
+  const defaultLabel = t("AVATAR_TOOLTIP", "Avatar") // UI5 AVATAR_TOOLTIP
+  const label = accessibleName ?? (initials ? `${defaultLabel} ${initials}` : defaultLabel)
   const scheme = colorScheme === "auto" ? "accent6" : colorScheme
 
   const content = hasImage ? (
@@ -215,6 +218,7 @@ function AvatarGroup({
   type = "group", size = "S", className, children, overflowButton, onOverflowClick, onGroupClick,
   accessibleName, texts, onClick, onKeyDown, onKeyUp, onFocus, style, ...props
 }: AvatarGroupProps) {
+  const { t } = useFioriLocale()
   const isGroup = type === "group"
   const collectItems = (nodes: React.ReactNode): React.ReactElement<AvatarProps>[] => React.Children.toArray(nodes).flatMap((child) => {
     if (!React.isValidElement<AvatarProps & { children?: React.ReactNode }>(child)) return []
@@ -333,11 +337,11 @@ function AvatarGroup({
     buttons[Math.max(0, Math.min(buttons.length - 1, next))]?.focus()
   }
   const label = accessibleName ?? [
-    isGroup ? texts?.groupLabel ?? "Conjoined avatars." : texts?.individualLabel ?? "Individual avatars.",
-    texts?.displayedHiddenLabel?.(visibleCount, hiddenItems.length) ?? `${visibleCount} displayed, ${hiddenItems.length} hidden.`,
-    isGroup ? texts?.showCompleteListLabel ?? "Activate for complete list." : texts?.moveLabel ?? "Press ARROW keys to move.",
+    isGroup ? texts?.groupLabel ?? t("AVATAR_GROUP_ARIA_LABEL_GROUP", "Conjoined avatars.") : texts?.individualLabel ?? t("AVATAR_GROUP_ARIA_LABEL_INDIVIDUAL", "Individual avatars."),
+    texts?.displayedHiddenLabel?.(visibleCount, hiddenItems.length) ?? t("AVATAR_GROUP_DISPLAYED_HIDDEN_LABEL", `${visibleCount} displayed, ${hiddenItems.length} hidden.`, visibleCount, hiddenItems.length),
+    isGroup ? texts?.showCompleteListLabel ?? t("AVATAR_GROUP_SHOW_COMPLETE_LIST_LABEL", "Activate for complete list.") : texts?.moveLabel ?? t("AVATAR_GROUP_MOVE", "Press ARROW keys to move."),
   ].join(" ")
-  const completeListLabel = texts?.showCompleteListLabel ?? "Activate for complete list."
+  const completeListLabel = texts?.showCompleteListLabel ?? t("AVATAR_GROUP_SHOW_COMPLETE_LIST_LABEL", "Activate for complete list.")
   const overflowText = texts?.overflowButtonText?.(hiddenItems.length) ?? `+${Math.min(99, hiddenItems.length)}`
 
   return (

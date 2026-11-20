@@ -3,25 +3,33 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 
 type CardProps = React.ComponentProps<"div"> & {
   /** Accessible name; announced as "Card <name>". */
   accessibleName?: string
+  texts?: Partial<CardTexts>
 }
+type CardTexts = { card: string; content: string }
+const defaultCardTexts: CardTexts = { card: "Card", content: "Card Content" } // UI5 ARIA_ROLEDESCRIPTION_CARD / ARIA_LABEL_CARD_CONTENT
+const defaultCardTextsKeys = { card: "ARIA_ROLEDESCRIPTION_CARD", content: "ARIA_LABEL_CARD_CONTENT" } as const
+const CardTextContext = React.createContext<Partial<CardTexts> | undefined>(undefined)
 
 // Mirrors ui5-card (Horizon): a tile surface with an optional <CardHeader> and free content.
-function Card({ accessibleName, className, children, ...props }: CardProps) {
+function Card({ accessibleName, texts: textsProp, className, children, ...props }: CardProps) {
+  const texts = useFioriTexts(defaultCardTexts, defaultCardTextsKeys, textsProp)
   return (
     <div
       data-slot="card"
       role="region"
-      aria-label={accessibleName ? `Card ${accessibleName}` : "Card"}
+      // Card.js/_getAriaLabel adds the original accessible name after the localized role text.
+      aria-label={accessibleName ? `${texts.card} ${accessibleName}` : texts.card}
       className={cn("fiori-card", className)}
       {...props}
     >
-      {children}
+      <CardTextContext.Provider value={textsProp}>{children}</CardTextContext.Provider>
     </div>
   )
 }
@@ -42,7 +50,11 @@ type CardHeaderProps = Omit<React.ComponentProps<"div">, "title"> & {
   titleLevel?: number
   /** aria-roledescription (defaults: "Card Header" / "Interactive Card Header"). */
   roleDescription?: string
+  texts?: Partial<CardHeaderTexts>
 }
+type CardHeaderTexts = { header: string; interactiveHeader: string; avatar: string }
+const defaultHeaderTexts: CardHeaderTexts = { header: "Card Header", interactiveHeader: "Interactive Card Header", avatar: "Avatar" } // UI5 ARIA_ROLEDESCRIPTION_CARD_HEADER / ARIA_ROLEDESCRIPTION_INTERACTIVE_CARD_HEADER / AVATAR_TOOLTIP
+const defaultHeaderTextsKeys = { header: "ARIA_ROLEDESCRIPTION_CARD_HEADER", interactiveHeader: "ARIA_ROLEDESCRIPTION_INTERACTIVE_CARD_HEADER", avatar: "AVATAR_TOOLTIP" } as const
 
 // Mirrors ui5-card-header (Horizon).
 function CardHeader({
@@ -54,12 +66,15 @@ function CardHeader({
   interactive,
   titleLevel = 3,
   roleDescription,
+  texts: textsProp,
   className,
   onClick,
   onKeyDown,
   onKeyUp,
   ...props
 }: CardHeaderProps) {
+  const { hasProvider } = useFioriLocale()
+  const texts = useFioriTexts(defaultHeaderTexts, defaultHeaderTextsKeys, textsProp)
   const id = React.useId()
   const [active, setActive] = React.useState(false)
   const [actionFocus, setActionFocus] = React.useState(false)
@@ -104,10 +119,10 @@ function CardHeader({
         tabIndex={0}
         aria-labelledby={labelledBy || undefined}
         aria-describedby={interactive && additionalText ? `${id}-additional` : undefined}
-        aria-roledescription={roleDescription ?? (interactive ? "Interactive Card Header" : "Card Header")}
+        aria-roledescription={roleDescription ?? (interactive ? texts.interactiveHeader : texts.header)}
       >
         {avatar && (
-          <div className="fiori-card-header__avatar">
+          <div className="fiori-card-header__avatar" aria-label={hasProvider || textsProp?.avatar !== undefined ? texts.avatar : undefined}>
             {avatar}
           </div>
         )}
@@ -141,8 +156,10 @@ function CardHeader({
 }
 
 /** Content area of a Card (UI5's role="group" "Card Content" part). */
-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return <div data-slot="card-content" role="group" aria-label="Card Content" className={className} {...props} />
+function CardContent({ className, texts: textsProp, ...props }: React.ComponentProps<"div"> & { texts?: Partial<CardTexts> }) {
+  const parent = React.useContext(CardTextContext)
+  const texts = useFioriTexts(defaultCardTexts, defaultCardTextsKeys, textsProp ?? parent)
+  return <div data-slot="card-content" role="group" aria-label={texts.content} className={className} {...props} />
 }
 
-export { Card, CardHeader, CardContent, type CardProps, type CardHeaderProps }
+export { Card, CardHeader, CardContent, type CardProps, type CardHeaderProps, type CardTexts, type CardHeaderTexts }

@@ -1,9 +1,14 @@
+import { FioriLocaleProvider } from "@/lib/fiori-locale"
+import de from "../../../registry/i18n/de.json"
+import zh from "../../../registry/i18n/zh-CN.json"
+import ar from "../../../registry/i18n/ar.json"
 import { Calendar, CalendarLegend, CalendarLegendItem, type CalendarPicker, type CalendarSelectionMode, type SpecialDate } from "@/components/ui/calendar"
 
-import { defineFixtures } from "../fixture-types"
+import { defineFixtures, readPageOptions } from "../fixture-types"
 
 export type CalendarFixture = {
   /** yyyy-MM-dd */
+  locale?: string
   dates?: string[]
   mode?: CalendarSelectionMode
   min?: string
@@ -30,6 +35,29 @@ export const SPECIAL: { value: string; type: SpecialDate["type"] }[] = [
 // Today marker: every dated case shows March 2024, far from the real today, so neither side marks a
 // day as today. "calendar-today" has no selection: both sides show the current month (the same system
 // clock) with today marked, so the marker itself is compared too.
+const renderFixture: import("../fixture-types").FixtureSet<CalendarFixture>["react"] = ({ locale, dates = [], mode = "single", min, max, hideWeekNumbers, picker, special, announcementText }) => (
+    <Calendar
+      locale={locale}
+      aria-label={locale ? "Calendar" : undefined}
+      texts={announcementText ? { selected: announcementText } : undefined}
+      selectionMode={mode}
+      defaultSelectedDates={dates.map(d)}
+      minDate={min ? d(min) : undefined}
+      maxDate={max ? d(max) : undefined}
+      hideWeekNumbers={hideWeekNumbers}
+      initialPicker={picker}
+      specialDates={special ? SPECIAL.map((s) => ({ date: d(s.value), type: s.type })) : undefined}
+      legend={
+        special ? (
+          <CalendarLegend>
+            <CalendarLegendItem type="Type01" text="Holiday" />
+            <CalendarLegendItem type="Type05" text="Training" />
+          </CalendarLegend>
+        ) : undefined
+      }
+    />
+  )
+
 export default defineFixtures<CalendarFixture>({
   name: "calendar",
   a11yDiff: {
@@ -155,7 +183,8 @@ export default defineFixtures<CalendarFixture>({
       }
     }
   },
-  cases: [
+  cases: ([
+    ...["de-DE", "zh-CN", "ar-EG"].map(locale => ({ id: `calendar-l10n-${locale}`, props: { locale, dates: ["2024-03-12"] } })),
     { id: "calendar-announcement-override", props: { dates: ["2024-03-12"], announcementText: "Delivery date selected" } },
     { id: "calendar-announcement-range-start", props: { mode: "range", dates: ["2024-03-12"] } },
     { id: "calendar-single", props: { dates: ["2024-03-12"] } },
@@ -167,25 +196,6 @@ export default defineFixtures<CalendarFixture>({
     { id: "calendar-special", props: { dates: ["2024-03-12"], special: true } },
     { id: "calendar-month-picker", props: { dates: ["2024-03-12"], picker: "month" } },
     { id: "calendar-year-picker", props: { dates: ["2024-03-12"], picker: "year" } },
-  ],
-  react: ({ dates = [], mode = "single", min, max, hideWeekNumbers, picker, special, announcementText }) => (
-    <Calendar
-      texts={announcementText ? { selected: announcementText } : undefined}
-      selectionMode={mode}
-      defaultSelectedDates={dates.map(d)}
-      minDate={min ? d(min) : undefined}
-      maxDate={max ? d(max) : undefined}
-      hideWeekNumbers={hideWeekNumbers}
-      initialPicker={picker}
-      specialDates={special ? SPECIAL.map((s) => ({ date: d(s.value), type: s.type })) : undefined}
-      legend={
-        special ? (
-          <CalendarLegend>
-            <CalendarLegendItem type="Type01" text="Holiday" />
-            <CalendarLegendItem type="Type05" text="Training" />
-          </CalendarLegend>
-        ) : undefined
-      }
-    />
-  ),
+  ] satisfies import("../fixture-types").FixtureCase<CalendarFixture>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  react: (props) => props.locale ? <FioriLocaleProvider locale={props.locale} texts={props.locale === "de-DE" ? de : props.locale === "zh-CN" ? zh : ar}>{renderFixture(props)}</FioriLocaleProvider> : renderFixture(props),
 })

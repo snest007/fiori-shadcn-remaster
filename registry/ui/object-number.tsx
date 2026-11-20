@@ -3,7 +3,9 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
+import { formatNumber } from "@/lib/fiori-numbers"
 import { cn } from "@/lib/utils"
 
 // ObjectNumber after SAPUI5's sap.m.ObjectNumber (Horizon) and the Fiori guideline "Object Number". No UI5 Web
@@ -18,6 +20,7 @@ type ObjectNumberState = "none" | "negative" | "critical" | "positive" | "inform
  */
 type ObjectNumberProps = React.ComponentProps<"span"> & {
   number: React.ReactNode
+  locale?: string
   unit?: React.ReactNode
   state?: ObjectNumberState
   /** Bold number (default true, as in SAPUI5). */
@@ -28,6 +31,8 @@ type ObjectNumberProps = React.ComponentProps<"span"> & {
   textAlign?: "start" | "end" | "center"
   /** Hidden text announcing the state; `null` turns it off. */
   stateAnnouncementText?: string | null
+  /** SAP-keyed state announcements; stateAnnouncementText keeps precedence. */
+  texts?: Partial<typeof defaultStateText>
 }
 
 const defaultStateText: Partial<Record<ObjectNumberState, string>> = {
@@ -39,6 +44,7 @@ const defaultStateText: Partial<Record<ObjectNumberState, string>> = {
 
 function ObjectNumber({
   number,
+  locale: localeProp,
   unit,
   state = "none",
   emphasized = true,
@@ -47,13 +53,18 @@ function ObjectNumber({
   active,
   textAlign,
   stateAnnouncementText,
+  texts,
   className,
   style,
   onKeyDown,
   onKeyUp,
   ...props
 }: ObjectNumberProps) {
-  const announcement = stateAnnouncementText === undefined ? defaultStateText[state] : stateAnnouncementText
+  const defaultStateTextLocalized = useFioriTexts(defaultStateText, defaultStateTextKeys, texts)
+
+  const { locale, localized } = useFioriLocale(localeProp)
+  const shownNumber = typeof number === "number" && localized ? formatNumber(number, locale) : number
+  const announcement = stateAnnouncementText === undefined ? defaultStateTextLocalized[state] : stateAnnouncementText
   return (
     <span
       data-slot="object-number"
@@ -81,7 +92,7 @@ function ObjectNumber({
       {...props}
     >
       <span className="fiori-object-number__inner">
-        <span className="fiori-object-number__text">{number}</span>
+        <span className="fiori-object-number__text">{shownNumber}</span>
         {unit != null && unit !== "" && <span className="fiori-object-number__unit">{unit}</span>}
       </span>
       {announcement && <span className="sr-only">{announcement}</span>}
@@ -90,3 +101,10 @@ function ObjectNumber({
 }
 
 export { ObjectNumber, type ObjectNumberProps, type ObjectNumberState }
+
+const defaultStateTextKeys = {
+  "negative": "OBJECTNUMBER_ARIA_VALUE_STATE_ERROR",
+  "critical": "OBJECTNUMBER_ARIA_VALUE_STATE_WARNING",
+  "positive": "OBJECTNUMBER_ARIA_VALUE_STATE_SUCCESS",
+  "information": "OBJECTNUMBER_ARIA_VALUE_STATE_INFORMATION"
+} as const

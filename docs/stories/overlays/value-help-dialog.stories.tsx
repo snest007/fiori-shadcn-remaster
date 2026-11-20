@@ -1,7 +1,7 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { useArgs } from "storybook/preview-api"
-import { fn } from "storybook/test"
+import { expect, fn, userEvent, within } from "storybook/test"
 import { ValueHelpDialog, type ValueHelpDialogProps } from "@/components/ui/value-help-dialog"
 import { DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -193,3 +193,24 @@ export const WithoutFilters: Story = { args: { open: true, filters: [] } }
 export const Empty: Story = { args: { open: true, items: [], defaultValue: { keys: [], conditions: [] } } }
 export const CustomTexts: Story = { args: { open: true, texts: { search: "Find products", go: "Search products", ok: "Use products", cancel: "Keep selection", selectedItemsAndConditions: "Chosen products and conditions" }, operatorTexts: { EQ: "matches product ID", Contains: "includes text" } } }
 export const RTL: Story = { args: { open: true }, globals: { dir: "rtl" } }
+
+export const German: Story = { globals: { locale: "de" } }
+export const CountedTitles: Story = {
+  args: {
+    defaultValue: { keys: ["HT1000"], conditions: [{ operator: "StartsWith", values: ["HT"] }] },
+    texts: {
+      itemsWithCount: count => `Rows ${count}`,
+      searchAndSelectWithCount: count => `Selected ${count}`,
+      defineConditionsWithCount: count => `Rules ${count}`,
+      selectedItemsAndConditionsWithCount: count => `Total ${count}`,
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Choose products" }))
+    const dialog = within(await within(canvasElement.ownerDocument.body).findByRole("dialog", { name: "Products" }))
+    await expect(dialog.getByRole("grid")).toHaveAccessibleName(`Rows ${products.length}`)
+    await expect(dialog.getByRole("tab", { name: "Selected 1" })).toBeVisible()
+    await expect(dialog.getByRole("tab", { name: "Rules 1" })).toBeVisible()
+    await expect(dialog.getByRole("list", { name: "Total 2" })).toBeVisible()
+  },
+}

@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 
@@ -29,11 +30,14 @@ function BusyIndicator({
   size = "M",
   text,
   textPlacement = "bottom",
-  title = "Please wait",
+  title: titleProp,
   className,
   children,
   ...props
 }: BusyIndicatorProps) {
+  const { t } = useFioriLocale()
+  const title = titleProp ?? t("BUSY_INDICATOR_TITLE", "Please wait") // UI5 BUSY_INDICATOR_TITLE
+
   const [busy, setBusy] = React.useState(false)
   React.useEffect(() => {
     if (!active) {

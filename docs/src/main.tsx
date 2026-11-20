@@ -4,10 +4,37 @@ import { createRoot } from "react-dom/client"
 import * as icons from "@/lib/fiori-icons"
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { Button } from "@/components/ui/button"
+import { FioriLocaleProvider, type FioriTexts } from "@/lib/fiori-locale"
+import { StepInput } from "@/components/ui/step-input"
+import { Calendar } from "@/components/ui/calendar"
+import { DatePicker } from "@/components/ui/date-picker"
+import { DateRangePicker } from "@/components/ui/date-range-picker"
+import { DateTimePicker } from "@/components/ui/date-time-picker"
+import { TimePicker } from "@/components/ui/time-picker"
+import { ComboBox, ComboBoxItem, ComboBoxItemGroup } from "@/components/ui/combobox"
+import { ValueHelpDialog, type ValueHelpTexts } from "@/components/ui/value-help-dialog"
+import { Slider, RangeSlider } from "@/components/ui/slider"
+import { ProgressIndicator } from "@/components/ui/progress-indicator"
+import { ObjectNumber } from "@/components/ui/object-number"
+import { Table } from "@/components/ui/table"
+import { DataTable, createDataTableColumnHelper } from "@/components/ui/data-table"
+import { MessageStrip } from "@/components/ui/message-strip"
+import { Token } from "@/components/ui/token"
+import { Tokenizer } from "@/components/ui/tokenizer"
+import { Wizard, WizardStep } from "@/components/ui/wizard"
+import { TextArea } from "@/components/ui/textarea"
+import { Breadcrumbs, BreadcrumbsItem } from "@/components/ui/breadcrumbs"
+import { List, ListItemGroup, ListItemStandard } from "@/components/ui/list"
+import { Card, CardHeader, CardContent } from "@/components/ui/card"
+import { FileUploader } from "@/components/ui/file-uploader"
+import { ViewSettingsDialog } from "@/components/ui/view-settings-dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogTrigger } from "@/components/ui/dialog"
 import { Icon } from "@/components/ui/icon"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tag } from "@/components/ui/tag"
+import { SegmentedButton, SegmentedButtonItem } from "@/components/ui/segmented-button"
 import { NavigationLayout, type NavigationLayoutMode } from "@/components/ui/navigation-layout"
 import { ShellBar, ShellBarBranding, ShellBarSpacer } from "@/components/ui/shell-bar"
 import { SideNavigation, SideNavigationGroup, SideNavigationItem } from "@/components/ui/side-navigation"
@@ -39,6 +66,13 @@ const phoneMode = query.has("fixtures-phone")
 // keep the default phone matrix and ordinary desktop fixture routes unchanged.
 if (phoneMode) document.documentElement.dataset.fioriDevice = query.get("device") === "desktop" ? "desktop" : "phone"
 const activeFixtureSets = phoneMode ? phoneFixtureSets : query.has("fixtures-sapui5") ? sapui5FixtureSets : fixtureSets
+
+// E5: packs use original SAP keys; applications own document direction independently.
+const languagePacks = import.meta.glob<FioriTexts>("../../registry/i18n/*.json", { eager: true, import: "default" })
+function packFor(locale: string): FioriTexts {
+  const tag = locale === "zh-CN" || locale === "zh-TW" ? locale : new Intl.Locale(locale).language
+  return languagePacks[`../../registry/i18n/${tag}.json`] ?? {}
+}
 
 function FixtureGrid() {
   React.useEffect(() => {
@@ -103,10 +137,11 @@ for (const demo of demos) {
   }
 }
 for (const name of Object.keys(registryItems)) {
+  if (name === "locale") continue
   if (!pageByName.has(name)) throw new Error(`Missing component docs: ${name}`)
 }
 const pages = [...pageByName.values()].sort((a, b) => a.title.localeCompare(b.title))
-const publicRoutes = [...pages.map(({ name, title }) => ({ name, title })), ...blocks.map(({ name, title }) => ({ name, title })), { name: "icons", title: "SAP Horizon icons" }, { name: "floorplans", title: "Floorplans" }]
+const publicRoutes = [...pages.map(({ name, title }) => ({ name, title })), ...blocks.map(({ name, title }) => ({ name, title })), { name: "icons", title: "SAP Horizon icons" }, { name: "floorplans", title: "Floorplans" }, { name: "i18n", title: "Localization" }, { name: "locale", title: "Fiori locale" }]
 const validRoutes = new Set([...publicRoutes.map(({ name }) => name), "all"])
 
 function routeFromHash(fallback = "button") {
@@ -277,7 +312,7 @@ function Docs() {
   }, [])
   const page = pageByName.get(route)
   const block = blocks.find((block) => block.name === route)
-  const title = page?.title ?? block?.title ?? (route === "icons" ? "SAP Horizon icons" : route === "floorplans" ? "Floorplans" : "All component demos")
+  const title = page?.title ?? block?.title ?? (route === "locale" ? "Fiori locale" : route === "i18n" ? "Localization" : route === "icons" ? "SAP Horizon icons" : route === "floorplans" ? "Floorplans" : "All component demos")
   // NavigationLayout.css's ".fiori-nl[data-side-collapsed] .fiori-nl__aside" also matches
   // nested light-DOM demos (UI5 isolates each layout in shadow DOM). Reset only the preview
   // layout's own expanded aside; the collapsed docs and preview transforms remain unchanged.
@@ -289,16 +324,114 @@ function Docs() {
     <SideNavigation id="docs-navigation" accessibleName="Component library navigation" value={route} texts={{ primaryListLabel: "Components by category" }}>
       {categories.map((category) => <SideNavigationGroup key={category} text={category} defaultExpanded>
         {pages.filter((page) => page.category === category).map((page) => <SideNavigationItem key={page.name} value={page.name} text={page.title} icon={icons.product} href={`#/${page.name}`} />)}
-        {category === "Display" && <SideNavigationItem value="icons" text="Icons" icon={icons.grid} href="#/icons" />}
+        {category === "Display" && <><SideNavigationItem value="icons" text="Icons" icon={icons.grid} href="#/icons" /><SideNavigationItem value="i18n" text="Localization" icon={icons.world} href="#/i18n" /></>}
       </SideNavigationGroup>)}
       <SideNavigationGroup text="Floorplans" defaultExpanded><SideNavigationItem value="floorplans" text="Overview" icon={icons.home} href="#/floorplans" />{blocks.map((block) => <SideNavigationItem key={block.name} text={block.title} icon={icons.document} href={blockHref(block.name)} />)}</SideNavigationGroup>
     </SideNavigation>
   }>
     <main key={route} data-docs-route={route} className="mx-auto grid max-w-6xl gap-6 p-6 text-(--sapTextColor)">
       <h1 className="font-(family-name:--sapFontHeaderFamily) text-(length:--sapFontHeader2Size)">{title}</h1>
-      {page ? <ComponentContent page={page} /> : route === "icons" ? <IconsPage /> : route === "floorplans" || block ? <Floorplans name={block?.name} /> : <>{demos.map(({ title, Demo }) => <Section key={title} title={title}><Demo /></Section>)}<IconsPage /></>}
+      {page ? <ComponentContent page={page} /> : route === "i18n" || route === "locale" ? <><Install name="locale" /><I18nPage /></> : route === "icons" ? <IconsPage /> : route === "floorplans" || block ? <Floorplans name={block?.name} /> : <>{demos.map(({ title, Demo }) => <Section key={title} title={title}><Demo /></Section>)}<IconsPage /></>}
     </main>
     </NavigationLayout>
+  </div>
+}
+
+const i18nColumn = createDataTableColumnHelper<{ name: string }>()
+const i18nColumns = [i18nColumn.accessor("name", { header: "Name" })]
+const i18nValueHelpItems = [{ id: "a", name: "Äther" }, { id: "z", name: "Zulu" }]
+const i18nValueHelpColumns = [{ key: "name", label: "Name" }]
+function I18nValueHelpExample({ id, title, empty = false, texts }: { id: string; title: string; empty?: boolean; texts?: Partial<ValueHelpTexts> }) {
+  const [open, setOpen] = React.useState(false)
+  return <section id={id}><ValueHelpDialog title={title} open={open} onOpenChange={setOpen} keyField="id" columns={i18nValueHelpColumns} items={i18nValueHelpItems} defaultValue={empty ? undefined : { keys: ["a"], conditions: [{ operator: "EQ", values: ["A"] }] }} texts={texts}><Button onClick={() => setOpen(true)}>Open {title}</Button></ValueHelpDialog></section>
+}
+
+function I18nPage() {
+  const [locale, setLocale] = React.useState(query.get("locale") ?? "de-DE")
+  const [value, setValue] = React.useState(1.5)
+  const [slider, setSlider] = React.useState(0.5)
+  const [range, setRange] = React.useState<[number, number]>([0.5, 1.5])
+  const [count, setCount] = React.useState(2)
+  const [deletableTokens, setDeletableTokens] = React.useState(["Alpha", "Beta", "Gamma"])
+  const [viewSettingsOpen, setViewSettingsOpen] = React.useState(false)
+  const [customViewSettingsOpen, setCustomViewSettingsOpen] = React.useState(false)
+  const [acceptedSegment, setAcceptedSegment] = React.useState("a")
+  const [rejectedSegmentAttempts, setRejectedSegmentAttempts] = React.useState(0)
+  const [callbackAnnouncement, setCallbackAnnouncement] = React.useState("not called")
+  const plural = query.has("plurals") ? { TOKENIZER_SHOW_ALL_ITEMS: { one: "{0} one", two: "{0} two", few: "{0} few", many: "{0} many", zero: "{0} zero", other: "{0} other" }, MULTIINPUT_SHOW_MORE_TOKENS: { one: "{0} one", two: "{0} two", few: "{0} few", many: "{0} many", zero: "{0} zero", other: "{0} other" } } as FioriTexts : {}
+  return <div className="grid gap-6">
+    <p>Set the language and optional SAP text pack once with FioriLocaleProvider. Existing component text props have precedence. Applications set direction on their own root.</p>
+    <pre>{`import de from "@/lib/fiori-i18n/de"
+<FioriLocaleProvider locale="de-DE" texts={de}>…</FioriLocaleProvider>`}</pre>
+    <label>Locale <select aria-label="Locale" value={locale} onChange={(event) => setLocale(event.target.value)}>{["en-US", "de-DE", "fr-FR", "sv-SE", "zh-CN", "ar-EG", "ru"].map(tag => <option key={tag}>{tag}</option>)}</select></label>
+    <FioriLocaleProvider locale={locale} texts={{ ...packFor(locale), ...plural }}>
+      <div id="i18n-demo" dir={/^(ar|he|fa|ur)/.test(locale) ? "rtl" : "ltr"} className="grid gap-4">
+        <div id="i18n-step"><StepInput defaultValue={1.5} valuePrecision={1} step={0.1} aria-label="Quantity" onValueChange={setValue} /><output data-testid="i18n-value">{String(value)}</output></div>
+        <div id="i18n-override"><StepInput defaultValue={1} texts={{ increment: "Component increase" }} aria-label="Override quantity" /></div>
+        <div id="i18n-date"><DatePicker formatPattern="MMM d, y" aria-label="Localized date" /></div>
+        <section id="i18n-validation" aria-label="Localized form validation">
+          <DatePicker id="i18n-date-validity" required minDate={new Date(2024, 2, 8)} maxDate={new Date(2024, 2, 25)} formatPattern="yyyy-MM-dd" aria-label="Date between 8 and 25 March" />
+          <DateRangePicker id="i18n-range-validity" required minDate={new Date(2024, 2, 8)} maxDate={new Date(2024, 2, 25)} formatPattern="yyyy-MM-dd" aria-label="Date range between 8 and 25 March" />
+          <DateTimePicker id="i18n-datetime-validity" required minDate={new Date(2024, 2, 8)} maxDate={new Date(2024, 2, 25)} formatPattern="yyyy-MM-dd HH:mm:ss" aria-label="Date and time between 8 and 25 March" />
+          <TimePicker id="i18n-time-validity" required formatPattern="HH:mm:ss" aria-label="Required time" />
+          <DatePicker id="i18n-date-validity-override" required formatPattern="yyyy-MM-dd" texts={{ valueMissing: pattern => `Use ${pattern}` }} aria-label="Custom validation" />
+        </section>
+        <section id="i18n-precedence" aria-label="Nested locale and text precedence"><FioriLocaleProvider texts={{ NUMBERINPUT_INC_ICON_TITLE: "Inherited increase" }}><StepInput id="i18n-inherited" defaultValue={1234.5} valuePrecision={1} aria-label="Inherited locale" /><FioriLocaleProvider locale="fr-FR" texts={{ NUMBERINPUT_DEC_ICON_TITLE: "Nested decrease" }}><StepInput id="i18n-nested" defaultValue={1234.5} valuePrecision={1} aria-label="Nested locale" /><StepInput id="i18n-locale-prop" locale="en-US" defaultValue={1234.5} valuePrecision={1} texts={{ increment: "Prop increase" }} aria-label="Component locale" /></FioriLocaleProvider></FioriLocaleProvider></section>
+        <div id="i18n-calendar"><Calendar defaultSelectedDates={[new Date(2024, 2, 12)]} /></div>
+        <div id="i18n-slider" className="w-80"><Slider value={slider} onValueChange={setSlider} min={0} max={2} step={0.1} showTooltip editableTooltip aria-label="Localized slider" /><output data-testid="i18n-slider-value">{String(slider)}</output></div>
+        <div id="i18n-range" className="w-80"><RangeSlider value={range} onValueChange={setRange} min={0} max={2} step={0.1} showTooltip editableTooltip aria-label="Localized range" /></div>
+        <div id="i18n-progress"><ProgressIndicator value={50} /></div>
+        <div id="i18n-number"><ObjectNumber number={1234.5} /></div>
+        <div id="i18n-combobox"><ComboBox aria-label="Empty combobox" /></div>
+        <div id="i18n-combobox-announcements"><ComboBox aria-label="Grouped announcements" noTypeahead><ComboBoxItemGroup headerText="{0}x"><ComboBoxItem text="Alpha" additionalText="A" /><ComboBoxItem text="Beta" additionalText="B" /></ComboBoxItemGroup><ComboBoxItem text="Zulu" /></ComboBox></div>
+        <div id="i18n-combobox-announcements-override"><ComboBox aria-label="Custom grouped announcements" texts={{ groupHeader: "Category", itemPosition: (position, count) => `Count ${count}; position ${position}` }}><ComboBoxItemGroup headerText="{0}x"><ComboBoxItem text="Alpha" additionalText="A" /><ComboBoxItem text="Beta" /></ComboBoxItemGroup></ComboBox></div>
+        <div id="i18n-select"><Select><SelectTrigger aria-label="Empty select"><SelectValue /></SelectTrigger><SelectContent /></Select></div>
+        <div id="i18n-select-announcements"><Select defaultValue="standalone"><SelectTrigger aria-label="Grouped select" aria-describedby="i18n-select-note"><SelectValue /></SelectTrigger><SelectContent aria-label="Grouped choices"><SelectItem value="standalone">Standalone</SelectItem><SelectGroup><SelectLabel>First group</SelectLabel><SelectItem value="a">Alpha</SelectItem><SelectItem value="b">Beta</SelectItem></SelectGroup><SelectGroup><SelectLabel>Second group</SelectLabel><SelectItem value="disabled" disabled>Unavailable</SelectItem></SelectGroup></SelectContent></Select><span id="i18n-select-note">Application description</span></div>
+        <div id="i18n-select-announcements-override"><Select defaultValue="a"><SelectTrigger aria-label="Custom grouped select" texts={{ roleDescription: "Choice selector", optionsInGroups: (options, groups) => `Choices ${options}; categories ${groups}`, itemPosition: (position, count) => `Entry ${position} among ${count}` }}><SelectValue /></SelectTrigger><SelectContent><SelectGroup><SelectLabel>Custom group</SelectLabel><SelectItem value="a">Alpha</SelectItem><SelectItem value="b">Beta</SelectItem></SelectGroup></SelectContent></Select></div>
+        <div id="i18n-tag"><Tag design="negative">Delayed</Tag><Tag design="neutral">Category</Tag><Tag design="negative" texts={{ tag: "Component marker", negative: "Component error" }}>Custom state</Tag><Tag design="negative" tagText="Legacy complete description" texts={{ tag: "Ignored marker" }}>Legacy tag</Tag></div>
+        <div id="i18n-segmented"><SegmentedButton selectionMode="multiple" defaultValue={["a"]} aria-label="Localized views"><SegmentedButtonItem value="a">Alpha</SegmentedButtonItem><SegmentedButtonItem value="b">Beta</SegmentedButtonItem></SegmentedButton></div>
+        <div id="i18n-segmented-override"><SegmentedButton defaultValue="a" texts={{ selected: "Component selection" }} aria-label="Custom views"><SegmentedButtonItem value="a">Alpha</SegmentedButtonItem><SegmentedButtonItem value="b">Beta</SegmentedButtonItem></SegmentedButton></div>
+        <div id="i18n-segmented-controlled"><SegmentedButton value={acceptedSegment} onValueChange={value => { setCallbackAnnouncement(document.querySelector('[data-slot="segmented-button-announcement"][data-owner="Controlled views"]')?.textContent ?? ""); setAcceptedSegment(value) }} aria-label="Controlled views"><SegmentedButtonItem value="a">Alpha</SegmentedButtonItem><SegmentedButtonItem value="b">Beta</SegmentedButtonItem></SegmentedButton><output data-testid="i18n-segmented-callback">{callbackAnnouncement}</output></div>
+        <div id="i18n-segmented-rejected"><SegmentedButton value="a" onValueChange={() => setRejectedSegmentAttempts(count => count + 1)} aria-label="Rejected views"><SegmentedButtonItem value="a">Alpha</SegmentedButtonItem><SegmentedButtonItem value="b">Beta</SegmentedButtonItem><SegmentedButtonItem value="prevented" onClick={event => event.preventDefault()}>Prevented</SegmentedButtonItem></SegmentedButton><output data-testid="i18n-segmented-rejected-attempts">{rejectedSegmentAttempts}</output></div>
+        {(["negative", "critical", "positive", "information"] as const).map(state => <div id={`i18n-select-state-${state}`} key={state}><Select defaultValue="a"><SelectTrigger aria-label={`Localized ${state} select`} valueState={state}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">Alpha</SelectItem></SelectContent></Select></div>)}
+        <div id="i18n-select-state-override"><Select defaultValue="a"><SelectTrigger aria-label="Custom negative select" valueState="negative" texts={{ negativeType: "Component error" }} valueStateTypeText={{ negative: "Legacy error" }}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">Alpha</SelectItem></SelectContent></Select></div>
+        <FioriLocaleProvider texts={{ "valuehelp.TABLETITLE": "Rows {0}!", "valuehelp.TABLETITLENONUMBER": "Zero rows", "valuehelp.SELECTFROMLIST": "Selected {0}!", "valuehelp.SELECTFROMLISTNONUMBER": "Zero selected", "valuehelp.DEFINECONDITIONS": "Conditions {0}!", "valuehelp.DEFINECONDITIONSNONUMBER": "Zero conditions", "valuehelp.TOKENIZERTITLE": "Total {0}!", "valuehelp.TOKENIZERTITLENONUMBER": "Zero tokens" }}>
+          <I18nValueHelpExample id="i18n-vhd-counted" title="Counted value help" />
+          <I18nValueHelpExample id="i18n-vhd-zero" title="Empty counted value help" empty />
+          <I18nValueHelpExample id="i18n-vhd-title-override" title="Custom counted value help" texts={{ items: "Legacy rows", searchAndSelectWithCount: count => `Custom selected ${count}`, defineConditionsWithCount: count => `Custom conditions ${count}`, selectedItemsAndConditionsWithCount: count => `Custom total ${count}` }} />
+        </FioriLocaleProvider>
+        <div id="i18n-collation"><ComboBox aria-label="Collation combobox" noTypeahead filter="startsWith">{["Äland", "Aland", "Zulu"].map(text => <ComboBoxItem key={text} text={text} />)}</ComboBox><Select defaultValue="Zulu"><SelectTrigger aria-label="Collation select"><SelectValue /></SelectTrigger><SelectContent>{["Äland", "Aland", "Zulu"].map(text => <SelectItem key={text} value={text}>{text}</SelectItem>)}</SelectContent></Select></div>
+        <div id="i18n-table"><Table /></div>
+        <div id="i18n-sort"><DataTable data={[{name:"Zulu"},{name:"Äland"},{name:"Aland"}]} columns={i18nColumns} defaultSorting={[{ id: "name", desc: false }]} /></div>
+        <div id="i18n-message"><MessageStrip>Example information</MessageStrip></div>
+        <div id="i18n-tokens"><label>Token count <select aria-label="Token count" value={count} onChange={event => setCount(Number(event.target.value))}>{[1,2,5].map(n => <option key={n}>{n}</option>)}</select></label><Tokenizer style={{ width: "3rem" }}>{Array.from({ length: count }, (_, i) => <Token key={i} text={`Long token ${i}`} />)}</Tokenizer></div>
+        <div id="i18n-token-deletion"><Tokenizer aria-label="Removable tokens" onTokenDelete={values => setDeletableTokens(old => old.filter(value => !values.includes(value)))}>{deletableTokens.map(value => <Token key={value} text={value} />)}</Tokenizer></div>
+        <div id="i18n-token-deletion-override"><Tokenizer texts={{ tokenizer: "Custom tokenizer", tokenDeleted: count => `Removed ${count} selected tokens` }} onTokenDelete={() => {}}><Token text="Custom token" /></Tokenizer></div>
+        <div id="i18n-textarea"><TextArea required maxLength={3} counterMode="always" aria-label="Required short note" /><TextArea required aria-label="Custom required note" texts={{ valueMissing: "Please add a note", tooLong: count => `Remove ${count} extra letters` }} /></div>
+        <div id="i18n-breadcrumbs"><Breadcrumbs><BreadcrumbsItem href="#home">Home</BreadcrumbsItem><BreadcrumbsItem>Current</BreadcrumbsItem></Breadcrumbs><Breadcrumbs texts={{ position: (position, size) => `${position} among ${size}` }}><BreadcrumbsItem href="#home">Custom home</BreadcrumbsItem><BreadcrumbsItem>Current</BreadcrumbsItem></Breadcrumbs></div>
+        <div id="i18n-list"><List selectionMode="multiple"><ListItemGroup headerText="Countries"><ListItemStandard value="a">Alpha</ListItemStandard><ListItemStandard value="b">Beta</ListItemStandard></ListItemGroup></List><List selectionMode="delete" texts={{ deletable: "Custom deletable mode", delete: "Remove row", interactiveDescription: "Custom list guidance" }}><ListItemStandard>Removable row</ListItemStandard></List></div>
+        <div id="i18n-wizard" className="h-80"><Wizard><WizardStep titleText="{0}x" subtitleText="Optional"><p>First step</p></WizardStep><WizardStep titleText="Second" disabled><p>Second step</p></WizardStep></Wizard></div>
+        <div id="i18n-wizard-override" className="h-80"><Wizard texts={{ stepHeading: "Stage", activeStep: "Ready", optionalStep: "Not required", stepLabel: (n, title) => `Stage ${n}: ${title}` }}><WizardStep titleText="Shipping"><p>Shipping details</p></WizardStep></Wizard></div>
+        <div id="i18n-card"><Card accessibleName="{0}x"><CardHeader titleText="Shipping" /><CardContent>Shipping content</CardContent></Card><Card accessibleName="Custom card" texts={{ card: "Panel", content: "Panel content" }}><CardHeader titleText="Custom header" texts={{ header: "Panel header" }} /><CardContent>Custom content</CardContent></Card></div>
+        <div id="i18n-file"><FileUploader required aria-label="Required attachment" /><FileUploader multiple aria-label="Multiple attachments" /><FileUploader required aria-label="Custom attachment" texts={{ placeholder: "Attach one document", valueMissing: "Please attach a document" }} /></div>
+        <div id="i18n-vsd"><ViewSettingsDialog open={viewSettingsOpen} onOpenChange={setViewSettingsOpen} filterItems={[{ text: "Shipping", values: [{ text: "Express", selected: true }, { text: "Standard" }] }]} resetEnabled><Button onClick={() => setViewSettingsOpen(true)}>Open localized view settings</Button></ViewSettingsDialog><ViewSettingsDialog open={customViewSettingsOpen} onOpenChange={setCustomViewSettingsOpen} texts={{ resetAnnouncement: "Filters restored" }} sortItems={[{ text: "Name" }]} resetEnabled><Button onClick={() => setCustomViewSettingsOpen(true)}>Open custom view settings</Button></ViewSettingsDialog></div>
+        <div id="i18n-dialog"><Dialog><DialogTrigger asChild><Button>Open localized dialog</Button></DialogTrigger><DialogContent aria-describedby={undefined}><DialogHeader><DialogTitle>Example</DialogTitle></DialogHeader><DialogClose /></DialogContent></Dialog></div>
+      </div>
+    </FioriLocaleProvider>
+    <FioriLocaleProvider texts={{ DATEPICKER_VALUE_MISSING: "Text-only date {0}", DATERANGE_VALUE_MISSING: "Text-only range {0}", DATETIME_VALUE_MISSING: "Text-only date-time {0}", TIMEPICKER_VALUE_MISSING: "Text-only time {0}", NUMBERINPUT_PATTERN_MISSMATCH: "Text-only precision {0}", LIST_NO_DATA: "Text-only empty" }}>
+      <section id="i18n-text-only" aria-label="Text provider without a locale">
+        <DatePicker id="i18n-text-only-date" required formatPattern="yyyy-MM-dd" aria-label="Text-only date" />
+        <DateRangePicker id="i18n-text-only-range" required formatPattern="yyyy-MM-dd" aria-label="Text-only range" />
+        <DateTimePicker id="i18n-text-only-datetime" required formatPattern="yyyy-MM-dd HH:mm:ss" aria-label="Text-only date-time" />
+        <TimePicker id="i18n-text-only-time" required formatPattern="HH:mm:ss" aria-label="Text-only time" />
+        <StepInput id="i18n-text-only-step" valuePrecision={1} aria-label="Text-only number" />
+        <div id="i18n-text-only-combobox"><ComboBox aria-label="Text-only empty combobox" /></div>
+        <div id="i18n-text-only-select"><Select><SelectTrigger aria-label="Text-only empty select"><SelectValue /></SelectTrigger><SelectContent /></Select></div>
+      </section>
+    </FioriLocaleProvider>
+    <section id="i18n-no-provider-match"><Select defaultValue="z"><SelectTrigger aria-label="Unlocalized matching"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="a">Äther</SelectItem><SelectItem value="z">Zulu</SelectItem></SelectContent></Select></section>
+    <I18nValueHelpExample id="i18n-vhd-no-provider" title="Unlocalized value help" empty />
+    <Section title="Optional SAP language packs"><p>Translations are derived from UI5 Web Components 2.28.1 and OpenUI5 1.154.0, © SAP SE, Apache-2.0. Install only the packs your application needs.</p><div className="grid gap-2">{Object.keys(languagePacks).filter(path => !path.endsWith("registry-items.json")).sort().map(path => { const tag = path.split("/").at(-1)!.slice(0,-5); return <div key={tag}><code>{`npx shadcn add @petalo/i18n-${tag}`}</code></div> })}</div></Section>
   </div>
 }
 

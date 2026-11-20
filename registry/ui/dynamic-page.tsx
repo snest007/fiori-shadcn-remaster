@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 DynamicPageTitle fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -127,7 +128,7 @@ function DynamicPage({
   children,
   ...props
 }: DynamicPageProps) {
-  const texts = { ...defaultDynamicPageTexts, ...textsProp }
+  const texts = useFioriTexts(defaultDynamicPageTexts, defaultDynamicPageTextsKeys, textsProp)
   const hasHeading = !!header
   const initialSnapped = snappedProp ?? defaultHeaderSnapped
   const [state, setState] = React.useState({ snapped: initialSnapped, stick: initialSnapped })
@@ -627,3 +628,14 @@ export {
   type DynamicPageTexts,
   type DynamicPageAccessibilityAttributes,
 }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultDynamicPageTextsKeys = {
+  "headerExpanded": "DYNAMIC_PAGE_ARIA_LABEL_EXPANDED_HEADER",
+  "headerSnapped": "DYNAMIC_PAGE_ARIA_LABEL_SNAPPED_HEADER",
+  "expandHeader": "DYNAMIC_PAGE_ARIA_LABEL_EXPAND_HEADER",
+  "collapseHeader": "DYNAMIC_PAGE_ARIA_LABEL_SNAP_HEADER",
+  "pinHeader": "DYNAMIC_PAGE_ARIA_LABEL_PIN_HEADER",
+  "unpinHeader": "DYNAMIC_PAGE_ARIA_LABEL_UNPIN_HEADER",
+  "toggleHeader": "DYNAMIC_PAGE_ARIA_DESCR_TOGGLE_HEADER"
+} as const

@@ -4,6 +4,7 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
+import { collatorIncludes, useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Select as SelectPrimitive, Slot } from "radix-ui"
 
@@ -19,11 +20,15 @@ import { ResponsivePopover, ResponsivePopoverContent } from "@/components/ui/res
 import { slimArrowDown } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 
 // Fiori keyboard model for a closed Select (ui5-select): Up/Down/Home/End change the selection
 // in place without opening; Alt+Down, Alt+Up, F4, Space and Enter open the list.
 type SelectContextValue = {
+  search: (current: string | undefined, text: string) => string | undefined
+  setItemPositionText: (text: SelectTexts["itemPosition"] | undefined) => void
+  prepareItemFocus: (event: React.KeyboardEvent) => void
+  onItemFocus: (value: string) => void
   register: (value: string, node: HTMLElement | null, disabled: boolean) => (() => void) | undefined
   count: number
   groupCount: number
@@ -80,18 +85,28 @@ function useInheritedDirection(owner: React.RefObject<HTMLElement | null>, expli
   return explicit ?? direction
 }
 
-type SelectTexts = {
-  roleDescription: string
-  optionsInGroups: (count: number, groups: number) => string
-  itemPosition: (position: number, count: number) => string
+type SelectTexts = { negativeType: string; criticalType: string; informationType: string; roleDescription: string; optionsInGroups: (options: number, groups: number) => string; itemPosition: (position: number, count: number) => string }
+const defaultSelectTexts: SelectTexts = {
+  negativeType: "Value State Error", // UI5 VALUE_STATE_TYPE_ERROR
+  criticalType: "Value State Warning", // UI5 VALUE_STATE_TYPE_WARNING
+  informationType: "Value State Information", // UI5 VALUE_STATE_TYPE_INFORMATION
+  roleDescription: "Listbox", // UI5 SELECT_ROLE_DESCRIPTION
+  optionsInGroups: (options, groups) => `${options} results are available in ${groups} groups`, // UI5 SELECT_OPTIONS_IN_GROUPS {0}, {1}
+  itemPosition: (position, count) => `List item ${position} of ${count}`, // UI5 LIST_ITEM_POSITION {0}, {1}
 }
+const defaultSelectTextsKeys = { negativeType: "VALUE_STATE_TYPE_ERROR", criticalType: "VALUE_STATE_TYPE_WARNING", informationType: "VALUE_STATE_TYPE_INFORMATION", roleDescription: "SELECT_ROLE_DESCRIPTION", optionsInGroups: "SELECT_OPTIONS_IN_GROUPS", itemPosition: "LIST_ITEM_POSITION" } as const
+
 type SelectProps = React.ComponentProps<typeof SelectPrimitive.Root> & {
   texts?: Partial<SelectTexts>
-  /** Locale for numbers in the default group and position descriptions. */
+  /** BCP 47 locale used for text and typeahead. */
   locale?: string
 }
 
-function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, texts, locale, ...props }: SelectProps) {
+function Select({ value: valueProp, defaultValue, onValueChange, open: openProp, defaultOpen, onOpenChange, dir, texts, locale: localeProp, ...props }: SelectProps) {
+  const { locale, localized } = useFioriLocale(localeProp)
+  const typeTexts = useFioriTexts(defaultSelectTexts, defaultSelectTextsKeys, texts, localeProp)
+  const itemPositionText = React.useRef<SelectTexts["itemPosition"] | undefined>(undefined)
+  const pendingItemAnnouncement = React.useRef(false)
   const phone = useIsPhone()
   const phoneListId = React.useId()
   const [phoneState, setPhoneState] = React.useState<{ valueState: ValueState; message: React.ReactNode; accessibleName?: string }>({ valueState: "none", message: null })
@@ -113,6 +128,7 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
   const open = openProp ?? uncontrolledOpen
   const setOpen = React.useCallback(
     (o: boolean) => {
+      pendingItemAnnouncement.current = o
       if (openProp === undefined) setUncontrolledOpen(o)
       onOpenChange?.(o)
     },
@@ -148,16 +164,9 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
     else if (!groups.current.delete(id)) return
     setRevision((n) => n + 1)
   }, [])
-  const t = React.useMemo<SelectTexts>(() => {
-    const number = new Intl.NumberFormat(locale ?? (typeof navigator === "undefined" ? "en" : navigator.language))
-    return {
-      roleDescription: "Listbox", // UI5 SELECT_ROLE_DESCRIPTION
-      optionsInGroups: (count, groupCount) => `${number.format(count)} results are available in ${number.format(groupCount)} groups`, // UI5 SELECT_OPTIONS_IN_GROUPS
-      itemPosition: (position, count) => `List item ${number.format(position)} of ${number.format(count)}`, // UI5 LIST_ITEM_POSITION
-      ...texts,
-    }
-  }, [locale, texts])
   const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const announcementTimers = React.useRef(new Set<ReturnType<typeof setTimeout>>())
+  React.useEffect(() => () => { announcementTimers.current.forEach(clearTimeout) }, [])
   const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
   const announce = React.useCallback((next: string | undefined, isOpen: boolean) => {
     const ordered = [...items.current.entries()].sort(([, a], [, b]) => (a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
@@ -166,25 +175,41 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
     const node = ordered[index][1].node
     const popup = node.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]')
     setAnnouncementTarget((isOpen ? popup : changeTarget.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]')) ?? document.body)
-    setAnnouncement((old) => ({ text: `${node.textContent ?? ""}${isOpen ? ` ${t.itemPosition(index + 1, ordered.length)}` : ""}`.trim(), sequence: old.sequence + 1 }))
-  }, [t])
+    const text = `${node.textContent ?? ""}${isOpen ? ` ${(itemPositionText.current ?? typeTexts.itemPosition)(index + 1, ordered.length)}` : ""}`.trim()
+    setAnnouncement(previous => ({ text, sequence: previous.sequence + 1 }))
+    // UI5 util/InvisibleMessage.js/announce clears after 3000 ms only if the
+    // message is still current; an earlier timer must not erase different text.
+    const timer = setTimeout(() => {
+      announcementTimers.current.delete(timer)
+      setAnnouncement(previous => previous.text === text ? { ...previous, text: "" } : previous)
+    }, 3000)
+    announcementTimers.current.add(timer)
+  }, [typeTexts.itemPosition])
   const previousOpen = React.useRef(false)
   React.useLayoutEffect(() => {
     if (!open) { previousOpen.current = false; return }
     if (!previousOpen.current && items.current.get(value ?? "")?.node.isConnected) {
       previousOpen.current = true
+      pendingItemAnnouncement.current = false
       announce(value, true)
     }
   }, [open, value, revision, announce])
-  React.useEffect(() => {
-    if (!announcement.text) return
-    // InvisibleMessage.js clears the last announcement after 3000 ms.
-    const timer = setTimeout(() => setAnnouncement((old) => old.sequence === announcement.sequence ? { ...old, text: "" } : old), 3000)
-    return () => clearTimeout(timer)
-  }, [announcement])
   const ctx = React.useMemo<SelectContextValue>(
     () => ({
-      register, registerGroup, count: items.current.size, groupCount: groups.current.size, texts: t, announce,
+      search(current, text) {
+        const ordered = [...items.current.entries()].filter(([, item]) => !item.disabled)
+          .sort(([, a], [, b]) => a.node.compareDocumentPosition(b.node) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1)
+        const index = ordered.findIndex(([value]) => value === current)
+        return [...ordered.slice(index + 1), ...ordered.slice(0, index + 1)].find(([, item]) => collatorIncludes(item.node.dataset.textValue ?? item.node.textContent ?? "", text, localized ? locale : undefined, true))?.[0]
+      },
+      setItemPositionText(text) { itemPositionText.current = text },
+      prepareItemFocus(event) {
+        // Select._handleArrowNavigation and _selectTypedItem announce selection;
+        // Home/End/Page keys only move/select without this announcement channel.
+        pendingItemAnnouncement.current = !event.altKey && !event.ctrlKey && !event.metaKey && ((["ArrowDown", "ArrowUp"].includes(event.key) && !event.shiftKey) || (event.key.length === 1 && event.key !== " "))
+      },
+      onItemFocus(value) { if (pendingItemAnnouncement.current) { pendingItemAnnouncement.current = false; announce(value, true) } },
+      register, registerGroup, count: items.current.size, groupCount: groups.current.size, texts: typeTexts, announce,
       step(current, key) {
         const ordered = [...items.current.entries()]
           .filter(([, i]) => !i.disabled)
@@ -198,12 +223,12 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
         return i <= 0 ? ordered[0] : ordered[i - 1]
       },
     }),
-    [register, registerGroup, revision, t, announce]
+    [register, registerGroup, revision, typeTexts, announce, locale, localized]
   )
 
   return (
     <SelectContext.Provider value={ctx}>
-      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction }}>
+      <SelectOpenContext.Provider value={{ open, setOpen, value, setValue, changeTarget, phone, phoneState, setPhoneState, phoneListId, direction, locale, localized }}>
         <SelectPrimitive.Root dir={direction} data-slot="select" value={value} onValueChange={setValue} open={!phone && open} onOpenChange={setOpen} {...props} />
       </SelectOpenContext.Provider>
       {/* Select.js:itemSelectionAnnounce uses Polite; Popup routes its region inside
@@ -214,6 +239,8 @@ function Select({ value: valueProp, defaultValue, onValueChange, open: openProp,
 }
 
 const SelectOpenContext = React.createContext<{
+  locale: string
+  localized: boolean
   open: boolean
   setOpen: (o: boolean) => void
   value: string | undefined
@@ -252,6 +279,7 @@ type SelectTriggerProps = React.ComponentProps<typeof SelectPrimitive.Trigger> &
   valueStateMessage?: React.ReactNode | null
   /** UI5 Select.js/valueStateTypeMappings; prefix of the phone state message. */
   valueStateTypeText?: Partial<Record<Exclude<ValueState, "none">, string>>
+  texts?: Partial<SelectTexts>
   readOnly?: boolean
   wrapperClassName?: string
 }
@@ -263,6 +291,7 @@ function SelectTrigger({
   valueState = "none",
   valueStateMessage,
   valueStateTypeText,
+  texts,
   readOnly,
   disabled,
   onKeyDown,
@@ -277,11 +306,23 @@ function SelectTrigger({
 }: SelectTriggerProps) {
   const items = React.useContext(SelectContext)
   const state = React.useContext(SelectOpenContext)
+  const valueStateTexts = useValueStateTexts()
+  const typeTexts = items?.texts ?? defaultSelectTexts
+  // Select.hasValueStateText excludes Positive from the popup; its unused
+  // VALUE_STATE_TYPE_SUCCESS native getter remains a documented audit gap.
+  const stateTypes = { negative: texts?.negativeType ?? typeTexts.negativeType, critical: texts?.criticalType ?? typeTexts.criticalType, positive: "Value State Success", information: texts?.informationType ?? typeTexts.informationType }
+  const stateType = valueState === "none" ? "" : valueStateTypeText?.[valueState] ?? stateTypes[valueState]
+
+  const typed = React.useRef("")
+  const typingTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  React.useEffect(() => () => clearTimeout(typingTimer.current), [])
+  const setItemPositionText = items?.setItemPositionText
+  React.useLayoutEffect(() => { setItemPositionText?.(texts?.itemPosition) }, [setItemPositionText, texts?.itemPosition])
   const messageId = React.useId()
   const descriptionId = React.useId()
   const groupCountId = React.useId()
   const hasState = valueState !== "none"
-  const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
+  const message = valueStateMessage === undefined && hasState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
 
   React.useLayoutEffect(() => {
@@ -295,14 +336,14 @@ function SelectTrigger({
       const referenced = refs?.map((id) => trigger.ownerDocument.getElementById(id)?.textContent ?? "").filter(Boolean).join(" ")
       const associated = trigger.id ? [...trigger.ownerDocument.querySelectorAll<HTMLLabelElement>("label[for]")].filter((label) => label.htmlFor === trigger.id).map((label) => label.textContent ?? "").filter(Boolean).join(" ") : ""
       const accessibleName = (refs?.length ? referenced : trigger.getAttribute("aria-label")) || associated || undefined
-      const phoneMessage = showMessage ? (valueStateMessage === undefined && hasState ? `${valueStateTypeText?.[valueState] ?? ({ negative: "Value State Error", critical: "Value State Warning", positive: "Value State Success", information: "Value State Information" }[valueState])} ${message}` : message) : null
+      const phoneMessage = showMessage ? (valueStateMessage === undefined && hasState ? `${stateType} ${message}` : message) : null
       state?.setPhoneState((previous) => previous.valueState === valueState && previous.accessibleName === accessibleName && previous.message === phoneMessage ? previous : { valueState, accessibleName, message: phoneMessage })
     }
     update()
     const observer = new MutationObserver(update)
     observer.observe(trigger.ownerDocument.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["id", "for", "aria-label", "aria-labelledby"] })
     return () => observer.disconnect()
-  }, [valueState, message, showMessage, valueStateTypeText, props["aria-label"], props["aria-labelledby"], props.id])
+  }, [valueState, message, showMessage, stateType, props["aria-label"], props["aria-labelledby"], props.id])
 
   return (
     <div
@@ -323,7 +364,7 @@ function SelectTrigger({
         aria-readonly={readOnly || undefined}
         aria-invalid={valueState === "negative" || undefined}
         aria-describedby={cn(descriptionRefs, description && descriptionId, showMessage && messageId, items?.groupCount && groupCountId) || undefined}
-        aria-roledescription={roleDescription ?? items?.texts.roleDescription}
+        aria-roledescription={roleDescription ?? texts?.roleDescription ?? typeTexts.roleDescription}
         className={cn(
           "flex min-w-0 flex-1 cursor-[inherit] items-stretch border-0 bg-transparent p-0 text-start text-inherit outline-none [font:inherit]",
           "rounded-(--fiori-input-border-radius) [background:var(--fiori-select-bottom-border-gradient)]",
@@ -333,6 +374,17 @@ function SelectTrigger({
         onKeyDown={(e) => {
           onKeyDown?.(e)
           if (e.defaultPrevented || !items || !state || state.open) return
+          if (e.key.length === 1 && e.key !== " " && !e.altKey && !e.ctrlKey && !e.metaKey && state.localized) {
+            // UI5 Select._searchNextItemByText: repeated letters cycle; use the resolved locale's collation.
+            e.preventDefault()
+            typed.current += e.key
+            const query = Array.from(typed.current).every(char => char === e.key) ? e.key : typed.current
+            clearTimeout(typingTimer.current)
+            typingTimer.current = setTimeout(() => { typed.current = "" }, 1000)
+            const next = items.search(state.value, query)
+            if (next !== undefined && next !== state.value) { state.setValue(next); items.announce(next, false) }
+            return
+          }
           // Select.js/_onkeydown/_onkeyup: phone Space opens only on release;
           // Keys.js/isEnter/isSpace/isShow reject every extra modifier.
           if (state.phone) {
@@ -359,7 +411,7 @@ function SelectTrigger({
               state.setValue(next)
               // Select.js:_handleArrowNavigation announces the text without a
               // position while the trigger is focused and its picker is closed.
-              items.announce(next, false)
+              if (e.key !== "Home" && e.key !== "End") items.announce(next, false)
             }
           }
         }}
@@ -400,7 +452,7 @@ function SelectTrigger({
         </SelectTriggerHost>
       </SelectPrimitive.Trigger>
       {description && <span hidden id={descriptionId}>{description}</span>}
-      {!!items?.groupCount && <span hidden id={groupCountId}>{items.texts.optionsInGroups(items.count, items.groupCount)}</span>}
+      {!!items?.groupCount && <span hidden id={groupCountId} data-slot="select-group-count">{(texts?.optionsInGroups ?? typeTexts.optionsInGroups)(items.count, items.groupCount)}</span>}
       {showMessage && (
         <div
           id={messageId}
@@ -427,6 +479,7 @@ type SelectContentProps = React.ComponentProps<typeof SelectPrimitive.Content> &
   cancelText?: string
   dialogLabel?: string
   dialogNamePrefix?: string
+  noDataText?: string
 }
 const PhoneSelectItems = React.createContext<{ value: string | undefined; select: (value: string, close?: boolean) => void } | null>(null)
 
@@ -441,13 +494,21 @@ function SelectContent({
   onEscapeKeyDown,
   ref,
   asChild,
-  dialogTitle = "All Items", // UI5 SELECT_LISTBOX_LABEL
-  cancelText = "Cancel", // UI5 SELECT_DIALOG_CANCEL_BUTTON
+  dialogTitle: dialogTitleProp,
+  cancelText: cancelTextProp,
   dialogLabel,
-  dialogNamePrefix = "Select:", // UI5 SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX
+  dialogNamePrefix: dialogNamePrefixProp,
+  noDataText,
   ...props
 }: SelectContentProps) {
   const state = React.useContext(SelectOpenContext)
+  const items = React.useContext(SelectContext)
+  const { t, locale, hasProvider } = useFioriLocale(state?.locale)
+  const dialogTitle = dialogTitleProp ?? t("SELECT_LISTBOX_LABEL", "All Items") // UI5 SELECT_LISTBOX_LABEL
+  const dialogNamePrefix = dialogNamePrefixProp ?? t("SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX", "Select:") // UI5 SELECT_POPOVER_ACCESSIBLE_NAME_PREFIX
+  const emptyText = noDataText ?? (state?.localized || hasProvider ? t("LIST_NO_DATA", "No data") : undefined) // OpenUI5 sap/m LIST_NO_DATA; E5 opt-in empty-list extension.
+  const cancelText = cancelTextProp ?? t("SELECT_DIALOG_CANCEL_BUTTON", "Cancel") // UI5 SELECT_DIALOG_CANCEL_BUTTON
+
   const [draft, setDraft] = React.useState(state?.value)
   const phoneList = React.useRef<HTMLDivElement>(null)
   const typedChars = React.useRef("")
@@ -471,6 +532,7 @@ function SelectContent({
           className
         )}
         {...props} ref={state?.phone ? undefined : ref} onCloseAutoFocus={state?.phone ? undefined : onCloseAutoFocus} onEscapeKeyDown={state?.phone ? undefined : onEscapeKeyDown} data-sap-ui-fastnavgroup-container="true"
+        onKeyDownCapture={(event) => { props.onKeyDownCapture?.(event); if (!event.defaultPrevented) items?.prepareItemFocus(event) }}
         onKeyDown={onKeyDown}
         asChild
       >
@@ -478,7 +540,7 @@ function SelectContent({
         <SelectPrimitive.ScrollUpButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} className="rotate-180" />
         </SelectPrimitive.ScrollUpButton>
-        <SelectPrimitive.Viewport data-sap-ui-fastnavgroup="true">{children}</SelectPrimitive.Viewport>
+        <SelectPrimitive.Viewport data-sap-ui-fastnavgroup="true">{React.Children.count(children) === 0 && emptyText ? <div data-slot="select-no-data">{emptyText}</div> : children}</SelectPrimitive.Viewport>
         <SelectPrimitive.ScrollDownButton className="flex h-6 cursor-default items-center justify-center text-(--sapContent_IconColor)">
           <Icon icon={slimArrowDown} />
         </SelectPrimitive.ScrollDownButton>
@@ -491,6 +553,7 @@ function SelectContent({
   // closed keyboard navigation; the real phone list lives in a stretch Dialog.
   return <>{desktop}<ResponsivePopover dir={state.direction} open={state.open} onOpenChange={(open) => !open && closePhone(true)}>
     <ResponsivePopoverContent {...props} ref={ref} className={className} aria-label={props["aria-label"] ?? dialogLabel ?? `${dialogNamePrefix} ${state.phoneState.accessibleName || dialogTitle}`} headerText={dialogTitle} phoneField phoneClassName="fiori-select-phone"
+      onKeyDownCapture={(event) => { props.onKeyDownCapture?.(event); if (!event.defaultPrevented) items?.prepareItemFocus(event) }}
       // SelectPopoverTemplate.js uses Title's default H2 accessibility level.
       phoneHeader={<div className="fiori-responsive-popover__rows"><div className="fiori-responsive-popover__row"><Title wrappingType="None" className="w-full">{dialogTitle}</Title></div>
         {state.phoneState.valueState !== "none" && state.phoneState.valueState !== "positive" && state.phoneState.message != null &&
@@ -520,10 +583,10 @@ function SelectContent({
           typingTimer.current = setTimeout(() => { typedChars.current = "" }, 1000)
           const selected = allOptions.findIndex((option) => option.dataset.value === draft)
           const ordered = [...allOptions.slice(selected + 1), ...allOptions.slice(0, Math.max(selected, 0))]
-          const next = ordered.find((option) => (option.dataset.textValue ?? option.textContent ?? "").toLowerCase().startsWith(text))
+          const next = ordered.find((option) => collatorIncludes(option.dataset.textValue ?? option.textContent ?? "", text, state.localized ? locale : undefined, true))
           // _changeSelectedItem changes selected/focused properties, but does
           // not move DOM focus. List's own ItemNavigation owns actual focus.
-          if (next) { setDraft(next.dataset.value); next.scrollIntoView({ block: "nearest" }) }
+          if (next) { setDraft(next.dataset.value); if (next.dataset.value) items?.announce(next.dataset.value, true); next.scrollIntoView({ block: "nearest" }) }
           return
         }
         if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
@@ -542,7 +605,7 @@ function SelectContent({
         }
       }}>
       <PhoneSelectItems.Provider value={{ value: draft, select: (value, close = true) => { setDraft(value); if (close) closePhone(false, value) } }}>
-        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={state.phoneState.accessibleName || dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true">{children}</div>
+        <div ref={phoneList} id={state.phoneListId} role="listbox" aria-label={state.phoneState.accessibleName || dialogTitle} data-slot="select-phone-list" data-sap-ui-fastnavgroup="true">{React.Children.count(children) === 0 && emptyText ? <div data-slot="select-no-data">{emptyText}</div> : children}</div>
       </PhoneSelectItems.Provider>
     </ResponsivePopoverContent>
   </ResponsivePopover></>
@@ -596,6 +659,7 @@ function SelectItem({ className, children, value, disabled = false, asChild, ref
   if (phoneItems) {
     const phoneProps: React.ComponentProps<"div"> & { "data-slot": string; "data-value": string; "data-text-value"?: string; "data-state": string } = { ...props, ref: phoneRef, id: props.id ?? custom?.props.id ?? generatedId, "data-slot": "select-item", "data-value": value, "data-text-value": props.textValue, role: "option", "aria-selected": phoneItems.value === value, "aria-checked": undefined, "aria-pressed": undefined, "aria-disabled": disabled || undefined,
     tabIndex: !disabled && phoneItems.value === value ? 0 : -1, "data-state": phoneItems.value === value ? "checked" : "unchecked",
+    onFocus: (event) => { custom?.props.onFocus?.(event); props.onFocus?.(event); if (!event.defaultPrevented) ctx?.onItemFocus(value) },
     className: cn("fiori-list-item", custom?.props.className, className), onMouseDown: (event) => { custom?.props.onMouseDown?.(event); props.onMouseDown?.(event); event.preventDefault() },
     onClick: (event) => { custom?.props.onClick?.(event); props.onClick?.(event); if (!event.defaultPrevented && !disabled) phoneItems.select(value) }, onKeyDown: (event) => {
       custom?.props.onKeyDown?.(event); props.onKeyDown?.(event)
@@ -620,6 +684,7 @@ function SelectItem({ className, children, value, disabled = false, asChild, ref
       disabled={disabled}
       className={cn("fiori-list-item", className)}
       {...props}
+      onFocus={(event) => { props.onFocus?.(event); if (!event.defaultPrevented) ctx?.onItemFocus(value) }}
     >
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
     </SelectPrimitive.Item>

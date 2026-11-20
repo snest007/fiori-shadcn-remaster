@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -42,6 +43,8 @@ type ObjectStatusProps = Omit<React.ComponentProps<"span">, "title"> & {
   active?: boolean
   /** Hidden text announcing the state; default "Error" / "Warning" / "Success" / "Information"; `null` turns it off. */
   stateAnnouncementText?: string | null
+  /** SAP-keyed state announcements; stateAnnouncementText keeps precedence. */
+  texts?: Partial<typeof defaultStateText>
   /** Accessible name for an icon-only status. */
   iconLabel?: string
 }
@@ -62,6 +65,7 @@ function ObjectStatus({
   large,
   active,
   stateAnnouncementText,
+  texts,
   iconLabel,
   className,
   onClick,
@@ -69,8 +73,10 @@ function ObjectStatus({
   onKeyUp,
   ...props
 }: ObjectStatusProps) {
+  const defaultStateTextLocalized = useFioriTexts(defaultStateText, defaultStateTextKeys, texts)
+
   const hasText = text != null && text !== ""
-  const announcement = stateAnnouncementText === undefined ? defaultStateText[state] : stateAnnouncementText
+  const announcement = stateAnnouncementText === undefined ? defaultStateTextLocalized[state] : stateAnnouncementText
   const content = (
     <span className="fiori-object-status__wrapper">
       {icon && (
@@ -124,3 +130,10 @@ function ObjectStatus({
 }
 
 export { ObjectStatus, type ObjectStatusProps, type ObjectStatusState }
+
+const defaultStateTextKeys = {
+  "negative": "VALUE_STATE_ERROR",
+  "critical": "VALUE_STATE_WARNING",
+  "positive": "VALUE_STATE_SUCCESS",
+  "information": "VALUE_STATE_INFORMATION"
+} as const

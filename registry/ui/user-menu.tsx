@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 import { log, personPlaceholder, userSettings, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Avatar, type AvatarColorScheme } from "@/components/ui/avatar"
@@ -100,7 +101,7 @@ function UserMenu({
   onKeyDown,
   ...props
 }: UserMenuProps) {
-  const texts = { ...defaultTexts, ...textsProp }
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp)
   const listRef = React.useRef<HTMLUListElement>(null)
   const scrollRef = React.useRef<HTMLDivElement>(null)
   const titleRef = React.useRef<HTMLDivElement>(null)
@@ -368,3 +369,13 @@ function UserMenuItem({ value, icon, additionalText, disabled, onSelect, classNa
 }
 
 export { UserMenu, UserMenuItem, type UserMenuAccount, type UserMenuItemProps, type UserMenuProps, type UserMenuTexts }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTextsKeys = {
+  "accessibleName": "USER_MENU_POPOVER_ACCESSIBLE_NAME",
+  "heading": "USER_MENU_HEADING_TXT",
+  "currentInformation": "USER_MENU_CURRENT_INFORMATION_TXT",
+  "actions": "USER_MENU_ACTIONS_TXT",
+  "manageAccount": "USER_MENU_MANAGE_ACCOUNT_BUTTON_TXT",
+  "signOut": "USER_MENU_SIGN_OUT_BUTTON_TXT"
+} as const

@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { drillDown, process as processIcon, slimArrowDown, slimArrowLeft, slimArrowRight, slimArrowUp, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -306,12 +307,16 @@ function Timeline({
   header,
   infoBar,
   stickyHeader,
-  timelineText = "Timeline",
-  loadMoreText = "Load More",
+  timelineText: timelineTextProp,
+  loadMoreText: loadMoreTextProp,
   className,
   children,
   ...props
 }: TimelineProps) {
+  const { t } = useFioriLocale()
+  const timelineText = timelineTextProp ?? t("TIMELINE_ARIA_LABEL", "Timeline") // UI5 TIMELINE_ARIA_LABEL
+  const loadMoreText = loadMoreTextProp ?? t("TIMELINE_LOAD_MORE_BUTTON_TEXT", "Load More") // UI5 TIMELINE_LOAD_MORE_BUTTON_TEXT
+
   const rootRef = React.useRef<HTMLDivElement>(null)
   const direction = useHostDirection(rootRef)
   const scrollRef = React.useRef<HTMLDivElement>(null)

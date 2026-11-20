@@ -4,7 +4,8 @@
   "registryDependencies": [
     "@petalo/button",
     "@petalo/link",
-    "@petalo/popover"
+    "@petalo/popover",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Keep prose within a character limit while letting users reveal the full text.",

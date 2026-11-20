@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
@@ -70,7 +71,11 @@ function distributeItems(items: ItemRecord[], widths: Map<string, number>, overf
   return [...result, ...moved].map((item) => item.key)
 }
 
-function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel = "Additional Options", overflowPopoverLabel = "Available Values", defaultOverflowOpen = false, overflowContentProps, className, onKeyDown, children, ...props }: ToolbarProps) {
+function Toolbar({ alignContent = "end", design = "solid", overflowButtonLabel: overflowButtonLabelProp, overflowPopoverLabel: overflowPopoverLabelProp, defaultOverflowOpen = false, overflowContentProps, className, onKeyDown, children, ...props }: ToolbarProps) {
+  const { t } = useFioriLocale()
+  const overflowButtonLabel = overflowButtonLabelProp ?? t("TOOLBAR_OVERFLOW_BUTTON_ARIA_LABEL", "Additional Options") // UI5 TOOLBAR_OVERFLOW_BUTTON_ARIA_LABEL
+  const overflowPopoverLabel = overflowPopoverLabelProp ?? t("INPUT_AVALIABLE_VALUES", "Available Values") // UI5 INPUT_AVALIABLE_VALUES
+
   const bar = React.useRef<HTMLDivElement>(null)
   const parking = React.useRef<HTMLDivElement>(null)
   const overflowHost = React.useRef<HTMLDivElement>(null)

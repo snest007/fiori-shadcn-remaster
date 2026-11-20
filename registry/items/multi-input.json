@@ -12,7 +12,8 @@
     "@petalo/use-is-phone",
     "@petalo/responsive-popover",
     "@petalo/button",
-    "@petalo/toggle-button"
+    "@petalo/toggle-button",
+    "@petalo/locale"
   ],
   "description": "Fiori multi input: a text field with tokens, value help and suggestions, plus the SAP token keyboard model.",
   "usage": {
@@ -31,7 +32,7 @@
         ]
       },
       {
-        "when": "Collect one value: use Input without suggestions, ComboBox for type-ahead across 20–200, or Select for 2–12 fixed options without typing (sort alphabetically above 8).",
+        "when": "Collect one value: use Input without suggestions, ComboBox for type-ahead across 20\u2013200, or Select for 2\u201312 fixed options without typing (sort alphabetically above 8).",
         "use": [
           "input",
           "combobox",

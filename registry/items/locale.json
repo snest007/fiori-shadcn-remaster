@@ -1,0 +1,9 @@
+{
+  "type": "registry:lib",
+  "title": "Fiori locale",
+  "description": "Locale context, SAP-keyed text overrides, localized number formatting and parsing.",
+  "files": [
+    { "path": "registry/lib/fiori-locale.tsx", "type": "registry:lib" },
+    { "path": "registry/lib/fiori-numbers.ts", "type": "registry:lib" }
+  ]
+}

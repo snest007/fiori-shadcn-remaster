@@ -1,7 +1,7 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { useArgs } from "storybook/preview-api"
-import { fn } from "storybook/test"
+import { fn, expect, within, userEvent } from "storybook/test"
 import { Slider, RangeSlider, type SliderProps, type RangeSliderProps } from "@/components/ui/slider"
 import { fioriMeta } from "../_lib/meta"
 import { DocsPage } from "../_lib/DocsPage"
@@ -67,3 +67,8 @@ export const RangeDisabled: Story = { args: { range: true, value: [10, 50], disa
 export const CustomTexts: Story = { args: { handleDescription: "Requested volume", range: true, value: [20, 70], startHandleDescription: "Minimum order", endHandleDescription: "Maximum order", rangeDescription: "Order volume range", rangeValueText: (start, end) => `${start} through ${end} units per order` } }
 export const RTL: Story = { globals: { dir: "rtl" } }
 export const RangeRTL: Story = { args: { range: true, value: [20, 70] }, globals: { dir: "rtl" } }
+
+export const EditableLocalizedTooltip: Story = { globals: { locale: "de" }, args: { value: 0.5, min: 0, max: 2, step: 0.1, showTooltip: true, editableTooltip: true }, play: async ({ canvasElement }) => { const canvas = within(canvasElement); const handle = canvas.getByRole("slider"); handle.focus(); await expect(handle).toHaveFocus(); await userEvent.keyboard("{F2}"); await expect(canvas.getByRole("spinbutton")).toHaveFocus() } }
+
+export const EditableRangeTooltip: Story = { globals: { locale: "de" }, args: { range: true, value: [0.5, 1.5], min: 0, max: 2, step: 0.1, editableTooltip: true } }
+export const TooltipTexts: Story = { args: { editableTooltip: true, texts: { tooltipInputLabel: "Order value", tooltipInputDescription: "Press F2 to edit order value" } } }

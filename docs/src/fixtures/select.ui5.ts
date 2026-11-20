@@ -16,7 +16,8 @@ export default defineUi5(set, ({ options, selected, valueState, disabled, groups
       "accessible-description": channel === "description" ? "Choose an office location" : undefined,
       "accessible-description-ref": channel === "description-ref" ? targetId : undefined,
     },
-    ...(groups ? groups.map((group, i) => h("ui5-option-group", { "header-text": `Region ${i + 1}` }, ...group.map((o) => h("ui5-option", { selected: o === selected }, o)))) : options.map((o) => h("ui5-option", { selected: o === selected }, o)))
+    ...options.filter(option => !groups?.some(group => group.options.includes(option))).map(o => h("ui5-option", { selected: o === selected }, o)),
+    ...(groups?.map(group => h("ui5-option-group", { "header-text": group.label }, ...group.options.map(option => h("ui5-option", { selected: option === selected }, option)))) ?? [])
   )
   el.style.width = FIELD_WIDTH
   return channel || rtl ? h("span", { dir: rtl ? "rtl" : undefined }, ...(channel ? [h("span", { hidden: true, id: targetId }, channel.startsWith("name") ? "Country" : "Choose an office location")] : []), el) : el

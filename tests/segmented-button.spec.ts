@@ -231,3 +231,22 @@ for (const direction of ["ltr", "rtl"]) test(`segmented-button: hidden navigatio
     }
   } finally { await reference.close() }
 })
+
+test("segmented-button: native English selection repeats assertively without announcing focus", async ({ page }) => {
+  const owner = page.locator("#view")
+  const announcement = page.locator('[data-slot="segmented-button-announcement"][data-owner="view"]')
+  const day = owner.getByRole("option", { name: "Day", exact: true })
+  await expect(announcement).toHaveText("")
+  await day.focus()
+  await expect(day).toBeFocused()
+  await expect(announcement).toHaveText("")
+  await day.press("Space")
+  await expect(day).toHaveAttribute("aria-selected", "true")
+  await expect(announcement).toHaveAttribute("aria-live", "assertive")
+  await expect(announcement).toHaveText("Selected")
+  const previous = await announcement.locator("span").elementHandle()
+  await day.press("Enter")
+  await expect(day).toHaveAttribute("aria-selected", "true")
+  await expect(announcement).toHaveText("Selected")
+  expect(await previous!.evaluate(node => node.isConnected), "selecting the same single item still announces").toBe(false)
+})

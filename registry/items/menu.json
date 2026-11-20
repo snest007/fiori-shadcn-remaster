@@ -8,7 +8,8 @@
     "@petalo/f6-navigation",
     "@petalo/responsive-popover",
     "@petalo/button",
-    "@petalo/use-is-phone"
+    "@petalo/use-is-phone",
+    "@petalo/locale"
   ],
   "description": "Fiori menu with single/multiple checkable groups, icons, additional text, submenus, separators and disabled items (ui5-menu).",
   "usage": {

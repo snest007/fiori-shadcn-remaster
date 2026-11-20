@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
 // UI5 2.28 Popup.js/onEnterDOM: every rendered Popup surface bounds F6, modal or otherwise.
@@ -12,6 +13,9 @@ import { resizeCorner } from "@/lib/fiori-icons"
 import { Icon } from "@/components/ui/icon"
 import { valueStateIcons, type ValueState } from "@/components/ui/input"
 import { usePopupMediaRange } from "@/components/ui/popover"
+
+// Bundlers replace NODE_ENV. Browser-only registry consumers can typecheck without Node types.
+declare const process: { env: { NODE_ENV?: string } }
 
 // Mirrors ui5-dialog (Horizon): a centered modal with a header bar (optional state icon + title,
 // plus a colored state line), padded content and a footer bar whose actions are end-aligned.
@@ -39,8 +43,10 @@ function DialogTrigger(props: React.ComponentProps<typeof DialogPrimitive.Trigge
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
-function DialogClose(props: React.ComponentProps<typeof DialogPrimitive.Close>) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+function DialogClose({ closeText, children, ...props }: React.ComponentProps<typeof DialogPrimitive.Close> & { closeText?: string }) {
+  const { t, hasProvider } = useFioriLocale()
+  // OpenUI5 sap/m/messagebundle.properties MSGBOX_CLOSE; opt-in E5 default for an otherwise empty close action.
+  return <DialogPrimitive.Close data-slot="dialog-close" {...props}>{children ?? closeText ?? (hasProvider ? t("MSGBOX_CLOSE", "Close") : undefined)}</DialogPrimitive.Close>
 }
 
 function DialogOverlay({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
@@ -116,7 +122,7 @@ function DialogContent({ className, children, asChild, state = "none", portal = 
   const geometryRef = React.useRef<React.CSSProperties>({})
   const [desktop, setDesktop] = React.useState(false)
   const movementId = React.useId()
-  const texts = { ...defaultMovementTexts, ...movementTexts }
+  const texts = useFioriTexts(defaultMovementTexts, defaultMovementTextsKeys, movementTexts)
   const movable = desktop && (draggable || resizable)
   const description = draggable && resizable ? texts.dragResizeDescription : draggable ? texts.dragDescription : texts.resizeDescription
   const reachDescription = draggable && resizable ? texts.dragResizeReachDescription : draggable ? texts.dragReachDescription : texts.resizeReachDescription
@@ -398,3 +404,18 @@ export {
   type DialogContentProps,
   type DialogMovementTexts,
 }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultMovementTextsKeys = {
+  "dragDescription": "DIALOG_ARIA_DESCRIBEDBY_DRAGGABLE",
+  "resizeDescription": "DIALOG_ARIA_DESCRIBEDBY_RESIZABLE",
+  "dragResizeDescription": "DIALOG_ARIA_DESCRIBEDBY_DRAGGABLE_RESIZABLE",
+  "dragReachDescription": "DIALOG_ARIA_DESCRIBEDBY_REACH_DRAGGABLE",
+  "resizeReachDescription": "DIALOG_ARIA_DESCRIBEDBY_REACH_RESIZABLE",
+  "dragResizeReachDescription": "DIALOG_ARIA_DESCRIBEDBY_REACH_DRAGGABLE_RESIZABLE",
+  "dragHandleLabel": "DIALOG_DRAG_HANDLE_ARIA_LABEL",
+  "resizeHandleLabel": "DIALOG_RESIZE_HANDLE_ARIA_LABEL",
+  "dragResizeHandleLabel": "DIALOG_DRAG_AND_RESIZE_HANDLE_ARIA_LABEL",
+  "handleRoleDescription": "DIALOG_HANDLE_ARIA_ROLEDESCRIPTION",
+  "resizeHandleTooltip": "DIALOG_RESIZE_HANDLE_TOOLTIP"
+} as const

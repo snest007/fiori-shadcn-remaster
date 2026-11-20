@@ -8,9 +8,10 @@ import { ui5State } from "./ui5-helpers"
 import set from "./date-time-picker"
 import { showPickerPopoverInPlace } from "./ui5-picker-popover"
 
-export default defineUi5(set, ({ value, valueState, disabled, readOnly, popover }) => {
+export default defineUi5(set, ({ value, valueState, disabled, readOnly, popover, pattern }) => {
   const el = h("ui5-datetime-picker", {
-    "format-pattern": "MMM d, y, h:mm:ss a",
+    "format-pattern": pattern ?? "MMM d, y, h:mm:ss a",
+    "primary-calendar-type": "Gregorian",
     value,
     "value-state": ui5State(valueState),
     disabled,

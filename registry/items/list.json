@@ -5,7 +5,8 @@
     "@petalo/button",
     "@petalo/busy-indicator",
     "@petalo/checkbox",
-    "@petalo/radio-group"
+    "@petalo/radio-group",
+    "@petalo/locale"
   ],
   "description": "Fiori list: standard / custom items, groups, selection modes (single, multiple, delete\u2026), growing, roving focus.",
   "files": [

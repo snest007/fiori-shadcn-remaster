@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 
@@ -82,6 +83,7 @@ function DynamicSideContent({
   children,
   ...props
 }: DynamicSideContentProps) {
+  const { t } = useFioriLocale()
   const rootRef = React.useRef<HTMLDivElement>(null)
   const mainRef = React.useRef<HTMLDivElement>(null)
   const sideRef = React.useRef<HTMLElement>(null)
@@ -147,7 +149,7 @@ function DynamicSideContent({
     <div
       ref={mainRef}
       role={accessibilityAttributes?.mainContent?.role ?? "main"}
-      aria-label={accessibilityAttributes?.mainContent?.ariaLabel ?? "Main Content"}
+      aria-label={accessibilityAttributes?.mainContent?.ariaLabel ?? t("DSC_MAIN_ARIA_LABEL", "Main Content")}
       className="fiori-dsc__main"
       style={{ height: below ? "auto" : "100%" }}
     >
@@ -158,7 +160,7 @@ function DynamicSideContent({
     <aside
       ref={sideRef}
       role={accessibilityAttributes?.sideContent?.role ?? "complementary"}
-      aria-label={accessibilityAttributes?.sideContent?.ariaLabel ?? "Side Content"}
+      aria-label={accessibilityAttributes?.sideContent?.ariaLabel ?? t("DSC_SIDE_ARIA_LABEL", "Side Content")}
       className="fiori-dsc__side"
       style={{ height: below ? "auto" : "100%" }}
     >

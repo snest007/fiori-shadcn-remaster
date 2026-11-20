@@ -98,3 +98,6 @@ function ItemDocs() {
     <h2>Variants and examples</h2>{variants.map((story) => <DocsStory key={story.id} of={story.moduleExport} __forceInitialArgs={false} />)}
   </main>
 }
+
+export const German: Story = { globals: { locale: "de" } }
+export const PositionTexts: Story = { args: { texts: { breadcrumbTrail: "Navigation path", overflow: "Earlier locations", position: (position, size) => `${position} among ${size}` } } }

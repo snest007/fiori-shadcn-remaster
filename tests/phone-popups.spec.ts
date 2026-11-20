@@ -53,6 +53,39 @@ async function submitNumeric(page: Page, holder: Locator, native: boolean, numer
 test.describe("D1b phone native contracts", () => {
   test.use({ viewport: { width: 375, height: 667 }, hasTouch: true, timezoneId: "UTC", userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1" })
   test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date("2026-11-13T09:20:45Z")) })
+
+  test("date-time phone Time fixture settles and an active Time press does not retrigger it", async ({ page }) => {
+    await page.addInitScript(() => {
+      let presses = 0
+      document.addEventListener("click", event => {
+        if ((event.target as Element).closest('button[data-phone-view="time"]')) {
+          document.documentElement.dataset.timeViewPresses = String(++presses)
+        }
+      }, { capture: true })
+    })
+    await page.goto("/index.html?fixtures-phone&only=date-time-picker-phone-time")
+    const root = page.locator("html")
+    await expect(root).toHaveAttribute("data-ready", "true")
+    await expect(root).toHaveAttribute("data-time-view-presses", "1")
+    const dialog = dialogs(page, false)
+    const time = dialog.getByRole("option", { name: "Time", exact: true })
+    const clocks = dialog.locator('[data-slot="time-selection-clocks"]')
+    await expect(clocks).toBeVisible()
+    await expect(time).toHaveAttribute("aria-selected", "true")
+
+    const renderedClocks = await clocks.elementHandle()
+    const announcement = dialog.locator('[data-slot="segmented-button-announcement"][data-owner="Date / Time"]')
+    await expect(announcement).toHaveText("Selected")
+    const initialMessage = await announcement.locator("span").elementHandle()
+    await time.click()
+    await expect(time).toHaveAttribute("aria-selected", "true")
+    // The native segmented button announces a repeat press. Let the live-region
+    // DOM mutation and fixture observer settle before asserting there was one press.
+    await expect.poll(() => initialMessage!.evaluate(node => node.isConnected)).toBe(false)
+    await expect(announcement).toHaveText("Selected")
+    await expect(root).toHaveAttribute("data-time-view-presses", "2")
+    expect(await renderedClocks!.evaluate(node => node.isConnected)).toBe(true)
+  })
   for (const native of [false, true]) {
     const label = native ? "UI5" : "React"
     for (const [kind, title] of [["date-picker", "Enter date"], ["time-picker", "All Items"]]) test(`${label} ${kind} uses its native default phone title without a field label`, async ({ page }) => {

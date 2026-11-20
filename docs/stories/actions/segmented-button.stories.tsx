@@ -47,3 +47,7 @@ export const RTLCustomSelectionAnnouncement: Story = { ...CustomSelectionAnnounc
 export const CustomHost: Story = { render: () => <SegmentedButton aria-label="Custom map layers" defaultValue="map"><SegmentedButtonItem value="map" asChild><button role="menuitem" aria-selected={false}>Map</button></SegmentedButtonItem><SegmentedButtonItem value="satellite" asChild><button>Satellite</button></SegmentedButtonItem></SegmentedButton> }
 export const FragmentItems: Story = { render: () => <SegmentedButton aria-label="Map layers"><><SegmentedButtonItem value="map">Map</SegmentedButtonItem><SegmentedButtonItem value="satellite">Satellite</SegmentedButtonItem></></SegmentedButton> }
 export const HiddenItem: Story = { render: () => <SegmentedButton aria-label="Map layers"><SegmentedButtonItem value="map">Map</SegmentedButtonItem><SegmentedButtonItem value="terrain" hidden>Terrain</SegmentedButtonItem><SegmentedButtonItem value="satellite">Satellite</SegmentedButtonItem></SegmentedButton> }
+
+export const CustomTexts: Story = { args: { texts: { selected: "Alignment selected" } } }
+export const German: Story = { globals: { locale: "de" } }
+export const Arabic: Story = { globals: { locale: "ar", dir: "rtl" } }

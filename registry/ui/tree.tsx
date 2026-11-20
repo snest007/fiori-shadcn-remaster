@@ -4,6 +4,7 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { navigationDownArrow, navigationRightArrow, type FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -103,9 +104,9 @@ function Tree({
   footerText,
   noDataText,
   separators = "all",
-  expandText,
-  collapseText,
-  deleteText,
+  expandText: expandTextProp,
+  collapseText: collapseTextProp,
+  deleteText: deleteTextProp,
   texts: textOverrides,
   className,
   children,
@@ -116,9 +117,11 @@ function Tree({
   ...props
 }: TreeProps) {
   const id = React.useId()
-  const texts = React.useMemo(() => ({ ...defaultTreeTexts, ...textOverrides,
-    ...(expandText === undefined ? {} : { expandText }), ...(collapseText === undefined ? {} : { collapseText }),
-    ...(deleteText === undefined ? {} : { delete: deleteText }), onItemToggle }), [textOverrides, expandText, collapseText, deleteText, onItemToggle])
+  const { t } = useFioriLocale()
+  const expandText = expandTextProp ?? textOverrides?.expandText ?? t("TREE_ITEM_EXPAND_NODE", defaultTreeTexts.expandText)
+  const collapseText = collapseTextProp ?? textOverrides?.collapseText ?? t("TREE_ITEM_COLLAPSE_NODE", defaultTreeTexts.collapseText)
+  const texts = { ...defaultTreeTexts, ...textOverrides, expandText, collapseText,
+    delete: deleteTextProp ?? textOverrides?.delete ?? defaultTreeTexts.delete, onItemToggle }
   const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
   const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
   const { core, focusArea } = useListCoreValue({

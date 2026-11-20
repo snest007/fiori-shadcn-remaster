@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -28,7 +29,10 @@ type ProductSwitchProps = React.ComponentProps<"div"> & {
   accessibleName?: string
 }
 
-function ProductSwitch({ accessibleName = "Products", className, children, onKeyDown, ...props }: ProductSwitchProps) {
+function ProductSwitch({ accessibleName: accessibleNameProp, className, children, onKeyDown, ...props }: ProductSwitchProps) {
+  const { t } = useFioriLocale()
+  const accessibleName = accessibleNameProp ?? t("PRODUCT_SWITCH_CONTAINER_LABEL", "Products") // UI5 PRODUCT_SWITCH_CONTAINER_LABEL
+
   const count = React.Children.toArray(children).filter(React.isValidElement).length
   const columns = count > 6 ? 4 : count <= 2 ? 2 : 3
   const rootRef = React.useRef<HTMLDivElement>(null)

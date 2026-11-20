@@ -3,17 +3,20 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
+import { formatPercent } from "@/lib/fiori-numbers"
 
 import { information, statusCritical, statusNegative, statusPositive } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, type ValueState } from "@/components/ui/input"
 
 const stateIcons = { negative: statusNegative, critical: statusCritical, positive: statusPositive, information }
 
 /** @accessibility aria-label lands on the inner progressbar. It owns value bounds, aria-valuenow and aria-valuetext; valueStateText overrides the state announcement. hideValue hides the visible text while retaining the progress description. */
 type ProgressIndicatorProps = Omit<React.ComponentProps<"div">, "children"> & {
   /** Progress in percent, clamped to 0–100. */
+  locale?: string
   value?: number
   /** Text shown instead of "<value>%". */
   displayValue?: string
@@ -30,6 +33,7 @@ type ProgressIndicatorProps = Omit<React.ComponentProps<"div">, "children"> & {
 // role="progressbar" with aria-valuenow 0–100 and aria-valuetext "<n>% <state text>".
 function ProgressIndicator({
   value = 0,
+  locale: localeProp,
   displayValue,
   hideValue,
   valueState = "none",
@@ -38,13 +42,17 @@ function ProgressIndicator({
   "aria-label": ariaLabel,
   ...props
 }: ProgressIndicatorProps) {
+  const valueStateTexts = useValueStateTexts()
+
+  const { locale, localized } = useFioriLocale(localeProp)
   const v = Math.min(Math.max(value, 0), 100)
+  const percentage = localized ? formatPercent(v / 100, locale) : `${v}%`
   const hasState = valueState !== "none"
-  const stateText = hasState ? (valueStateText ?? valueStateDefaultText[valueState]) : undefined
+  const stateText = hasState ? (valueStateText ?? valueStateTexts[valueState]) : undefined
   const label = (
     <>
       {hasState && <Icon icon={stateIcons[valueState]} className="fiori-progress-indicator__icon" />}
-      {!hideValue && <span className="fiori-progress-indicator__value"> {displayValue || `${v}%`}</span>}
+      {!hideValue && <span className="fiori-progress-indicator__value"> {displayValue || percentage}</span>}
     </>
   )
   const inRemaining = value <= 50
@@ -64,7 +72,7 @@ function ProgressIndicator({
         aria-valuemin={0}
         aria-valuenow={v}
         aria-valuemax={100}
-        aria-valuetext={stateText ? `${v}% ${stateText}` : `${v}%`}
+        aria-valuetext={stateText ? `${percentage} ${stateText}` : percentage}
         aria-label={ariaLabel}
       >
         <div className="fiori-progress-indicator__bar" style={{ width: `${v}%` }}>

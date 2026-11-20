@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 import { slimArrowDown } from "@/lib/fiori-icons"
@@ -28,6 +29,8 @@ type BreadcrumbsProps = Omit<React.ComponentProps<"nav">, "children"> & {
   positionText?: ((position: number, size: number) => string) | null
   /** Accessible name of the overflow arrow (UI5: "More"). */
   overflowLabel?: string
+  texts?: Partial<BreadcrumbsTexts>
+  locale?: string
   /** Accessible name of the overflow surface (the list keeps UI5's selection announcement). */
   overflowListLabel?: string
   /** Optional controlled overflow state; the popup is available only while items overflow. */
@@ -37,6 +40,15 @@ type BreadcrumbsProps = Omit<React.ComponentProps<"nav">, "children"> & {
   /** Placement / in-place rendering options for the reused Popover surface. */
   overflowContentProps?: Omit<PopoverContentProps, "children">
 }
+
+type BreadcrumbsTexts = { breadcrumbTrail: string; overflow: string; availableValues: string; position: (position: number, size: number) => string }
+const defaultTexts: BreadcrumbsTexts = {
+  breadcrumbTrail: "Breadcrumb Trail", // UI5 BREADCRUMBS_ARIA_LABEL
+  overflow: "More", // UI5 BREADCRUMBS_OVERFLOW_ARIA_LABEL
+  availableValues: "Available Values", // UI5 FORM_SELECTABLE_AVALIABLE_VALUES (reused List surface)
+  position: (position, size) => `${position} of ${size}`, // UI5 BREADCRUMB_ITEM_POS
+}
+const defaultTextsKeys = { breadcrumbTrail: "BREADCRUMBS_ARIA_LABEL", overflow: "BREADCRUMBS_OVERFLOW_ARIA_LABEL", availableValues: "FORM_SELECTABLE_AVALIABLE_VALUES", position: "BREADCRUMB_ITEM_POS" } as const
 
 type BreadcrumbsItemProps = Omit<React.ComponentProps<"a">, "children"> & {
   href?: string
@@ -72,18 +84,27 @@ const isVisibleItem = (item: React.ReactElement<BreadcrumbsItemProps>) => !item.
 function Breadcrumbs({
   design = "standard",
   separators = "slash",
-  positionText = (p, s) => `${p} of ${s}`,
-  overflowLabel = "More",
-  overflowListLabel = "Available Values",
+  positionText: positionTextProp,
+  overflowLabel: overflowLabelProp,
+  texts: textsProp,
+  locale: localeProp,
+  overflowListLabel: overflowListLabelProp,
   overflowOpen,
   defaultOverflowOpen = false,
   onOverflowOpenChange,
   overflowContentProps,
   className,
   children,
-  "aria-label": ariaLabel = "Breadcrumb Trail",
+  "aria-label": ariaLabelProp,
   ...props
 }: BreadcrumbsProps) {
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp, localeProp)
+  // Breadcrumbs.js/_getItemPositionText appends the localized ordinal to the existing item's name.
+  const positionText = positionTextProp === undefined ? texts.position : positionTextProp
+  const overflowLabel = overflowLabelProp ?? texts.overflow
+  const overflowListLabel = overflowListLabelProp ?? texts.availableValues
+  const ariaLabel = ariaLabelProp ?? texts.breadcrumbTrail
+
   // Breadcrumbs.js _updateOverflow counts RAW item positions; _visibleItems filters afterward.
   // Keep native-hidden items in the array / DOM, even though their measured width is zero.
   const items = React.Children.toArray(children).filter(React.isValidElement) as React.ReactElement<BreadcrumbsItemProps>[]
@@ -385,4 +406,4 @@ function BreadcrumbsItem({ href, children, className, onKeyDown, onKeyUp, onClic
   )
 }
 
-export { Breadcrumbs, BreadcrumbsItem, type BreadcrumbsProps, type BreadcrumbsItemProps, type BreadcrumbsSeparator }
+export { Breadcrumbs, BreadcrumbsItem, type BreadcrumbsProps, type BreadcrumbsItemProps, type BreadcrumbsSeparator, type BreadcrumbsTexts }

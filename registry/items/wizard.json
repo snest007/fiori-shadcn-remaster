@@ -1,11 +1,16 @@
 {
   "title": "Wizard",
-  "registryDependencies": ["@petalo/icons", "@petalo/button", "@petalo/popover"],
+  "registryDependencies": [
+    "@petalo/icons",
+    "@petalo/button",
+    "@petalo/popover",
+    "@petalo/locale"
+  ],
   "description": "Fiori wizard: step tabs (number or icon, title, subtitle, separators) over scrolling step contents; keyboard tab navigation, scroll-to-step, disabled future steps, collapsed step stacks (ui5-wizard).",
   "usage": {
     "summary": "Guide users through a task in reachable steps inside an existing page or custom workflow.",
     "useWhen": [
-      "Help users complete a complex task by dividing it into guided steps; a wizard page typically has 3–8 steps.",
+      "Help users complete a complex task by dividing it into guided steps; a wizard page typically has 3\u20138 steps.",
       "Let users revisit reached steps while the application keeps unreached steps disabled until their prerequisites are met.",
       "Use contentLayout=\"multipleSteps\" to stack reached sections or \"singleStep\" to show only the selected section."
     ],

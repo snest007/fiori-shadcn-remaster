@@ -1,10 +1,13 @@
-import * as React from "react"
 import type { Preview } from "@storybook/react-vite"
 import { addons } from "storybook/preview-api"
-import { GLOBALS_UPDATED, SET_GLOBALS } from "storybook/internal/core-events"
+import { GLOBALS_UPDATED, SET_GLOBALS, UPDATE_GLOBALS } from "storybook/internal/core-events"
 import "../docs/src/index.css"
 import "./preview.css"
 import { DocsPage } from "../docs/stories/_lib/DocsPage"
+import { FioriLocaleProvider, type FioriTexts } from "../registry/lib/fiori-locale"
+
+const packs = import.meta.glob<FioriTexts>("../registry/i18n/*.json", { eager: true, import: "default" })
+const pack = (locale: string) => packs[`../registry/i18n/${locale}.json`] ?? {}
 
 // Storybook Preview.emitGlobals initializes SET_GLOBALS and updates through
 // GLOBALS_UPDATED. Keep the document on toolbar globals, including MDX/iframe-only
@@ -27,7 +30,7 @@ import { DocsPage } from "../docs/stories/_lib/DocsPage"
 //    render functions call Storybook hooks (useArgs, preview-api useState), which throw
 //    "hooks can only be called inside decorators and story functions" when React re-renders
 //    them outside Storybook's hooks context.
-type ThemeGlobals = { theme?: string; density?: string; dir?: string }
+type ThemeGlobals = { theme?: string; density?: string; dir?: string; locale?: string }
 type DocsHost = Window & { __petaloDocsGlobals?: () => ThemeGlobals | undefined }
 type PreviewWindow = Window & { __STORYBOOK_PREVIEW__?: { storyRenders: { rerender: () => Promise<void> }[] } }
 const channel = addons.getChannel()
@@ -49,7 +52,7 @@ const docsHost = (): DocsHost | undefined => {
 }
 const inheritedGlobals = (): ThemeGlobals => {
   const g = docsHost()?.__petaloDocsGlobals?.()
-  return Object.fromEntries(Object.entries({ theme: g?.theme, density: g?.density, dir: g?.dir }).filter(([, v]) => v))
+  return Object.fromEntries(Object.entries({ theme: g?.theme, density: g?.density, dir: g?.dir, locale: g?.locale }).filter(([, v]) => v))
 }
 /** Toolbar globals < docs frame (stands in for the toolbar in a child) < the story's own globals. */
 const effectiveGlobals = (globals: ThemeGlobals, storyGlobals: ThemeGlobals = {}): ThemeGlobals =>
@@ -61,17 +64,22 @@ const applyDocumentGlobals = (effective: ThemeGlobals) => {
   documentGlobals = effective
   document.documentElement.dataset.theme = effective.theme ?? "sap_horizon"
   document.documentElement.dataset.density = effective.density ?? "cozy"
-  document.documentElement.dir = effective.dir ?? "ltr"
+  document.documentElement.dir = effective.locale === "ar" ? "rtl" : effective.dir ?? "ltr"
   window.dispatchEvent(new Event(DOCS_GLOBALS_EVENT))
 }
 ;(window as DocsHost).__petaloDocsGlobals = () => documentGlobals
 function onOwnGlobals(this: { from?: string } | undefined, payload: { globals: ThemeGlobals; storyGlobals?: ThemeGlobals }) {
-  if (isOwnEvent(this)) applyDocumentGlobals(effectiveGlobals(payload.globals, payload.storyGlobals))
+  if (!isOwnEvent(this)) return
+  applyDocumentGlobals(effectiveGlobals(payload.globals, payload.storyGlobals))
+  // Only a toolbar change on the owning preview updates the user Direction global.
+  if (!docsHost() && payload.globals.locale === "ar" && payload.globals.dir !== "rtl") {
+    channel.emit(UPDATE_GLOBALS, { globals: { dir: "rtl" } })
+  }
 }
 channel.on(SET_GLOBALS, onOwnGlobals)
 channel.on(GLOBALS_UPDATED, onOwnGlobals)
 
-// Rule 3: a child story follows its docs frame's theme/density/dir via Storybook's own rerender.
+// Rule 3: a child story follows its docs frame's theme, density, direction and locale via Storybook's own rerender.
 const host = docsHost()
 const rerenderStories = () => {
   for (const render of (window as PreviewWindow).__STORYBOOK_PREVIEW__?.storyRenders ?? []) void render.rerender()
@@ -93,8 +101,12 @@ const preview: Preview = {
     ] } },
     density: { description: "Content density", toolbar: { title: "Density", icon: "component", dynamicTitle: true, items: ["cozy", "compact"] } },
     dir: { description: "Text direction", toolbar: { title: "Direction", icon: "transfer", dynamicTitle: true, items: ["ltr", "rtl"] } },
+    locale: { description: "Locale and SAP translations", toolbar: { title: "Locale", icon: "globe", dynamicTitle: true, items: [
+      { value: "default", title: "English (default)" }, { value: "de", title: "Deutsch" }, { value: "fr", title: "Français" },
+      { value: "ja", title: "日本語" }, { value: "zh-CN", title: "简体中文" }, { value: "ar", title: "العربية" },
+    ] } },
   },
-  initialGlobals: { theme: "sap_horizon", density: "cozy", dir: "ltr" },
+  initialGlobals: { theme: "sap_horizon", density: "cozy", dir: "ltr", locale: "default" },
   decorators: [(Story, context) => {
     const globals = effectiveGlobals(context.globals, context.storyGlobals)
     // Match docs/src/main.tsx: tokens and portaled overlays inherit the root attributes.
@@ -113,7 +125,10 @@ const preview: Preview = {
     // beneath article/aside/main/nav/section. An unnamed section stays generic and keeps
     // component roles intact; owned full-page landmarks and Docs stay unwrapped.
     const story = role === "main" ? <section><Story /></section> : <Story />
-    return <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={globals.theme} data-density={globals.density} dir={globals.dir}>{context.viewMode === "story" && ownsLandmarks ? <section aria-labelledby={headingId}>{heading}</section> : heading}{story}</div>
+    const locale = globals.locale
+    const direction = locale === "ar" ? "rtl" : globals.dir
+    const content = <div role={role} className="fiori-story-canvas" data-fiori-story={context.id} data-fiori-args={JSON.stringify(controlArgs)} data-theme={globals.theme} data-density={globals.density} dir={direction}>{context.viewMode === "story" && ownsLandmarks ? <section aria-labelledby={headingId}>{heading}</section> : heading}{story}</div>
+    return locale && locale !== "default" ? <FioriLocaleProvider locale={locale} texts={pack(locale)}>{content}</FioriLocaleProvider> : content
   }],
   parameters: {
     docs: { page: DocsPage, source: { type: "code" } },

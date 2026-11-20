@@ -6,7 +6,8 @@
     "@petalo/busy-indicator",
     "@petalo/button",
     "@petalo/link",
-    "@petalo/toggle-button"
+    "@petalo/toggle-button",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Present object events and changes in chronological order.",

@@ -136,3 +136,6 @@ function ItemDocs() {
     <h2>Variants and examples</h2>{variants.map((story) => <DocsStory key={story.id} of={story.moduleExport} __forceInitialArgs={false} />)}
   </main>
 }
+
+export const German: Story = { globals: { locale: "de" } }
+export const ComposedTexts: Story = { args: { texts: { stepHeading: "Stage", activeStep: "Ready", inactiveStep: "Pending", optionalStep: "Not required", actionSheetSteps: "Stages", stepLabel: (n, title, enabled, optional) => `${n} ${title} ${enabled ? "Ready" : "Pending"} ${optional ? "Not required" : ""}`.trim() } } }

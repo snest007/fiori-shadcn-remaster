@@ -8,7 +8,7 @@ import { ui5State } from "./ui5-helpers"
 import set from "./time-picker"
 import { showPickerPopoverInPlace } from "./ui5-picker-popover"
 
-export default defineUi5(set, ({ value, valueState, disabled, readOnly, clocks, popover }) => {
+export default defineUi5(set, ({ value, valueState, disabled, readOnly, clocks, popover, pattern }) => {
   if (clocks) {
     const el = h("ui5-time-selection-clocks", { "format-pattern": clocks, value: "15:25" })
     // UI5 sets this before opening its popover so the first clock doesn't fade in.
@@ -18,7 +18,7 @@ export default defineUi5(set, ({ value, valueState, disabled, readOnly, clocks, 
     frame.append(el)
     return frame
   }
-  const el = h("ui5-time-picker", { "format-pattern": "h:mm:ss\u202fa", value, "value-state": ui5State(valueState), disabled, readonly: readOnly })
+  const el = h("ui5-time-picker", { "format-pattern": pattern ?? "h:mm:ss\u202fa", value, "value-state": ui5State(valueState), disabled, readonly: readOnly })
   if (popover) return showPickerPopoverInPlace(el)
   el.style.width = FIELD_WIDTH
   return el

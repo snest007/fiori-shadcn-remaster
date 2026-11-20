@@ -4,6 +4,7 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 2.28 List fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -37,6 +38,10 @@ type ListTexts = {
   listDescription: string; groupHeader: string; selectable: string; multiSelectable: string; deletable: string
   checkboxLabel: string; radioLabel: string; loadMore: string; delete: string
   inactive: string; navigation: string; detail: string
+  growing?: string
+  interactiveDescription?: string
+  groups?: (count: number, items: number) => string
+  listboxGroups?: (count: number) => string
   groupDescription: (groups: number, items: number) => string
   listboxGroupDescription: (groups: number) => string
 }
@@ -67,6 +72,13 @@ const defaultListTexts: ListTexts = {
   groupDescription: (groups, items) => `contains ${formatListCount(groups)} sub groups with ${formatListCount(items)} items`, // UI5 LIST_ROLE_LIST_GROUP_DESCRIPTION
   listboxGroupDescription: (groups) => `contains ${formatListCount(groups)} sub groups`, // UI5 LIST_ROLE_LISTBOX_GROUP_DESCRIPTION
 }
+const defaultListTextsKeys = {
+  selectable: "ARIA_LABEL_LIST_SELECTABLE", multiSelectable: "ARIA_LABEL_LIST_MULTISELECTABLE",
+  deletable: "ARIA_LABEL_LIST_DELETABLE", delete: "DELETE", selected: "LIST_ITEM_SELECTED",
+  notSelected: "LIST_ITEM_NOT_SELECTED", loadMore: "LOAD_MORE_TEXT", listDescription: "LIST_ROLE_DESCRIPTION",
+  groupDescription: "LIST_ROLE_LIST_GROUP_DESCRIPTION", listboxGroupDescription: "LIST_ROLE_LISTBOX_GROUP_DESCRIPTION",
+  groupHeader: "GROUP_HEADER_TEXT",
+} as const
 function formatListCount(count: number) { return new Intl.NumberFormat(typeof navigator === "undefined" ? "en" : navigator.language).format(count) }
 
 type CustomAccessibilityInfo = {
@@ -422,18 +434,18 @@ function List({
   indent,
   stickyHeader,
   growing = "none",
-  growingButtonText,
+  growingButtonText: growingButtonTextProp,
   growingButtonName,
   growingButtonDescription,
   onLoadMore,
   loading,
   loadingDelay = 1000,
   accessibleRole = "list",
-  deleteText,
-  selectedText,
-  notSelectedText,
-  texts,
-  locale,
+  deleteText: deleteTextProp,
+  selectedText: selectedTextProp,
+  notSelectedText: notSelectedTextProp,
+  texts: textsProp,
+  locale: localeProp,
   className,
   children,
   "aria-label": ariaLabel,
@@ -448,14 +460,22 @@ function List({
   onDrop,
   ...props
 }: ListProps) {
-  const id = React.useId()
-  const t = React.useMemo(() => {
-    const number = new Intl.NumberFormat(locale ?? (typeof navigator === "undefined" ? "en" : navigator.language))
+  const { locale } = useFioriLocale(localeProp)
+  const defaults = React.useMemo(() => {
+    const number = new Intl.NumberFormat(locale)
     return { ...defaultListTexts,
-      groupDescription: (groups: number, items: number) => `contains ${number.format(groups)} sub groups with ${number.format(items)} items`, // UI5 LIST_ROLE_LIST_GROUP_DESCRIPTION
-      listboxGroupDescription: (groups: number) => `contains ${number.format(groups)} sub groups`, // UI5 LIST_ROLE_LISTBOX_GROUP_DESCRIPTION
-      ...texts, ...(selectedText === undefined ? {} : { selected: selectedText }), ...(notSelectedText === undefined ? {} : { notSelected: notSelectedText }) }
-  }, [locale, texts, selectedText, notSelectedText])
+      groupDescription: (groups: number, items: number) => `contains ${number.format(groups)} sub groups with ${number.format(items)} items`,
+      listboxGroupDescription: (groups: number) => `contains ${number.format(groups)} sub groups` }
+  }, [locale])
+  const t = useFioriTexts(defaults, defaultListTextsKeys, {
+    ...textsProp, loadMore: growingButtonTextProp ?? textsProp?.loadMore ?? textsProp?.growing,
+    delete: deleteTextProp ?? textsProp?.delete, selected: selectedTextProp ?? textsProp?.selected,
+    notSelected: notSelectedTextProp ?? textsProp?.notSelected,
+    listDescription: textsProp?.listDescription ?? textsProp?.interactiveDescription,
+    groupDescription: textsProp?.groupDescription ?? textsProp?.groups,
+    listboxGroupDescription: textsProp?.listboxGroupDescription ?? textsProp?.listboxGroups,
+  }, localeProp)
+  const id = React.useId()
   const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
   const [announcementTarget, setAnnouncementTarget] = React.useState<HTMLElement | null>(null)
   const announceSelection = (selected: boolean) => setAnnouncement((old) => ({ text: selected ? t.selected : t.notSelected, sequence: old.sequence + 1 }))
@@ -469,7 +489,7 @@ function List({
     onValueChange,
     onItemClick,
     onItemDelete,
-    deleteText: deleteText ?? t.delete,
+    deleteText: t.delete,
     selectedText: t.selected,
     notSelectedText: t.notSelected,
     announceSelection,
@@ -633,7 +653,7 @@ function List({
             >
               {loading && <BusyIndicator active delay={loadingDelay} size="M" className="fiori-list__growing-busy" />}
               <span id={`${id}-growing-text`} className="fiori-list__growing-text">
-                {growingButtonText ?? t.loadMore}
+                {t.loadMore}
               </span>
             </div>
             {growingButtonDescription && <span id={`${id}-growing-description`} className="sr-only">{growingButtonDescription}</span>}
@@ -918,7 +938,7 @@ function ListItemRoot({
   disabled,
   movable = false,
   onDetailClick,
-  detailText = "Edit",
+  detailText: detailTextProp,
   flags,
   content,
   afterContent,
@@ -936,6 +956,9 @@ function ListItemRoot({
   "data-active": activeFlag,
   ...props
 }: ItemRenderOptions) {
+  const { t } = useFioriLocale()
+  const detailText = detailTextProp ?? t("UPLOADCOLLECTIONITEM_EDIT_BUTTON_TEXT", "Edit") // UI5 UPLOADCOLLECTIONITEM_EDIT_BUTTON_TEXT
+
   const { core, value, selected, active, actionable, inactive, handlers } = useListItemBehaviour({
     value: valueProp,
     type,
@@ -951,9 +974,9 @@ function ListItemRoot({
   const nameId = React.useId()
   const customId = React.useId()
   const [customText, setCustomText] = React.useState("")
-  const t = core.texts ?? defaultListTexts
+  const listTexts = core.texts ?? defaultListTexts
   const custom = flags["data-custom"] !== undefined
-  const nameText = [accessibleName, type === "active" && t.active].filter(Boolean).join(" ")
+  const nameText = [accessibleName, type === "active" && listTexts.active].filter(Boolean).join(" ")
   const mode = core.mode
   // UI5: only Multiple / Single / SingleStart / SingleEnd announce selection (not SingleAuto).
   const ariaSelected = mode === "multiple" || (isSingle(mode) && mode !== "singleAuto") ? selected : undefined
@@ -1001,7 +1024,7 @@ function ListItemRoot({
           // ListItemCustom.js:accessibilityInfo includes default-slot content and
           // _getDeleteButtonNodes; selection/detail controls are not content nodes.
           const deleteButtons = event.currentTarget.querySelectorAll<HTMLElement>(".fiori-li__deletebtn [data-slot='button']")
-          setCustomText(getCustomAnnouncement(event.currentTarget, t, { rootInfo: { type: t.customItem, children: [...(content?.childNodes ?? []), ...deleteButtons] } }))
+          setCustomText(getCustomAnnouncement(event.currentTarget, listTexts, { rootInfo: { type: listTexts.customItem, children: [...(content?.childNodes ?? []), ...deleteButtons] } }))
         }
       }}
       onBlur={(event) => { onBlur?.(event); if (custom && !accessibleName && !event.currentTarget.hasAttribute("data-moving")) setCustomText("") }}
@@ -1123,10 +1146,12 @@ type ListItemGroupHeaderProps = Omit<React.ComponentProps<"li">, "value"> & {
   value?: string
   /** UI5 accessibleName is appended to the visible title on the header li. Native aria-label overrides it. */
   accessibleName?: string
+  texts?: { groupHeader?: string }
 }
 
 /** ui5-li-group-header: focusable in the arrow-key order, never selectable. */
-function ListItemGroupHeader({ value: valueProp, className, children, onFocus, accessibleName, ownedGroup, ...props }: ListItemGroupHeaderProps & { ownedGroup?: { id: string; label: string } }) {
+function ListItemGroupHeader({ value: valueProp, className, children, onFocus, accessibleName, ownedGroup, texts, ...props }: ListItemGroupHeaderProps & { ownedGroup?: { id: string; label: string } }) {
+  const { t } = useFioriLocale()
   const core = useListCore()
   const autoId = React.useId()
   const key = valueProp ?? autoId
@@ -1141,7 +1166,7 @@ function ListItemGroupHeader({ value: valueProp, className, children, onFocus, a
       role={core.itemRole === "option" ? undefined : "listitem"}
       // ListItemGroupHeaderTemplate.js names the visible title plus accessibleName.
       aria-label={[titleText, accessibleName].filter(Boolean).join(" ") || undefined}
-      aria-roledescription={(core.texts ?? defaultListTexts).groupHeader}
+      aria-roledescription={texts?.groupHeader ?? core.texts?.groupHeader ?? t("GROUP_HEADER_TEXT", "Group Header")}
       tabIndex={core.currentKey === key ? 0 : -1}
       className={cn("fiori-li-group-header", className)}
       onFocus={(e) => {
@@ -1211,6 +1236,7 @@ export {
   isSingle,
   navItems,
   type ListProps,
+  type ListTexts,
   type ListItemStandardProps,
   type ListItemCustomProps,
   type ListItemGroupProps,
@@ -1223,7 +1249,6 @@ export {
   type ListAdditionalTextState,
   type ListAccessibleRole,
   type ListCore,
-  type ListTexts,
   type CustomAccessibilityInfo,
   getCustomAnnouncement,
 }

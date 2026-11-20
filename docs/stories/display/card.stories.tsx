@@ -58,3 +58,7 @@ export const WithoutHeader: Story = { args: { showHeader: false } }
 export const LongTitle: Story = { args: { titleText: "Quarterly sales for all international markets and product categories" } }
 export const CustomTexts: Story = { args: { roleDescription: "Sales overview showHeader", accessibleName: "Sales performance", interactive: true } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+
+export const German: Story = { globals: { locale: "de" } }
+export const ContentTexts: Story = { args: { texts: { card: "Panel", content: "Panel content" } } }
+export const HeaderTexts: Story = { render: args => <Card {...args}><CardHeader titleText="Shipping" titleLevel={2} texts={{ header: "Panel header", interactiveHeader: "Open panel", avatar: "Account portrait" }} /><CardContent>Shipping details</CardContent></Card> }

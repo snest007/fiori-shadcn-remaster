@@ -156,3 +156,6 @@ export const RoleMenu: Story = { render: () => <List aria-label="Produce actions
 export const RoleTree: Story = { render: () => <List aria-label="Produce tree" accessibleRole="tree"><ListItemStandard value="fruit" type="inactive">Fruit</ListItemStandard></List> }
 export const SelectedCustomOption: Story = { render: () => <List aria-label="Produce" accessibleRole="listbox" selectionMode="single" defaultValue={["apple"]}><ListItemCustom value="apple" role="option" aria-label="Apples"><span>Apples</span></ListItemCustom></List> }
 export const RTLSelectedCustomOption: Story = { ...SelectedCustomOption, globals: { dir: "rtl" } }
+
+export const German: Story = { globals: { locale: "de" } }
+export const ModeTexts: Story = { args: { texts: { multiSelectable: "Choose several destinations", selected: "Chosen", notSelected: "Not chosen", groups: (groups, items) => `${groups} destination groups, ${items} choices` } } }

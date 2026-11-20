@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
 
@@ -81,13 +82,20 @@ const buttonVariants = cva(
 type ButtonProps = React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    texts?: Partial<ButtonTexts>
   }
 
-function Button({ className, variant, size, asChild = false, type, ...props }: ButtonProps) {
+function Button({ className, variant, size, asChild = false, type, texts, "aria-description": description, ...props }: ButtonProps) {
+  const resolved = useFioriTexts(defaultButtonTexts, defaultButtonTextsKeys, texts)
+  const { hasProvider } = useFioriLocale()
+  // UI5 Button.js/ariaDescriptionText appends the semantic design to the explicit description.
+  const semantic = (hasProvider || texts) && variant && variant in resolved ? resolved[variant as keyof ButtonTexts] : undefined
+  const ariaDescription = [description, semantic].filter(Boolean).join(" ") || undefined
   const Comp = asChild ? Slot.Root : "button"
   return (
     <Comp
       data-slot="button"
+      aria-description={ariaDescription}
       data-variant={variant ?? "default"}
       type={asChild ? type : (type ?? "button")}
       className={cn(buttonVariants({ variant, size }), className)}
@@ -96,4 +104,8 @@ function Button({ className, variant, size, asChild = false, type, ...props }: B
   )
 }
 
-export { Button, buttonVariants, type ButtonProps }
+export { Button, buttonVariants, type ButtonProps, type ButtonTexts }
+
+type ButtonTexts = { positive: string; negative: string; emphasized: string; attention: string }
+const defaultButtonTexts: ButtonTexts = { positive: "Accept", negative: "Reject", emphasized: "Emphasized", attention: "Attention" }
+const defaultButtonTextsKeys = { positive: "BUTTON_ARIA_TYPE_ACCEPT", negative: "BUTTON_ARIA_TYPE_REJECT", emphasized: "BUTTON_ARIA_TYPE_EMPHASIZED", attention: "BUTTON_ARIA_TYPE_ATTENTION" } as const

@@ -1,7 +1,7 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { useArgs } from "storybook/preview-api"
-import { fn } from "storybook/test"
+import { fn, expect, userEvent, within } from "storybook/test"
 import { ComboBox, ComboBoxItem, ComboBoxItemGroup, type ComboBoxProps } from "@/components/ui/combobox"
 import { fioriMeta } from "../_lib/meta"
 import { DocsPage } from "../_lib/DocsPage"
@@ -98,3 +98,4 @@ export const NoTypeahead: Story = { args: { noTypeahead: true } }
 export const RTL: Story = { globals: { dir: "rtl" } }
 export const FreeText: Story = { args: { value: "Custom delivery destination" } }
 export const CustomTexts: Story = { args: { texts: { itemPosition: (position, count) => `Destination ${position} of ${count}`, groupHeader: "Destination region" }, arrowLabel: "Choose a delivery country", listLabel: "Delivery destinations", valueState: "critical", valueStateMessage: "Confirm this country is served by your carrier.", dialogTitle: "Delivery destinations", okText: "Use country", cancelText: "Keep previous country" } }
+export const AnnouncementTexts: Story = { args: { open: true, grouped: true, texts: { groupHeader: "Region", itemPosition: (position, count) => `Entry ${position} / ${count}` } }, play: async ({ canvasElement }) => { const input = within(canvasElement).getByRole("combobox"); await userEvent.click(input); const owner = input.getAttribute("aria-controls")?.replace(/-list$/, ""); const announcement = () => canvasElement.ownerDocument.querySelector(`[data-slot="combobox-announcement"][data-owner="${owner}"]`); await userEvent.keyboard("{ArrowDown}"); await expect(announcement()).toHaveTextContent("Entry 3 / 6"); await userEvent.keyboard("{ArrowDown}"); await expect(announcement()).toHaveTextContent("Region Europe") } }

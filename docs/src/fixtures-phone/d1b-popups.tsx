@@ -44,6 +44,7 @@ function PickerPhone({ kind, valueState, timeView, noLabel }: D1bCase) {
       if (buttons.length !== 1) return
       const button = buttons[0]
       if (button.getAttribute("aria-selected") === "true") { observer.disconnect(); return }
+      // Re-pressing Time replaces the segmented button’s announcement node, which would wake this observer again.
       if (activated) return
       activated = true
       button.click()

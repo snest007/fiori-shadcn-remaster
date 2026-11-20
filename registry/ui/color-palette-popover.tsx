@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { ColorPalette, ColorPaletteStateContext, ColorPaletteStateProvider, type ColorPaletteProps } from "@/components/ui/color-palette"
 import { Popover, PopoverAnchor, PopoverContent, type PopoverContentProps } from "@/components/ui/popover"
@@ -30,8 +31,11 @@ function focusedElement() {
   return element instanceof HTMLElement ? element : null
 }
 
-function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, onOpenChange, placement = "Bottom", popoverLabel = "Color Palette",
+function PalettePopoverSurface({ open: controlled, defaultOpen = false, opener, onOpenChange, placement = "Bottom", popoverLabel: popoverLabelProp,
   portal = true, contentProps, className, id, ...paletteProps }: ColorPalettePopoverProps) {
+  const { t } = useFioriLocale()
+  const popoverLabel = popoverLabelProp ?? t("COLORPALETTE_POPOVER_TITLE", "Color Palette") // UI5 COLORPALETTE_POPOVER_TITLE
+
   const [uncontrolled, setUncontrolled] = React.useState(defaultOpen)
   const open = controlled ?? uncontrolled
   const state = React.useContext(ColorPaletteStateContext)!

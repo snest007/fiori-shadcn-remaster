@@ -203,3 +203,14 @@
 .fiori-slider:is(:hover, :focus-within) .fiori-slider__tooltip {
   display: flex;
 }
+/* UI5 SliderTooltip.css.js editable host: remove the display tooltip surface around the field. */
+/* SliderTooltip.repositionTooltip anchors at handle.top; its editable host has margin-top:-3.375rem (no theme parameter). */
+.fiori-slider__tooltip--editable { top: calc(50% - var(--fiori-slider-handle-height) / 2 - 3.375rem); left: auto; height: auto; padding: 0; background: transparent; box-shadow: none; overflow: visible; pointer-events: auto; z-index: 6; }
+.fiori-slider__tooltip--editable:dir(rtl) { transform: translateX(50%); }
+.fiori-slider__tooltip--editable[data-editing] { display: flex; }
+.fiori-slider__tooltip--editable input { text-align: center; }
+/* SliderTooltip.css.js: editable ui5-input is width:min-content. Input.css.js
+   removes native number spinners by inheriting the input's appearance and margin. */
+.fiori-slider__tooltip--editable .fiori-field { width: min-content; text-align: center; }
+.fiori-slider__tooltip--editable input::-webkit-outer-spin-button,
+.fiori-slider__tooltip--editable input::-webkit-inner-spin-button { -webkit-appearance: inherit; margin: inherit; }

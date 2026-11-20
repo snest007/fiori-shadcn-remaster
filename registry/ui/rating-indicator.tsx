@@ -3,6 +3,8 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
+import { formatNumber } from "@/lib/fiori-numbers"
 
 import type { FioriIconData } from "@/lib/fiori-icons"
 import { favorite, unfavorite } from "@/lib/fiori-icons"
@@ -32,6 +34,9 @@ type RatingIndicatorProps = Omit<React.ComponentProps<"div">, "defaultValue" | "
   roleDescription?: string
   /** aria-description when required (default "Required"). */
   requiredText?: string
+  locale?: string
+  /** RatingIndicatorTemplate's value/max text, with localized numbers. */
+  valueText?: (value: string, maximum: string) => string
 }
 
 // Mirrors ui5-rating-indicator (Horizon). role="slider" with aria-valuenow / aria-valuetext "n of max".
@@ -50,14 +55,21 @@ function RatingIndicator({
   required,
   ratedIcon = favorite,
   unratedIcon = unfavorite,
-  roleDescription = "Rating Indicator",
-  requiredText = "Required",
-  title = "Rating",
+  roleDescription: roleDescriptionProp,
+  requiredText: requiredTextProp,
+  title: titleProp,
+  locale: localeProp,
+  valueText = (value, maximum) => `${value} of ${maximum}`,
   className,
   onKeyDown,
   onClick,
   ...props
 }: RatingIndicatorProps) {
+  const { t, locale, localized } = useFioriLocale(localeProp)
+  const roleDescription = roleDescriptionProp ?? t("RATING_INDICATOR_TEXT", "Rating Indicator") // UI5 RATING_INDICATOR_TEXT
+  const requiredText = requiredTextProp ?? t("RATING_INDICATOR_ARIA_DESCRIPTION", "Required") // UI5 RATING_INDICATOR_ARIA_DESCRIPTION
+  const title = titleProp ?? t("RATING_INDICATOR_TOOLTIP_TEXT", "Rating") // UI5 RATING_INDICATOR_TOOLTIP_TEXT
+
   const [inner, setInner] = React.useState(defaultValue)
   const value = valueProp ?? inner
   const set = (v: number) => {
@@ -90,7 +102,7 @@ function RatingIndicator({
       aria-valuemin={0}
       aria-valuenow={value}
       aria-valuemax={max}
-      aria-valuetext={`${value} of ${max}`}
+      aria-valuetext={valueText(localized ? formatNumber(value, locale) : String(value), localized ? formatNumber(max, locale) : String(max))}
       aria-orientation="horizontal"
       aria-disabled={disabled || displayOnly || undefined}
       aria-readonly={!displayOnly && readOnly ? true : undefined}

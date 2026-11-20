@@ -9,7 +9,8 @@
     "@petalo/date-picker",
     "@petalo/picker-field",
     "@petalo/use-is-phone",
-    "@petalo/popover"
+    "@petalo/popover",
+    "@petalo/locale"
   ],
   "files": [
     {

@@ -1,5 +1,5 @@
 // Writes registry.json (the shadcn registry manifest). Kept as a script so item lists stay in one place.
-import { readFileSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { componentOwners, iconsItem, itemMetadata, usageMarkdown, validateUsage } from "./skill/usage.mjs"
 
 // Where public/r is served. Consumers' components.json gets "@petalo" -> this URL on `shadcn init`.
@@ -22,6 +22,10 @@ const ui = (name, extra = {}) => ({
   ...(extra.usage ? { meta: { usage: extra.usage }, docs: usageMarkdown(extra.usage) } : {}),
 })
 const componentMetadata = itemMetadata("registry/items")
+// The registry builder is also used against isolated usage-only fixture repositories.
+// Generate SAP packs only when this registry owns their sources; never require UI5
+// node_modules in an unrelated fixture cwd.
+if (existsSync("registry/i18n/registry-items.json")) await import("./build-i18n-packs.mjs")
 const blockMetadata = itemMetadata("registry/block-items").map((item) => ({ ...item, type: "registry:block" }))
 // Coverage exemptions: registry:lib (f6-navigation, use-is-phone, variants) provides utilities,
 // not selectable UI or floorplans. Script-emitted fiori (base), fiori-theme (style), icons
@@ -110,6 +114,7 @@ const registry = {
     },
     iconsItem,
     ...components,
+    ...(existsSync("registry/i18n/registry-items.json") ? JSON.parse(readFileSync("registry/i18n/registry-items.json", "utf8")) : []),
     ...illustrations,
     ...blocks,
   ],

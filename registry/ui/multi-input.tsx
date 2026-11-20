@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { collatorIncludes, useFioriLocale } from "@/lib/fiori-locale"
 import { isF6NavigationKey } from "@/lib/fiori-f6"
 import { Popover as PopoverPrimitive } from "radix-ui"
 
@@ -19,7 +20,7 @@ import { Input } from "@/components/ui/input"
 import { multiselectAll, decline } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 import { Token } from "@/components/ui/token"
 import { Tokenizer, type TokenizerHandle } from "@/components/ui/tokenizer"
 
@@ -97,14 +98,15 @@ type MultiInputProps = Omit<React.ComponentProps<"input">, "value" | "defaultVal
   cancelText?: string
   showTokensLabel?: string
   tokenDeleteLabel?: string
+  locale?: string
   suggestionsLabel?: string
 }
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-const filters: Record<SuggestionFilter, (value: string, text: string) => boolean> = {
-  startsWithPerTerm: (v, t) => new RegExp(`(^|\\s)${escapeRegExp(v.toLowerCase())}`).test(t.toLowerCase()),
-  startsWith: (v, t) => t.toLowerCase().startsWith(v.toLowerCase()),
-  contains: (v, t) => t.toLowerCase().includes(v.toLowerCase()),
+const filters: Record<SuggestionFilter, (value: string, text: string, locale: string | undefined) => boolean> = {
+  startsWithPerTerm: (v, text, locale) => text.split(/\s+/).some(term => collatorIncludes(term, v, locale, true)),
+  startsWith: (v, text, locale) => collatorIncludes(text, v, locale, true),
+  contains: (v, text, locale) => collatorIncludes(text, v, locale),
   none: () => true,
 }
 const NO_AUTOCOMPLETE = new Set([
@@ -163,16 +165,17 @@ function MultiInput({
   noTypeahead,
   valueState = "none",
   valueStateMessage,
-  valueHelpLabel = "Show Value Help",
-  roleDescription = "Multi Value Input",
+  valueHelpLabel: valueHelpLabelProp,
+  roleDescription: roleDescriptionProp,
   nMoreText,
-  tokensCountText = defaultTokensCountText,
-  dialogTitle = "All Items",
-  okText = "OK",
-  cancelText = "Cancel",
-  showTokensLabel = "Show selected tokens",
-  tokenDeleteLabel = "Delete",
-  suggestionsLabel = "Suggestions",
+  tokensCountText: tokensCountTextProp,
+  dialogTitle: dialogTitleProp,
+  okText: okTextProp,
+  cancelText: cancelTextProp,
+  showTokensLabel: showTokensLabelProp,
+  tokenDeleteLabel: tokenDeleteLabelProp,
+  suggestionsLabel: suggestionsLabelProp,
+  locale: localeProp,
   disabled,
   readOnly,
   placeholder,
@@ -186,6 +189,20 @@ function MultiInput({
   "aria-label": ariaLabel,
   ...props
 }: MultiInputProps) {
+  const valueStateTexts = useValueStateTexts()
+
+  const { t, locale, localized } = useFioriLocale(localeProp)
+  const matchLocale = localized ? locale : undefined
+  const tokensCountText = tokensCountTextProp ?? ((count: number) => t(count === 0 ? "TOKENIZER_ARIA_CONTAIN_TOKEN" : count === 1 ? "TOKENIZER_ARIA_CONTAIN_ONE_TOKEN" : "TOKENIZER_ARIA_CONTAIN_SEVERAL_TOKENS", defaultTokensCountText(count), count))
+  const valueHelpLabel = valueHelpLabelProp ?? t("MULTIINPUT_VALUE_HELP_LABEL", "Show Value Help") // UI5 MULTIINPUT_VALUE_HELP_LABEL
+  const tokenDeleteLabel = tokenDeleteLabelProp ?? t("TOKEN_ARIA_DELETE", "Delete") // UI5 TOKEN_ARIA_DELETE
+  const roleDescription = roleDescriptionProp ?? t("MULTIINPUT_ROLEDESCRIPTION_TEXT", "Multi Value Input") // UI5 MULTIINPUT_ROLEDESCRIPTION_TEXT
+  const dialogTitle = dialogTitleProp ?? t("INPUT_SUGGESTIONS_TITLE", "All Items") // UI5 INPUT_SUGGESTIONS_TITLE
+  const okText = okTextProp ?? t("TOKENIZER_DIALOG_OK_BUTTON", "OK") // UI5 TOKENIZER_DIALOG_OK_BUTTON
+  const cancelText = cancelTextProp ?? t("TOKENIZER_DIALOG_CANCEL_BUTTON", "Cancel") // UI5 TOKENIZER_DIALOG_CANCEL_BUTTON
+  const showTokensLabel = showTokensLabelProp ?? t("MULTIINPUT_FILTER_BUTTON_LABEL", "Show selected tokens") // UI5 MULTIINPUT_FILTER_BUTTON_LABEL
+  const suggestionsLabel = suggestionsLabelProp ?? t("INPUT_SUGGESTIONS_TITLE", "Suggestions") // UI5 INPUT_SUGGESTIONS_TITLE
+
   const phone = useIsPhone()
   const Root = phone ? ResponsivePopover : PopoverPrimitive.Root
   const Anchor = phone ? ResponsivePopoverAnchor : PopoverPrimitive.Anchor
@@ -226,7 +243,7 @@ function MultiInput({
   const messageId = `${baseId}-vsm`
 
   const showSuggestions = items.length > 0
-  const visible = items.filter((i) => filters[filter](typed, i.text))
+  const visible = items.filter((i) => filters[filter](typed, i.text, matchLocale))
   const isOpen = open && showSuggestions && (phone || visible.length > 0) && !disabled && !readOnly
 
   const setValue = (v: string) => {
@@ -270,7 +287,7 @@ function MultiInput({
     const item = visible[index]
     if (!item) return
     setActive(index)
-    const starts = typed && item.text.toLowerCase().startsWith(typed.toLowerCase())
+    const starts = typed && collatorIncludes(item.text, typed, matchLocale, true)
     pendingSelection.current = [starts ? typed.length : 0, item.text.length]
     setValue(item.text)
   }
@@ -319,7 +336,7 @@ function MultiInput({
       return navigate(key === "Home" ? 0 : visible.length - 1)
     }
     if (key === "Enter") {
-      const item = (isOpen && active >= 0 ? visible[active] : null) ?? matched.current ?? items.find((i) => i.text.toLowerCase() === value.toLowerCase())
+      const item = (isOpen && active >= 0 ? visible[active] : null) ?? matched.current ?? items.find((i) => (localized ? new Intl.Collator(locale, { sensitivity: "base" }).compare(i.text, value) === 0 : i.text.toLowerCase() === value.toLowerCase()))
       if (item && (isOpen || matched.current)) return choose(item)
       commit()
       setOpen(false)
@@ -356,7 +373,7 @@ function MultiInput({
   }
 
   const hasState = valueState !== "none"
-  const message = valueStateMessage === undefined && hasState ? valueStateDefaultText[valueState] : valueStateMessage
+  const message = valueStateMessage === undefined && hasState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasState && message != null && !readOnly && !disabled
   const showHeader = isOpen && showMessage && valueState !== "positive"
   const iconCount = showValueHelpIcon ? 1 : 0
@@ -486,7 +503,7 @@ function MultiInput({
               matched.current = null
               let next = t
               if (showSuggestions && !noTypeahead && !ne.isComposing && t && !NO_AUTOCOMPLETE.has(ne.inputType)) {
-                const item = items.find((i) => i.text.toLowerCase().startsWith(t.toLowerCase()))
+                const item = items.find((i) => collatorIncludes(i.text, t, matchLocale, true))
                 if (item) {
                   next = item.text
                   matched.current = item

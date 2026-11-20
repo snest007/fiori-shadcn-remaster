@@ -6,7 +6,7 @@ import * as React from "react"
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
-import { valueStateDefaultText, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, type ValueState } from "@/components/ui/input"
 
 // UI5 getEffectiveDir/ItemNavigation follows the nearest DOM direction. Radix otherwise
 // writes dir=ltr even when its owner is RTL; observe ancestors to retain live inheritance.
@@ -86,6 +86,8 @@ function RadioGroupItem({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: RadioGroupItemProps) {
+  const valueStateTexts = useValueStateTexts()
+
   const group = React.useContext(RadioGroupContext)
   const readOnly = itemReadOnly ?? group.readOnly
   const valueState = itemState ?? group.valueState
@@ -150,7 +152,7 @@ function RadioGroupItem({
       {/* hidden: referenced by aria-describedby, kept out of the accessible name */}
       {hasState && (
         <span id={descId} hidden>
-          {valueStateText ?? valueStateDefaultText[valueState as Exclude<ValueState, "none">]}
+          {valueStateText ?? valueStateTexts[valueState as Exclude<ValueState, "none">]}
         </span>
       )}
     </RadioGroupPrimitive.Item>

@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { Button } from "@/components/ui/button"
 import { ColorPicker, ColorPickerStateProvider, type ColorPickerProps } from "@/components/ui/color-picker"
@@ -44,7 +45,10 @@ type ColorPaletteItemProps = Omit<React.ComponentProps<"div">, "children"> & {
   index?: number
 }
 
-function ColorPaletteItem({ value = "", selected = false, tooltip, colorLabel = "Color", index, className, style, hidden, onClick, onMouseDown, ...props }: ColorPaletteItemProps) {
+function ColorPaletteItem({ value = "", selected = false, tooltip, colorLabel: colorLabelProp, index, className, style, hidden, onClick, onMouseDown, ...props }: ColorPaletteItemProps) {
+  const { t } = useFioriLocale()
+  const colorLabel = colorLabelProp ?? t("COLORPALETTE_COLOR_LABEL", "Color") // UI5 COLORPALETTE_COLOR_LABEL
+
   const label = `${colorLabel} - ${index}: ${tooltip || value}`
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     // ColorPaletteItem.js onBeforeRendering/_onClick: _disabled = !value prevents and stops original inner clicks before any semantic callback.
@@ -181,9 +185,18 @@ function referencedName(root: HTMLDivElement, reference: string) {
 }
 
 function ColorPalette({ children, className, showDefaultColor = false, defaultColor = "", showRecentColors = false,
-  showMoreColors = false, moreColorsText = "More Colors...", moreColorsDialogTitle = "Change Color", moreColorsOkText = "OK", moreColorsCancelText = "Cancel",
-  moreColorsOpen, onMoreColorsOpenChange, moreColorsDialogProps, colorPickerProps, defaultColorText = "Default Color", containerLabel = "Color Palette - Predefined Colors",
-  colorLabel = "Color", accessibleName, accessibleNameRef, onItemClick, popupMode = false, ref, ...props }: ColorPaletteProps) {
+  showMoreColors = false, moreColorsText: moreColorsTextProp, moreColorsDialogTitle: moreColorsDialogTitleProp, moreColorsOkText: moreColorsOkTextProp, moreColorsCancelText: moreColorsCancelTextProp,
+  moreColorsOpen, onMoreColorsOpenChange, moreColorsDialogProps, colorPickerProps, defaultColorText: defaultColorTextProp, containerLabel: containerLabelProp,
+  colorLabel: colorLabelProp, accessibleName, accessibleNameRef, onItemClick, popupMode = false, ref, ...props }: ColorPaletteProps) {
+  const { t } = useFioriLocale()
+  const moreColorsText = moreColorsTextProp ?? t("COLOR_PALETTE_MORE_COLORS_TEXT", "More Colors...") // UI5 COLOR_PALETTE_MORE_COLORS_TEXT
+  const moreColorsDialogTitle = moreColorsDialogTitleProp ?? t("COLOR_PALETTE_DIALOG_TITLE", "Change Color") // UI5 COLOR_PALETTE_DIALOG_TITLE
+  const moreColorsOkText = moreColorsOkTextProp ?? t("COLOR_PALETTE_DIALOG_OK_BUTTON", "OK") // UI5 COLOR_PALETTE_DIALOG_OK_BUTTON
+  const moreColorsCancelText = moreColorsCancelTextProp ?? t("COLOR_PALETTE_DIALOG_CANCEL_BUTTON", "Cancel") // UI5 COLOR_PALETTE_DIALOG_CANCEL_BUTTON
+  const defaultColorText = defaultColorTextProp ?? t("COLOR_PALETTE_DEFAULT_COLOR_TEXT", "Default Color") // UI5 COLOR_PALETTE_DEFAULT_COLOR_TEXT
+  const containerLabel = containerLabelProp ?? t("COLORPALETTE_CONTAINER_LABEL", "Color Palette - Predefined Colors") // UI5 COLORPALETTE_CONTAINER_LABEL
+  const colorLabel = colorLabelProp ?? t("COLORPALETTE_COLOR_LABEL", "Color") // UI5 COLORPALETTE_COLOR_LABEL
+
   const local = usePaletteState()
   const shared = React.useContext(StateContext)
   const state = shared ?? local

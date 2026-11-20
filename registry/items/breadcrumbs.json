@@ -1,7 +1,12 @@
 {
   "title": "Breadcrumbs",
   "description": "Fiori breadcrumbs with responsive leading overflow, UI5 separator styles and arrow-key navigation.",
-  "registryDependencies": ["@petalo/icons", "@petalo/list", "@petalo/popover"],
+  "registryDependencies": [
+    "@petalo/icons",
+    "@petalo/list",
+    "@petalo/popover",
+    "@petalo/locale"
+  ],
   "usage": {
     "summary": "Show the current location and let users return to ancestors in the navigation path.",
     "useWhen": [

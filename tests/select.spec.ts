@@ -206,3 +206,22 @@ test.describe("select: phone accessibility ownership", () => {
     } finally { await reference.close() }
   })
 })
+
+for (const locale of ["en-US", "de-DE", "zh-CN", "ar-EG"]) {
+  test(`Select role and grouped option-count descriptions match native (${locale})`, async ({ browser }) => {
+    const id = locale === "en-US" ? "select-a11y-groups" : `select-l10n-${locale}`
+    const native = await browser.newPage()
+    const ours = await browser.newPage()
+    try {
+      await native.goto(`/ui5.html?locale=${locale}&only=${id}`)
+      await native.waitForSelector("html[data-ready=true]")
+      const descriptions = await native.locator(`[data-fixture="${id}"] ui5-select`).evaluate((host: any) => ({ role: host._ariaRoleDescription, groups: host._groupCountText }))
+      await ours.goto(`/?fixtures&locale=${locale}&only=${id}`)
+      await ours.waitForSelector("html[data-ready=true]")
+      const trigger = ours.locator(`[data-fixture="${id}"] [data-slot="select-trigger"]`)
+      await expect(trigger).toHaveAttribute("aria-roledescription", descriptions.role)
+      await expect(trigger).toHaveAccessibleDescription(descriptions.groups)
+      await expect(ours.locator(`[data-fixture="${id}"] [data-slot="select-group-count"]`)).toHaveText(descriptions.groups)
+    } finally { await native.close(); await ours.close() }
+  })
+}

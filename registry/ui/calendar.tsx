@@ -4,6 +4,7 @@
 
 import * as React from "react"
 import { createPortal } from "react-dom"
+import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 
 // UI5 2.28 Calendar fastNavigation metadata; UI5Element.onEnterDOM marks this root unless overridden.
 
@@ -47,6 +48,11 @@ type SpecialDate = {
 }
 
 type CalendarLabels = {
+  monthShortcut?: string
+  yearShortcut?: string
+  yearRangeShortcut?: string
+  nextShortcut?: string
+  previousShortcut?: string
   previousMonth: string
   nextMonth: string
   previousYear: string
@@ -68,7 +74,13 @@ type CalendarLabels = {
   yearRangePicker: string
 }
 
-const defaultLabels: CalendarLabels = {
+const defaultLabels: Required<CalendarLabels> = {
+  monthShortcut: "F4", // UI5 CALENDAR_HEADER_MONTH_BUTTON_SHORTCUT
+  yearShortcut: "Shift + F4", // UI5 CALENDAR_HEADER_YEAR_BUTTON_SHORTCUT
+  yearRangeShortcut: "Shift + F4", // UI5 CALENDAR_HEADER_YEAR_RANGE_BUTTON_SHORTCUT
+  nextShortcut: "Pageup", // UI5 CALENDAR_HEADER_MONTH_NEXT_BUTTON_SHORTCUT
+  previousShortcut: "Pagedown", // UI5 CALENDAR_HEADER_MONTH_PREVIOUS_BUTTON_SHORTCUT
+
   previousMonth: "Previous Month",
   nextMonth: "Next Month",
   previousYear: "Previous Year",
@@ -104,7 +116,7 @@ const defaultTexts: CalendarTexts = {
 
 /**
  * @accessibility Native aria-label / aria-labelledby / aria-describedby reach the calendar root. labels names header buttons, picker grids, week numbers and range/day descriptions; generated gridcells retain aria-selected and aria-disabled.
- * @accessibility Tab visits the header and one roving gridcell. Arrows move by day/week; Home/End move within the row; PageUp/Down changes month; Shift+PageUp/Down changes year. Enter/Space selects; F4 opens months and Shift+F4 opens years/year ranges. The current day-picker horizontal keys still use LTR order in RTL.
+ * @accessibility Tab visits the header and one roving gridcell. Arrows move by day/week; Home/End move within the row; PageUp/Down changes month; Shift+PageUp/Down changes year. Enter/Space selects; F4 opens months and Shift+F4 opens years/year ranges. Left/Right move -1/+1 in both directions, as in UI5 DayPicker._onkeydown.
  */
 type CalendarProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange"> & {
   selectionMode?: CalendarSelectionMode
@@ -141,7 +153,7 @@ type CalendarProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChang
   /** Override header-button, picker, week-number and selected-range names on their owning buttons/grids/cells. */
   labels?: Partial<CalendarLabels>
   /** Override the localized shortcuts on the owning previous/next buttons and their tooltips. */
-  texts?: Partial<CalendarTexts>
+  texts?: Partial<CalendarTexts & CalendarLabels>
 }
 
 const MIN_DATE = (() => {
@@ -174,7 +186,7 @@ function Calendar({
   maxDate = MAX_DATE,
   isDateDisabled,
   hideWeekNumbers,
-  locale = "en-US",
+  locale: localeProp,
   firstDayOfWeek,
   specialDates,
   legend,
@@ -187,7 +199,11 @@ function Calendar({
   onKeyDown,
   ...props
 }: CalendarProps) {
-  const labels = { ...defaultLabels, ...labelsProp }
+  const { locale: resolvedLocale, localized } = useFioriLocale(localeProp)
+  const locale = localized ? resolvedLocale : "en-US"
+  const dateLocale = new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()
+
+  const labels = useFioriTexts(defaultLabels, defaultLabelsKeys, { ...textsProp, ...labelsProp }, localeProp)
   const texts = { ...defaultTexts, ...textsProp }
   const [selectedInner, setSelectedInner] = React.useState<Date[]>(defaultSelectedDates ?? [])
   const selected = selectedProp ?? selectedInner
@@ -363,10 +379,10 @@ function Calendar({
       : picker === "month"
         ? [labels.previousYear, labels.nextYear]
         : [labels.previousYearRange, labels.nextYearRange]
-  const monthNames = getMonthNames(locale, "long")
+  const monthNames = getMonthNames(dateLocale, "long")
   const monthText = monthNames[fm]
-  const yearText = formatYear(fy, locale)
-  const rangeText = [formatYear(yearRange.start, locale), formatYear(yearRange.end, locale)] as const
+  const yearText = formatYear(fy, dateLocale)
+  const rangeText = [formatYear(yearRange.start, dateLocale), formatYear(yearRange.end, dateLocale)] as const
 
   const headerButton = (action: () => void) => ({
     onKeyDown: (e: React.KeyboardEvent) => {
@@ -387,7 +403,7 @@ function Calendar({
   const arrow = (dir: 1 | -1) => {
     const disabled = dir < 0 ? !hasPrev : !hasNext
     const label = dir < 0 ? prevLabel : nextLabel
-    const shortcut = dir < 0 ? texts.previousButtonShortcut : texts.nextButtonShortcut
+    const shortcut = dir < 0 ? textsProp?.previousButtonShortcut ?? labels.previousShortcut : textsProp?.nextButtonShortcut ?? labels.nextShortcut
     return (
       <div
         data-slot={dir < 0 ? "calendar-previous" : "calendar-next"}
@@ -438,8 +454,8 @@ function Calendar({
                   aria-label={labels.monthButton(monthText)}
                   // UI5 CalendarHeaderTemplate.js gives the purpose as both name and description.
                   aria-description={labels.monthButton(monthText)}
-                  title={`${labels.monthButton(monthText)} (F4)`}
-                  aria-keyshortcuts="F4"
+                  title={`${labels.monthButton(monthText)} (${labels.monthShortcut})`}
+                  aria-keyshortcuts={labels.monthShortcut}
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
                   onClick={() => showPicker("month")}
                   {...headerButton(() => showPicker("month"))}
@@ -453,8 +469,8 @@ function Calendar({
                   hidden={(picker !== "day" && picker !== "month") || selectionLevel === "year"}
                   aria-label={labels.yearButton(yearText)}
                   aria-description={labels.yearButton(yearText)}
-                  title={`${labels.yearButton(yearText)} (Shift + F4)`}
-                  aria-keyshortcuts="Shift+F4"
+                  title={`${labels.yearButton(yearText)} (${labels.yearShortcut})`}
+                  aria-keyshortcuts={labels.yearShortcut.replaceAll(" ", "")}
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
                   onClick={() => showPicker("year")}
                   {...headerButton(() => showPicker("year"))}
@@ -470,8 +486,8 @@ function Calendar({
                   aria-description={labels.yearRangeButton(...rangeText)}
                   // UI5 CalendarHeaderTemplate.js / CALENDAR_HEADER_YEAR_RANGE_BUTTON: retain the purpose text while including the visible range in the name.
                   aria-labelledby={`${yearRangeLabelId}-value ${yearRangeLabelId}-purpose`}
-                  title={`${labels.yearRangeButton(...rangeText)} (Shift + F4)`}
-                  aria-keyshortcuts="Shift+F4"
+                  title={`${labels.yearRangeButton(...rangeText)} (${labels.yearRangeShortcut})`}
+                  aria-keyshortcuts={labels.yearRangeShortcut.replaceAll(" ", "")}
                   className="fiori-calheader-arrowbtn fiori-calheader-middlebtn"
                   onClick={() => showPicker("yearrange")}
                   {...headerButton(() => showPicker("yearrange"))}
@@ -491,7 +507,7 @@ function Calendar({
                 selected={selected}
                 secondDate={secondDate}
                 selectionMode={selectionMode}
-                locale={locale}
+                locale={dateLocale}
                 firstDayOfWeek={firstDayOfWeek}
                 hideWeekNumbers={hideWeekNumbers}
                 specialDates={specialDates?.map((special) => ({ ...special, tooltip: special.tooltip ?? legendTexts[special.type] }))}
@@ -543,7 +559,7 @@ function Calendar({
                   return {
                     key: y,
                     date: withYear(focused, y),
-                    text: formatYear(y, locale),
+                    text: formatYear(y, dateLocale),
                     focused: y === fy,
                     selected: selected.some((s) => s.getFullYear() === y),
                     disabled: y < minY || y > maxY,
@@ -570,7 +586,7 @@ function Calendar({
                   return {
                     key: start,
                     date: withYear(focused, start),
-                    text: `${formatYear(start, locale)} - ${formatYear(end, locale)}`,
+                    text: `${formatYear(start, dateLocale)} - ${formatYear(end, dateLocale)}`,
                     focused: fy >= start && fy <= end,
                     selected: selected.some((s) => s.getFullYear() >= start && s.getFullYear() <= end),
                     disabled: !((start >= minY && start <= maxY) || (end >= minY && end <= maxY)),
@@ -638,7 +654,11 @@ function DayPicker({
   const weekInfo = getWeekInfo(locale)
   const firstDay = firstDayOfWeek ?? weekInfo.firstDay
   const longNames = getDayNames(locale, "long")
-  let shortNames = getDayNames(locale, "short")
+  // DayPicker._buildDayNames uses LocaleData.getDays("abbreviated", "Gregorian")
+  // from CLDR days/format. Include a day in Intl to request that format context;
+  // weekday-only formatting returns German stand-alone names without the dots.
+  const weekdayFormat = new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric" })
+  let shortNames = Array.from({ length: 7 }, (_, index) => weekdayFormat.formatToParts(new Date(2024, 0, 7 + index)).find(part => part.type === "weekday")?.value ?? "")
   if (shortNames.some((n) => n.length > 4)) shortNames = getDayNames(locale, "narrow")
 
   // Special days, filtered by the focused legend item's type (Working / NonWorking always stay).
@@ -684,6 +704,7 @@ function DayPicker({
       }
     } else if (key === " " && !ctrl && !alt) {
       // Selection happens on keyup, like UI5.
+    // UI5 DayPicker.js/_onkeydown uses chronological -1/+1 unconditionally in RTL too.
     } else if (key === "ArrowLeft" && plain) setFocused(addDays(focused, -1))
     else if (key === "ArrowRight" && plain) setFocused(addDays(focused, 1))
     else if (key === "ArrowUp" && plain) setFocused(addDays(focused, -7))
@@ -865,6 +886,7 @@ function GridPicker({
         if (e.key === "Enter" && plain) select(e.target)
         else if (e.key === " " && plain) {
           // selected on keyup
+        // UI5 MonthPicker/YearPicker/YearRangePicker._onkeydown retain -1/+1 in RTL.
         } else if (e.key === "ArrowLeft" && plain) onMove(-1)
         else if (e.key === "ArrowRight" && plain) onMove(1)
         else if (e.key === "ArrowUp" && plain) onMove(-rowSize)
@@ -935,14 +957,21 @@ function CalendarLegend({
   hideSelectedDay,
   hideWorkingDay,
   hideNonWorkingDay,
-  todayText = "Today",
-  selectedDayText = "Selected Day",
-  workingDayText = "Working Day",
-  nonWorkingDayText = "Non-Working Day",
+  todayText: todayTextProp,
+  selectedDayText: selectedDayTextProp,
+  workingDayText: workingDayTextProp,
+  nonWorkingDayText: nonWorkingDayTextProp,
   className,
   children,
   ...props
 }: CalendarLegendProps) {
+  const { t } = useFioriLocale()
+  const todayText = todayTextProp ?? t("CAL_LEGEND_TODAY_TEXT", "Today") // UI5 CAL_LEGEND_TODAY_TEXT
+  const selectedDayText = selectedDayTextProp ?? t("CAL_LEGEND_SELECTED_TEXT", "Selected Day") // UI5 CAL_LEGEND_SELECTED_TEXT
+  const workingDayText = workingDayTextProp ?? t("CAL_LEGEND_WORKING_DAY_TEXT", "Working Day") // UI5 CAL_LEGEND_WORKING_DAY_TEXT
+  const legendRoleDescription = t("CAL_LEGEND_ROLE_DESCRIPTION", "Calendar Legend") // UI5 CAL_LEGEND_ROLE_DESCRIPTION
+  const nonWorkingDayText = nonWorkingDayTextProp ?? t("CAL_LEGEND_NON_WORKING_DAY_TEXT", "Non-Working Day") // UI5 CAL_LEGEND_NON_WORKING_DAY_TEXT
+
   const ctx = React.useContext(LegendContext)
   const [current, setCurrent] = React.useState(0)
   const ref = React.useRef<HTMLDivElement>(null)
@@ -956,7 +985,7 @@ function CalendarLegend({
       ref={ref}
       data-slot="calendar-legend"
       role="list"
-      aria-roledescription="Calendar Legend"
+      aria-roledescription={legendRoleDescription}
       className={cn("fiori-calendar-legend-root", className)}
       onFocus={(e) => {
         const i = items().indexOf(e.target as HTMLElement)
@@ -1015,3 +1044,32 @@ export {
   type CalendarTexts,
   type SpecialDate,
 }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultLabelsKeys = {
+  monthShortcut: "CALENDAR_HEADER_MONTH_BUTTON_SHORTCUT",
+  yearShortcut: "CALENDAR_HEADER_YEAR_BUTTON_SHORTCUT",
+  yearRangeShortcut: "CALENDAR_HEADER_YEAR_RANGE_BUTTON_SHORTCUT",
+  nextShortcut: "CALENDAR_HEADER_MONTH_NEXT_BUTTON_SHORTCUT",
+  previousShortcut: "CALENDAR_HEADER_MONTH_PREVIOUS_BUTTON_SHORTCUT",
+
+  "previousMonth": "CALENDAR_HEADER_MONTH_PREVIOUS_BUTTON_TITLE",
+  "nextMonth": "CALENDAR_HEADER_MONTH_NEXT_BUTTON_TITLE",
+  "previousYear": "CALENDAR_HEADER_YEAR_PREVIOUS_BUTTON_TITLE",
+  "nextYear": "CALENDAR_HEADER_YEAR_NEXT_BUTTON_TITLE",
+  "previousYearRange": "CALENDAR_HEADER_YEAR_RANGE_PREVIOUS_BUTTON_TITLE",
+  "nextYearRange": "CALENDAR_HEADER_YEAR_RANGE_NEXT_BUTTON_TITLE",
+  "monthButton": "CALENDAR_HEADER_MONTH_BUTTON",
+  "yearButton": "CALENDAR_HEADER_YEAR_BUTTON",
+  "yearRangeButton": "CALENDAR_HEADER_YEAR_RANGE_BUTTON",
+  "weekNumber": "DAY_PICKER_WEEK_NUMBER_TEXT",
+  "calendarWeek": "DAY_PICKER_CALENDAR_WEEK",
+  "today": "DAY_PICKER_TODAY",
+  "nonWorkingDay": "DAY_PICKER_NON_WORKING_DAY",
+  "rangeStart": "DAY_PICKER_SELECTED_RANGE_START",
+  "rangeEnd": "DAY_PICKER_SELECTED_RANGE_END",
+  "rangeBetween": "DAY_PICKER_SELECTED_RANGE_BETWEEN",
+  "monthPicker": "MONTH_PICKER_DESCRIPTION",
+  "yearPicker": "YEAR_PICKER_DESCRIPTION",
+  "yearRangePicker": "YEAR_RANGE_PICKER_DESCRIPTION"
+} as const

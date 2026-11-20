@@ -7,7 +7,8 @@
   "registryDependencies": [
     "@petalo/table",
     "@petalo/icons",
-    "@petalo/menu"
+    "@petalo/menu",
+    "@petalo/locale"
   ],
   "description": "Data-driven Fiori table from TanStack Table column definitions: sorting via header menu or click, selection, popin, growing and row virtualization.",
   "usage": {

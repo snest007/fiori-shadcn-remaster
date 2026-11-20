@@ -3,6 +3,8 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { normalizeLocaleDigits } from "@/lib/fiori-numbers"
+import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 
 import {
   dayKey,
@@ -65,6 +67,31 @@ type DatePickerProps = Omit<React.ComponentProps<"input">, "value" | "defaultVal
   pickerLabel?: string
   phoneHeaderText?: string
   cancelLabel?: string
+  /** SAP-keyed accessible and native form-validation messages; component overrides win over the provider. */
+  texts?: Partial<DatePickerTexts>
+}
+
+/** UI5 DateFormat uses the complete CLDR month name (for example zh-CN MMM is "3月"). */
+function formatPickerDate(date: Date, pattern: string, locale: string) {
+  const contextual = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).formatToParts(date).find(part => part.type === "month")?.value
+  const standalone = new Intl.DateTimeFormat(locale, { month: "short" }).format(date)
+  // Intl can put a month suffix in a separate literal when a day is present. The
+  // existing LDML helper reads only the month part; using L retains that suffix.
+  const completePattern = contextual && /^\d+$/.test(contextual) && standalone !== contextual
+    ? pattern.replace(/'(?:''|[^'])*'|M{3,5}/g, token => token.startsWith("'") ? token : "L".repeat(token.length)) : pattern
+  return formatDate(date, completePattern, locale)
+}
+
+/** Parse the complete CLDR short month before the generic helper's shorter contextual candidate. */
+function parsePickerDate(text: string, pattern: string, locale: string, kind: "date" | "time" | "datetime" = "date") {
+  const sample = new Date(2024, 2, 1)
+  const contextual = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).formatToParts(sample).find(part => part.type === "month")?.value
+  const standalone = new Intl.DateTimeFormat(locale, { month: "short" }).format(sample)
+  // UI5 DateFormat.parse uses complete CLDR month names. The shared parser tries a
+  // numeric contextual name first, so represent its missing suffix as an LDML literal.
+  const suffix = contextual && /^\d+$/.test(contextual) && standalone.startsWith(contextual) ? standalone.slice(contextual.length) : ""
+  const completePattern = suffix ? pattern.replace(/'(?:''|[^'])*'|M+/g, token => token === "MMM" ? `M'${suffix.replaceAll("'", "''")}'` : token) : pattern
+  return parseDate(text, completePattern, locale, kind) ?? parseDate(text, pattern, locale, kind)
 }
 
 /** Shared state for the date-like pickers: value (controlled or not), auto value state, open state. */
@@ -126,7 +153,7 @@ function DatePicker({
   onValueChange,
   onInput,
   formatPattern,
-  locale = "en-US",
+  locale: localeProp,
   minDate,
   maxDate,
   hideWeekNumbers,
@@ -135,6 +162,7 @@ function DatePicker({
   valueState: valueStateProp,
   onValueStateChange,
   valueStateMessage,
+  texts,
   open: openProp,
   defaultOpen,
   onOpenChange,
@@ -148,11 +176,17 @@ function DatePicker({
   ref,
   ...props
 }: DatePickerProps) {
+  const { t, locale: resolvedLocale, localized, hasProvider } = useFioriLocale(localeProp)
+  const locale = localized ? resolvedLocale : "en-US"
+  // UI5 DateFormat formats Gregorian fields with Latin digits; translations retain the original locale.
+  const dateLocale = new Intl.Locale(locale, { calendar: "gregory", numberingSystem: "latn" }).toString()
+  const fieldTexts = useFioriTexts(defaultDatePickerTexts, defaultDatePickerTextsKeys, texts, localeProp)
+
   const phone = useIsPhone()
   const changeTarget = React.useRef<HTMLInputElement>(null)
   React.useImperativeHandle(ref, () => changeTarget.current!, [])
-  const pattern = resolvePattern(formatPattern, locale, "date")
-  const parse = (text: string) => parseDate(text, pattern, locale, "date")
+  const pattern = resolvePattern(formatPattern, dateLocale, "date")
+  const parse = (text: string) => parsePickerDate(normalizeLocaleDigits(text, locale), pattern, dateLocale, "date")
   const inRange = (d: Date) => !(minDate && dayKey(d) < dayKey(minDate)) && !(maxDate && dayKey(d) > dayKey(maxDate))
   /** undefined: empty; null: invalid. */
   const validate = (text: string) => {
@@ -162,12 +196,16 @@ function DatePicker({
   }
   const s = usePickerState({ value: valueProp, defaultValue, valueState: valueStateProp, onValueStateChange, open: openProp, defaultOpen, onOpenChange, validate, controlledValueWins: phone })
   const date = validate(s.text) ?? null
+  const parsedForValidity = parsePickerDate(normalizeLocaleDigits(s.text, locale), pattern, dateLocale, "date")
+  const formValidityMessage = !s.text ? (props.required ? fieldTexts.valueMissing(pattern) : "") : !parsedForValidity ? fieldTexts.invalidFormat(pattern) : minDate && dayKey(parsedForValidity) < dayKey(minDate) ? fieldTexts.rangeUnderflow(formatPickerDate(minDate, pattern, dateLocale)) : maxDate && dayKey(parsedForValidity) > dayKey(maxDate) ? fieldTexts.rangeOverflow(formatPickerDate(maxDate, pattern, dateLocale)) : ""
+  // UI5 DatePicker.js/formValidityMessage localizes constraint validation, independently of valueStateMessage.
+  React.useLayoutEffect(() => { changeTarget.current?.setCustomValidity(localized || hasProvider || texts ? formValidityMessage : "") }, [formValidityMessage, localized, hasProvider, texts])
   const fields = patternFields(pattern)
   const selectionLevel = fields.day ? "day" : fields.month ? "month" : "year"
 
   const commit = (text: string) => {
     const d = validate(text)
-    const next = d ? formatDate(d, pattern, locale) : text
+    const next = d ? formatPickerDate(d, pattern, dateLocale) : text
     s.updateState(d !== null)
     s.setEditing(false)
     s.setValue(next)
@@ -197,12 +235,12 @@ function DatePicker({
       valueState={s.valueState}
       valueStateMessage={valueStateMessage}
       icon={appointment2}
-      openIconLabel={openIconLabel}
-      closeIconLabel={closeIconLabel}
-      roleDescription="Date Input"
-      pickerLabel={pickerLabel ?? "Choose Date"}
-      phoneHeaderText={phoneHeaderText} cancelLabel={cancelLabel}
-      placeholder={placeholder ?? examplePlaceholder(formatDate(yearEnd, pattern, locale))}
+      openIconLabel={openIconLabel ?? t("DATEPICKER_OPEN_ICON_TITLE", "Open Picker")}
+      closeIconLabel={closeIconLabel ?? t("DATEPICKER_OPEN_ICON_TITLE_OPENED", "Close Picker")}
+      roleDescription={fieldTexts.roleDescription}
+      pickerLabel={pickerLabel ?? fieldTexts.pickerLabel(props["aria-label"] ?? "")}
+      phoneHeaderText={phoneHeaderText ?? (localized || hasProvider || texts ? props["aria-label"] ?? fieldTexts.phoneHeaderText : undefined)} cancelLabel={cancelLabel}
+      placeholder={placeholder ?? examplePlaceholder(formatPickerDate(yearEnd, pattern, dateLocale), fieldTexts.placeholderPrefix)}
       onPickerKeyDown={(e, inPopover) => {
         if (inPopover || s.open || e.key !== "PageUp" && e.key !== "PageDown") return
         // UI5 DatePicker: PageUp/Down ±1 day, +Shift month, +Ctrl+Shift year (only with a valid value).
@@ -213,7 +251,7 @@ function DatePicker({
         if (!current) return
         const dir = e.key === "PageUp" ? 1 : -1
         const unit = ctrl && e.shiftKey ? "year" : e.shiftKey ? "month" : "day"
-        commit(formatDate(modifyDateBy(current, dir, unit, true, minDate, maxDate), pattern, locale))
+        commit(formatPickerDate(modifyDateBy(current, dir, unit, true, minDate, maxDate), pattern, dateLocale))
       }}
       {...props}
     >
@@ -234,7 +272,7 @@ function DatePicker({
           onSelectedDatesChange={(dates) => {
             const d = dates[dates.length - 1]
             if (!d) return
-            commit(formatDate(d, pattern, locale))
+            commit(formatPickerDate(d, pattern, dateLocale))
             s.setOpen(false)
           }}
         />
@@ -243,4 +281,17 @@ function DatePicker({
   )
 }
 
-export { DatePicker, usePickerState, type DatePickerProps }
+export { DatePicker, usePickerState, formatPickerDate, parsePickerDate, type DatePickerProps, type DatePickerTexts }
+
+type DatePickerTexts = { roleDescription: string; pickerLabel: (name: string) => string; phoneHeaderText: string; placeholderPrefix: string; invalidFormat: (pattern: string) => string; valueMissing: (pattern: string) => string; rangeUnderflow: (minimum: string) => string; rangeOverflow: (maximum: string) => string }
+const defaultDatePickerTexts: DatePickerTexts = {
+  roleDescription: "Date Input", // UI5 DATEPICKER_DATE_DESCRIPTION
+  pickerLabel: (_name) => "Choose Date", // UI5 DATEPICKER_POPOVER_ACCESSIBLE_NAME; retain pre-E5 English default without a provider.
+  phoneHeaderText: "Enter date", // UI5 DATEPICKER_MOBILE_HEADER_TITLE
+  placeholderPrefix: "e.g.", // UI5 DATETIME_COMPONENTS_PLACEHOLDER_PREFIX
+  invalidFormat: (pattern) => "This format is not supported. Enter the date and time range in the following format: {0}.".replaceAll("{0}", pattern), // UI5 DATEPICKER_PATTERN_MISSMATCH
+  valueMissing: (pattern) => "Enter the date in the following format: {0}.".replaceAll("{0}", pattern), // UI5 DATEPICKER_VALUE_MISSING
+  rangeUnderflow: (minimum) => "Enter a date higher than the minimum value of {0}.".replaceAll("{0}", minimum), // UI5 DATEPICKER_RANGE_UNDERFLOW
+  rangeOverflow: (maximum) => "Enter a date lower than the maximum value of {0}.".replaceAll("{0}", maximum), // UI5 DATEPICKER_RANGE_OVERFLOW
+}
+const defaultDatePickerTextsKeys = { roleDescription: "DATEPICKER_DATE_DESCRIPTION", pickerLabel: "DATEPICKER_POPOVER_ACCESSIBLE_NAME", phoneHeaderText: "DATEPICKER_MOBILE_HEADER_TITLE", placeholderPrefix: "DATETIME_COMPONENTS_PLACEHOLDER_PREFIX", invalidFormat: "DATEPICKER_PATTERN_MISSMATCH", valueMissing: "DATEPICKER_VALUE_MISSING", rangeUnderflow: "DATEPICKER_RANGE_UNDERFLOW", rangeOverflow: "DATEPICKER_RANGE_OVERFLOW" } as const

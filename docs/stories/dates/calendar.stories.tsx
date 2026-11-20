@@ -45,3 +45,8 @@ export const DisabledDates: Story = { args: { isDateDisabled: (date) => date.get
 export const Localized: Story = { args: { locale: "en-GB" } }
 export const CustomTexts: Story = { args: { texts: { selected: "Delivery date selected", previousButtonShortcut: "PageUp", nextButtonShortcut: "PageDown" }, labels: { nextMonth: "Next delivery month", previousMonth: "Previous delivery month", monthButton: (month) => `Delivery month ${month}`, yearRangeButton: (from, to) => `Delivery years from ${from} to ${to}` } } }
 export const RTL: Story = { globals: { dir: "rtl" } }
+
+export const German: Story = { globals: { locale: "de" } }
+export const Arabic: Story = { globals: { locale: "ar", dir: "rtl" } }
+
+export const ShortcutTexts: Story = { args: { texts: { monthShortcut: "F4", nextShortcut: "Pageup", previousShortcut: "Pagedown" } } }

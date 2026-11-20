@@ -3,12 +3,13 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 // UI5 InputPopoverTemplate/Popup.onEnterDOM: the standalone value-state message is a Popup scope.
 
 import { cn } from "@/lib/utils"
 import { Icon } from "@/components/ui/icon"
-import { valueStateDefaultText, valueStateIcons, type ValueState } from "@/components/ui/input"
+import { useValueStateTexts, valueStateIcons, type ValueState } from "@/components/ui/input"
 
 // UI5 TextArea.js _onfocusin / generated/themes/TextArea.css.js paints pointer focus too.
 // AGENTS rule 5 requires keyboard origin, including focus in a newly mounted popup.
@@ -53,10 +54,20 @@ type TextAreaProps = Omit<React.ComponentProps<"textarea">, "rows"> & {
   counterMode?: CounterMode
   /** Counter text; defaults to "N characters left" / "N characters over limit". */
   counterText?: (remaining: number) => string
+  /** Overrides the native textarea validationMessage and character counter. */
+  texts?: Partial<TextAreaTexts>
+  locale?: string
   wrapperClassName?: string
 }
 
 const defaultCounterText = (n: number) => (n >= 0 ? `${n} characters left` : `${-n} characters over limit`)
+type TextAreaTexts = { valueMissing: string; tooLong: (count: number) => string; counter: (remaining: number) => string }
+const defaultTexts: TextAreaTexts = {
+  valueMissing: "Please fill in this field.", // UI5 FORM_TEXTFIELD_REQUIRED
+  tooLong: count => `Value too long by ${count} characters.`, // UI5 TEXTAREA_EXCEEDS_MAXLENGTH
+  counter: defaultCounterText, // UI5 TEXTAREA_CHARACTERS_LEFT / TEXTAREA_CHARACTERS_EXCEEDED
+}
+const defaultTextsKeys = { valueMissing: "FORM_TEXTFIELD_REQUIRED", tooLong: "TEXTAREA_EXCEEDS_MAXLENGTH" } as const
 
 /** Sets a textarea's value the way a user edit would, so React's onChange fires (controlled or not). */
 function setNativeValue(el: HTMLTextAreaElement, value: string) {
@@ -76,7 +87,11 @@ function TextArea({
   growing = false,
   growingMaxRows = 0,
   counterMode = "none",
-  counterText = defaultCounterText,
+  counterText: counterTextProp,
+  texts: textsProp,
+  locale: localeProp,
+  required,
+  ref: externalRef,
   maxLength,
   disabled,
   readOnly,
@@ -90,12 +105,18 @@ function TextArea({
   "aria-describedby": ariaDescribedBy,
   ...props
 }: TextAreaProps) {
+  const { t, localized, hasProvider } = useFioriLocale(localeProp)
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, textsProp, localeProp)
+  const counterText = counterTextProp ?? textsProp?.counter ?? ((n: number) => n >= 0 ? t("TEXTAREA_CHARACTERS_LEFT", () => defaultCounterText(n), n) : t("TEXTAREA_CHARACTERS_EXCEEDED", () => defaultCounterText(n), -n))
+  const valueStateTexts = useValueStateTexts()
+
   const autoId = React.useId()
   const baseId = id ?? autoId
   const [uncontrolled, setUncontrolled] = React.useState(String(defaultValue ?? ""))
   const value = valueProp !== undefined ? String(valueProp) : uncontrolled
   const [focused, setFocused] = React.useState(false)
   const previousValue = React.useRef(value)
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
 
   const hasCounter = counterMode !== "none" && maxLength != null
   const remaining = hasCounter ? maxLength - value.length : 0
@@ -103,10 +124,16 @@ function TextArea({
     counterMode === "always" || focused || remaining < 0 || valueState === "negative" || valueState === "critical"
 
   const hasMessageState = valueState === "negative" || valueState === "critical" || valueState === "information"
-  const message = valueStateMessage === undefined && hasMessageState ? valueStateDefaultText[valueState] : valueStateMessage
+  const message = valueStateMessage === undefined && hasMessageState ? valueStateTexts[valueState] : valueStateMessage
   const showMessage = hasMessageState && message != null && !readOnly && !disabled
   const messageId = `${baseId}-vsm`
   const counterId = `${baseId}-counter`
+  React.useLayoutEffect(() => {
+    // TextArea.js/formValidityMessage belongs to the native form-validity channel;
+    // it must not replace the independently configured value-state popup.
+    const message = localized || hasProvider || textsProp ? required && !value ? texts.valueMissing : hasCounter && remaining < 0 ? texts.tooLong(-remaining) : "" : ""
+    textareaRef.current?.setCustomValidity(message)
+  }, [localized, hasProvider, textsProp, required, value, hasCounter, remaining, texts])
 
   return (
     <div
@@ -151,11 +178,13 @@ function TextArea({
           </div>
         )}
         <textarea
+          ref={node => { textareaRef.current = node; if (typeof externalRef === "function") externalRef(node); else if (externalRef) externalRef.current = node }}
           id={id}
           rows={rows === 1 ? 1 : undefined}
           value={value}
           disabled={disabled}
           readOnly={readOnly}
+          required={required}
           maxLength={hasCounter ? undefined : maxLength}
           aria-invalid={valueState === "negative" || undefined}
           aria-describedby={cn(ariaDescribedBy, showMessage && messageId, hasCounter && counterId) || undefined}
@@ -205,4 +234,4 @@ function TextArea({
   )
 }
 
-export { TextArea, type TextAreaProps }
+export { TextArea, type TextAreaProps, type TextAreaTexts }

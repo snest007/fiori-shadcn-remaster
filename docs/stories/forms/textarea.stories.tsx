@@ -82,3 +82,4 @@ export const RTL: Story = { globals: { dir: "rtl" } }
 export const CriticalCounter: Story = { args: { counterMode: "always", maxLength: 40, valueState: "critical" } }
 export const CounterOnApplicationSurface: Story = { args: { counterMode: "always", maxLength: 40, valueState: "critical" }, decorators: [(Story) => <div style={{ backgroundColor: "var(--sapBackgroundColor)" }}><Story /></div>] }
 export const RTLCriticalCounter: Story = { args: { counterMode: "always", maxLength: 40, valueState: "critical" }, globals: { dir: "rtl" } }
+export const ValidityTexts: Story = { args: { value: "", required: true, counterMode: "always", maxLength: 3, texts: { valueMissing: "Please add a delivery note", tooLong: count => `Remove ${count} extra letters`, counter: remaining => `${remaining} letters available` } } }

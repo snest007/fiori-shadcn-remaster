@@ -9,7 +9,8 @@
     "@petalo/input",
     "@petalo/select",
     "@petalo/tabs",
-    "@petalo/use-is-phone"
+    "@petalo/use-is-phone",
+    "@petalo/locale"
   ],
   "description": "Fiori value help dialog (composite after the Fiori design guidelines): Search and Select with filters and a result table, Define Conditions, selected items and conditions as tokens, single/multi selection.",
   "usage": {
@@ -22,14 +23,14 @@
     ],
     "avoidWhen": [
       {
-        "when": "Pick one of 2–12 predefined values without other attributes (sort alphabetically above 8), or enter text without a selection/search task.",
+        "when": "Pick one of 2\u201312 predefined values without other attributes (sort alphabetically above 8), or enter text without a selection/search task.",
         "use": [
           "select",
           "input"
         ]
       },
       {
-        "when": "Choose one suggestion by type-ahead across 20–200 options or accept free text without a separate search task.",
+        "when": "Choose one suggestion by type-ahead across 20\u2013200 options or accept free text without a separate search task.",
         "use": [
           "combobox"
         ]

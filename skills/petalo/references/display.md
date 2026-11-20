@@ -10,6 +10,7 @@
 | [hero-banner](#hero-banner) | Introduce a product home page with a greeting, context and task shortcuts. |
 | [illustrated-message](#illustrated-message) | Explain an empty, unavailable or completed state with an illustration and a useful next step. |
 | [link](#link) | Navigate through meaningful text to a page, anchor or external URL. |
+| [locale](#locale) | Locale context, SAP-keyed text overrides, localized number formatting and parsing. |
 | [media-gallery](#media-gallery) | Browse images and videos by selecting thumbnails and inspecting the selected media. |
 | [message-strip](#message-strip) | Explain application messages in context within a page or section. |
 | [panel](#panel) | Group information within a page in a section that can collapse to save space. |
@@ -185,6 +186,18 @@ Main exports: `Link`.
 
 ```bash
 npx shadcn add @petalo/link
+```
+
+## locale
+
+Locale context, SAP-keyed text overrides, localized number formatting and parsing.
+
+Usage guidance has not been authored for this item yet; inspect its installed API before choosing it.
+
+Main exports: `FioriLocaleProvider`, `collatorIncludes`, `normalizeLocaleDigits`, `parseNumber`.
+
+```bash
+npx shadcn add @petalo/locale
 ```
 
 ## media-gallery

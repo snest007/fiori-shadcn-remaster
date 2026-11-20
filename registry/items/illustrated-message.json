@@ -1,9 +1,10 @@
 {
   "title": "IllustratedMessage",
-  "description": "Fiori illustrated message: illustration + title + subtitle + actions in the Scene / Dialog / Spot / Dot / Base designs, auto-sized by the container (ui5-illustrated-message). Ships with @petalo/illustrations-core (NoData, NoSearchResults, UnableToLoad, Tent, …); add more with @petalo/illustration-<name> or @petalo/illustration-tnt-<name>.",
+  "description": "Fiori illustrated message: illustration + title + subtitle + actions in the Scene / Dialog / Spot / Dot / Base designs, auto-sized by the container (ui5-illustrated-message). Ships with @petalo/illustrations-core (NoData, NoSearchResults, UnableToLoad, Tent, \u2026); add more with @petalo/illustration-<name> or @petalo/illustration-tnt-<name>.",
   "registryDependencies": [
     "@petalo/title",
-    "@petalo/illustrations-core"
+    "@petalo/illustrations-core",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Explain an empty, unavailable or completed state with an illustration and a useful next step.",

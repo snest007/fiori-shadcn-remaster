@@ -4,7 +4,8 @@
     "@petalo/icons",
     "@petalo/button",
     "@petalo/list",
-    "@petalo/popover"
+    "@petalo/popover",
+    "@petalo/locale"
   ],
   "description": "Fiori IconTabBar / TabContainer: text and icon tabs, counts, semantic designs, responsive overflow, UI5 keyboard model.",
   "usage": {

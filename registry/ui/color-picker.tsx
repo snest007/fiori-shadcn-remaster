@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
@@ -148,7 +149,7 @@ function ColorPickerStateProvider({ children }: { children: React.ReactNode }) {
 }
 
 function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChange, simplified = false, accessibleName, texts: customTexts, className, style, ...props }: ColorPickerProps) {
-  const texts = { ...defaultTexts, ...customTexts }
+  const texts = useFioriTexts(defaultTexts, defaultTextsKeys, customTexts)
   const local = usePickerState(value ?? defaultValue)
   const shared = React.useContext(PickerStateContext)
   const { model, setModel, lastValue, committedHex, hex, setHex, wrongHex, setWrongHex, displayHsl, setDisplayHsl, alphaTemp, setAlphaTemp, announcement, setAnnouncement, modelRef } = shared ?? local
@@ -260,3 +261,24 @@ function ColorPicker({ value, defaultValue = "rgba(255,255,255,1)", onValueChang
 }
 
 export { ColorPicker, ColorPickerStateProvider, type ColorPickerProps, type ColorPickerTexts }
+
+// UI5 keys resolved at their rendered/announced owner.
+const defaultTextsKeys = {
+  "picker": "COLORPICKER_LABEL",
+  "sliders": "COLORPICKER_SLIDER_GROUP",
+  "hueSlider": "COLORPICKER_HUE_SLIDER",
+  "alphaSlider": "COLORPICKER_ALPHA_SLIDER",
+  "sliderHandle": "SLIDER_ARIA_DESCRIPTION",
+  "hex": "COLORPICKER_HEX",
+  "red": "COLORPICKER_RED",
+  "green": "COLORPICKER_GREEN",
+  "blue": "COLORPICKER_BLUE",
+  "hue": "COLORPICKER_HUE",
+  "saturation": "COLORPICKER_SATURATION",
+  "light": "COLORPICKER_LIGHT",
+  "alpha": "COLORPICKER_ALPHA",
+  "percentage": "COLORPICKER_PERCENTAGE",
+  "toggleMode": "COLORPICKER_TOGGLE_MODE_TOOLTIP",
+  "invalidEntry": "VALUE_STATE_ERROR",
+  "modeChanged": "COLORPICKER_COLOR_MODE_CHANGED"
+} as const

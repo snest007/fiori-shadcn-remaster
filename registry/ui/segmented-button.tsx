@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 import { createPortal } from "react-dom"
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui"
 
@@ -38,6 +39,8 @@ const defaultTexts: SegmentedButtonTexts = {
   selected: "Selected", // UI5 LIST_ITEM_SELECTED
   itemDescription: "Press SPACE or ENTER to select an item", // UI5 SEGMENTEDBUTTON_ARIA_DESCRIBEDBY
 }
+
+const defaultTextsKeys = { selected: "LIST_ITEM_SELECTED", itemDescription: "SEGMENTEDBUTTON_ARIA_DESCRIBEDBY" } as const
 
 type Common = Omit<React.ComponentProps<"div">, "defaultValue" | "dir"> & {
   /** Native aria-label/aria-labelledby name the root listbox; aria-description/aria-describedby describe it. */
@@ -95,7 +98,7 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
   }, [synchronize])
   const visibleItems = items.filter((item) => !item.hidden)
   const count = visibleItems.length
-  const t = { ...defaultTexts, ...texts }
+  const t = useFioriTexts(defaultTexts, defaultTextsKeys, texts)
   const common = {
     ...props,
     disabled,
@@ -134,26 +137,45 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
   // subsequently preserves the last focused item through ItemNavigation.
   const tabStop = lastFocusedValue && enabledValues.includes(lastFocusedValue) ? lastFocusedValue
     : selected.find((item) => enabledValues.includes(item)) ?? enabledValues[0]
+  const pendingActivation = React.useRef<string | undefined>(undefined)
+  const [completedActivation, setCompletedActivation] = React.useState<{ value: string; sequence: number } | undefined>(undefined)
+  const completeActivation = () => {
+    const activated = pendingActivation.current
+    pendingActivation.current = undefined
+    if (activated !== undefined) setCompletedActivation(previous => ({ value: activated, sequence: (previous?.sequence ?? 0) + 1 }))
+  }
   const set = (v: string | string[]) => {
     if (value === undefined) setInner(v)
     ;(onValueChange as ((v: string | string[]) => void) | undefined)?.(v)
+    completeActivation()
   }
 
   const [announcement, setAnnouncement] = React.useState({ text: "", sequence: 0 })
+  const announcementTimers = React.useRef(new Set<ReturnType<typeof setTimeout>>())
+  React.useEffect(() => () => { announcementTimers.current.forEach(clearTimeout) }, [])
   const [portalTarget, setPortalTarget] = React.useState<HTMLElement | null>(null)
   React.useEffect(() => setPortalTarget(owner.current?.closest<HTMLElement>('[role="dialog"], [role="alertdialog"]') ?? document.body), [])
-  React.useEffect(() => {
-    if (!announcement.text) return
-    // InvisibleMessage.js clears the last message after 3000 ms so reading mode
-    // does not encounter an old announcement. Repeated activation gets a new node.
-    const timer = setTimeout(() => setAnnouncement((old) => old.sequence === announcement.sequence ? { ...old, text: "" } : old), 3000)
-    return () => clearTimeout(timer)
-  }, [announcement])
-  const announceSelection = () => setAnnouncement((previous) => ({ text: t.selected, sequence: previous.sequence + 1 }))
+  React.useLayoutEffect(() => {
+    // SegmentedButton.js/_selectItem fires selection-change before inspecting
+    // target.selected. Wait for the callback's controlled value to commit, so a
+    // rejected/reverted selection and multiple deselection cannot be announced.
+    if (completedActivation && selected.includes(completedActivation.value)) {
+      const text = t.selected
+      setAnnouncement(previous => ({ text, sequence: previous.sequence + 1 }))
+      // UI5 util/InvisibleMessage.js/announce clears matching text after 3000 ms,
+      // including repeated identical messages; different newer text survives.
+      const timer = setTimeout(() => {
+        announcementTimers.current.delete(timer)
+        setAnnouncement(previous => previous.text === text ? { ...previous, text: "" } : previous)
+      }, 3000)
+      announcementTimers.current.add(timer)
+    }
+  }, [completedActivation])
+
   const itemValues = visibleItems.map((item) => item.value)
 
   return (
-    <SegmentedButtonContext.Provider value={{ selected, itemValues, register, tabStop, setTabStop: setLastFocusedValue, texts: t, disabled: !!disabled, multiple: selectionMode === "multiple", announceSelection }}>
+    <SegmentedButtonContext.Provider value={{ selected, itemValues, register, tabStop, setTabStop: setLastFocusedValue, itemDescription: t.itemDescription, disabled: !!disabled, activate: (value: string) => { pendingActivation.current = value } }}>
       {selectionMode === "multiple" ? (
         <ToggleGroupPrimitive.Root type="multiple" value={selected} onValueChange={set} {...common} />
       ) : (
@@ -161,7 +183,7 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
           type="single"
           value={selected[0] ?? ""}
           // Single selection: ignore Radix's deselect (""), the selected item stays selected as in ui5.
-          onValueChange={(v) => v && set(v)}
+          onValueChange={(v) => { if (v) set(v); else completeActivation() }}
           {...common}
         />
       )}
@@ -173,7 +195,7 @@ function SegmentedButton({ className, selectionMode = "single", itemsFitContent,
   )
 }
 
-const SegmentedButtonContext = React.createContext({ selected: [] as string[], itemValues: [] as string[], register: (_id: string, _value: string, _node: HTMLElement | null, _disabled: boolean) => {}, tabStop: undefined as string | undefined, setTabStop: (_value: string) => {}, texts: defaultTexts, disabled: false, multiple: false, announceSelection: () => {} })
+const SegmentedButtonContext = React.createContext({ selected: [] as string[], itemValues: [] as string[], register: (_id: string, _value: string, _node: HTMLElement | null, _disabled: boolean) => {}, tabStop: undefined as string | undefined, setTabStop: (_value: string) => {}, itemDescription: defaultTexts.itemDescription, disabled: false, activate: (_value: string) => {} })
 
 type SegmentedButtonItemProps = React.ComponentProps<typeof ToggleGroupPrimitive.Item> & {
   /** Leading icon (an <Icon />). With no text children the item becomes icon-only; give it an aria-label. */
@@ -181,9 +203,10 @@ type SegmentedButtonItemProps = React.ComponentProps<typeof ToggleGroupPrimitive
   /** aria-label/aria-labelledby name the option host, including an asChild host.
    * aria-description/aria-describedby describe that host; UI5's selection hint is appended. */
   texts?: Partial<Pick<SegmentedButtonTexts, "itemDescription">>
+  selectionHint?: string
 }
 
-function SegmentedButtonItem({ className, icon, children, value, asChild, texts, disabled, id, ref, "aria-description": description, "aria-describedby": descriptionRef, ...props }: SegmentedButtonItemProps) {
+function SegmentedButtonItem({ className, icon, children, value, asChild, texts, selectionHint, disabled, id, ref, "aria-description": description, "aria-describedby": descriptionRef, ...props }: SegmentedButtonItemProps) {
   const context = React.useContext(SegmentedButtonContext)
   const selected = context.selected.includes(value)
   const generatedId = React.useId()
@@ -202,7 +225,7 @@ function SegmentedButtonItem({ className, icon, children, value, asChild, texts,
       else if (ref) ref.current = null
     }
   }, [register, generatedId, value, effectiveDisabled, ref])
-  const hint = texts?.itemDescription ?? context.texts.itemDescription
+  const hint = selectionHint ?? texts?.itemDescription ?? context.itemDescription
   const owned = {
     "data-slot": "segmented-button-item", "data-value": value,
     id: itemId, role: "option", "aria-selected": selected, "aria-checked": undefined, "aria-pressed": undefined,
@@ -249,7 +272,7 @@ function SegmentedButtonItem({ className, icon, children, value, asChild, texts,
           // SegmentedButton.js:_selectItem restores ItemNavigation's current
           // item even when reactivating the already selected item.
           context.setTabStop(value)
-          if (!context.multiple || !selected) context.announceSelection()
+          context.activate(value)
         }
       }}
       onKeyDown={(e) => {

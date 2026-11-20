@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts, useFioriLocale } from "@/lib/fiori-locale"
 
 import { decline, refresh, stop, uploadToCloud } from "@/lib/fiori-icons"
 import Tent from "@/lib/fiori-illustrations/Tent"
@@ -56,18 +57,25 @@ type UploadCollectionProps = React.ComponentProps<"div"> & {
 
 function UploadCollection({
   header,
-  noDataText = "No files found",
-  noDataDescription = 'Drop files to upload them or use the "Upload" button',
+  noDataText: noDataTextProp,
+  noDataDescription: noDataDescriptionProp,
   onDropFiles,
   hideDragOverlay,
-  dragText = "Drag files here",
-  dropText = "Drop files to upload",
-  roleDescription = "Upload collection",
+  dragText: dragTextProp,
+  dropText: dropTextProp,
+  roleDescription: roleDescriptionProp,
   "aria-label": ariaLabel,
   className,
   children,
   ...props
 }: UploadCollectionProps) {
+  const { t } = useFioriLocale()
+  const noDataText = noDataTextProp ?? t("UPLOADCOLLECTION_NO_DATA_TEXT", "No files found") // UI5 UPLOADCOLLECTION_NO_DATA_TEXT
+  const noDataDescription = noDataDescriptionProp ?? t("UPLOADCOLLECTION_NO_DATA_DESCRIPTION", "Drop files to upload them or use the \"Upload\" button") // UI5 UPLOADCOLLECTION_NO_DATA_DESCRIPTION
+  const dragText = dragTextProp ?? t("UPLOADCOLLECTION_DRAG_FILE_INDICATOR", "Drag files here") // UI5 UPLOADCOLLECTION_DRAG_FILE_INDICATOR
+  const dropText = dropTextProp ?? t("UPLOADCOLLECTION_DROP_FILE_INDICATOR", "Drop files to upload") // UI5 UPLOADCOLLECTION_DROP_FILE_INDICATOR; retain existing no-provider English
+  const roleDescription = roleDescriptionProp ?? t("UPLOADCOLLECTION_ARIA_ROLE_DESCRIPTION", "Upload collection") // UI5 UPLOADCOLLECTION_ARIA_ROLE_DESCRIPTION
+
   const [mode, setMode] = React.useState<DndMode>("none")
   const listRef = React.useRef<HTMLUListElement>(null)
   const empty = React.Children.toArray(children).filter(Boolean).length === 0
@@ -226,16 +234,21 @@ function UploadCollectionItem({
   onTerminate,
   disabled,
   stateTexts,
-  deleteText = "Delete",
-  retryText = "Retry",
-  terminateText = "Terminate",
+  deleteText: deleteTextProp,
+  retryText: retryTextProp,
+  terminateText: terminateTextProp,
   className,
   onKeyUp,
   onKeyDown,
   ...props
 }: UploadCollectionItemProps) {
+  const { t } = useFioriLocale()
+  const deleteText = deleteTextProp ?? t("UPLOADCOLLECTIONITEM_CANCELBUTTON_TEXT", "Delete") // UI5 UPLOADCOLLECTIONITEM_CANCELBUTTON_TEXT
+  const retryText = retryTextProp ?? t("UPLOADCOLLECTIONITEM_RETRY_BUTTON_TEXT", "Retry") // UI5 UPLOADCOLLECTIONITEM_RETRY_BUTTON_TEXT
+  const terminateText = terminateTextProp ?? t("UPLOADCOLLECTIONITEM_TERMINATE_BUTTON_TEXT", "Terminate") // UI5 UPLOADCOLLECTIONITEM_TERMINATE_BUTTON_TEXT
+
   const [active, setActive] = React.useState(false)
-  const texts = { ...defaultStateTexts, ...stateTexts }
+  const texts = useFioriTexts(defaultStateTexts, defaultStateTextsKeys, stateTexts)
   const progressState = uploadState === "error" ? "negative" : uploadState === "complete" ? "none" : "information"
   return (
     <li
@@ -359,3 +372,10 @@ function UploadCollectionItem({
 }
 
 export { UploadCollection, UploadCollectionItem, type UploadCollectionProps, type UploadCollectionItemProps, type UploadState }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultStateTextsKeys = {
+  "error": "UPLOADCOLLECTIONITEM_ERROR_STATE",
+  "ready": "UPLOADCOLLECTIONITEM_READY_STATE",
+  "uploading": "UPLOADCOLLECTIONITEM_UPLOADING_STATE"
+} as const

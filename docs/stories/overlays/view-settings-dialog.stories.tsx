@@ -1,7 +1,7 @@
 import * as React from "react"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { useArgs, useState } from "storybook/preview-api"
-import { fn } from "storybook/test"
+import { expect, fn, userEvent, within } from "storybook/test"
 import { ViewSettingsDialog, type ViewSettings, type ViewSettingsDialogProps } from "@/components/ui/view-settings-dialog"
 import { DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -112,3 +112,20 @@ export const GroupDescending: Story = { args: { open: true, sortItems: [], filte
 export const ResetEnabled: Story = { args: { open: true, resetEnabled: true } }
 export const CustomTexts: Story = { args: { open: true, texts: { title: "Product view", sortBy: "Order products by", filterBy: "Restrict products by", ok: "Apply view", cancel: "Keep current view", reset: "Restore view" } } }
 export const RTL: Story = { args: { open: true }, globals: { dir: "rtl" } }
+
+export const German: Story = { globals: { locale: "de" } }
+export const AnnouncementTexts: Story = {
+  args: {
+    resetEnabled: true,
+    texts: { resetAnnouncement: "Filters restored", filterItemLabel: (label, count) => `${label}: ${count} choices` },
+  },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Configure product view" }))
+    const dialog = within(await within(canvasElement.ownerDocument.body).findByRole("dialog"))
+    await userEvent.click(dialog.getByRole("option", { name: "Filter" }))
+    await expect(dialog.getByRole("listitem", { name: "Supplier: 1 choices" })).toBeVisible()
+    await userEvent.click(dialog.getByRole("button", { name: "Reset" }))
+    await expect(dialog.getByText("Filters restored").closest('[role="alert"]')).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole("button", { name: "Cancel" }))
+  },
+}

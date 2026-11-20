@@ -11,7 +11,8 @@
     "@petalo/button",
     "@petalo/responsive-popover",
     "@petalo/use-is-phone",
-    "@petalo/f6-navigation"
+    "@petalo/f6-navigation",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Compose a custom text field and picker with caller-owned value rules.",

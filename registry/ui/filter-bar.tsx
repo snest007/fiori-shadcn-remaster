@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts } from "@/lib/fiori-locale"
 
 import { search as searchIcon, slimArrowDown, slimArrowUp } from "@/lib/fiori-icons"
 import { cn } from "@/lib/utils"
@@ -167,7 +168,7 @@ function FilterBar({
   children,
   ...props
 }: FilterBarProps) {
-  const t = { ...defaultTexts, ...texts }
+  const t = useFioriTexts<Required<FilterBarTexts>>(defaultTexts, defaultTextsKeys, texts)
   const [innerExpanded, setInnerExpanded] = React.useState(defaultExpanded)
   const expanded = expandedProp ?? innerExpanded
   const setExpanded = (e: boolean) => {
@@ -402,3 +403,17 @@ function FilterBarToggle({ expanded, onExpandedChange, showText = defaultTexts.s
 }
 
 export { FilterBar, FilterBarItem, FilterBarToggle, filterSummary, filterExpandedSummary, type FilterDefinition, type FilterValues, type FilterBarState, type FilterBarProps, type FilterBarItemProps, type FilterBarTexts }
+
+// OpenUI5 FilterBarBase text getters, from sap/ui/mdc/messagebundle.properties.
+const defaultTextsKeys = {
+  "go": "filterbar.GO",
+  "adaptFilters": "filterbar.ADAPT",
+  "search": "filterbar.SEARCH",
+  "noFiltersActive": "filterbar.ADAPT_NOTFILTERED",
+  "oneFilterActive": "filterbar.ADAPT_FILTER_WITH_NON_HIDDEN",
+  "filtersActive": "filterbar.ADAPT_FILTERS_WITH_NON_HIDDEN",
+  "searchTerms": "filterbar.ADAPT_SEARCHTERM",
+  "oneFilterActiveHidden": "filterbar.ADAPT_FILTER_WITH_HIDDEN",
+  "filtersActiveHidden": "filterbar.ADAPT_FILTERS_WITH_HIDDEN",
+  "requiredFilterValueMissing": "filterbar.REQUIRED_FILTER_VALUE_MISSING"
+} as const

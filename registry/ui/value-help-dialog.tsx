@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriTexts, useFioriLocale, collatorIncludes } from "@/lib/fiori-locale"
 import { useIsPhone } from "@/lib/use-is-phone"
 
 import { decline, search as searchIcon } from "@/lib/fiori-icons"
@@ -69,6 +70,11 @@ function formatCondition({ operator, values: [a, b] }: ValueHelpCondition) {
 const conditionFilled = (c: ValueHelpCondition) => !!c.values[0] && (c.operator !== "BT" || !!c.values[1])
 
 type ValueHelpTexts = {
+  /** Counted UI5 titles; existing scalar title texts keep precedence when supplied. */
+  searchAndSelectWithCount?: (count: number) => string
+  defineConditionsWithCount?: (count: number) => string
+  itemsWithCount?: (count: number) => string
+  selectedItemsAndConditionsWithCount?: (count: number) => string
   searchAndSelect: string
   defineConditions: string
   search: string
@@ -90,7 +96,11 @@ type ValueHelpTexts = {
   to: string
   noData: string
 }
-const defaultTexts: ValueHelpTexts = {
+const defaultTexts: Required<ValueHelpTexts> = {
+  searchAndSelectWithCount: count => `Search and Select (${count})`, // UI5 valuehelp.SELECTFROMLIST
+  defineConditionsWithCount: count => `Define Conditions (${count})`, // UI5 valuehelp.DEFINECONDITIONS
+  itemsWithCount: count => `Items (${count})`, // UI5 valuehelp.TABLETITLE
+  selectedItemsAndConditionsWithCount: count => `Selected Items and Conditions (${count})`, // UI5 valuehelp.TOKENIZERTITLE
   searchAndSelect: "Search and Select",
   defineConditions: "Define Conditions",
   search: "Search",
@@ -98,7 +108,7 @@ const defaultTexts: ValueHelpTexts = {
   showFilters: "Show Filters",
   hideFilters: "Hide Filters",
   items: "Items",
-  selectedItemsAndConditions: "Selected Items and Conditions",
+  selectedItemsAndConditions: "No Items or Conditions Selected", // UI5 valuehelp.TOKENIZERTITLENONUMBER
   ok: "OK",
   cancel: "Cancel",
   add: "Add",
@@ -140,6 +150,7 @@ type ValueHelpDialogProps = {
   onSearch?: (query: { search: string; filters: Record<string, string> }) => void
   onConfirm?: (result: ValueHelpResult) => void
   onCancel?: () => void
+  locale?: string
   texts?: Partial<ValueHelpTexts>
   operatorTexts?: Partial<Record<ConditionOperator, string>>
   /** Render in place instead of in a portal (no overlay). */
@@ -170,13 +181,20 @@ function ValueHelpDialog({
   onConfirm,
   onCancel,
   texts,
+  locale: localeProp,
   operatorTexts,
   portal = true,
   className,
   children,
 }: ValueHelpDialogProps) {
   const phone = useIsPhone()
-  const t = { ...defaultTexts, ...texts }
+  const { locale, localized, hasProvider } = useFioriLocale(localeProp)
+  const matchLocale = localized ? locale : undefined
+  const t = useFioriTexts<Required<ValueHelpTexts>>(defaultTexts, defaultTextsKeys, texts, localeProp)
+  // Conditions.getFormattedTitle, FilterableListContent.getFormattedTitle and
+  // MTable._updateHeaderText choose numbered keys for nonzero counts. Preserve
+  // the pre-E5 scalar-title/count behavior without a locale/text provider.
+  const countedTitle = (base: string, explicitBase: string | undefined, count: number, formatted: (count: number) => string, explicitCounted: ((count: number) => string) | undefined) => explicitCounted ? formatted(count) : explicitBase !== undefined ? `${base} (${count})` : count > 0 || !(localized || hasProvider) ? formatted(count) : base
   const opLabel = { ...operatorLabels, ...operatorTexts }
   const multi = selectionMode === "multiple"
   const withConditions = multi && supportConditions
@@ -210,13 +228,13 @@ function ValueHelpDialog({
 
   const rows = React.useMemo(() => {
     if (onSearch) return items
-    const s = applied.search.trim().toLowerCase()
+    const s = applied.search.trim()
     return items.filter(
       (it) =>
-        (!s || columns.some((c) => (it[c.key] ?? "").toLowerCase().includes(s))) &&
-        Object.entries(applied.filters).every(([k, v]) => !v.trim() || (it[k] ?? "").toLowerCase().includes(v.trim().toLowerCase()))
+        (!s || columns.some((c) => collatorIncludes(it[c.key] ?? "", s, matchLocale))) &&
+        Object.entries(applied.filters).every(([k, v]) => !v.trim() || collatorIncludes(it[k] ?? "", v.trim(), matchLocale))
     )
-  }, [items, applied, columns, onSearch])
+  }, [items, applied, columns, onSearch, matchLocale])
 
   const go = () => {
     const q = { search: searchText, filters: filterValues }
@@ -256,6 +274,9 @@ function ValueHelpDialog({
     if (trs.length && !trs.some((r) => r.tabIndex === 0)) trs[0].tabIndex = 0
   })
 
+  const itemsTitle = countedTitle(t.items, texts?.items, rows.length, t.itemsWithCount, texts?.itemsWithCount)
+  const searchTitle = countedTitle(t.searchAndSelect, texts?.searchAndSelect, keys.length, t.searchAndSelectWithCount, texts?.searchAndSelectWithCount)
+  const conditionsTitle = countedTitle(t.defineConditions, texts?.defineConditions, filledConditions.length, t.defineConditionsWithCount, texts?.defineConditionsWithCount)
   const searchPage = (
     <div className="fiori-vhd__search-page">
       <div
@@ -307,9 +328,9 @@ function ValueHelpDialog({
           ))}
         </div>
       )}
-      <h2 className="fiori-vhd__section-title fiori-vhd__items-title">{`${t.items} (${rows.length})`}</h2>
+      <h2 className="fiori-vhd__section-title fiori-vhd__items-title">{itemsTitle}</h2>
       <div className="fiori-vhd__table-wrap">
-        <table className="fiori-vhd__table" aria-label={`${t.items} (${rows.length})`} aria-multiselectable={multi || undefined} role="grid">
+        <table className="fiori-vhd__table" aria-label={itemsTitle} aria-multiselectable={multi || undefined} role="grid">
           <thead>
             <tr>
               {multi && (
@@ -455,6 +476,7 @@ function ValueHelpDialog({
   )
 
   const tokenCount = keys.length + filledConditions.length
+  const selectedTitle = countedTitle(t.selectedItemsAndConditions, texts?.selectedItemsAndConditions, tokenCount, t.selectedItemsAndConditionsWithCount, texts?.selectedItemsAndConditionsWithCount)
   const removeToken = (kind: "key" | "condition", id: string | number) => {
     if (kind === "key") setKeys((ks) => ks.filter((k) => k !== id))
     else setConditions((cs) => {
@@ -471,9 +493,9 @@ function ValueHelpDialog({
 
   const selectedArea = multi && (
     <div className="fiori-vhd__selected" data-slot="value-help-selected">
-      <h2 className="fiori-vhd__section-title">{`${t.selectedItemsAndConditions} (${tokenCount})`}</h2>
+      <h2 className="fiori-vhd__section-title">{selectedTitle}</h2>
       <div className="fiori-vhd__tokens-row">
-        <div className="fiori-vhd__tokens" role="list" aria-label={`${t.selectedItemsAndConditions} (${tokenCount})`}>
+        <div className="fiori-vhd__tokens" role="list" aria-label={selectedTitle}>
           {tokens.map((tk) => (
             <div key={`${tk.kind}-${tk.id}`} role="listitem" className="fiori-vhd__token" data-slot="value-help-token">
               <span className="fiori-vhd__token-text">{tk.text}</span>
@@ -545,8 +567,8 @@ function ValueHelpDialog({
           {withConditions ? (
             <Tabs value={tab} onValueChange={setTab} className="fiori-vhd__tabs">
               <TabsList aria-label={title}>
-                <TabsTrigger value="search">{`${t.searchAndSelect} (${keys.length})`}</TabsTrigger>
-                <TabsTrigger value="conditions">{`${t.defineConditions} (${filledConditions.length})`}</TabsTrigger>
+                <TabsTrigger value="search">{searchTitle}</TabsTrigger>
+                <TabsTrigger value="conditions">{conditionsTitle}</TabsTrigger>
               </TabsList>
               <TabsContent value="search">{searchPage}</TabsContent>
               <TabsContent value="conditions">{conditionsPage}</TabsContent>
@@ -581,4 +603,34 @@ export {
   type ValueHelpValue,
   type ValueHelpResult,
   type ConditionOperator,
+  type ValueHelpTexts,
 }
+
+// UI5 keys resolved at the existing rendered/announced text owner.
+const defaultTextsKeys = {
+  searchAndSelectWithCount: "valuehelp.SELECTFROMLIST",
+  defineConditionsWithCount: "valuehelp.DEFINECONDITIONS",
+  itemsWithCount: "valuehelp.TABLETITLE",
+  selectedItemsAndConditionsWithCount: "valuehelp.TOKENIZERTITLE",
+  selectedItemsAndConditions: "valuehelp.TOKENIZERTITLENONUMBER",
+  defineConditions: "valuehelp.DEFINECONDITIONSNONUMBER",
+  search: "filterbar.SEARCH",
+  go: "filterbar.GO",
+  items: "valuehelp.TABLETITLENONUMBER",
+  ok: "valuehelp.OK",
+  cancel: "valuehelp.CANCEL",
+  add: "p13n.ADD_FILTER_CRITERIA",
+  removeToken: "TOKEN_ARIA_DELETE",
+  selectAll: "TABLE_SELECT_ALL_TOOLTIP",
+  value: "valuehelp.DEFINECONDITIONS_VALUE",
+  from: "valuehelp.DEFINECONDITIONS_FROM",
+  to: "valuehelp.DEFINECONDITIONS_TO",
+
+  "searchAndSelect": "valuehelp.SELECTFROMLISTNONUMBER",
+  "showFilters": "valuehelp.SHOWADVSEARCH",
+  "hideFilters": "valuehelp.HIDEADVSEARCH",
+  "removeCondition": "CONDITIONPANEL_REMOVE_CONDITION_TOOLTIP",
+  "removeAll": "CONDITIONPANEL_REMOVE_ALL",
+  "operator": "valuehelp.DEFINECONDITIONS_OPERATORLABEL",
+  "noData": "LIST_NO_DATA"
+} as const

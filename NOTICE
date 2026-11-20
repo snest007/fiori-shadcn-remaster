@@ -2,7 +2,7 @@ petalo
 Copyright 2026 snest007
 
 This project includes theme values, icon paths, illustrations, and
-reference-derived styling and behavior from SAP's open-source packages:
+reference-derived styling and behavior, and optional generated translations from SAP's open-source packages:
 
 - @sap-theming/theming-base-content
 - @ui5/webcomponents
@@ -20,7 +20,9 @@ reference-derived styling and behavior from SAP's open-source packages:
 
 These packages are copyright SAP SE or an SAP affiliate company and are
 licensed under the Apache License, Version 2.0. The OpenUI5 packages are used
-only as development-time references and are not included in the registry.
+only as development-time control references. Optional translation tables from
+UI5 Web Components 2.28.1 and OpenUI5 1.154.0 are distributed in registry/i18n;
+the OpenUI5 control implementation is not included in the registry.
 
 Source files derived from these packages carry a header that names the source and
 states that they were modified.

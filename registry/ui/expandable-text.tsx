@@ -3,6 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
+import { useFioriLocale } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -40,15 +41,23 @@ function ExpandableText({
   overflowMode = "InPlace",
   emptyIndicatorMode = "Off",
   defaultExpanded = false,
-  showMoreText = "Show More",
-  showLessText = "Show Less",
-  closeText = "Close",
-  showFullTextLabel = "Show the full text",
-  closePopoverLabel = "Close the popover",
-  emptyIndicatorLabel = "Empty Value",
+  showMoreText: showMoreTextProp,
+  showLessText: showLessTextProp,
+  closeText: closeTextProp,
+  showFullTextLabel: showFullTextLabelProp,
+  closePopoverLabel: closePopoverLabelProp,
+  emptyIndicatorLabel: emptyIndicatorLabelProp,
   className,
   ...props
 }: ExpandableTextProps) {
+  const { t } = useFioriLocale()
+  const showMoreText = showMoreTextProp ?? t("EXPANDABLE_TEXT_SHOW_MORE", "Show More") // UI5 EXPANDABLE_TEXT_SHOW_MORE
+  const showLessText = showLessTextProp ?? t("EXPANDABLE_TEXT_SHOW_LESS", "Show Less") // UI5 EXPANDABLE_TEXT_SHOW_LESS
+  const closeText = closeTextProp ?? t("EXPANDABLE_TEXT_CLOSE", "Close") // UI5 EXPANDABLE_TEXT_CLOSE
+  const showFullTextLabel = showFullTextLabelProp ?? t("EXPANDABLE_TEXT_SHOW_MORE_POPOVER_ARIA_LABEL", "Show the full text") // UI5 EXPANDABLE_TEXT_SHOW_MORE_POPOVER_ARIA_LABEL
+  const closePopoverLabel = closePopoverLabelProp ?? t("EXPANDABLE_TEXT_SHOW_LESS_POPOVER_ARIA_LABEL", "Close the popover") // UI5 EXPANDABLE_TEXT_SHOW_LESS_POPOVER_ARIA_LABEL
+  const emptyIndicatorLabel = emptyIndicatorLabelProp ?? t("EMPTY_INDICATOR_ACCESSIBLE_TEXT", "Empty Value") // UI5 EMPTY_INDICATOR_ACCESSIBLE_TEXT
+
   const popover = overflowMode === "Popover"
   const [expanded, setExpanded] = React.useState(defaultExpanded && !popover)
   const toggleRef = React.useRef<HTMLAnchorElement>(null)

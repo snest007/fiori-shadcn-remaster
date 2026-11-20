@@ -2,7 +2,8 @@
   "title": "ObjectStatus",
   "description": "Fiori object status (sap.m.ObjectStatus look): label, icon and text in a semantic or indication color; inverted badge, large and active variants.",
   "registryDependencies": [
-    "@petalo/icons"
+    "@petalo/icons",
+    "@petalo/locale"
   ],
   "usage": {
     "summary": "Show the semantic state of a business object with status text and an optional icon.",
