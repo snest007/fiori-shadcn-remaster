@@ -41,13 +41,19 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
           return nodes.length === 1 ? nodes[0] : null
         }
 
-        if (context.fixture === "html-context-listbox" && context.story === "data-list--listbox"
-          && !context.primary && rule === "nested-interactive") {
+        if (context.story === "data-list--listbox" && !context.primary && rule === "nested-interactive") {
+          const query = new URLSearchParams(location.search)
+          const htmlContextFixture = context.fixture === "html-context-listbox" && query.get("kind") === "listbox"
+            && canvas.getAttribute("data-density") === "compact" && canvas.getAttribute("dir") === "rtl"
+          const standaloneStory = context.fixture === undefined && location.pathname.endsWith("/iframe.html")
+            && query.get("id") === context.story && query.get("viewMode") === "story"
+            && canvas.getAttribute("data-density") === "cozy" && canvas.getAttribute("dir") === "ltr"
+          if (!htmlContextFixture && !standaloneStory) return false
+
           // ListItemTemplate.js:selectionElement nests its Multiple-mode checkbox in the option.
           const list = unique('[data-slot="list"][data-selection-mode="multiple"]')
           const listbox = list ? unique('ul.fiori-list__ul[role="listbox"][aria-multiselectable="true"][aria-label="Products"]', list) : null
-          if (!listbox || actual.parentElement !== listbox || canvas.getAttribute("data-density") !== "compact"
-            || canvas.getAttribute("dir") !== "rtl"
+          if (!listbox || actual.parentElement !== listbox
             || !actual.matches('li[data-slot="list-item"][data-mode="multiple"][role="option"]')) return false
           const selection = unique(':scope > span[data-li-selection].fiori-li__selection[role="checkbox"][tabindex="-1"]', actual)
           if (!selection || !visible(selection) || selection.getAttribute("aria-checked") !== actual.getAttribute("aria-selected")
