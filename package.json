@@ -33,7 +33,9 @@
     "storybook:build": "pnpm css && storybook build -o storybook-static --quiet",
     "test:storybook": "playwright test -c playwright.storybook.config.ts",
     "test:summary": "node scripts/test-summary.mjs",
-    "test:changed": "node scripts/test-changed.mjs"
+    "test:changed": "node scripts/test-changed.mjs",
+    "test:smoke": "node scripts/test-smoke.mjs",
+    "test:milestone": "node scripts/test-milestone.mjs"
   },
   "dependencies": {
     "@tanstack/react-table": "9.3.1",

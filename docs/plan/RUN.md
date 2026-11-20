@@ -28,13 +28,22 @@ checkout, never switch branches, never merge or push.
 Read <path>/AGENTS.md, then implement <path>/<card>. Follow its acceptance checks exactly.
 For Playwright always use PORT=<PORT> SAPUI5_PORT=<SAPUI5_PORT> (other agents use other ports).
 Commit your work on <branch> (small commits, messages ending with the Co-Authored-By line from AGENTS.md).
-Use `pnpm test:changed` while working, the full suite twice only at the end (use `pnpm test:summary`).
+Use tier 1 while working: `pnpm test:changed` (changed main specs, visual fixtures and stories).
+Tier 2 at card done: `pnpm test:changed --repeat-each=2` + `pnpm test:smoke` once (about 5 minutes).
+Shared-file cards (anything test:changed reports as shared, including .storybook, Storybook helpers, shared
+styles/libs, Playwright configs, docs entry points or CI) run full main + Storybook once through test:summary instead.
+The second full verification is the milestone/CI. Old "main ×2, Storybook ×2" card text means tier 2 under this rule.
+test:changed ignores only docs/plan/README.md and docs/plan/{tasks,returns,handoff}/** bookkeeping; a bookkeeping-only
+branch prints "bookkeeping only: no tests needed" and exits 0. Other docs/plan files (e.g. a11y-audit.md and
+i18n-audit.md, read by Storybook) stay shared.
+Tier 3 is the reviewer's job at milestones (end of wave / every 3–5 merged cards / release):
+`pnpm test:milestone` once + push + CI when authorized; --runs=2 for a release (about 20 minutes local / 12 minutes CI).
 Follow AGENTS.md verification budget: at most 2 CI pushes (only if the card authorizes them), at most 2 local fix
 hypotheses per failing test, about 2 hours total. If a limit is reached, commit work in progress, write
 docs/plan/returns/<id>.md with failing tests, each round's change/reason, remaining hypotheses and next steps,
 then end the run. Never print whole logs: at most about 50 summary/failure lines. Use `gh run watch` once,
 then `gh run view --log-failed | grep` for failing tests only. Background long runs; notify only on completion.
-Final message: changed files, the two full-suite summary lines, CI round/full-suite run counts, shared files
+Final message: changed files, tier 2 summary lines, CI round/full-suite run counts, shared files
 touched and why, anything deferred.
 ```
 
@@ -55,7 +64,9 @@ Read AGENTS.md, then docs/plan/INTEGRATION.md section 1 ("Review each branch") a
 2. Fidelity review against the reference source the card names (node_modules/@ui5/… or OpenUI5 1.154 — get it with
    `npm pack @openui5/<lib>@1.154.0` into /tmp if it isn't in node_modules): at least 5 behaviours, every number /
    limit / text the card mentions, and that each Behaviour bullet has a test.
-3. Forbidden shortcuts (raised tolerance, skipCompare without a concrete reason, retries, waitForTimeout/sleeps,
+3. Re-run tier 2 in the card worktree: pnpm test:changed --repeat-each=2 + pnpm test:smoke once, or full main and
+   Storybook once for a shared-file card (through test:summary). Tier 1 targets 1–3 minutes; tier 2 about 5 minutes.
+4. Forbidden shortcuts (raised tolerance, skipCompare without a concrete reason, retries, waitForTimeout/sleeps,
    test.skip, hard-coded colours/sizes that have a --sap*/--fiori-* variable).
 Reply with exactly:
 VERDICT: MERGE | MERGE-WITH-NOTES | RETURN
@@ -86,9 +97,12 @@ Follow `docs/plan/INTEGRATION.md` sections 2–4 for the cards whose verdict is 
 
 ```bash
 node scripts/integrate.mjs merge <branches in backlog order>   # add --accept-scope only for files a reviewer justified
-node scripts/integrate.mjs verify                               # 2 full runs, retries off, default workers, + smoke install
+node scripts/integrate.mjs verify                               # tier 3 milestone: main + Storybook once, retries off, default workers, + consumer checks
 node scripts/integrate.mjs cleanup
 ```
+
+Run tier 3 at the end of a wave, every 3–5 merged cards, or a release; `verify` delegates to `pnpm test:milestone`
+and defaults to one run of each full suite. `--runs=2` is available for a release. Then push + CI when authorized.
 
 Post-merge failures: use the six causes in INTEGRATION.md. You may spawn a worker sub-agent for a fix (give it the
 failing test names, the run log path in `.integration/`, and the six causes), but run `verify` yourself afterwards.

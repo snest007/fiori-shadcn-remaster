@@ -9,7 +9,7 @@ Read [`/AGENTS.md`](../../AGENTS.md) first.
 | Wave | Done | Open | Next |
 |---|---|---|---|
 | A–D, F, G (features, platform, personalization, usage guidance) | all | — | — |
-| E (quality infrastructure) | E1–E3, E6, E7 | E4, E5 (returned 2026-11-18 on branches `codex/E4`, `codex/E5`), E8 | **E8** next; then E4/E5 |
+| E (quality infrastructure) | E1–E3, E6, E7, E8 | E4, E5 (returned 2026-11-18 on branches `codex/E4`, `codex/E5`) | E4/E5 |
 | S (Storybook) | S0–S4, S4b, SX | S5 | S5 (any time) |
 | P (a11y/l10n parity) | — | P1–P6, P2a | after E4 + E5 |
 | X (extension rollout) | X0 (design) | X1–X40 (cards written per group) | after each group's P card |
@@ -26,8 +26,8 @@ Run [`node scripts/plan-check.mjs`](../../scripts/plan-check.mjs) after editing 
 2. Update the **Status** table above and the README "Not done yet" list if a wave changed.
 3. Check that rules agreed with the owner since the last milestone are in AGENTS.md (and RUN.md / INTEGRATION.md if
    they describe the same step), and that open cards still match them (dependencies, file names, test counts).
-4. Run the heavy verification once (full main + Storybook suites, then push + CI) and record the summary lines in the
-   commit message.
+4. Run tier 3: `pnpm test:milestone` once (full main + Storybook, fresh builds and timing report), then push + CI
+   when authorized. Record the summary lines in the commit message. `--runs=2` is available for a release.
 5. Delete merged `codex/*` branches and worktrees that `plan-check` lists, once the owner agrees.
 
 ## How to run a card (for Codex)
@@ -35,9 +35,11 @@ Run [`node scripts/plan-check.mjs`](../../scripts/plan-check.mjs) after editing 
 ```bash
 git switch main && git switch -c codex/<card-id>      # or the worktree the card names
 pnpm install --frozen-lockfile && pnpm generate
-# … implement the card; while working: pnpm test:changed (affected specs only) …
+# tier 1 while working: pnpm test:changed (main specs + visuals + stories)
 pnpm typecheck && pnpm registry:build
-# card done: see AGENTS.md "Definition of done" and "Verification budget"
+# tier 2 card done (reviewer repeats it):
+pnpm test:changed --repeat-each=2 && pnpm test:smoke
+# shared-file cards: full main + Storybook once instead (through test:summary)
 git add -A && git commit -m "<card-id>: <summary>"
 ```
 
@@ -48,6 +50,17 @@ Follow its budget and acceptance checks exactly.`
 them, 2 local fix hypotheses per failing test, about 2 hours, compact output, background long runs, headless
 browsers. At a limit: stop, commit and write `returns/<card>.md`. Don't push or merge; the owner's reviewer merges
 reviewed branches into main and runs push + CI at milestones (end of a wave, every 3–5 merged cards, or a release).
+
+**Three tiers:** tier 1 is the affected inner loop (1–3 minutes); tier 2 is two scoped runs plus one smoke run
+(about 5 minutes), repeated by the reviewer; tier 3 is the reviewer's milestone, full main + Storybook once, then
+push + CI (about 20 minutes local / 12 minutes CI). `pnpm test:milestone --runs=2` is available for releases.
+If `test:changed` reports a shared file (`.storybook/**`, Storybook helpers, shared styles/libs, Playwright configs,
+docs entry points or CI), the card runs full main and Storybook suites **once** instead; the second full verification
+is the milestone/CI. Existing card requirements saying "main ×2, Storybook ×2" now mean **tier 2**, subject to this
+shared-file rule; do not rewrite old cards. Follow any additional card-specific acceptance checks and tighter budget.
+`test:changed` ignores only bookkeeping in `docs/plan/README.md`, `docs/plan/tasks/**`, `docs/plan/returns/**`,
+and `docs/plan/handoff/**`; bookkeeping-only branches print "bookkeeping only: no tests needed" and exit 0.
+All other `docs/plan/` files stay shared, including the Storybook-read `a11y-audit.md` and `i18n-audit.md`.
 
 One card per branch. Cards in the same wave touch disjoint files and can run in parallel (separate worktrees/branches);
 later waves depend on earlier ones. Optional orchestration: [RUN.md](RUN.md) (one Codex session with sub-agents) or
@@ -106,7 +119,7 @@ F1 and F2 can run in parallel after F0.
 - [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt returned 2026-11-18: repairs and the i18n ratchet are done on `codex/E5`; acceptance failed on `visual-phone` readiness timeouts and docs-page axe timeouts under load — see the branch's `docs/plan/returns/E5.md`. Owner to decide the next step. Parallel to E4; before waves P and H)
 - [x] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/done/E6-verification-budget.md) — M (done 2026-11-18: CI ≈10 min, verification budget in AGENTS.md — [E6 note](returns/done/E6.md))
 - [x] [E7 CI back under 12 minutes: Playwright container or cached system packages, time-based shards, timing warning](tasks/done/E7-ci-speed.md) — S (done 2026-11-19: Playwright container, time-based shards, timing warning; CI ≈11 min)
-- [ ] [E8 Tiered verification: per-card tests in minutes, full suites at milestones](tasks/E8-tiered-verification.md) — S (owner's decision 2026-11-20; run next, before further cards, so they inherit the tiers)
+- [x] [E8 Tiered verification: per-card tests in minutes, full suites at milestones](tasks/E8-tiered-verification.md) — S (owner's decision 2026-11-20; tiered verification implemented)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
