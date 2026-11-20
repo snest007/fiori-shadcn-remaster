@@ -4,8 +4,8 @@
 (1,359 gaps, all P-owned) and the German consumer proof, but acceptance failed. The owner's review (2026-11-20)
 re-ran the failures on an idle machine: **only two are real**. Owner's decision, 2026-11-20.
 
-Read first: `AGENTS.md` (Verification budget, tiered verification), `docs/plan/tasks/E5-l10n-parity.md`, and the
-"Fourth-attempt outcome — RETURN, 2026-11-18" section of `docs/plan/returns/E5.md` **on branch `codex/E5`**.
+Read first: `AGENTS.md` (Verification budget, tiered verification), `docs/plan/tasks/done/E5-l10n-parity.md`, and the
+"Fourth-attempt outcome — RETURN, 2026-11-18" section of `docs/plan/returns/done/E5.md` **on branch `codex/E5`**.
 
 ## Where
 
@@ -56,7 +56,7 @@ provider like the other texts (a prop still wins).
 
 `registry/ui/date-time-picker.tsx` (only if item 1 proves it), `docs/src/fixtures-phone/d1b-popups.tsx`, `registry/ui/combobox.tsx`
 (item 3), the relevant `tests/*.spec.ts` / `tests-storybook/*.spec.ts` regressions, `tests-storybook/known-issues.ts`
-(E4/E5 classifier entries only), the Locale provider placement if item 2 proves it, `docs/plan/returns/E5.md`,
+(E4/E5 classifier entries only), the Locale provider placement if item 2 proves it, `docs/plan/returns/done/E5.md`,
 `docs/plan/README.md`, plus whatever the main merge requires.
 
 ## Budget (hard)
@@ -65,7 +65,7 @@ About 2 hours. **0 CI pushes.** At most **2 hypotheses per item**. Shared-file c
 once and the full Storybook suite once (fresh build), plus the localized de-DE / zh-CN / ar-EG matrices and the i18n
 ratchet. **Don't run the full suites concurrently with another heavy job** (they share the machine): if a timing test
 fails, re-run that spec alone once before treating it as a defect, and record both results. Browsers headless. At a
-limit: commit, add a short "E5b result" section at the top of `docs/plan/returns/E5.md` and stop.
+limit: commit, add a short "E5b result" section at the top of `docs/plan/returns/done/E5.md` and stop.
 
 ## Acceptance
 

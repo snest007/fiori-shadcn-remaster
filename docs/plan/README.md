@@ -9,11 +9,11 @@ Read [`/AGENTS.md`](../../AGENTS.md) first.
 | Wave | Done | Open | Next |
 |---|---|---|---|
 | A–D, F, G (features, platform, personalization, usage guidance) | all | — | — |
-| E (quality infrastructure) | E1–E8, E4b, E5b | — | Review E5 and E5b |
+| E (quality infrastructure) | all (E1–E8, E4b, E5b) | — | — |
 | S (Storybook) | S0–S4, S4b, SX | S5 | S5 (any time) |
-| P (a11y/l10n parity) | — | P1–P6, P2a | after E4 + E5 |
+| P (a11y/l10n parity) | — | P1–P6, P2a | **P2a first** (unblocks H6), then P1–P6 (at most two at a time) |
 | X (extension rollout) | X0 (design) | X1–X40 (cards written per group) | after each group's P card |
-| H (issue #1) | — | H0–H10 | H0 after E4 + E5 |
+| H (issue #1) | — | H0–H10 | H0 (any time now); H6 after P2a |
 
 Returned cards keep their branch and worktree; their notes are in [`returns/`](returns/). Component defects found
 while writing stories are handed to E4 / the P cards as unapplied patches in [`handoff/`](handoff/).
@@ -116,9 +116,9 @@ F1 and F2 can run in parallel after F0.
 - [x] [E2 Docs site navigation](tasks/done/E2-docs-navigation.md) — M
 - [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/done/E3-publish.md) — S (owner decided: snest007/petalo, Pages; push only, no gh; run in the main checkout, not via RUN.md)
 - [x] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/done/E4-a11y-parity.md) — L (done 2026-11-20 through E4b: tree/audit baselines and ratchet live; merged)
-- [x] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (local acceptance passed through E5b on `codex/E5` on 2026-11-20)
+- [x] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/done/E5-l10n-parity.md) — L (local acceptance passed through E5b on `codex/E5` on 2026-11-20)
 - [x] [E4b Finish E4: Label custom-host fixture, List selection-checkbox marker, acceptance](tasks/done/E4b-finish-e4.md) — S (done 2026-11-20; the S3 ViewSettingsDialog marker was updated to UI5's option Tab stop at merge)
-- [x] [E5b Finish E5: phone time-view hang, Select Open marker, ComboBox provider text, acceptance](tasks/E5b-finish-e5.md) — S (local acceptance passed 2026-11-20)
+- [x] [E5b Finish E5: phone time-view hang, Select Open marker, ComboBox provider text, acceptance](tasks/done/E5b-finish-e5.md) — S (local acceptance passed 2026-11-20)
 - [x] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/done/E6-verification-budget.md) — M (done 2026-11-18: CI ≈10 min, verification budget in AGENTS.md — [E6 note](returns/done/E6.md))
 - [x] [E7 CI back under 12 minutes: Playwright container or cached system packages, time-based shards, timing warning](tasks/done/E7-ci-speed.md) — S (done 2026-11-19: Playwright container, time-based shards, timing warning; CI ≈11 min)
 - [x] [E8 Tiered verification: per-card tests in minutes, full suites at milestones](tasks/done/E8-tiered-verification.md) — S (owner's decision 2026-11-20; tiered verification implemented)

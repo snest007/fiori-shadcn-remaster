@@ -3,7 +3,7 @@
 > **Rescoped on 2026-11-17 (owner's decision, after two returns).** E5 is the **provider, number formats, packs,
 > audit + ratchet and the named defects**, not "the audit has no gap rows". The remaining audit backlog (81 owners,
 > 2,510 rows, 1,365 gaps) moves to the per-group cards **P1–P6**. Continue on the retained branch `codex/E5`
-> (`603aeec`) in `.worktrees/E5`: don't start over; keep every verified repair listed in `docs/plan/returns/E5.md`.
+> (`603aeec`) in `.worktrees/E5`: don't start over; keep every verified repair listed in `docs/plan/returns/done/E5.md`.
 > Where this addendum and the sections below conflict, **the addendum wins**.
 >
 > **Ratchet (replaces "no `gap` rows").** Add `tests/i18n-audit-baseline.json`: per component, the number of `gap` rows
