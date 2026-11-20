@@ -59,3 +59,27 @@ top of `docs/plan/returns/E4.md` and stop.
 
 Changed files, the four summary lines, each failure's fix and hypotheses used, CI rounds (0) and full-suite runs used,
 merge conflicts and how they were resolved.
+
+## Addendum — 2026-11-20: the ViewSettingsDialog marker (owner's decision)
+
+E4b's run fixed both items and the tree/main acceptance, then stopped with 34 Storybook failures (all
+ViewSettingsDialog). The owner's review: **E4 is right, the S3 marker's precondition is stale.** E4's SegmentedButton
+puts the Tab stop on the selected option and leaves the `role=listbox` without `tabindex`, exactly as UI5
+`SegmentedButtonItemTemplate.js` (`tabindex` on the `li role=option`). The S3 marker (unnamed mode listbox,
+`aria-input-field-name`, owner P4) still requires `list.getAttribute("tabindex") === "0"`, so it no longer matches and
+the known violation surfaces.
+
+Continue on `codex/E4` (`dfae058`). **E4b may edit the S3 block for this one condition** (an exception to "main's S3
+blocks stay byte-for-byte"):
+- In the four places in `tests-storybook/known-issues.ts` that check the ViewSettingsDialog mode listbox (the S3
+  `classifyS3UnnamedModeControl` path and the story/primary-docs guards), replace `list.getAttribute("tabindex") === "0"`
+  with: the listbox has **no** `tabindex`, and exactly one option has `tabindex="0"` and it is the selected one
+  (`aria-selected="true"`); the other options have `tabindex="-1"`. Cite `SegmentedButtonItemTemplate.js`.
+- Change nothing else in those guards (names, option labels, orientation, multiselectable, story list, rule, owner P4).
+- Update the matching negative cases in `tests-storybook/known-issues.spec.ts` so a listbox **with** `tabindex="0"` (the
+  old shape) and an option-less or wrongly-focused list are both rejected.
+
+Budget for this addendum: **one hypothesis**. Verify with the affected Storybook checks first
+(`STORYBOOK_ONLY=view-settings-dialog`, plus `tests-storybook/known-issues.spec.ts`), then **one** full Storybook run
+(main and tree acceptance from E4b's run stand; re-run main only if you change anything outside `tests-storybook/`).
+0 CI pushes. Then tick E4 and E4b as the card says. If anything else fails, stop and report it.
