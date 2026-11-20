@@ -9,7 +9,7 @@ Read [`/AGENTS.md`](../../AGENTS.md) first.
 | Wave | Done | Open | Next |
 |---|---|---|---|
 | A–D, F, G (features, platform, personalization, usage guidance) | all | — | — |
-| E (quality infrastructure) | E1–E3, E6, E7, E8 | E4, E5 (returned 2026-11-18 on branches `codex/E4`, `codex/E5`) | E4/E5 |
+| E (quality infrastructure) | E1–E3, E6–E8 | E4, E5 (returned 2026-11-18), E4b, E5b | **E4b**, then E5b |
 | S (Storybook) | S0–S4, S4b, SX | S5 | S5 (any time) |
 | P (a11y/l10n parity) | — | P1–P6, P2a | after E4 + E5 |
 | X (extension rollout) | X0 (design) | X1–X40 (cards written per group) | after each group's P card |
@@ -115,8 +115,10 @@ F1 and F2 can run in parallel after F0.
 - [x] [E1 Interaction-state visual fixtures](tasks/done/E1-interaction-fixtures.md) — M
 - [x] [E2 Docs site navigation](tasks/done/E2-docs-navigation.md) — M
 - [x] [E3 Publish: GitHub + CI + registry on GitHub Pages](tasks/done/E3-publish.md) — S (owner decided: snest007/petalo, Pages; push only, no gh; run in the main checkout, not via RUN.md)
-- [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (fourth attempt returned 2026-11-18: the five repairs are done on `codex/E4`; acceptance failed on a Label custom-host width mismatch and a List `nested-interactive` axe violation, handed to P1/P3 — see the branch's `docs/plan/returns/E4.md`. Owner to decide the next step. Before waves P and H)
-- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt returned 2026-11-18: repairs and the i18n ratchet are done on `codex/E5`; acceptance failed on `visual-phone` readiness timeouts and docs-page axe timeouts under load — see the branch's `docs/plan/returns/E5.md`. Owner to decide the next step. Parallel to E4; before waves P and H)
+- [ ] [E4 Accessibility parity: tree vs UI5 + audit — infrastructure, ratchet, named defects](tasks/E4-a11y-parity.md) — L (fourth attempt returned 2026-11-18 on `codex/E4`; finished by **E4b**. Before waves P and H)
+- [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt returned 2026-11-18 on `codex/E5`; finished by **E5b**, after E4b. Before waves P and H)
+- [ ] [E4b Finish E4: Label custom-host fixture, List selection-checkbox marker, acceptance](tasks/E4b-finish-e4.md) — S (owner's decision 2026-11-20; continues on `codex/E4`; ticks E4 and E4b)
+- [ ] [E5b Finish E5: phone time-view hang, Select Open marker, ComboBox provider text, acceptance](tasks/E5b-finish-e5.md) — S (owner's decision 2026-11-20; after E4b; continues on `codex/E5`; ticks E5 and E5b)
 - [x] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/done/E6-verification-budget.md) — M (done 2026-11-18: CI ≈10 min, verification budget in AGENTS.md — [E6 note](returns/done/E6.md))
 - [x] [E7 CI back under 12 minutes: Playwright container or cached system packages, time-based shards, timing warning](tasks/done/E7-ci-speed.md) — S (done 2026-11-19: Playwright container, time-based shards, timing warning; CI ≈11 min)
 - [x] [E8 Tiered verification: per-card tests in minutes, full suites at milestones](tasks/done/E8-tiered-verification.md) — S (owner's decision 2026-11-20; tiered verification implemented)
