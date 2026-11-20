@@ -6,10 +6,13 @@ UI5 Web Components 2.28 (SAP's official implementation). Read `README.md` and `C
 
 ## Where the work is
 
-- Task backlog: `docs/plan/README.md` (index, order, dependencies) and one card per task in `docs/plan/tasks/`.
+- Task backlog: `docs/plan/README.md` (status, order, dependencies). Open cards are in `docs/plan/tasks/`, finished
+  ones in `docs/plan/tasks/done/`; notes of returned cards in `docs/plan/returns/` (finished: `returns/done/`).
 - Do exactly one task card per run unless told otherwise. A card lists its goal, the UI5 source to read, the files
   you may touch, the behaviour to reproduce, the tests to add, and its acceptance checks.
-- When the card is done, tick it in `docs/plan/README.md` (`[ ]` → `[x]`) in the same commit.
+- When the card is done, tick it in `docs/plan/README.md` (`[ ]` → `[x]`) in the same commit. Leave the card file
+  where it is; the reviewer moves it to `tasks/done/` when merging. Run `node scripts/plan-check.mjs` after editing
+  the backlog.
 
 ## Environment
 
@@ -39,6 +42,7 @@ PORT=4320 pnpm test:storybook       # separate Storybook render, globals, Contro
 pnpm dev                           # http://localhost:5173 (docs), /?fixtures, /ui5.html, /block.html?name=<block>
 node scripts/smoke-install.mjs     # fresh consumer app: shadcn init + add every block, build, render
 node scripts/integrate.mjs …       # merging card branches — see docs/plan/INTEGRATION.md
+node scripts/plan-check.mjs        # backlog index ↔ card files ↔ return notes ↔ links; --fix moves finished cards
 ```
 
 Always pass a `PORT` other than 4173/5173 to Playwright so it builds and serves its own copy.

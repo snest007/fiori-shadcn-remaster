@@ -73,7 +73,8 @@ or a forbidden shortcut was used. For a RETURN you may send the reviewer's findi
 don't `prepare` it. Start the worker in the existing `.worktrees/<id>` with this message instead:
 "Read AGENTS.md, then fix exactly what docs/plan/returns/<id>.md lists, on the existing branch, with the tests it asks for."
 Review it with a new reviewer as usual (the reviewer also checks every item of the return note). When the card merges,
-delete `docs/plan/returns/<id>.md` in the integration commit.
+move `docs/plan/returns/<id>.md` to `docs/plan/returns/done/` and the card to `docs/plan/tasks/done/` in the
+integration commit, then run `node scripts/plan-check.mjs`.
 
 **Agent limit.** The host allows only a few open agent threads: close each worker/reviewer as soon as you have its final
 message, before spawning the next. Never reuse a reviewer across cards (it has seen another card's code); if you can't

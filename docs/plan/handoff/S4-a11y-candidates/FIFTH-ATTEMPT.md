@@ -46,7 +46,7 @@ The narrow marker attempt passes Search, NotificationList and both floorplan def
 Flat/Parent Selected/Open and VariantManagement Empty List still fail. The new adversarial tests reject foreign
 nodes and altered descendants for six of eight defect cases; tag and empty-heading preconditions fail before
 mutation. No marker is widened after the second SideNavigation hypothesis: AGENTS.md rule 2 requires stopping.
-See docs/plan/returns/S4.md for every original failure and the exact final affected-check summary.
+See docs/plan/returns/done/S4.md for every original failure and the exact final affected-check summary.
 
 
 ## S4b exact marker inventory — 2026-11-19

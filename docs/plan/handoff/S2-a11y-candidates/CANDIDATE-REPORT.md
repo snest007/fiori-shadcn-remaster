@@ -80,7 +80,7 @@ Raw known findings remain attached to individual checks. Shared Docs globals/Con
 
 ## Third-attempt candidate — 2026-11-17
 
-The owner approved a third attempt in `docs/plan/returns/S2.md`. Main through `df76cb0` was merged into the retained
+The owner approved a third attempt in `docs/plan/returns/done/S2.md`. Main through `df76cb0` was merged into the retained
 S2 branch at `7226c60`; this includes the S0 Dialog readiness repair and the strict-consumer Calendar change.
 The merged classifier is main's complete S0/S1 file, byte-for-byte, plus the separate retained `// S2` block.
 All six patches and this report were already tracked in this exact handoff directory. No physical relocation or

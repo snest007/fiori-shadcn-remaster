@@ -117,7 +117,7 @@ Nothing else. Don't change components, fixtures, tolerances, retries or test ass
 - **At most 2 CI rounds.** Push `codex/E6` and open a PR (or use `workflow_dispatch` on the branch) to measure CI.
   Exception to AGENTS.md "Don't push": this card's acceptance is a CI timing, and it pushes only its own branch,
   never main.
-- If CI isn't green with the timing target after round 2: stop, commit, write `docs/plan/returns/E6.md` as in
+- If CI isn't green with the timing target after round 2: stop, commit, write `docs/plan/returns/done/E6.md` as in
   section 1, and end the run.
 - Local: `pnpm test:changed` / targeted specs while working; the full suite twice only at the end.
 

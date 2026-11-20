@@ -44,7 +44,8 @@ node scripts/integrate.mjs merge <branch…>       # in backlog order; refuses o
 ### Conflicts
 
 They are almost always index/registry files several cards append to. Keep **both** sides:
-- `docs/plan/README.md`: tick every merged card.
+- `docs/plan/README.md`: tick every merged card, move its file to `docs/plan/tasks/done/` (and its return note to
+  `docs/plan/returns/done/`), fix the link, and run `node scripts/plan-check.mjs`.
 - `sapui5/webapp/fixtures.js`, `docs/src/fixtures*/index.ts`, `registry/items/*.json` dependency lists: union of entries.
 - A real code conflict in a component file means two cards touched the same component: resolve by keeping both
   behaviours, then make sure both cards' tests pass; explain it in the report.

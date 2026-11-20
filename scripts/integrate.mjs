@@ -68,8 +68,12 @@ function worktrees() {
 function cardFor(branch) {
   const id = branch.match(/^codex\/([A-Z]\d+[a-z]?)/)?.[1]
   if (!id) return null
-  const file = readdirSync("docs/plan/tasks").find((f) => f.startsWith(`${id}-`))
-  return file ? { id, path: `docs/plan/tasks/${file}`, text: readFileSync(`docs/plan/tasks/${file}`, "utf8") } : { id, path: null, text: "" }
+  // Open cards live in docs/plan/tasks/, finished ones in docs/plan/tasks/done/ (scripts/plan-check.mjs).
+  for (const dir of ["docs/plan/tasks", "docs/plan/tasks/done"]) {
+    const file = existsSync(dir) && readdirSync(dir).find((f) => f.startsWith(`${id}-`) && f.endsWith(".md"))
+    if (file) return { id, path: `${dir}/${file}`, text: readFileSync(`${dir}/${file}`, "utf8") }
+  }
+  return { id, path: null, text: "" }
 }
 
 // Files a component owns (AGENTS.md rule 3); a file here is fine when its component is named in the card.

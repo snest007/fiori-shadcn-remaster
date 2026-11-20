@@ -4,8 +4,8 @@
 stopped at the hypothesis limit with 11 left. This small card finishes those 11 and runs S4's remaining acceptance,
 so S4 can be merged and ticked. Owner's decision, 2026-11-19.
 
-Read first: `AGENTS.md` (especially "Verification budget"), `docs/plan/tasks/S4-stories-navigation-layout-floorplans.md`
-("Component defects you find"), the top two sections of `docs/plan/returns/S4.md`, and
+Read first: `AGENTS.md` (especially "Verification budget"), `docs/plan/tasks/done/S4-stories-navigation-layout-floorplans.md`
+("Component defects you find"), the top two sections of `docs/plan/returns/done/S4.md`, and
 `docs/plan/handoff/S4-a11y-candidates/FIFTH-ATTEMPT.md` (on `codex/S4`).
 
 ## Where
@@ -33,7 +33,7 @@ stylesheets, fixtures or public APIs, and keep all candidate patches (0001–000
 
 `docs/stories/navigation/*.stories.tsx` and `docs/stories/floorplans/*.stories.tsx` owned by S4 (Tabs/Open only, unless a
 marker proves a story mistake), `tests-storybook/known-issues.ts` (S4 block only), `tests-storybook/s4-regressions.spec.ts`,
-`docs/plan/handoff/S4-a11y-candidates/**` (report updates only), `docs/plan/returns/S4.md`, `docs/plan/README.md`.
+`docs/plan/handoff/S4-a11y-candidates/**` (report updates only), `docs/plan/returns/done/S4.md`, `docs/plan/README.md`.
 Nothing else. A defect that also breaks a story already on main is a shared-setup stop: report it, don't fix it.
 
 ## Budget (hard)
@@ -44,7 +44,7 @@ Nothing else. A defect that also breaks a story already on main is a shared-setu
 - **About 1.5 hours** of wall-clock time in total. **0 CI pushes.**
 - Browsers headless or in a background tab group (budget rule 7); close everything you started.
 - If anything is still red at the limit: commit, add a short "S4b result" section at the top of
-  `docs/plan/returns/S4.md` (the failing checks, the hypotheses tried, what to try next) and stop.
+  `docs/plan/returns/done/S4.md` (the failing checks, the hypotheses tried, what to try next) and stop.
 
 ## Acceptance
 
