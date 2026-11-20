@@ -14,6 +14,9 @@ import { Icon } from "@/components/ui/icon"
 import { valueStateIcons, type ValueState } from "@/components/ui/input"
 import { usePopupMediaRange } from "@/components/ui/popover"
 
+// Bundlers replace NODE_ENV. Browser-only registry consumers can typecheck without Node types.
+declare const process: { env: { NODE_ENV?: string } }
+
 // Mirrors ui5-dialog (Horizon): a centered modal with a header bar (optional state icon + title,
 // plus a colored state line), padded content and a footer bar whose actions are end-aligned.
 // Fiori puts the emphasized (primary) action first in the footer: <Button variant="emphasized">Save</Button><Button>Cancel</Button>.

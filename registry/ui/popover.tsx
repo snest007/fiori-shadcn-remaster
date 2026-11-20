@@ -9,6 +9,9 @@ import { Popover as PopoverPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+// Bundlers replace NODE_ENV. Browser-only registry consumers can typecheck without Node types.
+declare const process: { env: { NODE_ENV?: string } }
+
 // Mirrors ui5-popover (Horizon): optional header bar (<PopoverHeader><PopoverTitle>), a padded, scrolling
 // <PopoverBody>, and an optional footer bar (<PopoverFooter>, end-aligned like a ui5-bar footer).
 

@@ -8,6 +8,9 @@ import { Label as LabelPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+// Bundlers replace NODE_ENV. Browser-only registry consumers can typecheck without Node types.
+declare const process: { env: { NODE_ENV?: string } }
+
 /**
  * @accessibility htmlFor identifies the native input or button being labelled. The colon and required marker are hidden from the accessible name.
  * @accessibility Use the field required prop together with the visual required marker. Label has no keyboard stop.

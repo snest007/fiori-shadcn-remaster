@@ -18,6 +18,9 @@ import { Button } from "@/components/ui/button"
 import { ResponsivePopover, ResponsivePopoverContent } from "@/components/ui/responsive-popover"
 import { Icon } from "@/components/ui/icon"
 
+// Bundlers replace NODE_ENV. Browser-only registry consumers can typecheck without Node types.
+declare const process: { env: { NODE_ENV?: string } }
+
 type CheckMode = "none" | "single" | "multiple"
 type CheckProps = { checked?: boolean; defaultChecked?: boolean; onCheckedChange?: (checked: boolean) => void }
 type StateKey = { /** @internal Stable identity assigned by Menu before Radix unmounts popup rows. */ _menuStateKey?: string }
