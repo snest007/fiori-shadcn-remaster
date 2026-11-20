@@ -54,7 +54,8 @@ function slowest(log) {
   const totals = new Map()
   const plain = readFileSync(log, "utf8").replace(/\x1b\[[0-9;]*m/g, "")
   for (const line of plain.split("\n")) {
-    const test = line.match(/› ((?:tests|tests-storybook)\/[^:]+\.spec\.ts):\d+:\d+ › .*\(([\d.]+)(ms|s|m)\)\s*$/)
+    // Unnamed Playwright projects have no leading `›`; named projects prepend `[project] ›`.
+    const test = line.match(/\b((?:tests|tests-storybook)\/[^:]+\.spec\.ts):\d+:\d+ › .*\(([\d.]+)(ms|s|m)\)\s*$/)
     if (!test) continue
     const ms = Number(test[2]) * ({ ms: 1, s: 1000, m: 60000 }[test[3]])
     totals.set(test[1], (totals.get(test[1]) ?? 0) + ms)
@@ -78,8 +79,6 @@ export function milestone(args = process.argv.slice(2)) {
   const out = `.integration/milestone-${date}`
   mkdirSync(out, { recursive: true })
   const env = { ...process.env, PORT: process.env.PORT ?? "4310", SAPUI5_PORT: process.env.SAPUI5_PORT ?? "4311" }
-  delete env.VISUAL_ONLY
-  delete env.STORYBOOK_ONLY
   // Undefined removes inherited filters from spawnSync's merged environment too.
   env.VISUAL_ONLY = undefined
   env.STORYBOOK_ONLY = undefined
