@@ -166,6 +166,9 @@ These hard limits apply to every card and every agent (Codex and Claude).
    - **Tier 3 — milestone:** the reviewer's job at the end of a wave, every 3–5 merged cards, or a release:
      `pnpm test:milestone` once (fresh builds, full main + Storybook, report), then push + CI when authorized.
      `--runs=2` is available for a release. Targets: about 20 minutes local / 12 minutes CI.
+   `test:changed` ignores only bookkeeping: `docs/plan/README.md`, `docs/plan/tasks/**`, `docs/plan/returns/**`,
+   and `docs/plan/handoff/**`. Bookkeeping-only branches print "bookkeeping only: no tests needed" and exit 0.
+   Other `docs/plan/` files stay shared (for example `a11y-audit.md` and `i18n-audit.md`, read by Storybook).
    When a card adds many tests, check the CI timing warning and add a shard in the same card.
 4. **Compact output.** Never print a whole Playwright or CI log into the conversation. Use `pnpm test:summary`
    or grep for summary and failing lines, at most about 50 lines. For CI, use `gh run watch` once (no polling loops),

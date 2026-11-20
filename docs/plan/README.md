@@ -58,6 +58,9 @@ If `test:changed` reports a shared file (`.storybook/**`, Storybook helpers, sha
 docs entry points or CI), the card runs full main and Storybook suites **once** instead; the second full verification
 is the milestone/CI. Existing card requirements saying "main ×2, Storybook ×2" now mean **tier 2**, subject to this
 shared-file rule; do not rewrite old cards. Follow any additional card-specific acceptance checks and tighter budget.
+`test:changed` ignores only bookkeeping in `docs/plan/README.md`, `docs/plan/tasks/**`, `docs/plan/returns/**`,
+and `docs/plan/handoff/**`; bookkeeping-only branches print "bookkeeping only: no tests needed" and exit 0.
+All other `docs/plan/` files stay shared, including the Storybook-read `a11y-audit.md` and `i18n-audit.md`.
 
 One card per branch. Cards in the same wave touch disjoint files and can run in parallel (separate worktrees/branches);
 later waves depend on earlier ones. Optional orchestration: [RUN.md](RUN.md) (one Codex session with sub-agents) or

@@ -4,13 +4,19 @@ import { existsSync, readFileSync } from "node:fs"
 import { ensureStorybookBuild, testSummary } from "./test-milestone.mjs"
 
 // Include tracked edits and new files for the inner loop before the first commit.
-const files = [...new Set([
+const changedFiles = [...new Set([
   ...execFileSync("git", ["diff", "--name-only", "-z", "main...HEAD"], { encoding: "utf8" }).split("\0"),
   ...execFileSync("git", ["diff", "--name-only", "-z", "HEAD"], { encoding: "utf8" }).split("\0"),
   ...execFileSync("git", ["ls-files", "--others", "--exclude-standard", "-z"], { encoding: "utf8" }).split("\0"),
 ].filter(Boolean))]
-if (!files.length) {
+if (!changedFiles.length) {
   console.log("No changes compared with main.")
+  process.exit(0)
+}
+// No test or build reads these bookkeeping files.
+const files = changedFiles.filter((file) => file !== "docs/plan/README.md" && !/^docs\/plan\/(?:tasks|returns|handoff)\//.test(file))
+if (!files.length) {
+  console.log("bookkeeping only: no tests needed")
   process.exit(0)
 }
 const names = new Set()

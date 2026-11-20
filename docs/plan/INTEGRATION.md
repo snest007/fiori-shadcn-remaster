@@ -36,6 +36,9 @@ For every pending branch, in backlog order (A1, A2, … see `docs/plan/README.md
    shared styles/libs, Playwright configs, docs entry points or CI) runs full main and Storybook once through
    `test:summary` instead; the second full verification is the milestone/CI. Old "main ×2, Storybook ×2" card text
    means tier 2 under this rule. Tier 1 while implementing is `pnpm test:changed` (specs, visuals, stories; 1–3 minutes).
+   Only `docs/plan/README.md`, `docs/plan/tasks/**`, `docs/plan/returns/**` and `docs/plan/handoff/**` are ignored
+   bookkeeping: such a branch alone prints "bookkeeping only: no tests needed" and exits 0. Other `docs/plan/` files
+   stay shared, including the Storybook-read `a11y-audit.md` and `i18n-audit.md`.
 4. Look for forbidden shortcuts: `tolerance` raised, `skipCompare` without a concrete reason comment, `retries`,
    `waitForTimeout`/sleeps in tests, `test.skip`, `!important` added outside harness files, hard-coded colours/sizes that
    have a `--sap*`/`--fiori-*` variable (`grep -nE '#[0-9a-f]{3,6}\b|[0-9]+px' <changed files>`).

@@ -33,6 +33,9 @@ Tier 2 at card done: `pnpm test:changed --repeat-each=2` + `pnpm test:smoke` onc
 Shared-file cards (anything test:changed reports as shared, including .storybook, Storybook helpers, shared
 styles/libs, Playwright configs, docs entry points or CI) run full main + Storybook once through test:summary instead.
 The second full verification is the milestone/CI. Old "main ×2, Storybook ×2" card text means tier 2 under this rule.
+test:changed ignores only docs/plan/README.md and docs/plan/{tasks,returns,handoff}/** bookkeeping; a bookkeeping-only
+branch prints "bookkeeping only: no tests needed" and exits 0. Other docs/plan files (e.g. a11y-audit.md and
+i18n-audit.md, read by Storybook) stay shared.
 Tier 3 is the reviewer's job at milestones (end of wave / every 3–5 merged cards / release):
 `pnpm test:milestone` once + push + CI when authorized; --runs=2 for a release (about 20 minutes local / 12 minutes CI).
 Follow AGENTS.md verification budget: at most 2 CI pushes (only if the card authorizes them), at most 2 local fix
