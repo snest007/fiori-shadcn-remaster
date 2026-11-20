@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright"
 import { expect, test, type Page, type TestInfo } from "@playwright/test"
 import { buildHtmlContextFixture } from "./html-context-fixture"
+import { attachKnown, classifyViolations, type AuditContext } from "./known-issues"
 
 const contextualRules = ["landmark-banner-is-top-level", "landmark-contentinfo-is-top-level"]
 
@@ -66,7 +67,15 @@ test("actual ordinary decorator gives List and Tree native headers/footers secti
       expect(roles).toContain("sectionheader")
       if (kind !== "list-empty") expect(roles).toContain("sectionfooter")
       const raw = await rawAudit(page, testInfo, `${kind}-${theme}`)
-      expect(raw.violations).toEqual([])
+      const context: AuditContext = {
+        story: (await canvas.getAttribute("data-fiori-story"))!,
+        theme,
+        fixture: kind === "listbox" ? "html-context-listbox" : undefined,
+      }
+      const { known, unexpected } = await classifyViolations(page, raw.violations, context)
+      if (known.length) await attachKnown(testInfo, `${kind}-${theme}-axe`, { context, violations: known })
+      if (kind !== "listbox") expect(known).toEqual([])
+      expect(unexpected).toEqual([])
       if (kind === "list-empty") {
         const empty = content.getByRole("listitem")
         await expect(empty).toHaveText("No products available")
@@ -99,6 +108,29 @@ test("actual ordinary decorator gives List and Tree native headers/footers secti
       }
     }
   }
+})
+
+test("List selection checkbox marker rejects a checkbox in option content", async ({ page }, testInfo) => {
+  const fixture = await buildHtmlContextFixture(testInfo.workerIndex)
+  const theme = "sap_horizon"
+  await page.goto(`${fixture}?kind=listbox&theme=${theme}&density=compact&dir=rtl`)
+  const option = page.locator('li[data-nav-key="apples"][role="option"]')
+  await expect(option.locator(':scope > [data-li-selection][role="checkbox"]')).toBeVisible()
+  await option.evaluate((row) => {
+    const checkbox = document.createElement("input")
+    checkbox.type = "checkbox"
+    checkbox.tabIndex = -1
+    checkbox.setAttribute("aria-label", "Include in delivery")
+    row.querySelector(".fiori-li__content")!.append(checkbox)
+  })
+
+  const context: AuditContext = { story: "data-list--listbox", theme, fixture: "html-context-listbox" }
+  const raw = await rawAudit(page, testInfo, "listbox-foreign-checkbox")
+  const { known, unexpected } = await classifyViolations(page, raw.violations, context)
+  expect(known.find((rule) => rule.id === "nested-interactive")?.nodes).toHaveLength(2)
+  expect(unexpected.find((rule) => rule.id === "nested-interactive")?.nodes.map((node) => node.target)).toEqual([
+    ['li[data-nav-key="apples"]'],
+  ])
 })
 
 test("ordinary section preserves explicit roles and opted-out page landmarks stay global", async ({ page }, testInfo) => {

@@ -8,6 +8,7 @@ export interface AuditContext {
   primary?: boolean
   control?: { prop: string; choice: unknown }
   yearMode?: boolean
+  fixture?: "html-context-listbox"
 }
 export const componentDefect = "component defect"
 
@@ -18,7 +19,10 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
     for (const node of violation.nodes) {
       // Resolve each raw axe selector to the actual owned node. Never suppress an
       // entire rule: a second node in the same violation remains unexpected.
-      const approved = await page.evaluate(({ target, rule, context }) => {
+      const relatedTargets = violation.id === "nested-interactive"
+        ? node.any.flatMap((check) => check.relatedNodes ?? []).map((related) => related.target)
+        : []
+      const approved = await page.evaluate(({ target, relatedTargets, rule, context }) => {
         if (!["sap_horizon", "sap_horizon_hcb"].includes(context.theme)
           || document.documentElement.dataset.theme !== context.theme
           || target.length !== 1 || typeof target[0] !== "string") return false
@@ -35,6 +39,22 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
         const unique = (selector: string, root: ParentNode = canvas) => {
           const nodes = root.querySelectorAll(selector)
           return nodes.length === 1 ? nodes[0] : null
+        }
+
+        if (context.fixture === "html-context-listbox" && context.story === "data-list--listbox"
+          && !context.primary && rule === "nested-interactive") {
+          // ListItemTemplate.js:selectionElement nests its Multiple-mode checkbox in the option.
+          const list = unique('[data-slot="list"][data-selection-mode="multiple"]')
+          const listbox = list ? unique('ul.fiori-list__ul[role="listbox"][aria-multiselectable="true"][aria-label="Products"]', list) : null
+          if (!listbox || actual.parentElement !== listbox || canvas.getAttribute("data-density") !== "compact"
+            || canvas.getAttribute("dir") !== "rtl"
+            || !actual.matches('li[data-slot="list-item"][data-mode="multiple"][role="option"]')) return false
+          const selection = unique(':scope > span[data-li-selection].fiori-li__selection[role="checkbox"][tabindex="-1"]', actual)
+          if (!selection || !visible(selection) || selection.getAttribute("aria-checked") !== actual.getAttribute("aria-selected")
+            || relatedTargets.length !== 1) return false
+          const [related] = relatedTargets
+          if (related.length !== 1 || typeof related[0] !== "string") return false
+          try { return unique(related[0], document) === selection } catch { return false }
         }
 
         // S4
@@ -388,7 +408,7 @@ export async function classifyViolations(page: Page, raw: Violations, context: A
             && options.length === expected.split("|").length && options.every((option) => option.hasAttribute("aria-selected"))
         }
         return false
-      }, { target: node.target, rule: violation.id, context })
+      }, { target: node.target, relatedTargets, rule: violation.id, context })
       ;(approved ? knownNodes : unexpectedNodes).push(node)
     }
     if (knownNodes.length) known.push({ ...violation, nodes: knownNodes })
