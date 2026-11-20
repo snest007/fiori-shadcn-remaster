@@ -23,5 +23,16 @@ const baseCase = fixtureSet.cases[2]
 export default {
   ...fixtureSet,
   cases: [...fixtureSet.cases, { id: "label-custom-host", props: { ...baseCase.props, customHost: true } }],
-  react: (props: typeof baseCase.props & { customHost?: boolean }) => props.customHost ? <div className="flex flex-col"><Label asChild htmlFor="label-custom-host-input" id="label-owned-label" required showColon><label data-custom-host="label" htmlFor="wrong-field" tabIndex={13}>{props.text}</label></Label><Input id="label-custom-host-input" required /></div> : fixtureSet.react(props),
+  react: (props: typeof baseCase.props & { customHost?: boolean }) => {
+    if (!props.customHost) return fixtureSet.react(props)
+    // Input.css.js sizes the ui5-input host with --_ui5_input_width.
+    return (
+      <div className="flex w-(--fiori-input-width) flex-col">
+        <Label asChild htmlFor="label-custom-host-input" id="label-owned-label" required showColon>
+          <label data-custom-host="label" htmlFor="wrong-field" tabIndex={13}>{props.text}</label>
+        </Label>
+        <Input id="label-custom-host-input" required />
+      </div>
+    )
+  },
 }
