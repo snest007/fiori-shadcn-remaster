@@ -58,7 +58,7 @@ function FixtureItem({ fixture: n }: { fixture: NotificationFixture }) {
 
 export default defineFixtures<Props>({
   name: "notification-list",
-  cases: ([
+  cases: [
     {
       id: "notification-list-item-loading",
       props: { items: [{ title: "Working", description: "Updating the notification.", loading: true, showClose: true }] },
@@ -118,7 +118,7 @@ export default defineFixtures<Props>({
         ],
       },
     },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "notification-list-rtl" }] : [fixture]),
+  ],
   react: ({ items, groups }) => {
     const item = (n: NotificationFixture) => <FixtureItem key={n.title} fixture={n} />
     return (

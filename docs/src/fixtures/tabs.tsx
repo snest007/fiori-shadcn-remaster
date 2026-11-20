@@ -47,7 +47,7 @@ const designs: TabDesign[] = ["positive", "negative", "critical", "neutral"]
 
 export default defineFixtures<Props>({
   name: "tabs",
-  cases: ([
+  cases: [
     { id: "tabs-overflow-custom-end", props: { selected: 9, width: "30rem", tabs: overflowTextTabs, customEnd: true } },
     { id: "tabs-overflow-custom-start-end", props: { selected: 5, width: "30rem", tabs: overflowTextTabs, overflowMode: "startAndEnd", customStart: true, customEnd: true } },
     { id: "tabs-overflow-custom-start-empty", props: { selected: 0, width: "30rem", tabs: overflowTextTabs, overflowMode: "startAndEnd", customStart: true, customEnd: true } },
@@ -74,7 +74,7 @@ export default defineFixtures<Props>({
       id: "tabs-mixed",
       props: { selected: 2, tabs: [{ icon: "inbox", count: "20" }, "|", { text: "Approved", count: "10", design: "positive" }, { text: "Rejected", count: "4", design: "negative" }, { text: "Open", count: "6" }] },
     },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "tabs-rtl" }] : [fixture]),
+  ],
   react: ({ tabs, selected, width = TABS_WIDTH, overflowMode, list, customStart, customEnd }) => {
     if (list) return <OverflowSurface tabs={tabs} />
     const value = (i: number) => `t${i}`

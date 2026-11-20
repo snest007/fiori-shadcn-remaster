@@ -48,6 +48,6 @@ export default defineFixtures<PickerFieldFixture>({
     ...fieldCases("date-picker", "Mar 12, 2024"),
     { id: "date-picker-popover", props: { value: "Mar 12, 2024", popover: true } },
     { id: "date-picker-popover-negative", props: { value: "Mar 12, 2024", popover: true, valueState: "negative" } },
-  ] satisfies import("../fixture-types").FixtureCase<PickerFieldFixture>[]).flatMap((fixture, index, fixtures) => index === 0 ? [fixture, { ...fixtures.find(c => !c.id.includes("-l10n-"))!, id: "date-picker-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  ] satisfies import("../fixture-types").FixtureCase<PickerFieldFixture>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
   react: (props) => props.locale ? <FioriLocaleProvider locale={props.locale} texts={props.locale === "de-DE" ? de : props.locale === "zh-CN" ? zh : ar}>{renderFixture(props)}</FioriLocaleProvider> : renderFixture(props),
 })

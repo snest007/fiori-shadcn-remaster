@@ -8,12 +8,12 @@ const states = ["negative", "critical", "positive", "information"] as const
 
 export default defineFixtures<Props>({
   name: "file-uploader",
-  cases: ([
+  cases: [
     { id: "file-uploader", props: {} },
     { id: "file-uploader-multiple", props: { multiple: true } },
     { id: "file-uploader-placeholder", props: { placeholder: "Choose a PDF" } },
     ...states.map((valueState) => ({ id: `file-uploader-${valueState}`, props: { valueState } })),
     { id: "file-uploader-disabled", props: { disabled: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "file-uploader-rtl" }] : [fixture]),
+  ],
   react: (p) => <FileUploader aria-label="Attachment" valueStateMessage={null} {...p} />,
 })

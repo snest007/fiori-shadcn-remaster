@@ -11,7 +11,7 @@ export const MS_LONG = "A longer message strip text that wraps onto a second lin
 
 export default defineFixtures<Props>({
   name: "message-strip",
-  cases: ([
+  cases: [
     ...designs.map((design) => ({ id: `message-strip-${design}`, props: { design } })),
     { id: "message-strip-no-icon", props: { design: "information", hideIcon: true } },
     { id: "message-strip-no-close", props: { design: "positive", hideClose: true } },
@@ -21,7 +21,7 @@ export default defineFixtures<Props>({
     ...[1, 4, 7, 10].map((scheme) => ({ id: `message-strip-set2-${scheme}`, props: { design: "color-set-2" as const, scheme } })),
     { id: "message-strip-set1-icon", props: { design: "color-set-1", scheme: 3, icon: true } },
     { id: "message-strip-set2-icon", props: { design: "color-set-2", scheme: 5, icon: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "message-strip-rtl" }] : [fixture]),
+  ],
   react: ({ design, scheme, hideIcon, hideClose, icon, long }) => (
     <div style={{ width: "20rem" }}>
       <MessageStrip

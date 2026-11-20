@@ -36,6 +36,6 @@ export default defineFixtures<Props>({
     ...states.map((valueState) => ({ id: `step-input-${valueState}`, props: { value: 5, valueState } })),
     { id: "step-input-disabled", props: { value: 5, disabled: true } },
     { id: "step-input-readonly", props: { value: 5, readOnly: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index, fixtures) => index === 0 ? [fixture, { ...fixtures.find(c => !c.id.includes("-l10n-"))!, id: "step-input-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
   react: (props) => props.locale ? <FioriLocaleProvider locale={props.locale} texts={props.locale === "de-DE" ? de : props.locale === "zh-CN" ? zh : ar}>{renderFixture(props)}</FioriLocaleProvider> : renderFixture(props),
 })

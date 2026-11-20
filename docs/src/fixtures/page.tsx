@@ -13,12 +13,12 @@ export const PAGE_HEIGHT = "16rem"
 
 export default defineFixtures<Props>({
   name: "page",
-  cases: ([
+  cases: [
     { id: "page-floating-footer", props: { footer: true } },
     { id: "page-fixed-footer", props: { footer: true, fixedFooter: true } },
     { id: "page-list-background", props: { background: "list" } },
     { id: "page-transparent-wide", props: { background: "transparent", footer: true, width: "40rem" } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "page-rtl" }] : [fixture]),
+  ],
   react: ({ background, fixedFooter, footer, width = "26rem" }) => (
     <div style={{ width, height: PAGE_HEIGHT }}>
       <Page

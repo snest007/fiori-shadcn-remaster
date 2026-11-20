@@ -608,7 +608,7 @@ export default defineFixtures<Props>({
       "reason": "React/DOM difference in tree: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
     }
   },
-  cases: ([
+  cases: [
     ...(["name", "name-ref", "description", "description-ref"] as const).flatMap((channel) => [false, true].map((rtl) => ({ id: `tree-a11y-${channel}${rtl ? "-rtl" : ""}`, props: { nodes: [{ text: "Documents" }], channel, rtl } }))),
     ...[false, true].flatMap((rtl) => [
       { id: `tree-a11y-item-name${rtl ? "-rtl" : ""}`, props: { nodes: [{ text: "Documents", accessibleName: "Document collection", hasPopup: "dialog" as const }], rtl } },
@@ -621,7 +621,7 @@ export default defineFixtures<Props>({
     { id: "tree-mode-single-start", props: { nodes: sample().map((n, i) => ({ ...n, selected: i === 2 })), mode: "singleStart" } },
     { id: "tree-mode-single", props: { nodes: sample(true).slice(0, 1).map((n) => ({ ...n, children: n.children!.slice(0, 1) })), mode: "single" } },
     { id: "tree-mode-delete", props: { nodes: sample().slice(1), mode: "delete" } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "tree-rtl" }] : [fixture]),
+  ],
   react: ({ nodes, mode, headerText, channel, rtl }) => {
     let n = 0
     const selected: string[] = []

@@ -12,10 +12,10 @@ type Props = { manage?: boolean; subtitle?: boolean; icons?: boolean }
 
 const fixtureSet = defineFixtures<Props>({
   name: "user-menu",
-  cases: ([
+  cases: [
     { id: "user-menu", props: { manage: true, subtitle: true, icons: true } },
     { id: "user-menu-plain", props: {} },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "user-menu-rtl" }] : [fixture]),
+  ],
   react: ({ manage, subtitle, icons }) => (
     <div className={inPlace}>
       <UserMenu

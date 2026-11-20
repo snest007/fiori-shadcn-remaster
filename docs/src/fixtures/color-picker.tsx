@@ -25,9 +25,9 @@ function PickerFixture({ simplified, invalid, hsl, alpha, palette, dialog }: { s
   </div>
   return <ColorPicker ref={ref} defaultValue={alpha ? "rgba(51, 102, 153, 0.5)" : "#336699"} simplified={simplified} />
 }
-export default defineFixtures<React.ComponentProps<typeof PickerFixture>>({
+export default defineFixtures({
   name: "color-picker",
-  cases: ([
+  cases: [
     { id: "color-picker", props: {} },
     { id: "color-picker-simplified", props: { simplified: true } },
     { id: "color-picker-invalid-hex", props: { invalid: true } },
@@ -35,6 +35,6 @@ export default defineFixtures<React.ComponentProps<typeof PickerFixture>>({
     { id: "color-picker-alpha", props: { alpha: true } },
     { id: "color-picker-palette-more", props: { palette: true } },
     { id: "color-picker-palette-dialog", props: { palette: true, dialog: true } },
-  ] satisfies import("../fixture-types").FixtureCase<React.ComponentProps<typeof PickerFixture>>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "color-picker-rtl" }] : [fixture]),
+  ],
   react: (props) => <PickerFixture {...props} />,
 })

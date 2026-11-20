@@ -3,7 +3,7 @@
 // Modified by petalo: ported to React. SPDX-License-Identifier: Apache-2.0
 
 import * as React from "react"
-import { useFioriTexts } from "@/lib/fiori-locale"
+import { useFioriLocale, useFioriTexts } from "@/lib/fiori-locale"
 
 import { cn } from "@/lib/utils"
 
@@ -73,6 +73,7 @@ function CardHeader({
   onKeyUp,
   ...props
 }: CardHeaderProps) {
+  const { hasProvider } = useFioriLocale()
   const texts = useFioriTexts(defaultHeaderTexts, defaultHeaderTextsKeys, textsProp)
   const id = React.useId()
   const [active, setActive] = React.useState(false)
@@ -121,7 +122,7 @@ function CardHeader({
         aria-roledescription={roleDescription ?? (interactive ? texts.interactiveHeader : texts.header)}
       >
         {avatar && (
-          <div className="fiori-card-header__avatar" aria-label={texts.avatar}>
+          <div className="fiori-card-header__avatar" aria-label={hasProvider || textsProp?.avatar !== undefined ? texts.avatar : undefined}>
             {avatar}
           </div>
         )}

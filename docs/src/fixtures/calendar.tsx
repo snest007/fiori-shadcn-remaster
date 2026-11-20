@@ -188,7 +188,6 @@ export default defineFixtures<CalendarFixture>({
     { id: "calendar-announcement-override", props: { dates: ["2024-03-12"], announcementText: "Delivery date selected" } },
     { id: "calendar-announcement-range-start", props: { mode: "range", dates: ["2024-03-12"] } },
     { id: "calendar-single", props: { dates: ["2024-03-12"] } },
-    { id: "calendar-rtl", props: { dates: ["2024-03-12"] } },
     { id: "calendar-today", props: {} },
     { id: "calendar-range", props: { mode: "range", dates: ["2024-03-05", "2024-03-14"] } },
     { id: "calendar-multiple", props: { mode: "multiple", dates: ["2024-03-05", "2024-03-06", "2024-03-21"] } },

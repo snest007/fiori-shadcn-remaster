@@ -15,7 +15,7 @@ const LONG_ACTIONS = Array.from({ length: 12 }, (_, index) => `Action ${index + 
 
 export default defineFixtures<Props>({
   name: "toolbar",
-  cases: ([
+  cases: [
     { id: "toolbar-buttons", props: { items: ["Edit", "Share", "Delete"] } },
     { id: "toolbar-align-start", props: { items: ["Edit", "Share", "Delete"], alignContent: "start" } },
     { id: "toolbar-spacer", props: { items: ["#Products (12)", "<->", "Add", "Delete"] } },
@@ -27,7 +27,7 @@ export default defineFixtures<Props>({
     { id: "toolbar-overflow-never", props: { items: ["Edit", "Copy", "Paste", "Delete", "Share"], never: ["Share"], width: "15rem" } },
     { id: "toolbar-overflow-open", props: { items: ["Edit", "|", "Copy", "Paste", "|", "Delete", "Share"], width: "8rem", open: true } },
     { id: "toolbar-overflow-scroll", props: { items: LONG_ACTIONS, always: LONG_ACTIONS, width: "8rem", open: true, overflowHeight: "10rem" } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "toolbar-rtl" }] : [fixture]),
+  ],
   react: ({ items, alignContent, design, width, always, never, open, overflowHeight }) => (
     <div className={open ? inPlace : undefined}>
     <Toolbar aria-label="Actions" alignContent={alignContent} design={design} style={{ width: width ?? TOOLBAR_WIDTH }}

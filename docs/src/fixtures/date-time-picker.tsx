@@ -44,7 +44,7 @@ const renderFixture: import("../fixture-types").FixtureSet<PickerFieldFixture>["
 
 export default defineFixtures<PickerFieldFixture>({
   name: "date-time-picker",
-  cases: ([...["de-DE", "zh-CN", "ar-EG"].map(locale => ({ id: `date-time-picker-l10n-${locale}`, props: { locale, value: "2024-03-12 15:25:40", pattern: "yyyy-MM-dd HH:mm:ss", popover: true } })), ...fieldCases("date-time-picker", DT_VALUE), { id: "date-time-picker-popover", props: { value: DT_VALUE, popover: true } }] satisfies import("../fixture-types").FixtureCase<PickerFieldFixture>[]).flatMap((fixture, index, fixtures) => index === 0 ? [fixture, { ...fixtures.find(c => !c.id.includes("-l10n-"))!, id: "date-time-picker-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  cases: ([...["de-DE", "zh-CN", "ar-EG"].map(locale => ({ id: `date-time-picker-l10n-${locale}`, props: { locale, value: "2024-03-12 15:25:40", pattern: "yyyy-MM-dd HH:mm:ss", popover: true } })), ...fieldCases("date-time-picker", DT_VALUE), { id: "date-time-picker-popover", props: { value: DT_VALUE, popover: true } }] satisfies import("../fixture-types").FixtureCase<PickerFieldFixture>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
   react: (props) => props.locale ? <FioriLocaleProvider locale={props.locale} texts={props.locale === "de-DE" ? de : props.locale === "zh-CN" ? zh : ar}>{renderFixture(props)}</FioriLocaleProvider> : renderFixture(props),
 })
 

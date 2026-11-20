@@ -45,6 +45,6 @@ export default defineFixtures<Props>({
     { id: "time-picker-popover", props: { value: TP_VALUE, popover: true } },
     { id: "time-picker-popover-critical", props: { value: TP_VALUE, popover: true, valueState: "critical" } },
     { id: "time-picker-clocks-24h", props: { clocks: "HH:mm" } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index, fixtures) => index === 0 ? [fixture, { ...fixtures.find(c => !c.id.includes("-l10n-"))!, id: "time-picker-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
   react: (props) => props.locale ? <FioriLocaleProvider locale={props.locale} texts={props.locale === "de-DE" ? de : props.locale === "zh-CN" ? zh : ar}>{renderFixture(props)}</FioriLocaleProvider> : renderFixture(props),
 })

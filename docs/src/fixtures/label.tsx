@@ -8,11 +8,11 @@ type Props = { text: string; required?: boolean; showColon?: boolean; customHost
 
 const fixtureSet = defineFixtures<Props>({
   name: "label",
-  cases: ([
+  cases: [
     { id: "label", props: { text: "Company name" } },
     { id: "label-required", props: { text: "Company name", required: true } },
     { id: "label-colon-required", props: { text: "Company name", required: true, showColon: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "label-rtl" }] : [fixture]),
+  ],
   react: ({ text, required, showColon }) => <Label required={required} showColon={showColon}>{text}</Label>,
 })
 

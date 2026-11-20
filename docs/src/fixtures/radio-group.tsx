@@ -8,7 +8,7 @@ const states = ["negative", "critical", "positive", "information"] as const
 
 export default defineFixtures<Props>({
   name: "radio-group",
-  cases: ([
+  cases: [
     { id: "radio-group", props: {} },
     { id: "radio-group-checked", props: { checked: true } },
     { id: "radio-group-text", props: { text: "Option A" }, interact: { selector: '[data-slot="radio-group-item"]', ui5Selector: "ui5-radio-button" } },
@@ -19,7 +19,7 @@ export default defineFixtures<Props>({
     { id: "radio-group-readonly-checked", props: { text: "Read only", readOnly: true, checked: true } },
     ...states.map((valueState) => ({ id: `radio-group-${valueState}`, props: { valueState, text: "Option" } })),
     ...states.map((valueState) => ({ id: `radio-group-${valueState}-checked`, props: { valueState, checked: true } })),
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "radio-group-rtl" }] : [fixture]),
+  ],
   // One radio per cell, wrapped in its own group (UI5's reference is a lone ui5-radio-button).
   react: ({ checked, text, disabled, readOnly, valueState }) => (
     <RadioGroup defaultValue={checked ? "a" : undefined} aria-label="Group">

@@ -23,12 +23,24 @@ type Props = {
 // Localized cases own their provider and filtering; shared fixture routing stays unchanged.
 const renderFixture: import("../fixture-types").FixtureSet<Props>["react"] = ({ range, value, tooltipFixture, ...p }) => (
     <div style={{ width: "20rem", ...(tooltipFixture ? { paddingBlockStart: "6rem" } : {}) }}>
-      {range ? <RangeSlider value={range} aria-label="Range" {...p} /> : <Slider value={value} aria-label="Value" {...p} />}
+      {range ? <RangeSlider value={range} aria-label={tooltipFixture ? undefined : "Range"} {...p} /> : <Slider value={value} aria-label="Value" {...p} />}
     </div>
   )
 
 export default defineFixtures<Props>({
   name: "slider",
+  a11yDiff: {
+    "slider-editable-range": {
+      "ignore": [
+        "/ours/ax/0/children/0/children/3",
+        "/ours/ax/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0/children/0/children/1",
+        "/ui5/ax/0/children/0/children/0/children/0",
+        "/ui5/ax/0/children/0/children/0"
+      ],
+      "reason": "RangeSliderTemplate.js and SliderScaleTemplate.js use a shadow scale and slot. Flatten only empty-named, state-free layout wrappers, retaining all slider nodes, shared F2 help text and ARIA relationships."
+    }
+  },
   cases: ([
     ...["de-DE", "zh-CN", "ar-EG"].map(locale => ({ id: `slider-l10n-${locale}`, props: { locale, value: 0.5, min: 0, max: 2, step: 0.1 } })),
     { id: "slider-0", props: { value: 0 } },
@@ -41,6 +53,6 @@ export default defineFixtures<Props>({
     { id: "slider-range", props: { range: [20, 70] } },
     { id: "slider-range-tickmarks", props: { range: [2, 6], min: 0, max: 10, showTickmarks: true, labelInterval: 5 } },
     { id: "slider-range-disabled", props: { range: [10, 50], disabled: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index, fixtures) => index === 0 ? [fixture, { ...fixtures.find(c => !c.id.includes("-l10n-"))!, id: "slider-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
   react: (props) => props.locale ? <FioriLocaleProvider locale={props.locale} texts={props.locale === "de-DE" ? de : props.locale === "zh-CN" ? zh : ar}>{renderFixture(props)}</FioriLocaleProvider> : renderFixture(props),
 })

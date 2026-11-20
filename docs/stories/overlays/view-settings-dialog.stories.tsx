@@ -114,4 +114,18 @@ export const CustomTexts: Story = { args: { open: true, texts: { title: "Product
 export const RTL: Story = { args: { open: true }, globals: { dir: "rtl" } }
 
 export const German: Story = { globals: { locale: "de" } }
-export const AnnouncementTexts: Story = { args: { texts: { resetAnnouncement: "Filters restored", filterItemLabel: (label, count) => `${label}: ${count} choices` } }, play: async ({ canvasElement }) => { await userEvent.click(within(canvasElement).getByRole("button", { name: "Open view settings" })); const dialog = await within(document.body).findByRole("dialog"); await expect(dialog).toBeVisible(); await expect(within(dialog).getByRole("listitem", { name: "Delivery: 1 choices" })).toBeVisible(); await userEvent.click(within(dialog).getByRole("button", { name: "Reset" })); await expect(within(dialog).getByRole("status")).toHaveTextContent("Filters restored") } }
+export const AnnouncementTexts: Story = {
+  args: {
+    resetEnabled: true,
+    texts: { resetAnnouncement: "Filters restored", filterItemLabel: (label, count) => `${label}: ${count} choices` },
+  },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Configure product view" }))
+    const dialog = within(await within(canvasElement.ownerDocument.body).findByRole("dialog"))
+    await userEvent.click(dialog.getByRole("option", { name: "Filter" }))
+    await expect(dialog.getByRole("listitem", { name: "Supplier: 1 choices" })).toBeVisible()
+    await userEvent.click(dialog.getByRole("button", { name: "Reset" }))
+    await expect(dialog.getByText("Filters restored").closest('[role="alert"]')).toBeInTheDocument()
+    await userEvent.click(dialog.getByRole("button", { name: "Cancel" }))
+  },
+}

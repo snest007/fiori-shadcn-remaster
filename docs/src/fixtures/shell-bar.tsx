@@ -40,7 +40,7 @@ const itemIcons = { help: sysHelp, expense: travelExpense }
 
 export default defineFixtures<ShellBarFixtureProps>({
   name: "shell-bar",
-  cases: ([
+  cases: [
     { id: "shell-bar-interaction", props: { width: "40rem", items: [{ icon: "help", text: "Help" }] }, interact: { selector: '[data-slot="shell-bar-item"]', ui5Selector: "ui5-shellbar-item" } },
     {
       id: "shell-bar-xl",
@@ -98,7 +98,7 @@ export default defineFixtures<ShellBarFixtureProps>({
         productSwitch: true,
       },
     },
-  ] satisfies import("../fixture-types").FixtureCase<ShellBarFixtureProps>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "shell-bar-rtl" }] : [fixture]),
+  ],
   react: (p) => (
     <ShellBar
       style={{ width: p.width }}

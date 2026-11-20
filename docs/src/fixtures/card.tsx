@@ -25,7 +25,7 @@ export const CARD_WIDTH = "20rem"
 
 export default defineFixtures<Props>({
   name: "card",
-  cases: ([
+  cases: [
     { id: "card-title", props: {} },
     { id: "card-subtitle", props: { subtitle: true } },
     { id: "card-status", props: { subtitle: true, status: true } },
@@ -36,7 +36,7 @@ export default defineFixtures<Props>({
     { id: "card-content", props: { subtitle: true, status: true, avatar: "icon", content: true } },
     { id: "card-no-header", props: { noHeader: true, content: true } },
     { id: "card-long-title", props: { long: true, subtitle: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "card-rtl" }] : [fixture]),
+  ],
   // Fixture cells carry an id-like accessibleName only so the many fixture landmarks on the docs page stay unique.
   react: (props) => {
     const { subtitle, status, avatar, action, interactive, content, noHeader, long } = props

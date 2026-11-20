@@ -242,7 +242,7 @@ export default defineFixtures<TableFixtureProps>({
       "reason": "React/DOM difference in table: these exact current-capture paths are unnamed, description-free, value-free generic wrappers with no properties. Unwrap only these wrappers and compare every descendant role, name, description, state and order."
     }
   },
-  cases: ([
+  cases: [
     { id: "table", props: {} },
     { id: "table-loading", props: { loading: true } },
     { id: "table-interactive", props: { interactive: true }, interact: { selector: '[data-slot="table-row"]', ui5Selector: "ui5-table-row" } },
@@ -260,7 +260,7 @@ export default defineFixtures<TableFixtureProps>({
     { id: "table-popin", props: { popin: true } },
     { id: "table-growing", props: { growing: true } },
     { id: "table-highlight", props: { highlight: true } },
-  ] satisfies import("../fixture-types").FixtureCase<TableFixtureProps>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "table-rtl" }] : [fixture]),
+  ],
   // ui5-table 2.28 has no row highlight (sap.m.Table's status bar); our highlight follows ui5-li's,
   // so there's nothing to compare it with. Checked by screenshot only.
   skipCompare: ["table-highlight"],

@@ -15,7 +15,7 @@ const states = ["negative", "critical", "positive", "information"] as const
 
 export default defineFixtures<Props>({
   name: "checkbox",
-  cases: ([
+  cases: [
     { id: "checkbox", props: {} },
     { id: "checkbox-checked", props: { checked: true } },
     { id: "checkbox-indeterminate", props: { checked: "indeterminate" } },
@@ -29,7 +29,7 @@ export default defineFixtures<Props>({
     ...states.map((valueState) => ({ id: `checkbox-${valueState}`, props: { valueState } })),
     ...states.map((valueState) => ({ id: `checkbox-${valueState}-checked`, props: { valueState, checked: true, text: "Option" } })),
     { id: "checkbox-critical-indeterminate", props: { valueState: "critical", checked: "indeterminate" } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "checkbox-rtl" }] : [fixture]),
+  ],
   react: ({ checked, text, disabled, readOnly, required, valueState }) => (
     <Checkbox
       defaultChecked={checked ?? false}

@@ -149,12 +149,10 @@ export default defineFixtures<Props>({
     { id: "select-a11y-groups", props: { options: ["Germany", "France", "China"], selected: "Germany", groups: [{ label: "Region 1", options: ["Germany", "France"] }, { label: "Region 2", options: ["China"] }] } },
     { id: "select-a11y-groups-rtl", props: { options: ["Germany", "France", "China"], selected: "Germany", groups: [{ label: "Region 1", options: ["Germany", "France"] }, { label: "Region 2", options: ["China"] }], rtl: true } },
     { id: "select", props: { options: ["Germany", "France", "China"], selected: "Germany" } },
-    { id: "select-grouped", props: grouped },
-    { id: "select-grouped-rtl", props: grouped },
     ...["de-DE", "zh-CN", "ar-EG"].map(locale => ({ id: `select-l10n-${locale}`, props: { ...grouped, locale } })),
     ...states.map((valueState) => ({ id: `select-${valueState}`, props: { options: ["Germany", "France"], selected: "Germany", valueState } })),
     { id: "select-disabled", props: { options: ["Germany", "France"], selected: "Germany", disabled: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture) => fixture.id === "select" ? [fixture, { ...fixture, id: "select-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
   react: ({ options, selected, valueState, disabled, groups, channel, rtl, locale }) => {
     const targetId = `select-a11y-${channel}${rtl ? "-rtl" : ""}-description-target`
     const attributes = {

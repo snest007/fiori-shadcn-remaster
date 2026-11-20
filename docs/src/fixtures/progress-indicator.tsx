@@ -10,7 +10,7 @@ const states = ["negative", "critical", "positive", "information"] as const
 // nothing to animate on first paint on either page.
 export default defineFixtures<Props>({
   name: "progress-indicator",
-  cases: ([
+  cases: [
     { id: "progress-indicator-0", props: { value: 0 } },
     { id: "progress-indicator-25", props: { value: 25 } },
     { id: "progress-indicator-75", props: { value: 75 } },
@@ -19,6 +19,6 @@ export default defineFixtures<Props>({
     { id: "progress-indicator-low-state", props: { value: 30, valueState: "negative" } },
     { id: "progress-indicator-hide-value", props: { value: 40, hideValue: true } },
     { id: "progress-indicator-display-value", props: { value: 80, displayValue: "8 of 10" } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "progress-indicator-rtl" }] : [fixture]),
+  ],
   react: (p) => <ProgressIndicator style={{ width: "15rem" }} aria-label="Progress" {...p} />,
 })

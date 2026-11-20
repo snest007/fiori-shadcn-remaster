@@ -237,7 +237,7 @@ export default defineFixtures<Props>({
     },
     { id: "segmented-button-multiple", props: { multiple: true, items: [{ text: "Bold", selected: true }, { text: "Italic", selected: true }, { text: "Underline" }] } },
     { id: "segmented-button-two", props: { items: [{ text: "On", selected: true }, { text: "Off" }] } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "segmented-button-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
   react: ({ items, multiple, custom, channel, itemChannel, composition, locale }) => {
     const targetId = `segmented-button-${itemChannel ? "item" : "root"}-${channel}`
     const attributes = {

@@ -208,25 +208,25 @@ test("closed Select Home and End change selection silently like UI5", async ({ b
   for (const native of [false, true]) {
     const page = await browser.newPage()
     try {
-      await page.goto(native ? "/ui5.html?only=select-grouped" : "/?fixtures&only=select-grouped")
+      await page.goto(native ? "/ui5.html?only=select-a11y-groups" : "/?fixtures&only=select-a11y-groups")
       await page.waitForSelector("html[data-ready=true]")
-      const cell = page.locator('[data-fixture="select-grouped"]')
+      const cell = page.locator('[data-fixture="select-a11y-groups"]')
       const trigger = cell.getByRole("combobox")
       await trigger.focus()
       await expect(trigger).toBeFocused()
       const message = page.locator(native ? ".ui5-invisiblemessage-polite" : '[data-slot="select-announcement"]')
-      for (const [key, value] of [["End", "Gamma"], ["Home", "Standalone"]]) {
+      for (const [key, value] of [["End", "China"], ["Home", "Germany"]]) {
         await trigger.press(key)
         await expect(trigger).toHaveText(value)
         if (native) await expect(message).toHaveText("")
         else await expect(message).toHaveCount(0)
       }
       await trigger.press("ArrowDown")
-      await expect(trigger).toHaveText("Alpha")
-      await expect(message).toHaveText(/Alpha/)
+      await expect(trigger).toHaveText("France")
+      await expect(message).toHaveText(/France/)
       await trigger.press("End")
-      await expect(trigger).toHaveText("Gamma")
-      await expect(message).toHaveText(/Alpha/) // silent keys preserve an earlier live message
+      await expect(trigger).toHaveText("China")
+      await expect(message).toHaveText(/France/) // silent keys preserve an earlier live message
     } finally { await page.close() }
   }
 })
@@ -235,7 +235,7 @@ for (const component of ["select", "segmented-button"]) test(`${component} live 
   for (const native of [false, true]) {
     const page = await browser.newPage()
     try {
-      const id = component === "select" ? "select-grouped" : component
+      const id = component === "select" ? "select-a11y-groups" : component
       await page.goto(native ? `/ui5.html?only=${id}` : `/?fixtures&only=${id}`)
       await page.waitForSelector("html[data-ready=true]")
       const cell = page.locator(`[data-fixture="${id}"]`)
@@ -255,16 +255,16 @@ for (const component of ["select", "segmented-button"]) test(`${component} live 
         }
       }
       await activate()
-      await expect(message).toHaveText(component === "select" ? /Alpha/ : "Selected")
+      await expect(message).toHaveText(component === "select" ? /France/ : "Selected")
       await page.clock.runFor(2000)
       await activate()
-      await expect(message).toHaveText(component === "select" ? /Beta/ : "Selected")
+      await expect(message).toHaveText(component === "select" ? /China/ : "Selected")
       await page.clock.runFor(1000)
       // InvisibleMessage's earlier timer clears identical repeated text but leaves
       // a different, newer Select announcement until its own 3000 ms deadline.
-      await expect(message).toHaveText(component === "select" ? /Beta/ : "")
+      await expect(message).toHaveText(component === "select" ? /China/ : "")
       await page.clock.runFor(1999)
-      await expect(message).toHaveText(component === "select" ? /Beta/ : "")
+      await expect(message).toHaveText(component === "select" ? /China/ : "")
       await page.clock.runFor(1)
       await expect(message).toHaveText("")
     } finally { await page.close() }
@@ -480,7 +480,7 @@ test("Tokenizer deletion announces singular, plural and component override texts
   await first.focus()
   await expect(first).toBeFocused()
   await first.press("Delete")
-  await expect(owner.getByRole("status")).toHaveText(de.TOKENIZER_TOKEN_DELETED_SINGULAR)
+  await expect(owner.getByRole("alert")).toHaveText(de.TOKENIZER_TOKEN_DELETED_SINGULAR)
   await expect(owner.getByRole("option")).toHaveCount(2)
   const next = owner.getByRole("option").first()
   await next.focus()
@@ -488,13 +488,13 @@ test("Tokenizer deletion announces singular, plural and component override texts
   await next.press("Control+a")
   await expect(owner.getByRole("option", { selected: true })).toHaveCount(2)
   await next.press("Delete")
-  await expect(owner.getByRole("status")).toHaveText(formatSapText(de.TOKENIZER_TOKEN_DELETED_PLURAL, [2]))
+  await expect(owner.getByRole("alert")).toHaveText(formatSapText(de.TOKENIZER_TOKEN_DELETED_PLURAL, [2]))
   const custom = page.locator("#i18n-token-deletion-override")
   await expect(custom.getByRole("listbox")).toHaveAccessibleName("Custom tokenizer")
   await custom.getByRole("option").focus()
   await expect(custom.getByRole("option")).toBeFocused()
   await custom.getByRole("option").press("Delete")
-  await expect(custom.getByRole("status")).toHaveText("Removed 1 selected tokens")
+  await expect(custom.getByRole("alert")).toHaveText("Removed 1 selected tokens")
 })
 
 test("Card, FileUploader and ViewSettingsDialog translate their actual channels and retain text overrides", async ({ page }) => {
@@ -518,12 +518,12 @@ test("Card, FileUploader and ViewSettingsDialog translate their actual channels 
   const dialog = page.getByRole("dialog", { name: de.VSD_DIALOG_TITLE_SORT, exact: true })
   await expect(dialog.getByRole("listitem")).toHaveAttribute("aria-label", formatSapText(de.VSD_FILTER_ITEM_LABEL_TEXT, ["Shipping", 1]))
   await dialog.getByRole("button", { name: de.VSD_RESET_BUTTON, exact: true }).click()
-  await expect(dialog.getByRole("status")).toHaveText(de.VSD_RESET_BUTTON_ACTION)
+  await expect(dialog.getByRole("alert")).toHaveText(de.VSD_RESET_BUTTON_ACTION)
   await dialog.getByRole("button", { name: de.VSD_CANCEL_BUTTON, exact: true }).click()
   await expect(dialog).toHaveCount(0)
   await owner.getByRole("button", { name: "Open custom view settings", exact: true }).click()
   await page.getByRole("dialog").getByRole("button", { name: de.VSD_RESET_BUTTON, exact: true }).click()
-  await expect(page.getByRole("dialog").getByRole("status")).toHaveText("Filters restored")
+  await expect(page.getByRole("dialog").getByRole("alert")).toHaveText("Filters restored")
 })
 
 test("editable RangeSlider open numeric tooltip matches its owning native fixture", async ({ browser }) => {
@@ -699,11 +699,11 @@ for (const locale of locales) {
 
 test("Calendar RTL arrows preserve the pinned native chronological day model", async ({ browser }) => {
   const results: Record<string, string[]> = {}
-  for (const [label, url] of [["react", "/index.html?dir=rtl&only=calendar-rtl&fixtures"], ["ui5", "/ui5.html?dir=rtl&only=calendar-rtl"]]) {
+  for (const [label, url] of [["react", "/index.html?dir=rtl&only=calendar-single&fixtures"], ["ui5", "/ui5.html?dir=rtl&only=calendar-single"]]) {
     const page = await browser.newPage()
     await page.goto(url)
     await page.waitForSelector("html[data-ready=true]")
-    const cell = page.locator('[data-fixture="calendar-rtl"] [role=gridcell][tabindex="0"]')
+    const cell = page.locator('[data-fixture="calendar-single"] [role=gridcell][tabindex="0"]')
     await cell.focus()
     await expect(cell).toBeFocused()
     const values = [await cell.innerText()]
@@ -722,14 +722,26 @@ test("Calendar RTL arrows preserve the pinned native chronological day model", a
   writeFileSync(`${e5Evidence}/oracles/calendar-rtl-keys.json`, JSON.stringify(results, null, 2))
 })
 
-async function rtlShots(page: Page, url: string) {
+async function rtlShots(page: Page, url: string, fixtureIds?: string[]) {
   await page.goto(url)
   await page.waitForSelector("html[data-ready=true]", { timeout: 30_000 })
+  await page.mouse.move(0, 0)
+  // Cells own their direction. Match visual.spec.ts's viewport origin for RTL screenshots.
   await page.evaluate(() => { document.documentElement.style.direction = "ltr" })
-  const cells = await page.locator('[data-fixture$="-rtl"]').evaluateAll(elements => elements.map(element => {
-    const r = element.getBoundingClientRect()
-    return { id: (element as HTMLElement).dataset.fixture!, x: Math.floor(r.left + scrollX), y: Math.floor(r.top + scrollY), w: Math.ceil(r.right + scrollX) - Math.floor(r.left + scrollX), h: Math.ceil(r.bottom + scrollY) - Math.floor(r.top + scrollY) }
-  }))
+  await expect(page.locator("[data-fixture]").first()).toHaveCSS("direction", "rtl")
+  const components = readdirSync("docs/src/fixtures").filter(file => file.endsWith(".ui5.ts"))
+    .map(file => file.slice(0, -7)).sort((a, b) => b.length - a.length)
+  const cells = await page.locator('[data-fixture]').evaluateAll((elements, { components, fixtureIds }) => {
+    const seen = new Set<string>()
+    return elements.flatMap(element => {
+      const id = (element as HTMLElement).dataset.fixture!
+      const component = components.find(name => id === name || id.startsWith(`${name}-`))
+      if (fixtureIds ? !fixtureIds.includes(id) : !component || seen.has(component)) return []
+      if (component) seen.add(component)
+      const r = element.getBoundingClientRect()
+      return [{ id, x: Math.floor(r.left + scrollX), y: Math.floor(r.top + scrollY), w: Math.ceil(r.right + scrollX) - Math.floor(r.left + scrollX), h: Math.ceil(r.bottom + scrollY) - Math.floor(r.top + scrollY) }]
+    })
+  }, { components, fixtureIds })
   const full = PNG.sync.read(await page.screenshot({ fullPage: true, animations: "disabled", caret: "hide" }))
   return new Map(cells.map(cell => {
     const shot = new PNG({ width: cell.w, height: cell.h })
@@ -738,11 +750,11 @@ async function rtlShots(page: Page, url: string) {
   }))
 }
 
-test("every explicit RTL component fixture matches its native UI5 cell", async ({ browser }) => {
+test("each component has a paired fixture in RTL", async ({ browser }) => {
   test.setTimeout(120_000)
   const a = await browser.newPage(), b = await browser.newPage()
-  const ours = await rtlShots(a, "/index.html?dir=rtl&fixtures")
   const ui5 = await rtlShots(b, "/ui5.html?dir=rtl")
+  const ours = await rtlShots(a, "/index.html?dir=rtl&fixtures", [...ui5.keys()])
   const evidence = `${e5Evidence}/rtl`
   mkdirSync(evidence, { recursive: true })
   const failures: string[] = [], report: Record<string, string | number> = {}

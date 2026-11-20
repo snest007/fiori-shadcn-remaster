@@ -209,7 +209,7 @@ test.describe("select: phone accessibility ownership", () => {
 
 for (const locale of ["en-US", "de-DE", "zh-CN", "ar-EG"]) {
   test(`Select role and grouped option-count descriptions match native (${locale})`, async ({ browser }) => {
-    const id = locale === "en-US" ? "select-grouped" : `select-l10n-${locale}`
+    const id = locale === "en-US" ? "select-a11y-groups" : `select-l10n-${locale}`
     const native = await browser.newPage()
     const ours = await browser.newPage()
     try {

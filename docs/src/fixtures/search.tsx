@@ -14,13 +14,13 @@ type Props = { value?: string; placeholder?: string; clear?: boolean; scopes?: b
 
 export default defineFixtures<Props>({
   name: "search",
-  cases: ([
+  cases: [
     { id: "search-placeholder", props: { placeholder: "Search" } },
     { id: "search-value", props: { value: "Laptop", clear: true } },
     { id: "search-scoped", props: { scopes: true } },
     { id: "search-shell-collapsed", props: { collapsed: true } },
     { id: "search-suggestions", props: { suggestions: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "search-rtl" }] : [fixture]),
+  ],
   react: ({ value, placeholder, clear, scopes, collapsed, suggestions }) => {
     if (collapsed) return <ShellBarSearch defaultCollapsed />
     if (suggestions) {

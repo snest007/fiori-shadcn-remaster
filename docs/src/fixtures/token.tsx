@@ -9,13 +9,13 @@ type Props = { selected?: boolean; readOnly?: boolean; disabled?: boolean }
 // ui5-tokenizer: readonly/disabled come from the tokenizer, and a lone token gets no end margin).
 export default defineFixtures<Props>({
   name: "token",
-  cases: ([
+  cases: [
     { id: "token", props: {} },
     { id: "token-selected", props: { selected: true } },
     { id: "token-readonly", props: { readOnly: true } },
     { id: "token-readonly-selected", props: { readOnly: true, selected: true } },
     { id: "token-disabled", props: { disabled: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "token-rtl" }] : [fixture]),
+  ],
   react: ({ selected, readOnly, disabled }) => (
     <Tokenizer readOnly={readOnly} disabled={disabled} aria-label="Token">
       <Token text="Andorra" defaultSelected={selected} />

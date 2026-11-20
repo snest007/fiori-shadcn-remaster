@@ -29,7 +29,7 @@ const sizes = ["XS", "S", "M", "L", "XL"] as const
 
 export default defineFixtures<Props>({
   name: "avatar",
-  cases: ([
+  cases: [
     ...sizes.map((size) => ({ id: `avatar-initials-${size.toLowerCase()}`, props: { size, initials: "JD" } })),
     ...sizes.map((size) => ({ id: `avatar-icon-${size.toLowerCase()}`, props: { size, icon: true } })),
     ...sizes.map((size) => ({ id: `avatar-square-${size.toLowerCase()}`, props: { size, shape: "square" as const, initials: "AB" } })),
@@ -57,7 +57,7 @@ export default defineFixtures<Props>({
     { id: "avatar-group-overflow-custom", props: { group: "individual", width: "9rem", customOverflow: true } },
     { id: "avatar-group-overflow-custom-fitting", props: { group: "individual", width: "15rem", customOverflow: true, count: 2 } },
     { id: "avatar-group-overflow-cap", props: { group: "individual", width: "6rem", count: 105 } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "avatar-rtl" }] : [fixture]),
+  ],
   react: ({ size, shape, scheme, initials, icon, image, interactive, disabled, group, width, customOverflow, count }) =>
     group ? (
       <AvatarGroup type={group} size={size} style={width ? { width } : undefined} aria-label={`Team ${group}`} overflowButton={customOverflow ? <Button>All</Button> : undefined}>

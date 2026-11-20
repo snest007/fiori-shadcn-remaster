@@ -195,4 +195,22 @@ export const CustomTexts: Story = { args: { open: true, texts: { search: "Find p
 export const RTL: Story = { args: { open: true }, globals: { dir: "rtl" } }
 
 export const German: Story = { globals: { locale: "de" } }
-export const CountedTitles: Story = { args: { texts: { itemsWithCount: count => `Rows ${count}`, searchAndSelectWithCount: count => `Selected ${count}`, defineConditionsWithCount: count => `Rules ${count}`, selectedItemsAndConditionsWithCount: count => `Total ${count}` } }, play: async ({ canvasElement }) => { await userEvent.click(within(canvasElement).getByRole("button", { name: "Open delivery choices" })); const dialog = await within(document.body).findByRole("dialog", { name: "Delivery choices" }); await expect(within(dialog).getByRole("grid")).toHaveAccessibleName("Rows 2"); await expect(within(dialog).getByRole("tab", { name: "Selected 1" })).toBeVisible(); await expect(within(dialog).getByRole("tab", { name: "Rules 1" })).toBeVisible(); await expect(within(dialog).getByRole("list", { name: "Total 2" })).toBeVisible() } }
+export const CountedTitles: Story = {
+  args: {
+    defaultValue: { keys: ["HT1000"], conditions: [{ operator: "StartsWith", values: ["HT"] }] },
+    texts: {
+      itemsWithCount: count => `Rows ${count}`,
+      searchAndSelectWithCount: count => `Selected ${count}`,
+      defineConditionsWithCount: count => `Rules ${count}`,
+      selectedItemsAndConditionsWithCount: count => `Total ${count}`,
+    },
+  },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole("button", { name: "Choose products" }))
+    const dialog = within(await within(canvasElement.ownerDocument.body).findByRole("dialog", { name: "Products" }))
+    await expect(dialog.getByRole("grid")).toHaveAccessibleName(`Rows ${products.length}`)
+    await expect(dialog.getByRole("tab", { name: "Selected 1" })).toBeVisible()
+    await expect(dialog.getByRole("tab", { name: "Rules 1" })).toBeVisible()
+    await expect(dialog.getByRole("list", { name: "Total 2" })).toBeVisible()
+  },
+}

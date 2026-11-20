@@ -38,7 +38,7 @@ export default defineFixtures<Props>({
     { id: "tag-interactive", props: { design: "negative", interactive: true } },
     { id: "tag-wrap", props: { design: "critical", text: "A long tag text that wraps", width: "6rem" } },
     { id: "tag-nowrap", props: { design: "critical", text: "A long tag text that truncates", width: "6rem", nowrap: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "tag-rtl" }] : [fixture]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
+  ] satisfies import("../fixture-types").FixtureCase<Props>[]).filter(fixture => !fixture.id.includes("-l10n-") || ("locale" in fixture.props && fixture.props.locale === readPageOptions().locale)),
   react: ({ design, scheme, hideStateIcon, icon, text, size, interactive, width, nowrap, locale }) => {
     const content = (
     <Tag

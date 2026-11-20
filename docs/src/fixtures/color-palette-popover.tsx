@@ -30,13 +30,13 @@ function PalettePopoverFixture({ recent, defaultButton, empty }: PalettePopoverF
 
 export default defineFixtures<PalettePopoverFixtureProps>({
   name: "color-palette-popover",
-  cases: ([
+  cases: [
     { id: "color-palette-popover", props: {} },
     { id: "color-palette-popover-default-recent", props: { recent: true, defaultButton: true } },
     { id: "color-palette-popover-empty", props: { empty: "empty" } },
     { id: "color-palette-popover-empty-value", props: { empty: "empty-value" } },
     { id: "color-palette-popover-hidden-only", props: { empty: "hidden" } },
     { id: "color-palette-popover-hidden-before-visible", props: { empty: "hidden-before-visible" } },
-  ] satisfies import("../fixture-types").FixtureCase<PalettePopoverFixtureProps>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "color-palette-popover-rtl" }] : [fixture]),
+  ],
   react: (props) => <PalettePopoverFixture {...props} />,
 })

@@ -516,7 +516,7 @@ function Tokenizer({
             {nMoreText(nMore, allHidden)}
           </span>
         )}
-        <span className="sr-only" role="status" aria-live="assertive" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>
+        {announcement.sequence > 0 && <span className="sr-only" role="alert" aria-live="assertive" aria-atomic="true"><span key={announcement.sequence}>{announcement.text}</span></span>}
       </div>
       <PopoverAnchor virtualRef={(popoverAnchor ?? rootRef) as React.RefObject<HTMLElement>} />
       <PopoverContent

@@ -8,11 +8,11 @@ export const LOREM =
 
 export default defineFixtures<Props>({
   name: "text",
-  cases: ([
+  cases: [
     { id: "text-default", props: {} },
     { id: "text-max-lines-1", props: { maxLines: 1 } },
     { id: "text-max-lines-2", props: { maxLines: 2 } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "text-rtl" }] : [fixture]),
+  ],
   react: ({ maxLines }) => (
     <Text maxLines={maxLines} style={{ width: "14rem" }}>
       {LOREM}

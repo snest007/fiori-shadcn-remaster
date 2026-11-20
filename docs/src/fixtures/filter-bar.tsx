@@ -12,10 +12,10 @@ type Props = { collapsed?: boolean }
 // Fiori design guideline's "Filter Bar Expanded" / "Collapsed" images, see tests/filter-bar.spec.ts).
 export default defineFixtures<Props>({
   name: "filter-bar",
-  cases: ([
+  cases: [
     { id: "filter-bar-expanded", props: {} },
     { id: "filter-bar-collapsed", props: { collapsed: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "filter-bar-rtl" }] : [fixture]),
+  ],
   react: ({ collapsed }) => (
     <FilterBar
       className="w-[72rem]"

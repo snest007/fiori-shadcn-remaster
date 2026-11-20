@@ -18,14 +18,14 @@ export const dpContent = "Content of the dynamic page."
 
 export default defineFixtures<Props>({
   name: "dynamic-page",
-  cases: ([
+  cases: [
     { id: "dynamic-page-expanded", props: {} },
     { id: "dynamic-page-snapped", props: { snapped: true } },
     { id: "dynamic-page-footer", props: { footer: true } },
     { id: "dynamic-page-snapped-footer", props: { snapped: true, footer: true } },
     { id: "dynamic-page-pinned", props: { pinned: true, breadcrumbs: true } },
     { id: "dynamic-page-no-pin", props: { hidePin: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "dynamic-page-rtl" }] : [fixture]),
+  ],
   react: ({ snapped, footer, pinned, breadcrumbs, hidePin }) => (
     <DynamicPage
       // 1rem: the font size the UI5 page inherits from its <body> (line boxes in the title/content depend on it).

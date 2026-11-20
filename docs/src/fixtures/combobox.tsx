@@ -19,7 +19,6 @@ export default defineFixtures<Props>({
     { id: "combobox-announcement-groups", props: { announcement: true } },
     { id: "combobox-announcement-overrides", props: { announcement: true, customTexts: true } },
     { id: "combobox-empty", props: { placeholder: "Choose a country" } },
-    { id: "combobox-rtl", props: { placeholder: "Choose a country" } },
     { id: "combobox-value", props: { value: "Germany" } },
     ...states.map((valueState) => ({ id: `combobox-${valueState}`, props: { value: "Germany", valueState } })),
     { id: "combobox-disabled", props: { value: "Germany", disabled: true } },

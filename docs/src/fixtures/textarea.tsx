@@ -21,7 +21,7 @@ const lines = (n: number) => Array.from({ length: n }, (_, i) => `Line ${i + 1}`
 
 export default defineFixtures<Props>({
   name: "textarea",
-  cases: ([
+  cases: [
     { id: "textarea-empty", props: { placeholder: "Enter a description" } },
     { id: "textarea-value", props: { value: "SAP SE" } },
     ...states.map((valueState) => ({ id: `textarea-${valueState}`, props: { value: "SAP SE", valueState } })),
@@ -38,7 +38,7 @@ export default defineFixtures<Props>({
     { id: "textarea-counter-critical", props: { value: "SAP SE", maxLength: 20, counter: true, valueState: "critical" } },
     { id: "textarea-counter-negative-application", props: { value: "SAP SE", maxLength: 20, counter: true, valueState: "negative", applicationSurface: true } },
     { id: "textarea-counter-critical-application", props: { value: "SAP SE", maxLength: 20, counter: true, valueState: "critical", applicationSurface: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "textarea-rtl" }] : [fixture]),
+  ],
   react: ({ value, counter, applicationSurface, ...p }) => (
     <div style={applicationSurface ? { backgroundColor: "var(--sapBackgroundColor)" } : undefined}>
     <TextArea

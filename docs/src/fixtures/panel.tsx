@@ -13,14 +13,14 @@ export const PANEL_WIDTH = "20rem"
 
 export default defineFixtures<Props>({
   name: "panel",
-  cases: ([
+  cases: [
     { id: "panel-expanded", props: {}, interact: { selector: '.fiori-panel__header', ui5Selector: ".ui5-panel-header" } },
     { id: "panel-collapsed", props: { collapsed: true } },
     { id: "panel-fixed", props: { fixed: true } },
     { id: "panel-long-header", props: { long: true, collapsed: true } },
     { id: "panel-custom-header", props: { custom: true } },
     { id: "panel-custom-header-collapsed", props: { custom: true, collapsed: true } },
-  ] satisfies import("../fixture-types").FixtureCase<Props>[]).flatMap((fixture, index) => index === 0 ? [fixture, { ...fixture, id: "panel-rtl" }] : [fixture]),
+  ],
   react: (props) => {
     const { collapsed, fixed, custom, long } = props
     return (

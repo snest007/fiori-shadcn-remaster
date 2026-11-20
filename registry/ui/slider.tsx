@@ -140,9 +140,9 @@ function Scale({
   )
 }
 
-type HandleProps = React.ComponentProps<"div"> & { position: number; active?: boolean; tooltip?: string; showTooltip?: boolean; editableTooltip?: boolean; onTooltipCommit?: (value: number) => boolean | void; locale?: string; tooltipInputLabel?: string; tooltipInputDescription?: string }
+type HandleProps = React.ComponentProps<"div"> & { position: number; active?: boolean; tooltip?: string; showTooltip?: boolean; editableTooltip?: boolean; onTooltipCommit?: (value: number) => boolean | void; locale?: string; tooltipInputLabel?: string; tooltipInputDescription?: string; sharedTooltipDescriptionId?: string }
 
-function Handle({ position, active, tooltip, showTooltip, editableTooltip, onTooltipCommit, locale: localeProp, tooltipInputLabel, tooltipInputDescription, className, onKeyDown, ref: externalRef, ...props }: HandleProps) {
+function Handle({ position, active, tooltip, showTooltip, editableTooltip, onTooltipCommit, locale: localeProp, tooltipInputLabel, tooltipInputDescription, sharedTooltipDescriptionId, className, onKeyDown, ref: externalRef, ...props }: HandleProps) {
   const { locale, t, localized } = useFioriLocale(localeProp)
   const [editing, setEditing] = React.useState(false)
   const [draft, setDraft] = React.useState(tooltip ?? "")
@@ -188,14 +188,14 @@ function Handle({ position, active, tooltip, showTooltip, editableTooltip, onToo
         if (event.key === "F2" && editableTooltip) { event.preventDefault(); setDraft(tooltip ?? ""); setInvalid(false); setEditing(true); return }
         onKeyDown?.(event)
       }}
-      aria-describedby={[props["aria-describedby"], editableTooltip ? descriptionId : undefined].filter(Boolean).join(" ") || undefined}
+      aria-describedby={[props["aria-describedby"], editableTooltip ? sharedTooltipDescriptionId ?? descriptionId : undefined].filter(Boolean).join(" ") || undefined}
     >
       <Icon icon={directionArrows} className="fiori-slider__handle-icon" />
       {!editableTooltip && showTooltip && <span className="fiori-slider__tooltip" aria-hidden>{tooltip}</span>}
     </div>
     {editableTooltip && <>
       {/* SliderTemplate/RangeSliderTemplate own the description beside the handles; the input is a sibling, never inside role=slider. */}
-      <span id={descriptionId} className="sr-only">{tooltipInputDescription ?? t("SLIDER_TOOLTIP_INPUT_DESCRIPTION", "Press F2 to enter a value")}</span>
+      {!sharedTooltipDescriptionId && <span id={descriptionId} className="sr-only">{tooltipInputDescription ?? t("SLIDER_TOOLTIP_INPUT_DESCRIPTION", "Press F2 to enter a value")}</span>}
       {/* SliderTooltipTemplate.js uses Input type=Number (spinbutton). Localized text editing preserves that numeric role while accepting non-Latin digits and decimal separators. */}
       <span className="fiori-slider__tooltip fiori-slider__tooltip--editable" data-editing={editing ? "" : undefined} data-handle-tooltip={props["data-handle" as keyof typeof props] as string | undefined} style={{ insetInlineStart: `clamp(0%, ${position}%, 100%)` }} onPointerDown={event => event.stopPropagation()}>
         <Input ref={input} type={localized ? "text" : "number"} step={localized ? undefined : "any"} role={localized ? "spinbutton" : undefined} aria-valuenow={localized ? Number.isFinite(accessibleValue) ? accessibleValue : 0 : undefined} aria-valuetext={localized && !Number.isFinite(numericDraft) ? displayedValue : undefined} value={displayedValue} tabIndex={-1} aria-label={tooltipInputLabel ?? t("SLIDER_TOOLTIP_INPUT_LABEL", "Current Value")} valueState={invalid ? "negative" : "none"} onFocus={() => { if (!editing) { setDraft(tooltip ?? ""); setInvalid(false); setEditing(true) } }} onChange={(event) => { setDraft(event.target.value); setInvalid(false) }} onBlur={() => {
@@ -434,6 +434,7 @@ function RangeSlider({
   const { locale, localized } = useFioriLocale(localeProp)
   const resolvedTexts = useFioriTexts(defaultSliderTexts, defaultSliderTextsKeys, texts, localeProp)
   const tooltipInputLabel = tooltipInputLabelProp ?? resolvedTexts.tooltipInputLabel
+  const tooltipDescriptionId = React.useId()
   const tooltipInputDescription = tooltipInputDescriptionProp ?? resolvedTexts.tooltipInputDescription
   const rangeDescription = rangeDescriptionProp ?? resolvedTexts.rangeDescription
   const startHandleDescription = startHandleDescriptionProp ?? resolvedTexts.startHandleDescription // UI5 RANGE_SLIDER_START_HANDLE_DESCRIPTION
@@ -441,6 +442,22 @@ function RangeSlider({
 
   const [value, setValue, valueRef] = useControllable<[number, number]>(valueProp, defaultValue, onValueChange)
   const [scaleRef, width] = useWidth<HTMLDivElement>()
+  const [editableRtl, setEditableRtl] = React.useState(false)
+  React.useLayoutEffect(() => {
+    const scale = scaleRef.current
+    if (!editableTooltip || !scale) return
+    const update = () => setEditableRtl(isRtl(scale))
+    update()
+    const observer = new MutationObserver(update)
+    for (let ancestor: HTMLElement | null = scale; ancestor; ancestor = ancestor.parentElement) {
+      observer.observe(ancestor, { attributes: true, attributeFilter: ["dir", "style", "class"] })
+    }
+    return () => observer.disconnect()
+  }, [editableTooltip, scaleRef])
+  // RangeSlider.js/_ariaHandlesText swaps the endpoint names in RTL.
+  const reversedHandleNames = editableTooltip && editableRtl
+  const startName = reversedHandleNames ? endHandleDescription : startHandleDescription
+  const endName = reversedHandleNames ? startHandleDescription : endHandleDescription
   const startRef = React.useRef<HTMLDivElement>(null)
   const endRef = React.useRef<HTMLDivElement>(null)
   const progressRef = React.useRef<HTMLDivElement>(null)
@@ -601,7 +618,7 @@ function RangeSlider({
               locale={localized ? locale : undefined}
               editableTooltip={editableTooltip}
               tooltipInputLabel={tooltipInputLabel}
-              tooltipInputDescription={tooltipInputDescription}
+              sharedTooltipDescriptionId={tooltipDescriptionId}
               onTooltipCommit={(next) => {
                 const nextHandle = setEnd(i, next, false)
                 onValueCommit?.(valueRef.current)
@@ -615,7 +632,7 @@ function RangeSlider({
               aria-valuemin={min}
               aria-valuemax={max}
               aria-valuenow={i === 0 ? s : e}
-              aria-label={name(i === 0 ? startHandleDescription : endHandleDescription)}
+              aria-label={name(i === 0 ? startName : endName)}
               aria-disabled={disabled || undefined}
               onFocus={onFocus}
               onBlur={onBlur}
@@ -623,6 +640,8 @@ function RangeSlider({
               onKeyUp={commit}
             />
           ))}
+          {/* RangeSliderTemplate.js shares a single F2 hint after the two handles. */}
+          {editableTooltip && <span id={tooltipDescriptionId} className="sr-only">{tooltipInputDescription}</span>}
         </Scale>
       </div>
     </div>
