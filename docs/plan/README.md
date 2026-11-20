@@ -9,7 +9,7 @@ Read [`/AGENTS.md`](../../AGENTS.md) first.
 | Wave | Done | Open | Next |
 |---|---|---|---|
 | A–D, F, G (features, platform, personalization, usage guidance) | all | — | — |
-| E (quality infrastructure) | E1–E3, E6, E7 | E4, E5 (returned 2026-11-18 on branches `codex/E4`, `codex/E5`), E8 | **E8** next; then E4/E5 |
+| E (quality infrastructure) | E1–E3, E6, E7, E8 | E4, E5 (returned 2026-11-18 on branches `codex/E4`, `codex/E5`) | E4/E5 |
 | S (Storybook) | S0–S4, S4b, SX | S5 | S5 (any time) |
 | P (a11y/l10n parity) | — | P1–P6, P2a | after E4 + E5 |
 | X (extension rollout) | X0 (design) | X1–X40 (cards written per group) | after each group's P card |
@@ -119,7 +119,7 @@ F1 and F2 can run in parallel after F0.
 - [ ] [E5 Localization parity — provider, numbers, packs, ratchet, named defects](tasks/E5-l10n-parity.md) — L (fourth attempt returned 2026-11-18: repairs and the i18n ratchet are done on `codex/E5`; acceptance failed on `visual-phone` readiness timeouts and docs-page axe timeouts under load — see the branch's `docs/plan/returns/E5.md`. Owner to decide the next step. Parallel to E4; before waves P and H)
 - [x] [E6 Fast, bounded verification: CI shards, inner test loop, compact output, round budget](tasks/done/E6-verification-budget.md) — M (done 2026-11-18: CI ≈10 min, verification budget in AGENTS.md — [E6 note](returns/done/E6.md))
 - [x] [E7 CI back under 12 minutes: Playwright container or cached system packages, time-based shards, timing warning](tasks/done/E7-ci-speed.md) — S (done 2026-11-19: Playwright container, time-based shards, timing warning; CI ≈11 min)
-- [ ] [E8 Tiered verification: per-card tests in minutes, full suites at milestones](tasks/E8-tiered-verification.md) — S (owner's decision 2026-11-20; run next, before further cards, so they inherit the tiers)
+- [x] [E8 Tiered verification: per-card tests in minutes, full suites at milestones](tasks/E8-tiered-verification.md) — S (owner's decision 2026-11-20; tiered verification implemented)
 
 ## Wave G — usage guidance for coding agents ("use X when / don't use X when / use Y instead")
 
